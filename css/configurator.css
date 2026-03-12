@@ -27,7 +27,7 @@
   grid-template-rows: auto auto;
   grid-template-areas:
     "sidebar preview spec"
-    "sidebar options spec";
+    "infobox options spec";
   gap: 0;
   min-height: 80vh;
   border: 1px solid var(--border-color);
@@ -177,6 +177,42 @@
   background: var(--white);
 }
 
+/* CONTEXT INFO PANEL */
+.config-info-panel {
+  grid-area: infobox;
+  background: var(--primary-color);
+  padding: 0;
+  border-right: 1px solid rgba(158,158,144,.15);
+  overflow-y: auto;
+}
+.info-panel-content {
+  padding: 14px 16px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,.6);
+  line-height: 1.5;
+}
+.info-panel-content:empty {
+  padding: 0;
+}
+.info-panel-content .info-title {
+  font-size: 0.55rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.25);
+  margin-bottom: 8px;
+}
+.info-panel-content .info-highlight {
+  color: rgba(255,255,255,.85);
+  font-weight: 400;
+}
+.info-panel-content .info-note {
+  font-size: 0.65rem;
+  color: rgba(158,158,144,.6);
+  font-style: italic;
+  margin-top: 6px;
+}
+
 /* PRICE SUMMARY */
 .price-summary {
   display: none !important;
@@ -271,6 +307,7 @@
     grid-template-areas:
       "preview"
       "sidebar"
+      "infobox"
       "options"
       "spec" !important;
   }
