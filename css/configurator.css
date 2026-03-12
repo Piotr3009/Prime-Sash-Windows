@@ -2214,7 +2214,7 @@ body {
 .btn,
 .btn-secondary {
   font-family: 'Jost', sans-serif !important;
-  font-size: 0.6rem !important;
+  font-size: 0.8rem !important;
   font-weight: 300 !important;
   letter-spacing: 0.4em !important;
   text-transform: uppercase !important;
@@ -2261,7 +2261,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 1px;
+  height: 2px;
   background: linear-gradient(to right,
     transparent 0%, #707068 15%, #B8B8AE 40%,
     #D4D4C8 50%, #B8B8AE 60%, #707068 85%, transparent 100%);
@@ -2275,7 +2275,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 1px;
+  height: 2px;
   background: linear-gradient(to right,
     transparent 0%, #707068 15%, #B8B8AE 40%,
     #D4D4C8 50%, #B8B8AE 60%, #707068 85%, transparent 100%);
