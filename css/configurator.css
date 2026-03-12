@@ -23,7 +23,7 @@
 /* Grid: sidebar | center | spec */
 .configurator-grid {
   display: grid !important;
-  grid-template-columns: 160px 1fr 280px;
+  grid-template-columns: 240px 1fr 380px;
   grid-template-rows: auto auto;
   grid-template-areas:
     "sidebar preview spec"
@@ -2147,6 +2147,7 @@ body {
 .price-summary .total-price {
   font-family: 'Jost', sans-serif !important;
 }
+
 
 /* OPTIONS - 2 COLUMNS */
 .configurator-options {
