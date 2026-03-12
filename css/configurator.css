@@ -1,16 +1,12 @@
-/* configurator-optimized.css - Zoptymalizowane style */
-
-/* ============================================================
-   NEW CENTERED LAYOUT
-   ============================================================ */
+/* configurator-optimized.css - Prime Sash Windows */
 
 /* Variables */
 :root {
   --primary-color: #0A1628;
   --secondary-color: #9E9E90;
-  --text-color: #181818;
+  --text-color: #FAFAF8;
   --light-gray: #F3F0EA;
-  --border-color: #ddd;
+  --border-color: rgba(158,158,144,.3);
   --success-color: #0A1628;
   --white: #fff;
   --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
@@ -20,137 +16,158 @@
   --transition: all 0.3s;
 }
 
-/* Grid: sidebar | center | spec */
+/* ============================================================
+   DARK CENTERED LAYOUT - Imperial Style
+   ============================================================ */
+
+/* FULL DARK THEME */
+body {
+  font-family: 'Jost', sans-serif !important;
+  background: #0A1628 !important;
+  color: rgba(255,255,255,.85) !important;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Jost', sans-serif !important;
+  color: rgba(255,255,255,.9) !important;
+}
+.header { display: none !important; }
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 !important;
+}
+
+/* GRID: sidebar | main area (preview + tabs + options) | spec */
 .configurator-grid {
   display: grid !important;
-  grid-template-columns: 160px 1fr 280px;
-  grid-template-rows: auto auto;
+  grid-template-columns: 150px 1fr 240px;
   grid-template-areas:
     "sidebar preview spec"
+    "sidebar tabs spec"
     "sidebar options spec";
   gap: 0;
-  min-height: 80vh;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  min-height: calc(100vh - 82px);
+  background: #0A1628;
 }
 
 /* SIDEBAR */
 .config-sidebar {
   grid-area: sidebar;
-  background: var(--primary-color);
-  padding: 20px 0;
+  background: rgba(0,0,0,.2);
+  padding: 16px 0;
   display: flex;
   flex-direction: column;
+  border-right: 1px solid rgba(158,158,144,.15);
 }
 .sidebar-label {
   font-family: 'Jost', sans-serif;
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(255,255,255,.3);
-  padding: 0 16px;
-  margin-bottom: 12px;
+  color: rgba(255,255,255,.2);
+  padding: 0 14px;
+  margin-bottom: 10px;
 }
 .cat-btn {
   display: block;
   width: 100%;
   text-align: left;
-  padding: 12px 16px;
+  padding: 10px 14px;
   background: transparent;
   border: none;
   border-left: 2px solid transparent;
-  color: rgba(255,255,255,.5);
+  color: rgba(255,255,255,.4);
   font-family: 'Jost', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 400;
+  font-size: 0.75rem;
+  font-weight: 300;
   cursor: pointer;
   transition: all 0.3s;
 }
 .cat-btn:hover {
-  background: rgba(255,255,255,.05);
-  color: rgba(255,255,255,.8);
+  background: rgba(255,255,255,.03);
+  color: rgba(255,255,255,.7);
 }
 .cat-btn.active {
-  background: rgba(255,255,255,.08);
-  border-left-color: var(--secondary-color);
-  color: rgba(255,255,255,.95);
+  background: rgba(255,255,255,.05);
+  border-left-color: #9E9E90;
+  color: rgba(255,255,255,.9);
 }
 .cat-hint {
   display: block;
-  font-size: 0.6rem;
-  color: rgba(255,255,255,.25);
+  font-size: 0.55rem;
+  color: rgba(255,255,255,.15);
   margin-top: 2px;
 }
 .cat-btn.active .cat-hint {
-  color: rgba(255,255,255,.4);
+  color: rgba(255,255,255,.3);
 }
 .sidebar-price {
   margin-top: auto;
-  padding: 16px;
-  border-top: 1px solid rgba(255,255,255,.08);
+  padding: 14px;
+  border-top: 1px solid rgba(158,158,144,.1);
 }
 .sidebar-price-label {
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: rgba(255,255,255,.3);
+  color: rgba(255,255,255,.2);
 }
 .sidebar-price-value {
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: rgba(255,255,255,.95);
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: rgba(255,255,255,.9);
   margin-top: 4px;
+  font-family: 'Jost', sans-serif;
 }
 .sidebar-price-note {
-  font-size: 0.6rem;
-  color: rgba(255,255,255,.25);
+  font-size: 0.55rem;
+  color: rgba(255,255,255,.2);
   margin-top: 2px;
 }
 
-/* PREVIEW - center top */
+/* PREVIEW */
 .configurator-preview {
   grid-area: preview;
   flex: none !important;
   position: relative !important;
-  background: var(--light-gray);
+  background: rgba(255,255,255,.03);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 30px 20px 20px;
-  border-bottom: 2px solid var(--secondary-color);
-  min-height: 400px;
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid rgba(158,158,144,.15);
+  min-height: 380px;
 }
 
 /* VIEW TOGGLE */
 .view-toggle {
   display: flex;
-  gap: 4px;
-  margin-bottom: 16px;
-  background: rgba(10,22,40,.06);
+  gap: 2px;
+  margin-bottom: 14px;
+  background: rgba(255,255,255,.05);
   border-radius: 20px;
   padding: 3px;
 }
 .view-btn {
-  padding: 6px 18px;
+  padding: 5px 16px;
   border: none;
   background: transparent;
   font-family: 'Jost', sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: var(--secondary-color);
+  color: rgba(255,255,255,.3);
   cursor: pointer;
   border-radius: 18px;
   transition: all 0.3s;
 }
 .view-btn.active {
-  background: var(--primary-color);
-  color: rgba(255,255,255,.9);
+  background: rgba(158,158,144,.2);
+  color: rgba(255,255,255,.85);
 }
 
-/* WINDOW VISUALIZATION */
+/* WINDOW */
 .svg-window-visualization {
   display: flex;
   justify-content: center;
@@ -158,42 +175,29 @@
   gap: 0;
   padding: 0;
   margin: 0;
-  flex-wrap: nowrap;
   width: auto;
 }
 .svg-window-visualization .view {
-  width: 280px;
+  width: 260px;
   text-align: center;
 }
 .svg-window-visualization .view h3 { display: none; }
-
 .window-container {
-  width: 280px;
-  height: 420px;
+  width: 260px;
+  height: 380px;
   margin: 0 auto;
-  border: 2px solid var(--secondary-color) !important;
+  border: 1px solid rgba(158,158,144,.3) !important;
   box-shadow: none !important;
   border-radius: 4px;
-  background: var(--white);
+  background: rgba(255,255,255,.95);
 }
 
-/* PRICE SUMMARY */
+/* PRICE - HIDDEN (shown in sidebar) */
 .price-summary {
   display: none !important;
 }
-.price-summary h3 {
-  color: rgba(255,255,255,.5) !important;
-  font-size: 0.7rem !important;
-  letter-spacing: 1px;
-  font-family: 'Jost', sans-serif !important;
-  font-weight: 400;
-}
-.total-price {
-  color: rgba(255,255,255,.95) !important;
-  font-size: 1.4rem !important;
-}
 
-/* OPTIONS - center bottom */
+/* OPTIONS */
 .configurator-options {
   grid-area: options;
   flex: none !important;
@@ -201,67 +205,155 @@
   margin: 0 !important;
   padding: 12px 16px !important;
   border-right: none !important;
-  background: var(--white);
+  background: transparent;
   overflow-y: auto;
   max-height: none;
 }
 
-/* CONFIG SECTIONS - COMPACT */
+/* CONFIG SECTIONS - DARK COMPACT */
 .config-section {
-  margin-bottom: 8px !important;
+  margin-bottom: 6px !important;
   padding: 10px 14px !important;
-  border-left: 2px solid var(--secondary-color) !important;
-  background: var(--light-gray) !important;
+  border-left: 1px solid rgba(158,158,144,.2) !important;
+  background: rgba(255,255,255,.03) !important;
   box-shadow: none !important;
   border-radius: 0 var(--radius) var(--radius) 0 !important;
 }
 .config-section:hover {
   box-shadow: none !important;
+  background: rgba(255,255,255,.05) !important;
 }
 .config-section h3 {
   font-family: 'Jost', sans-serif !important;
-  font-size: 0.65rem !important;
+  font-size: 0.6rem !important;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--secondary-color) !important;
+  color: rgba(158,158,144,.6) !important;
   border-bottom: none !important;
   margin-bottom: 8px !important;
   padding-bottom: 0 !important;
-  font-weight: 400;
+  font-weight: 300;
 }
 
-/* SPECIFICATION - right panel */
+/* FORM ELEMENTS - DARK */
+.input-group {
+  margin-bottom: 6px !important;
+}
+.input-group label {
+  font-family: 'Jost', sans-serif !important;
+  font-size: 0.7rem !important;
+  font-weight: 300 !important;
+  color: rgba(255,255,255,.5) !important;
+  margin-bottom: 3px !important;
+  letter-spacing: 0.5px;
+}
+.input-group input[type="number"],
+.input-group select,
+.dimension-select {
+  padding: 7px 10px !important;
+  font-family: 'Jost', sans-serif !important;
+  font-size: 0.78rem !important;
+  border: 1px solid rgba(158,158,144,.2) !important;
+  border-radius: 4px !important;
+  background: rgba(255,255,255,.05) !important;
+  color: rgba(255,255,255,.85) !important;
+}
+.input-group input:focus,
+.input-group select:focus,
+.dimension-select:focus {
+  border-color: rgba(158,158,144,.5) !important;
+  box-shadow: 0 0 0 2px rgba(158,158,144,.1) !important;
+}
+.input-group select option {
+  background: #0A1628;
+  color: rgba(255,255,255,.85);
+}
+.input-group input[type="checkbox"] {
+  width: 36px !important;
+  height: 18px !important;
+  background-color: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(158,158,144,.3) !important;
+}
+.input-group input[type="checkbox"]:checked {
+  background-color: rgba(158,158,144,.4) !important;
+  border-color: rgba(158,158,144,.5) !important;
+}
+.radio-group { gap: 4px !important; }
+.radio-label {
+  font-family: 'Jost', sans-serif !important;
+  font-size: 0.72rem !important;
+  color: rgba(255,255,255,.6) !important;
+}
+.measurement-info-box {
+  font-size: 0.72rem !important;
+  padding: 6px 10px !important;
+  background: rgba(255,255,255,.05) !important;
+  border-color: rgba(158,158,144,.2) !important;
+  color: rgba(255,255,255,.6) !important;
+}
+
+/* SPECIFICATION - right panel dark */
 .window-specification {
   grid-area: spec;
   flex: none !important;
   position: relative !important;
   top: auto !important;
   border: none !important;
-  border-left: 2px solid var(--secondary-color) !important;
+  border-left: 1px solid rgba(158,158,144,.1) !important;
   border-radius: 0 !important;
-  padding: 20px !important;
+  padding: 16px !important;
   box-shadow: none !important;
   margin: 0 !important;
-  background: var(--white);
+  background: rgba(0,0,0,.15);
   overflow-y: auto;
 }
 .window-specification h2 {
   font-family: 'Jost', sans-serif !important;
-  font-size: 0.65rem !important;
+  font-size: 0.55rem !important;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--secondary-color) !important;
-  border-bottom: 1px solid var(--border-color) !important;
-  padding-bottom: 10px !important;
+  color: rgba(158,158,144,.5) !important;
+  border-bottom: 1px solid rgba(158,158,144,.1) !important;
+  padding-bottom: 8px !important;
+}
+.spec-section {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(158,158,144,.08) !important;
+  padding: 6px 0 !important;
 }
 .spec-section h4 {
   font-family: 'Jost', sans-serif !important;
-  font-size: 0.75rem !important;
-  color: var(--primary-color) !important;
-  font-weight: 500;
+  font-size: 0.65rem !important;
+  color: rgba(255,255,255,.6) !important;
+  font-weight: 400;
+  letter-spacing: 0.5px;
 }
 .spec-item {
-  font-size: 0.8rem !important;
+  font-size: 0.72rem !important;
+}
+.spec-label {
+  color: rgba(255,255,255,.35) !important;
+}
+.spec-value {
+  color: rgba(255,255,255,.8) !important;
+}
+
+/* BUTTONS - dark theme */
+.btn-add-window,
+button[onclick*="addWindow"],
+.auth-btn,
+.cta-button,
+button[type="submit"] {
+  background: rgba(158,158,144,.2) !important;
+  color: rgba(255,255,255,.85) !important;
+  border: 1px solid rgba(158,158,144,.3) !important;
+  font-family: 'Jost', sans-serif !important;
+  border-radius: 4px !important;
+}
+
+/* FOOTER in configurator */
+#if-footer {
+  background: #070E1A !important;
 }
 
 /* RESPONSIVE */
@@ -277,54 +369,52 @@
   .config-sidebar {
     flex-direction: row;
     flex-wrap: wrap;
-    padding: 12px;
-    gap: 4px;
+    padding: 10px;
+    gap: 2px;
+    border-right: none;
+    border-bottom: 1px solid rgba(158,158,144,.1);
   }
   .sidebar-label { display: none; }
   .cat-btn {
     flex: 0 0 auto;
-    padding: 8px 14px;
+    padding: 6px 12px;
     border-left: none;
     border-bottom: 2px solid transparent;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
   .cat-btn.active {
     border-left: none;
-    border-bottom-color: var(--secondary-color);
+    border-bottom-color: #9E9E90;
   }
   .cat-hint { display: none; }
   .sidebar-price {
     margin-top: 0;
     margin-left: auto;
     border-top: none;
-    border-left: 1px solid rgba(255,255,255,.08);
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 6px 12px;
   }
   .sidebar-price-label,
   .sidebar-price-note { display: none; }
-  .sidebar-price-value { font-size: 1.1rem; }
-  .configurator-preview { min-height: 300px; }
+  .sidebar-price-value { font-size: 1rem; }
+  .configurator-preview { min-height: 280px; }
   .window-specification {
     border-left: none !important;
-    border-top: 2px solid var(--secondary-color) !important;
+    border-top: 1px solid rgba(158,158,144,.1) !important;
   }
-  .configurator-options {
-    max-height: none;
+}
+@media (max-width: 680px) {
+  .window-container {
+    width: 180px !important;
+    height: 270px !important;
+  }
+  .svg-window-visualization .view {
+    width: 180px;
   }
 }
 
-@media (max-width: 680px) {
-  .window-container {
-    width: 200px;
-    height: 300px;
-  }
-  .svg-window-visualization .view {
-    width: 200px;
-  }
-}
 
 /* Reset */
 * { box-sizing: border-box; margin: 0; padding: 0; }
