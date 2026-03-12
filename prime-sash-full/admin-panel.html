@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Prime Sash Windows</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/admin-panel.css">
+</head>
+<body>
+
+<nav id="if-nav">
+  <a href="index.html" class="logo-wrap">
+    <div class="silver-line"></div>
+    <span class="logo">Prime Sash</span>
+    <span class="logo">Windows</span>
+    <div class="silver-line"></div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="online-estimate.html">Online Estimate</a></li>
+    <li><a href="customer-dashboard.html">My Dashboard</a></li>
+    <li><a href="admin-dashboard.html">Admin Dashboard</a></li>
+    <li><a href="admin-panel.html" class="active">Admin Panel</a></li>
+    <li><a href="#" id="logout-btn">Logout</a></li>
+  </ul>
+</nav>
+
+<header class="admin-header">
+  <h1>Admin Panel - Configurator Management</h1>
+  <p>Manage prices, products, and options for the window configurator</p>
+</header>
+
+<main class="admin-container">
+
+  <!-- SECTION 2: GEORGIAN BARS -->
+  <section class="admin-section">
+    <div class="section-header">
+      <h2>Section 2: Georgian Bars</h2>
+    </div>
+    <div class="section-content">
+      <div class="form-group">
+        <label for="bar-price">Price per bar (£):</label>
+        <input type="number" id="bar-price" step="0.01" min="0" placeholder="15.00">
+        <button class="btn-save" onclick="AdminController.saveBarsPrice()">Save</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: GLASS TYPE -->
+  <section class="admin-section">
+    <div class="section-header">
+      <h2>Section 5: Glass Type</h2>
+    </div>
+    <div class="section-content">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="triple-price">Triple glazing price per m² (£):</label>
+          <input type="number" id="triple-price" step="0.01" min="0" placeholder="50.00">
+        </div>
+        <div class="form-group">
+          <label for="passive-price">Passive glass price per m² (£):</label>
+          <input type="number" id="passive-price" step="0.01" min="0" placeholder="100.00">
+        </div>
+      </div>
+      <button class="btn-save" onclick="AdminController.saveGlassPrices()">Save</button>
+    </div>
+  </section>
+
+  <!-- SECTION 6: OPENING MECHANISM -->
+  <section class="admin-section">
+    <div class="section-header">
+      <h2>Section 6: Opening Mechanism</h2>
+    </div>
+    <div class="section-content">
+      <p style="margin-bottom: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107;">
+        <strong>💡 How it works:</strong> Standard (Top & Bottom open) = base price (£0 adjustment).<br>
+        Bottom only and Fixed are CHEAPER options. Enter positive numbers below - they will be SUBTRACTED from the window price.
+      </p>
+      <div class="form-group-inline">
+        <label>Bottom open only:</label>
+        <span>Base: £</span>
+        <input type="number" id="bottom-base" step="0.01" placeholder="50.00" style="width: 100px;">
+        <span>+ £</span>
+        <input type="number" id="bottom-per-sqm" step="0.01" placeholder="20.00" style="width: 100px;">
+        <span>per m² (discount)</span>
+      </div>
+      <div class="form-group-inline">
+        <label>Fixed (no opening):</label>
+        <span>Base: £</span>
+        <input type="number" id="both-base" step="0.01" placeholder="100.00" style="width: 100px;">
+        <span>+ £</span>
+        <input type="number" id="both-per-sqm" step="0.01" placeholder="40.00" style="width: 100px;">
+        <span>per m² (discount)</span>
+      </div>
+      <button class="btn-save" onclick="AdminController.saveOpeningPrices()">Save</button>
+    </div>
+  </section>
+
+  <!-- SECTION 8: IRONMONGERY -->
+  <section class="admin-section">
+    <div class="section-header">
+      <h2>Section 8: Ironmongery</h2>
+      <button class="btn-add" onclick="openIronmongeryManager()">🛠️ Manage Ironmongery Gallery</button>
+    </div>
+    <div class="section-content">
+      <div class="products-table-container">
+        <table class="products-table" id="ironmongery-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Category</th>
+              <th>Name</th>
+              <th>Color</th>
+              <th>Price (NET)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ironmongery-tbody">
+            <!-- Products loaded by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8: HORNS -->
+  <section class="admin-section">
+    <div class="section-header">
+      <h2>Section 8: Horns</h2>
+      <button class="btn-add" onclick="AdminController.openAddHornModal()">+ Add Horn Style</button>
+    </div>
+    <div class="section-content">
+      <div class="horns-grid" id="horns-grid">
+        <!-- Horns loaded by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 9: FROSTED GLASS -->
+  <section class="admin-section">
+    <div class="section-header">
+      <h2>Section 9: Frosted Glass</h2>
+    </div>
+    <div class="section-content">
+      <div class="form-group">
+        <label for="frosted-price">Frosted glass price per m² (£):</label>
+        <input type="number" id="frosted-price" step="0.01" min="0" placeholder="25.00">
+        <button class="btn-save" onclick="AdminController.saveFrostedPrice()">Save</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: GALLERY MANAGEMENT -->
+  <section class="admin-section">
+    <div class="section-header">
+      <h2>Gallery Management</h2>
+      <button class="btn-add" onclick="GalleryAdmin.openAddProjectModal()">+ Add Project</button>
+    </div>
+    <div class="section-content">
+      <div class="products-table-container">
+        <table class="products-table" id="gallery-projects-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Title</th>
+              <th>Address</th>
+              <th>Images</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="gallery-projects-tbody">
+            <!-- Projects loaded by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: APPOINTMENTS MANAGEMENT -->
+  <section class="admin-section" style="grid-column: 1 / -1;">
+    <div class="section-header">
+      <h2>Appointments Management</h2>
+      <div>
+        <button class="btn-add" onclick="AdminCalendar.generateSlotsForWeek()" title="Manually add more slots if needed">+ Add Extra Slots</button>
+      </div>
+    </div>
+    <div class="section-content">
+      <div style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+        <strong>ℹ️ Auto-Generation Active:</strong> Slots are automatically created for Mon-Fri, 4 weeks ahead. 
+        Use the calendar to <strong>block</strong> specific days (holidays, days off) by clicking a day and toggling availability.
+      </div>
+      
+      <!-- Admin Calendar -->
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+        
+        <div>
+          <div class="admin-calendar-container">
+            <div class="admin-calendar-header">
+              <button class="admin-cal-nav" onclick="AdminCalendar.prevMonth()">‹</button>
+              <h4 id="admin-calendar-month-year"></h4>
+              <button class="admin-cal-nav" onclick="AdminCalendar.nextMonth()">›</button>
+            </div>
+            <div class="admin-calendar-weekdays">
+              <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+            </div>
+            <div class="admin-calendar-days" id="admin-calendar-days"></div>
+          </div>
+          
+          <!-- Day Detail -->
+          <div id="admin-day-detail" class="admin-day-detail">
+            <h4 id="admin-day-title">Select a day</h4>
+            <div id="admin-day-slots"></div>
+            <button class="btn-add" style="margin-top: 15px;" onclick="AdminCalendar.generateSlotsForDay()">+ Add All Slots for This Day</button>
+          </div>
+        </div>
+        
+        <!-- Pending Requests -->
+        <div>
+          <h4 style="margin-bottom: 15px; color: var(--admin-primary);">Pending Requests</h4>
+          <div id="pending-requests-list"></div>
+        </div>
+        
+      </div>
+      
+      <!-- Booked Appointments List -->
+      <div style="margin-top: 25px; border-top: 2px solid #ddd; padding-top: 20px;">
+        <h4 style="margin-bottom: 15px; color: var(--admin-primary);">📅 Upcoming Booked Appointments</h4>
+        <div class="products-table-container">
+          <table class="products-table" id="booked-appointments-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Customer</th>
+                <th>Address</th>
+                <th>Assigned To</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="booked-appointments-tbody">
+              <!-- Loaded by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+<style>
+.admin-calendar-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.admin-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: var(--admin-primary);
+  color: white;
+}
+.admin-calendar-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: white;
+}
+.admin-cal-nav {
+  background: none;
+  border: 2px solid white;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+.admin-cal-nav:hover {
+  background: white;
+  color: var(--admin-primary);
+}
+.admin-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #f0f0f0;
+  padding: 8px 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #666;
+}
+.admin-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 8px;
+}
+.admin-cal-day {
+  min-height: 70px;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: #fafafa;
+  border: 1px solid #eee;
+}
+.admin-cal-day:hover {
+  background: #e8f5e9;
+}
+.admin-cal-day.other-month {
+  color: #ccc;
+  background: #f5f5f5;
+}
+.admin-cal-day.today {
+  border: 2px solid var(--admin-secondary);
+}
+.admin-cal-day.selected {
+  background: #c8e6c9;
+  border: 2px solid var(--admin-primary);
+}
+.admin-cal-day .day-num {
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.admin-cal-day .slot-count {
+  font-size: 0.65rem;
+  color: #666;
+}
+.admin-cal-day .slot-count.has-booked {
+  color: #d32f2f;
+  font-weight: 600;
+}
+.admin-day-detail {
+  margin-top: 15px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+.admin-day-detail h4 {
+  margin: 0 0 15px 0;
+  color: var(--admin-primary);
+}
+.admin-slot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border-radius: 5px;
+  border-left: 4px solid #28a745;
+}
+.admin-slot-item.booked {
+  border-left-color: #dc3545;
+  background: #fff5f5;
+}
+.admin-slot-item.unavailable {
+  border-left-color: #999;
+  background: #f0f0f0;
+  opacity: 0.7;
+}
+.admin-slot-info {
+  flex: 1;
+}
+.admin-slot-time {
+  font-weight: 600;
+  color: var(--admin-primary);
+}
+.admin-slot-customer {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 3px;
+}
+.admin-slot-actions button {
+  margin-left: 5px;
+}
+.pending-request-card {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.pending-request-card h5 {
+  margin: 0 0 8px 0;
+  color: var(--admin-primary);
+}
+.pending-request-card p {
+  margin: 3px 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+.pending-request-card .slots-list {
+  font-size: 0.8rem;
+  color: #333;
+  margin: 8px 0;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+}
+</style>
+
+</main>
+
+<!-- MODAL: Add/Edit Gallery Project -->
+<div id="gallery-project-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="GalleryAdmin.closeProjectModal()">&times;</span>
+    <h2 id="gallery-modal-title">Add Project</h2>
+    <form id="gallery-project-form" onsubmit="GalleryAdmin.saveProject(event)">
+      <input type="hidden" id="project-id">
+      <div class="form-group">
+        <label>Project Title:</label>
+        <input type="text" id="project-title" required placeholder="e.g. Victorian Renovation">
+      </div>
+      <div class="form-group">
+        <label>Address / Location:</label>
+        <input type="text" id="project-address" required placeholder="e.g. Clerkenwell, London">
+      </div>
+      <div class="form-group">
+        <label>Display Order:</label>
+        <input type="number" id="project-order" value="0" min="0" placeholder="0">
+      </div>
+      <button type="submit" class="btn-save">Save Project</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Manage Project Images -->
+<div id="gallery-images-modal" class="modal">
+  <div class="modal-content" style="max-width: 800px;">
+    <span class="close" onclick="GalleryAdmin.closeImagesModal()">&times;</span>
+    <h2>Manage Images: <span id="images-modal-project-title"></span></h2>
+    <input type="hidden" id="images-project-id">
+    
+    <div class="form-group" style="margin-bottom: 20px;">
+      <label>Upload New Images:</label>
+      <input type="file" id="gallery-image-upload" accept="image/*" multiple onchange="GalleryAdmin.uploadImages()">
+      <small style="display: block; margin-top: 5px; color: #666;">You can select multiple images at once</small>
+    </div>
+    
+    <div id="project-images-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+      <!-- Images loaded by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Horn -->
+<div id="add-horn-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="AdminController.closeAddHornModal()">&times;</span>
+    <h2>Add Horn Style</h2>
+    <form id="add-horn-form">
+      <div class="form-group">
+        <label>Horn Name:</label>
+        <input type="text" id="horn-name" required placeholder="e.g. Standard Horns">
+      </div>
+      <div class="form-group">
+        <label>Upload Image:</label>
+        <input type="file" id="horn-image" accept="image/*">
+      </div>
+      <button type="submit" class="btn-save">Add Horn Style</button>
+    </form>
+  </div>
+</div>
+
+<!-- Ironmongery Gallery Overlay -->
+<div id="ironmongeryOverlay" class="ironmongery-overlay">
+  <div class="ironmongery-gallery">
+    
+    <!-- Header -->
+    <div class="gallery-header">
+      <h2>Ironmongery Gallery</h2>
+      <button id="galleryClose" class="gallery-close" aria-label="Close">&times;</button>
+    </div>
+
+    <!-- Type Selector (NEW) -->
+    <div class="type-selector">
+      <button class="type-btn active" data-type="standard">Standard</button>
+      <button class="type-btn" data-type="pas24">PAS24</button>
+      <button class="type-btn" data-type="horns">Windows Horns</button>
+    </div>
+    
+    <!-- PAS24 Info (hidden by default) -->
+    <div id="pas24-info-box" class="pas24-info-box" style="display: none;">
+      <p>⚠️ For PAS24 certified windows, select Sash Lock here. For other hardware (Finger Lifts, Pull Handles, Stoppers) please choose from <strong>Standard</strong> list.</p>
+    </div>
+
+    <!-- Color Filters -->
+    <div class="gallery-filters">
+      <button class="filter-btn active" data-finish="all">All Finishes</button>
+      <button class="filter-btn" data-finish="chrome">Chrome</button>
+      <button class="filter-btn" data-finish="satin">Satin</button>
+      <button class="filter-btn" data-finish="brass">Brass</button>
+      <button class="filter-btn" data-finish="antique-brass">Antique Brass</button>
+      <button class="filter-btn" data-finish="black">Black</button>
+      <button class="filter-btn" data-finish="white">White</button>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+      <button class="category-tab active" data-category="locks">Sash Locks</button>
+      <button class="category-tab" data-category="fingerLifts">Finger Lifts</button>
+      <button class="category-tab" data-category="pullHandles">Pull Handles</button>
+      <button class="category-tab" data-category="stoppers">Stoppers</button>
+      <button class="category-tab" data-category="horns">Sash Horns</button>
+    </div>
+
+    <!-- Products Grid -->
+    <div id="productsGrid" class="products-grid">
+      <!-- Products rendered by JS -->
+    </div>
+
+    <!-- Footer with Total -->
+    <div class="gallery-footer">
+      <div class="selection-total">
+        Selection Total: <span id="selectionTotal">£0.00</span>
+      </div>
+      <div class="selection-buttons">
+        <button id="clearSelection" class="btn-clear-selection">
+          Clear Selection
+        </button>
+        <button id="confirmSelection" class="btn-confirm-selection">
+          Confirm Selection
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<link rel="stylesheet" href="css/configurator.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/ironmongery-data.js"></script>
+<script src="js/ironmongery-gallery.js?v=20250124"></script>
+<script src="js/admin-controller.js"></script>
+<script>
+// Logout handler
+document.addEventListener('DOMContentLoaded', () => {
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await supabaseClient.auth.signOut();
+      window.location.href = 'index.html';
+    });
+  }
+  
+  // Load gallery projects
+  GalleryAdmin.loadProjects();
+  
+  // Load admin calendar
+  AdminCalendar.init();
+});
+
+// Admin Calendar Controller
+const AdminCalendar = {
+  currentDate: new Date(),
+  selectedDate: null,
+  slots: {},
+  requests: [],
+  
+  SLOT_TIMES: ['09:00 - 11:00', '11:00 - 13:00', '13:00 - 15:00', '15:00 - 17:00'],
+  
+  async init() {
+    await this.autoGenerateSlots(); // Auto-generate slots for next 4 weeks
+    await this.loadData();
+    this.render();
+    this.loadPendingRequests();
+    this.loadBookedAppointments();
+  },
+  
+  // AUTO-GENERATE SLOTS FOR NEXT 4 WEEKS (Mon-Fri)
+  async autoGenerateSlots() {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(today);
+      endDate.setDate(endDate.getDate() + 28);
+      
+      // Get existing slots
+      const { data: existingSlots } = await window.supabaseClient
+        .from('appointment_slots')
+        .select('slot_date, slot_time')
+        .gte('slot_date', today.toISOString().split('T')[0]);
+      
+      const existingKeys = new Set(
+        (existingSlots || []).map(s => `${s.slot_date}_${s.slot_time}`)
+      );
+      
+      const slotsToInsert = [];
+      const currentDate = new Date(today);
+      currentDate.setDate(currentDate.getDate() + 1);
+      
+      while (currentDate <= endDate) {
+        const dayOfWeek = currentDate.getDay();
+        
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Mon-Fri
+          const dateStr = currentDate.toISOString().split('T')[0];
+          
+          this.SLOT_TIMES.forEach(time => {
+            const key = `${dateStr}_${time}`;
+            if (!existingKeys.has(key)) {
+              slotsToInsert.push({
+                slot_date: dateStr,
+                slot_time: time,
+                is_available: true
+              });
+            }
+          });
+        }
+        
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      if (slotsToInsert.length > 0) {
+        const { error } = await window.supabaseClient
+          .from('appointment_slots')
+          .insert(slotsToInsert);
+        
+        if (!error) {
+          console.log(`Auto-generated ${slotsToInsert.length} slots`);
+        }
+      }
+    } catch (error) {
+      console.warn('Auto-generate skipped:', error.message);
+    }
+  },
+  
+  async loadBookedAppointments() {
+    const tbody = document.getElementById('booked-appointments-tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '<tr><td colspan="7">Loading...</td></tr>';
+    
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data: booked, error } = await window.supabaseClient
+        .from('appointment_slots')
+        .select('*')
+        .not('customer_name', 'is', null)
+        .gte('slot_date', today)
+        .order('slot_date', { ascending: true })
+        .order('slot_time', { ascending: true });
+      
+      if (error) throw error;
+      
+      if (!booked || booked.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">No upcoming booked appointments</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = booked.map(slot => {
+        const date = new Date(slot.slot_date);
+        const dateStr = date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+        
+        return `
+          <tr>
+            <td><strong>${dateStr}</strong></td>
+            <td>${slot.slot_time}</td>
+            <td>👤 ${slot.customer_name}</td>
+            <td>${slot.customer_address || '-'}</td>
+            <td>${slot.assigned_to || '<span style="color: #999;">Not assigned</span>'}</td>
+            <td>${slot.notes || '-'}</td>
+            <td>
+              <button class="btn-small" onclick="AdminCalendar.addPerson('${slot.id}')">👤+</button>
+              <button class="btn-small" onclick="AdminCalendar.addNotes('${slot.id}')">📝+</button>
+              <button class="btn-small btn-danger-small" onclick="AdminCalendar.cancelBooking('${slot.id}')">✕ Cancel</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+    } catch (error) {
+      console.error('Error loading booked appointments:', error);
+      tbody.innerHTML = '<tr><td colspan="7" style="color: red;">Error loading appointments</td></tr>';
+    }
+  },
+  
+  async loadData() {
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('appointment_slots')
+        .select('*')
+        .order('slot_date')
+        .order('slot_time');
+      
+      if (error) throw error;
+      
+      this.slots = {};
+      (data || []).forEach(slot => {
+        if (!this.slots[slot.slot_date]) {
+          this.slots[slot.slot_date] = [];
+        }
+        this.slots[slot.slot_date].push(slot);
+      });
+    } catch (error) {
+      console.error('Error loading slots:', error);
+    }
+  },
+  
+  async loadPendingRequests() {
+    const container = document.getElementById('pending-requests-list');
+    if (!container) return;
+    
+    try {
+      const { data: requests, error } = await window.supabaseClient
+        .from('appointment_requests')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      if (!requests || requests.length === 0) {
+        container.innerHTML = '<p style="color: #666; text-align: center;">No pending requests</p>';
+        return;
+      }
+      
+      // Get slot details for preferred slots
+      const allSlotIds = requests.flatMap(r => r.preferred_slots || []);
+      let slotsMap = {};
+      
+      if (allSlotIds.length > 0) {
+        const { data: slotsData } = await window.supabaseClient
+          .from('appointment_slots')
+          .select('id, slot_date, slot_time')
+          .in('id', allSlotIds);
+        
+        (slotsData || []).forEach(s => {
+          const d = new Date(s.slot_date);
+          slotsMap[s.id] = `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${s.slot_time}`;
+        });
+      }
+      
+      container.innerHTML = requests.map(req => {
+        const preferredList = (req.preferred_slots || [])
+          .map(id => slotsMap[id] || 'Unknown')
+          .join('<br>');
+        
+        // Escape data for HTML attributes
+        const safeName = (req.customer_name || '').replace(/"/g, '&quot;');
+        const safeMessage = (req.message || '').replace(/"/g, '&quot;');
+        
+        return `
+          <div class="pending-request-card">
+            <h5>${req.customer_name}</h5>
+            <p>📧 ${req.email}</p>
+            <p>📞 ${req.phone || '-'}</p>
+            ${req.message ? `<p>📝 ${req.message}</p>` : ''}
+            <div class="slots-list">
+              <strong>Preferred:</strong><br>${preferredList || 'None'}
+            </div>
+            <div style="margin-top: 10px;">
+              <button class="btn-small" data-action="confirm" data-id="${req.id}" data-name="${safeName}" data-address="${safeMessage}">✓ Confirm</button>
+              <button class="btn-small btn-danger-small" data-action="cancel" data-id="${req.id}">✕ Cancel</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Add event listeners
+      container.querySelectorAll('[data-action="confirm"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          AdminCalendar.confirmRequest(btn.dataset.id, btn.dataset.name, btn.dataset.address);
+        });
+      });
+      
+      container.querySelectorAll('[data-action="cancel"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          AdminCalendar.cancelRequest(btn.dataset.id);
+        });
+      });
+      
+    } catch (error) {
+      console.error('Error loading requests:', error);
+    }
+  },
+  
+  render() {
+    const year = this.currentDate.getFullYear();
+    const month = this.currentDate.getMonth();
+    
+    document.getElementById('admin-calendar-month-year').textContent = 
+      new Date(year, month).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDay = (firstDay.getDay() + 6) % 7;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let html = '';
+    
+    // Previous month
+    const prevMonth = new Date(year, month, 0);
+    for (let i = startDay - 1; i >= 0; i--) {
+      const day = prevMonth.getDate() - i;
+      html += `<div class="admin-cal-day other-month"><span class="day-num">${day}</span></div>`;
+    }
+    
+    // Current month
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      const date = new Date(year, month, day);
+      const dateStr = date.toISOString().split('T')[0];
+      const isToday = date.getTime() === today.getTime();
+      const isSelected = this.selectedDate === dateStr;
+      const daySlots = this.slots[dateStr] || [];
+      const bookedCount = daySlots.filter(s => !s.is_available || s.customer_name).length;
+      const availableCount = daySlots.filter(s => s.is_available && !s.customer_name).length;
+      
+      let classes = 'admin-cal-day';
+      if (isToday) classes += ' today';
+      if (isSelected) classes += ' selected';
+      
+      let slotInfo = '';
+      if (daySlots.length > 0) {
+        slotInfo = `<span class="slot-count ${bookedCount > 0 ? 'has-booked' : ''}">${availableCount} free, ${bookedCount} booked</span>`;
+      }
+      
+      html += `
+        <div class="${classes}" onclick="AdminCalendar.selectDay('${dateStr}')">
+          <span class="day-num">${day}</span>
+          ${slotInfo}
+        </div>
+      `;
+    }
+    
+    // Next month
+    const totalCells = startDay + lastDay.getDate();
+    const remaining = (7 - (totalCells % 7)) % 7;
+    for (let day = 1; day <= remaining; day++) {
+      html += `<div class="admin-cal-day other-month"><span class="day-num">${day}</span></div>`;
+    }
+    
+    document.getElementById('admin-calendar-days').innerHTML = html;
+  },
+  
+  prevMonth() {
+    this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+    this.render();
+  },
+  
+  nextMonth() {
+    this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+    this.render();
+  },
+  
+  selectDay(dateStr) {
+    this.selectedDate = dateStr;
+    this.render();
+    this.showDayDetail(dateStr);
+  },
+  
+  showDayDetail(dateStr) {
+    const date = new Date(dateStr);
+    const title = date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    document.getElementById('admin-day-title').textContent = title;
+    
+    const daySlots = this.slots[dateStr] || [];
+    
+    if (daySlots.length === 0) {
+      document.getElementById('admin-day-slots').innerHTML = '<p style="color: #666;">No slots for this day. Click button below to add.</p>';
+      return;
+    }
+    
+    const html = daySlots.map(slot => {
+      const isBooked = slot.customer_name || !slot.is_available;
+      let classes = 'admin-slot-item';
+      if (slot.customer_name) classes += ' booked';
+      else if (!slot.is_available) classes += ' unavailable';
+      
+      let customerInfo = '';
+      if (slot.customer_name) {
+        customerInfo = `
+          <div class="admin-slot-customer">
+            👤 ${slot.customer_name}<br>
+            ${slot.customer_address ? '📍 ' + slot.customer_address + '<br>' : ''}
+            ${slot.assigned_to ? '🚗 ' + slot.assigned_to + '<br>' : ''}
+            ${slot.notes ? '📝 ' + slot.notes : ''}
+          </div>
+        `;
+      } else {
+        // Show assigned_to and notes even for non-booked slots
+        let extraInfo = [];
+        if (slot.assigned_to) extraInfo.push('🚗 ' + slot.assigned_to);
+        if (slot.notes) extraInfo.push('📝 ' + slot.notes);
+        if (extraInfo.length > 0) {
+          customerInfo = `<div class="admin-slot-customer">${extraInfo.join('<br>')}</div>`;
+        }
+      }
+      
+      return `
+        <div class="${classes}">
+          <div class="admin-slot-info">
+            <div class="admin-slot-time">${slot.slot_time}</div>
+            ${customerInfo}
+          </div>
+          <div class="admin-slot-actions">
+            <button class="btn-small" onclick="AdminCalendar.addPerson('${slot.id}')" title="Add Person">👤+</button>
+            <button class="btn-small" onclick="AdminCalendar.addNotes('${slot.id}')" title="Add Notes">📝+</button>
+            <button class="btn-small" onclick="AdminCalendar.toggleAvailability('${slot.id}', ${slot.is_available})" title="${slot.is_available ? 'Block' : 'Unblock'}">
+              ${slot.is_available ? '🔒' : '🔓'}
+            </button>
+            <button class="btn-small btn-danger-small" onclick="AdminCalendar.deleteSlot('${slot.id}')" title="Delete">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    document.getElementById('admin-day-slots').innerHTML = html;
+  },
+  
+  async generateSlotsForDay() {
+    if (!this.selectedDate) {
+      alert('Please select a day first.');
+      return;
+    }
+    
+    const existingSlots = this.slots[this.selectedDate] || [];
+    const existingTimes = existingSlots.map(s => s.slot_time);
+    const newSlots = this.SLOT_TIMES.filter(t => !existingTimes.includes(t));
+    
+    if (newSlots.length === 0) {
+      alert('All slots already exist for this day.');
+      return;
+    }
+    
+    try {
+      const slotsToInsert = newSlots.map(time => ({
+        slot_date: this.selectedDate,
+        slot_time: time,
+        is_available: true
+      }));
+      
+      const { error } = await window.supabaseClient
+        .from('appointment_slots')
+        .insert(slotsToInsert);
+      
+      if (error) throw error;
+      
+      await this.loadData();
+      this.render();
+      this.showDayDetail(this.selectedDate);
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error adding slots: ' + error.message);
+    }
+  },
+  
+  async generateSlotsForWeek() {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() + 1); // Start from tomorrow
+    
+    const weekday = startDate.getDay();
+    if (weekday === 0) startDate.setDate(startDate.getDate() + 1); // Skip Sunday
+    if (weekday === 6) startDate.setDate(startDate.getDate() + 2); // Skip Saturday
+    
+    const slotsToInsert = [];
+    
+    for (let i = 0; i < 5; i++) { // 5 working days
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      
+      // Skip weekends
+      if (date.getDay() === 0 || date.getDay() === 6) continue;
+      
+      const dateStr = date.toISOString().split('T')[0];
+      const existingSlots = this.slots[dateStr] || [];
+      const existingTimes = existingSlots.map(s => s.slot_time);
+      
+      this.SLOT_TIMES.forEach(time => {
+        if (!existingTimes.includes(time)) {
+          slotsToInsert.push({
+            slot_date: dateStr,
+            slot_time: time,
+            is_available: true
+          });
+        }
+      });
+    }
+    
+    if (slotsToInsert.length === 0) {
+      alert('All slots already exist for the coming week.');
+      return;
+    }
+    
+    try {
+      const { error } = await window.supabaseClient
+        .from('appointment_slots')
+        .insert(slotsToInsert);
+      
+      if (error) throw error;
+      
+      alert(`Added ${slotsToInsert.length} slots for the coming week.`);
+      await this.loadData();
+      this.render();
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+    }
+  },
+  
+  async toggleAvailability(slotId, currentStatus) {
+    try {
+      const { error } = await window.supabaseClient
+        .from('appointment_slots')
+        .update({ is_available: !currentStatus })
+        .eq('id', slotId);
+      
+      if (error) throw error;
+      
+      await this.loadData();
+      this.render();
+      if (this.selectedDate) this.showDayDetail(this.selectedDate);
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+    }
+  },
+  
+  async deleteSlot(slotId) {
+    if (!confirm('Delete this slot?')) return;
+    
+    try {
+      const { error } = await window.supabaseClient
+        .from('appointment_slots')
+        .delete()
+        .eq('id', slotId);
+      
+      if (error) throw error;
+      
+      await this.loadData();
+      this.render();
+      if (this.selectedDate) this.showDayDetail(this.selectedDate);
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+    }
+  },
+  
+  async addPerson(slotId) {
+    const slot = Object.values(this.slots).flat().find(s => s.id === slotId);
+    if (!slot) return;
+    
+    const assignedTo = prompt('Who will do the measurement?', slot.assigned_to || '');
+    if (assignedTo === null) return;
+    
+    try {
+      const { error } = await window.supabaseClient
+        .from('appointment_slots')
+        .update({ assigned_to: assignedTo || null })
+        .eq('id', slotId);
+      
+      if (error) throw error;
+      
+      await this.loadData();
+      this.render();
+      this.loadBookedAppointments();
+      if (this.selectedDate) this.showDayDetail(this.selectedDate);
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+    }
+  },
+  
+  async addNotes(slotId) {
+    const slot = Object.values(this.slots).flat().find(s => s.id === slotId);
+    if (!slot) return;
+    
+    const notes = prompt('Notes:', slot.notes || '');
+    if (notes === null) return;
+    
+    try {
+      const { error } = await window.supabaseClient
+        .from('appointment_slots')
+        .update({ notes: notes || null })
+        .eq('id', slotId);
+      
+      if (error) throw error;
+      
+      await this.loadData();
+      this.render();
+      this.loadBookedAppointments();
+      if (this.selectedDate) this.showDayDetail(this.selectedDate);
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+    }
+  },
+  
+  async cancelBooking(slotId) {
+    if (!confirm('Cancel this booking? The slot will become available again.')) return;
+    
+    try {
+      const { error } = await window.supabaseClient
+        .from('appointment_slots')
+        .update({ 
+          is_available: true,
+          customer_name: null,
+          customer_address: null,
+          assigned_to: null,
+          notes: null
+        })
+        .eq('id', slotId);
+      
+      if (error) throw error;
+      
+      await this.loadData();
+      this.render();
+      this.loadBookedAppointments();
+      if (this.selectedDate) this.showDayDetail(this.selectedDate);
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+    }
+  },
+  
+  async confirmRequest(requestId, customerName, customerAddress) {
+    // Get the request details to show preferred slots
+    try {
+      const { data: request, error: reqErr } = await window.supabaseClient
+        .from('appointment_requests')
+        .select('preferred_slots')
+        .eq('id', requestId)
+        .single();
+      
+      if (reqErr) throw reqErr;
+      
+      const preferredSlotIds = request.preferred_slots || [];
+      
+      if (preferredSlotIds.length === 0) {
+        alert('No preferred slots in this request.');
+        return;
+      }
+      
+      // Get slot details
+      const { data: slots, error: slotsErr } = await window.supabaseClient
+        .from('appointment_slots')
+        .select('*')
+        .in('id', preferredSlotIds);
+      
+      if (slotsErr) throw slotsErr;
+      
+      // Build selection prompt
+      const slotOptions = slots.map((s, i) => {
+        const d = new Date(s.slot_date);
+        const dateStr = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+        const status = s.is_available ? '✓' : '✗ taken';
+        return `${i + 1}. ${dateStr} ${s.slot_time} ${status}`;
+      }).join('\n');
+      
+      const choice = prompt(`Select slot to confirm:\n\n${slotOptions}\n\nEnter number (1-${slots.length}):`);
+      
+      if (!choice) return;
+      
+      const index = parseInt(choice) - 1;
+      if (isNaN(index) || index < 0 || index >= slots.length) {
+        alert('Invalid selection.');
+        return;
+      }
+      
+      const selectedSlot = slots[index];
+      
+      if (!selectedSlot.is_available) {
+        alert('This slot is already taken. Choose another.');
+        return;
+      }
+      
+      // Ask who will do the measurement
+      const assignedTo = prompt('Who will do the measurement?', '');
+      
+      // Update the slot with customer info and mark unavailable
+      const { error: slotError } = await window.supabaseClient
+        .from('appointment_slots')
+        .update({
+          is_available: false,
+          customer_name: customerName,
+          customer_address: customerAddress,
+          assigned_to: assignedTo || null
+        })
+        .eq('id', selectedSlot.id);
+      
+      if (slotError) throw slotError;
+      
+      // Update request status
+      const { error: reqError } = await window.supabaseClient
+        .from('appointment_requests')
+        .update({ 
+          status: 'confirmed',
+          confirmed_slot_id: selectedSlot.id
+        })
+        .eq('id', requestId);
+      
+      if (reqError) throw reqError;
+      
+      alert('Request confirmed!');
+      await this.loadData();
+      this.render();
+      this.loadPendingRequests();
+      this.loadBookedAppointments();
+      if (this.selectedDate) this.showDayDetail(this.selectedDate);
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+    }
+  },
+  
+  async cancelRequest(requestId) {
+    if (!confirm('Cancel this request?')) return;
+    
+    try {
+      const { error } = await window.supabaseClient
+        .from('appointment_requests')
+        .update({ status: 'cancelled' })
+        .eq('id', requestId);
+      
+      if (error) throw error;
+      
+      this.loadPendingRequests();
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error: ' + error.message);
+    }
+  }
+};
+
+// Gallery Admin Controller
+const GalleryAdmin = {
+  
+  async loadProjects() {
+    const tbody = document.getElementById('gallery-projects-tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+    
+    try {
+      const { data: projects, error } = await window.supabaseClient
+        .from('gallery_projects')
+        .select(`
+          id,
+          title,
+          address,
+          display_order,
+          gallery_images (id, image_url, display_order)
+        `)
+        .order('display_order', { ascending: true });
+      
+      if (error) throw error;
+      
+      if (!projects || projects.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">No projects yet. Click "Add Project" to create one.</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = projects.map(p => {
+        const images = (p.gallery_images || []).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+        
+        let thumbnailsHtml = '';
+        if (images.length > 0) {
+          thumbnailsHtml = `
+            <div style="margin-top: 5px;">
+              <button class="btn-small" onclick="GalleryAdmin.toggleThumbnails('${p.id}')" style="font-size: 0.7rem; padding: 3px 8px;">
+                ▼ Show ${images.length} images
+              </button>
+              <div id="thumbnails-${p.id}" style="display: none; margin-top: 8px; display: none; flex-wrap: wrap; gap: 5px; max-width: 300px;">
+                ${images.map(img => `
+                  <img src="${img.image_url}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 3px; border: 1px solid #ddd;">
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+        
+        return `
+          <tr>
+            <td>${p.display_order || 0}</td>
+            <td>
+              <strong>${p.title}</strong>
+              ${thumbnailsHtml}
+            </td>
+            <td>${p.address}</td>
+            <td>${images.length} images</td>
+            <td>
+              <button class="btn-small" onclick="GalleryAdmin.openImagesModal('${p.id}', '${p.title.replace(/'/g, "\\'")}')">📷 Images</button>
+              <button class="btn-small" onclick="GalleryAdmin.editProject('${p.id}')">✏️ Edit</button>
+              <button class="btn-small btn-danger-small" onclick="GalleryAdmin.deleteProject('${p.id}')">🗑️ Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+    } catch (error) {
+      console.error('Error loading projects:', error);
+      tbody.innerHTML = '<tr><td colspan="5" style="color: red;">Error loading projects</td></tr>';
+    }
+  },
+  
+  toggleThumbnails(projectId) {
+    const container = document.getElementById(`thumbnails-${projectId}`);
+    const btn = container.previousElementSibling;
+    
+    if (container.style.display === 'none' || container.style.display === '') {
+      container.style.display = 'flex';
+      btn.innerHTML = btn.innerHTML.replace('▼ Show', '▲ Hide');
+    } else {
+      container.style.display = 'none';
+      btn.innerHTML = btn.innerHTML.replace('▲ Hide', '▼ Show');
+    }
+  },
+  
+  openAddProjectModal() {
+    document.getElementById('gallery-modal-title').textContent = 'Add Project';
+    document.getElementById('project-id').value = '';
+    document.getElementById('project-title').value = '';
+    document.getElementById('project-address').value = '';
+    document.getElementById('project-order').value = '0';
+    document.getElementById('gallery-project-modal').style.display = 'block';
+  },
+  
+  async editProject(projectId) {
+    try {
+      const { data: project, error } = await window.supabaseClient
+        .from('gallery_projects')
+        .select('*')
+        .eq('id', projectId)
+        .single();
+      
+      if (error) throw error;
+      
+      document.getElementById('gallery-modal-title').textContent = 'Edit Project';
+      document.getElementById('project-id').value = project.id;
+      document.getElementById('project-title').value = project.title;
+      document.getElementById('project-address').value = project.address;
+      document.getElementById('project-order').value = project.display_order || 0;
+      document.getElementById('gallery-project-modal').style.display = 'block';
+      
+    } catch (error) {
+      console.error('Error loading project:', error);
+      alert('Error loading project');
+    }
+  },
+  
+  closeProjectModal() {
+    document.getElementById('gallery-project-modal').style.display = 'none';
+  },
+  
+  async saveProject(e) {
+    e.preventDefault();
+    
+    const projectId = document.getElementById('project-id').value;
+    const projectData = {
+      title: document.getElementById('project-title').value.trim(),
+      address: document.getElementById('project-address').value.trim(),
+      display_order: parseInt(document.getElementById('project-order').value) || 0
+    };
+    
+    try {
+      if (projectId) {
+        // Update existing
+        const { error } = await window.supabaseClient
+          .from('gallery_projects')
+          .update(projectData)
+          .eq('id', projectId);
+        
+        if (error) throw error;
+        alert('Project updated!');
+      } else {
+        // Create new
+        const { error } = await window.supabaseClient
+          .from('gallery_projects')
+          .insert([projectData]);
+        
+        if (error) throw error;
+        alert('Project created!');
+      }
+      
+      this.closeProjectModal();
+      this.loadProjects();
+      
+    } catch (error) {
+      console.error('Error saving project:', error);
+      alert('Error saving project: ' + error.message);
+    }
+  },
+  
+  async deleteProject(projectId) {
+    if (!confirm('Delete this project and ALL its images? This cannot be undone.')) return;
+    
+    try {
+      // 1. Get all images for this project
+      const { data: images, error: fetchError } = await window.supabaseClient
+        .from('gallery_images')
+        .select('image_url')
+        .eq('project_id', projectId);
+      
+      if (fetchError) throw fetchError;
+      
+      // 2. Delete images from bucket
+      if (images && images.length > 0) {
+        const fileNames = images
+          .filter(img => img.image_url && img.image_url.includes('gallery-images'))
+          .map(img => img.image_url.split('/').pop());
+        
+        if (fileNames.length > 0) {
+          const { error: storageError } = await window.supabaseClient.storage
+            .from('gallery-images')
+            .remove(fileNames);
+          
+          if (storageError) {
+            console.warn('Could not delete some images from storage:', storageError);
+          }
+        }
+      }
+      
+      // 3. Delete project (CASCADE will delete gallery_images rows)
+      const { error } = await window.supabaseClient
+        .from('gallery_projects')
+        .delete()
+        .eq('id', projectId);
+      
+      if (error) throw error;
+      
+      alert('Project deleted!');
+      this.loadProjects();
+      
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert('Error deleting project: ' + error.message);
+    }
+  },
+  
+  async openImagesModal(projectId, projectTitle) {
+    document.getElementById('images-modal-project-title').textContent = projectTitle;
+    document.getElementById('images-project-id').value = projectId;
+    document.getElementById('gallery-image-upload').value = '';
+    document.getElementById('gallery-images-modal').style.display = 'block';
+    
+    await this.loadProjectImages(projectId);
+  },
+  
+  closeImagesModal() {
+    document.getElementById('gallery-images-modal').style.display = 'none';
+    this.loadProjects(); // Refresh count
+  },
+  
+  async loadProjectImages(projectId) {
+    const grid = document.getElementById('project-images-grid');
+    grid.innerHTML = '<p>Loading...</p>';
+    
+    try {
+      const { data: images, error } = await window.supabaseClient
+        .from('gallery_images')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('display_order', { ascending: true });
+      
+      if (error) throw error;
+      
+      if (!images || images.length === 0) {
+        grid.innerHTML = '<p style="color: #666;">No images yet. Upload some above.</p>';
+        return;
+      }
+      
+      grid.innerHTML = images.map((img, index) => `
+        <div style="position: relative; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+          <img src="${img.image_url}" style="width: 100%; height: 120px; object-fit: cover;">
+          <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
+            #${index + 1}
+          </div>
+          <button onclick="GalleryAdmin.deleteImage('${img.id}', '${img.image_url}')" 
+                  style="position: absolute; top: 5px; right: 5px; background: #d32f2f; color: white; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 12px;">
+            ✕
+          </button>
+        </div>
+      `).join('');
+      
+    } catch (error) {
+      console.error('Error loading images:', error);
+      grid.innerHTML = '<p style="color: red;">Error loading images</p>';
+    }
+  },
+  
+  async uploadImages() {
+    const fileInput = document.getElementById('gallery-image-upload');
+    const projectId = document.getElementById('images-project-id').value;
+    const files = fileInput.files;
+    
+    if (!files || files.length === 0) return;
+    
+    const grid = document.getElementById('project-images-grid');
+    grid.innerHTML = '<p>Uploading ' + files.length + ' image(s)...</p>';
+    
+    try {
+      // Get current max display_order
+      const { data: existing } = await window.supabaseClient
+        .from('gallery_images')
+        .select('display_order')
+        .eq('project_id', projectId)
+        .order('display_order', { ascending: false })
+        .limit(1);
+      
+      let nextOrder = (existing && existing.length > 0) ? (existing[0].display_order + 1) : 0;
+      
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        const fileName = `${projectId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        
+        // Upload to bucket
+        const { error: uploadError } = await window.supabaseClient.storage
+          .from('gallery-images')
+          .upload(fileName, file);
+        
+        if (uploadError) throw uploadError;
+        
+        // Get public URL
+        const { data: { publicUrl } } = window.supabaseClient.storage
+          .from('gallery-images')
+          .getPublicUrl(fileName);
+        
+        // Save to DB
+        const { error: dbError } = await window.supabaseClient
+          .from('gallery_images')
+          .insert([{
+            project_id: projectId,
+            image_url: publicUrl,
+            display_order: nextOrder++
+          }]);
+        
+        if (dbError) throw dbError;
+      }
+      
+      fileInput.value = '';
+      await this.loadProjectImages(projectId);
+      
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert('Error uploading: ' + error.message);
+      await this.loadProjectImages(projectId);
+    }
+  },
+  
+  async deleteImage(imageId, imageUrl) {
+    if (!confirm('Delete this image?')) return;
+    
+    const projectId = document.getElementById('images-project-id').value;
+    
+    try {
+      // 1. Delete from bucket
+      if (imageUrl && imageUrl.includes('gallery-images')) {
+        const fileName = imageUrl.split('/').pop();
+        const { error: storageError } = await window.supabaseClient.storage
+          .from('gallery-images')
+          .remove([fileName]);
+        
+        if (storageError) {
+          console.warn('Could not delete from storage:', storageError);
+        }
+      }
+      
+      // 2. Delete from DB
+      const { error } = await window.supabaseClient
+        .from('gallery_images')
+        .delete()
+        .eq('id', imageId);
+      
+      if (error) throw error;
+      
+      await this.loadProjectImages(projectId);
+      
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      alert('Error deleting image: ' + error.message);
+    }
+  }
+};
+</script>
+
+</body>
+</html>

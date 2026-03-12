@@ -1,0 +1,13 @@
+# Robots.txt for primesashwindows.co.uk
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.primesashwindows.co.uk/sitemap.xml
+
+# Disallow admin and login pages
+Disallow: /admin-panel.html
+Disallow: /admin-dashboard.html
+Disallow: /customer-dashboard.html
+Disallow: /login.html
