@@ -242,16 +242,27 @@
   <a href="login.html">Login</a>
 </div>
 
-<header class="header" style="position: relative;">
-  <h1>Online Sash Window Estimate</h1>
-  <p>Get an Instant Price for Your Perfect Sash Windows in London</p>
-  <p style="font-size: 1.2em; font-weight: 600; margin-top: 10px;">Create your estimate • Save it to your account • Return anytime</p>
-</header>
-
 <main class="container">
   <div class="configurator-grid">
+    
+    <!-- CATEGORY SIDEBAR -->
+    <div class="config-sidebar">
+      <p class="sidebar-label">Configure</p>
+      <button class="cat-btn active" data-target="dimensions">Dimensions<span class="cat-hint">1000 × 1500mm</span></button>
+      <button class="cat-btn" data-target="design">Design<span class="cat-hint">Bars & Frame</span></button>
+      <button class="cat-btn" data-target="colour">Colour<span class="cat-hint">White</span></button>
+      <button class="cat-btn" data-target="glass">Glass & Opening<span class="cat-hint">Standard DG</span></button>
+      <button class="cat-btn" data-target="hardware">Hardware<span class="cat-hint">Ironmongery</span></button>
+      <button class="cat-btn" data-target="quantity">Quantity<span class="cat-hint">Add to estimate</span></button>
+      <div class="sidebar-price">
+        <p class="sidebar-price-label">Total</p>
+        <p class="sidebar-price-value" id="sidebar-total-price">£0.00</p>
+        <p class="sidebar-price-note">per window excl. VAT</p>
+      </div>
+    </div>
+
     <div class="configurator-options">
-      <div class="config-section">
+      <div class="config-section" data-category="dimensions">
         <h3>Step 1: Window Dimensions</h3>
         <!-- HIDDEN DISPLAY ELEMENTS FIX -->
         <div style="display:none">
@@ -595,7 +606,7 @@
         <button class="btn btn-apply" id="apply-dimensions">Apply Dimensions</button>
       </div>
       
-      <div class="config-section">
+      <div class="config-section" data-category="design">
         <h3>Step 2: Georgian Bars</h3>
         <div class="bars-group">
           <h4>Upper Sash Bars:</h4>
@@ -710,7 +721,7 @@
         <button class="btn btn-apply" id="apply-bars">Apply Georgian Bars</button>
       </div>
       
-      <div class="config-section">
+      <div class="config-section" data-category="design">
         <h3>Step 3: Frame Version</h3>
         <div class="radio-group">
           <div class="radio-option">
@@ -729,7 +740,7 @@
         <button class="btn btn-apply" id="apply-frame">Apply Frame Type</button>
       </div>
       
-      <div class="config-section">
+      <div class="config-section" data-category="colour">
         <h3>Step 4: Color Selection</h3>
         <div class="input-group">
           <div class="radio-group">
@@ -912,7 +923,7 @@
         <button class="btn btn-apply" id="apply-color">Apply Color</button>
       </div>
       
-      <div class="config-section">
+      <div class="config-section" data-category="glass">
         <h3>Step 5: Glass Type</h3>
         <div class="radio-group">
           <div class="radio-option">
@@ -931,7 +942,7 @@
         <button class="btn btn-apply" id="apply-glass">Apply Glass Type</button>
       </div>
       
-      <div class="config-section">
+      <div class="config-section" data-category="glass">
         <h3>Step 6: Opening Mechanism</h3>
         <div class="radio-group">
           <div class="radio-option">
@@ -950,7 +961,7 @@
         <button class="btn btn-apply" id="apply-opening">Apply Opening Type</button>
       </div>
       
-      <div class="config-section">
+      <div class="config-section" data-category="glass">
         <h3>Step 7: PAS 24 Security Standard</h3>
         <div class="input-group">
           <label>Enhanced Security Compliance:</label>
@@ -969,7 +980,7 @@
         <button class="btn btn-apply" id="apply-pas24">Apply Security Standard</button>
       </div>
       
-      <div class="config-section">
+      <div class="config-section" data-category="hardware">
         <h3>Step 8: Windows Ironmongery & Horns</h3>
 
         <!-- Ironmongery Section -->
@@ -1009,7 +1020,7 @@
         <button class="btn btn-apply" id="apply-details">Apply Details</button>
       </div>
       
-      <div class="config-section">
+      <div class="config-section" data-category="glass">
         <h3>Step 9: Glass Specification</h3>
         <div class="input-group">
           <label>Glass Type:</label>
@@ -1053,7 +1064,7 @@
         <button class="btn btn-apply" id="apply-glass-spec">Apply Glass Specification</button>
       </div>
       
-      <div class="config-section">
+      <div class="config-section" data-category="quantity">
         <h3>Step 10: Window Quantity</h3>
         <div class="input-group">
           <label for="window-quantity">Number of windows with this configuration:</label>
@@ -1062,7 +1073,7 @@
         </div>
       </div>
       
-      <div class="config-section estimate-selector-section">
+      <div class="config-section estimate-selector-section" data-category="quantity">
         <h3>Add Window To:</h3>
         <div class="estimate-selector-container">
           <select id="estimate-selector" class="estimate-dropdown">
@@ -1208,20 +1219,22 @@
     </div>
     
     <div class="configurator-preview">
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="external">External</button>
+        <button class="view-btn" data-view="internal">Internal</button>
+      </div>
       <div class="svg-window-visualization">
-        <div class="view">
+        <div class="view view-external active">
           <div class="window-container" id="external-window-container">
             <img src="configurator-overlay/img/window_external_base.png" class="base" alt="External Window">
             <div class="opening-indicators" id="external-opening-indicators"></div>
           </div>
-          <h3>External View</h3>
         </div>
-        <div class="view">
+        <div class="view view-internal">
           <div class="window-container" id="internal-window-container">
             <img src="configurator-overlay/img/window_internal_base.png" class="base" alt="Internal Window">
             <div class="opening-indicators" id="internal-opening-indicators"></div>
           </div>
-          <h3>Internal View</h3>
         </div>
       </div>
       <div class="price-summary">
@@ -1446,6 +1459,63 @@
 
   </div>
 </div>
+
+<script>
+(function(){
+  // CATEGORY SWITCHING
+  var catBtns = document.querySelectorAll('.cat-btn');
+  var configSections = document.querySelectorAll('.config-section[data-category]');
+  
+  function showCategory(cat) {
+    configSections.forEach(function(s) {
+      s.style.display = s.dataset.category === cat ? 'block' : 'none';
+    });
+    catBtns.forEach(function(b) {
+      b.classList.toggle('active', b.dataset.target === cat);
+    });
+  }
+  
+  catBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      showCategory(this.dataset.target);
+    });
+  });
+  
+  // Show dimensions by default
+  showCategory('dimensions');
+  
+  // VIEW TOGGLE (External/Internal)
+  var viewBtns = document.querySelectorAll('.view-btn');
+  var extView = document.querySelector('.view-external');
+  var intView = document.querySelector('.view-internal');
+  
+  viewBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var v = this.dataset.view;
+      viewBtns.forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      if (extView && intView) {
+        extView.style.display = v === 'external' ? 'block' : 'none';
+        intView.style.display = v === 'internal' ? 'block' : 'none';
+      }
+    });
+  });
+  
+  // Show external by default
+  if (extView) extView.style.display = 'block';
+  if (intView) intView.style.display = 'none';
+  
+  // SYNC SIDEBAR PRICE
+  var sidebarPrice = document.getElementById('sidebar-total-price');
+  var mainPrice = document.getElementById('total-price');
+  if (sidebarPrice && mainPrice) {
+    var observer = new MutationObserver(function() {
+      sidebarPrice.textContent = mainPrice.textContent;
+    });
+    observer.observe(mainPrice, { childList: true, characterData: true, subtree: true });
+  }
+})();
+</script>
 
 <script>
   (function(){
