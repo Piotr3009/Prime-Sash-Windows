@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin Dashboard - Prime Sash Windows">
+    <title>Admin Dashboard | Prime Sash Windows</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* Admin specific styles */
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-tab {
+            padding: 12px 24px;
+            border: 2px solid var(--border-color);
+            background: var(--white);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-family: 'Raleway', sans-serif;
+        }
+        
+        .admin-tab:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .admin-tab.active {
+            background: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+        
+        .admin-tab .badge {
+            background: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
+        
+        .admin-tab.active .badge {
+            background: var(--secondary-color);
+            color: var(--primary-color);
+        }
+        
+        .admin-view {
+            display: none;
+        }
+        
+        .admin-view.active {
+            display: block;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .data-table th {
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-sent { background: #fff3cd; color: #856404; }
+        .status-quoted { background: #cce5ff; color: #004085; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-in_production { background: #e2d5f1; color: #6f42c1; }
+        .status-completed { background: #d1ecf1; color: #0c5460; }
+        .status-draft { background: #e9ecef; color: #495057; }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            font-family: 'Raleway', sans-serif;
+        }
+        
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: #1a4a3a; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        
+        .empty-state .icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-tab {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        
+        .filter-tab:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .filter-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 900px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #888;
+            line-height: 1;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .detail-section h4 {
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .detail-section p {
+            margin: 6px 0;
+            color: #555;
+        }
+        
+        .detail-section p strong {
+            color: var(--primary-color);
+        }
+        
+        .total-box {
+            text-align: right;
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .total-box .amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- NAV -->
+    <nav id="if-nav">
+      <a href="index.html" class="logo-wrap">
+        <div class="silver-line"></div>
+        <span class="logo">Prime Sash</span>
+        <span class="logo">Windows</span>
+        <div class="silver-line"></div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="online-estimate.html">Online Estimate</a></li>
+        <li><a href="admin-panel.html">Admin Panel</a></li>
+        <li><a href="admin-dashboard.html" class="active">Admin Dashboard</a></li>
+        <li><a href="#" id="logout-btn">Logout</a></li>
+      </ul>
+    </nav>
+
+    <section style="text-align:center; padding: 2rem 0;">
+        <h1 style="font-family: var(--serif, 'Playfair Display', serif); font-size: 2rem;">Admin Dashboard</h1>
+        <p id="admin-email" style="color: var(--muted, #84837C);">Prime Sash Management</p>
+    </section>
+
+    <main class="container">
+        <!-- Stats Cards -->
+        <section class="section dashboard-header">
+            <div class="stats-grid" style="width: 100%;">
+                <div class="stat-card" onclick="switchView('new-quotes')" style="cursor: pointer;">
+                    <div class="stat-icon">📬</div>
+                    <div class="stat-value" id="stat-new-quotes">0</div>
+                    <div class="stat-label">New Quote Requests</div>
+                </div>
+                <div class="stat-card" onclick="switchView('all-quotes')" style="cursor: pointer;">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-value" id="stat-total-quotes">0</div>
+                    <div class="stat-label">Awaiting Confirmation</div>
+                </div>
+                <div class="stat-card" onclick="switchView('production')" style="cursor: pointer;">
+                    <div class="stat-icon">🔨</div>
+                    <div class="stat-value" id="stat-production">0</div>
+                    <div class="stat-label">In Production</div>
+                </div>
+                <div class="stat-card" onclick="switchView('customers')" style="cursor: pointer;">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="stat-customers">0</div>
+                    <div class="stat-label">Customers</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <section class="section">
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-view="new-quotes">
+                    📬 New Requests <span class="badge" id="badge-new">0</span>
+                </button>
+                <button class="admin-tab" data-view="all-quotes">
+                    📋 Awaiting Confirmation <span class="badge" id="badge-quoted">0</span>
+                </button>
+                <button class="admin-tab" data-view="production">
+                    🔨 In Production <span class="badge" id="badge-prod">0</span>
+                </button>
+                <button class="admin-tab" data-view="customers">
+                    👥 Customers
+                </button>
+            </div>
+
+            <!-- New Quote Requests View -->
+            <div id="view-new-quotes" class="admin-view active">
+                <h2 class="section-title">📬 New Quote Requests</h2>
+                <p style="color: #666; margin-bottom: 20px;">Estimates submitted by customers awaiting your quote.</p>
+                <div id="new-quotes-list">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Awaiting Confirmation View -->
+            <div id="view-all-quotes" class="admin-view">
+                <h2 class="section-title">📋 Awaiting Confirmation</h2>
+                <p style="color: #666; margin-bottom: 20px;">Quotes sent to customers, waiting for their confirmation.</p>
+                
+                <div id="all-quotes-list">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Production View -->
+            <div id="view-production" class="admin-view">
+                <h2 class="section-title">🔨 In Production</h2>
+                <p style="color: #666; margin-bottom: 20px;">Orders currently being manufactured.</p>
+                <div id="production-list">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers View -->
+            <div id="view-customers" class="admin-view">
+                <h2 class="section-title">👥 Customers</h2>
+                <div id="customers-list">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="if-footer">
+      <div class="ft-top-line"></div>
+      <div class="ft-grid">
+        <div>
+          <div class="ft-logo-block">
+            <div class="silver-line"></div>
+            <span class="ft-logo">Prime Sash Windows</span>
+            <div class="silver-line"></div>
+          </div>
+        </div>
+      </div>
+      <div class="ft-bottom">
+        <p>&copy; 2026 Prime Sash Windows. All rights reserved. A trading name of Skylon Joinery LTD</p>
+        <p></p>
+      </div>
+    </footer>
+
+    <!-- Quote Detail Modal -->
+    <div id="quote-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/supabase-config.js"></script>
+    <script>
+        // ============================================
+        // ADMIN DASHBOARD CONTROLLER
+        // ============================================
+        
+        let allEstimates = [];
+        let allCustomers = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check admin access
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            document.getElementById('admin-email').textContent = user.email;
+            
+            // Setup
+            setupNavigation();
+            setupLogout();
+            
+            // Load data
+            await loadAllData();
+        });
+        
+        // Setup Navigation
+        function setupNavigation() {
+            // Main tabs
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const view = tab.dataset.view;
+                    switchView(view);
+                });
+            });
+        }
+        
+        // Setup Logout
+        function setupLogout() {
+            document.getElementById('logout-btn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await supabaseClient.auth.signOut();
+                window.location.href = 'index.html';
+            });
+        }
+        
+        // Switch View
+        function switchView(viewName) {
+            // Update tabs
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.view === viewName);
+            });
+            
+            // Update views
+            document.querySelectorAll('.admin-view').forEach(view => {
+                view.classList.toggle('active', view.id === `view-${viewName}`);
+            });
+        }
+        
+        // Load All Data
+        async function loadAllData() {
+            try {
+                // Load estimates with items and customer data
+                const { data: estimates, error: estError } = await supabaseClient
+                    .from('estimates')
+                    .select(`
+                        *,
+                        estimate_items (*),
+                        customers (*)
+                    `)
+                    .order('created_at', { ascending: false });
+                
+                if (estError) throw estError;
+                allEstimates = estimates || [];
+                
+                // Load customers
+                const { data: customers, error: custError } = await supabaseClient
+                    .from('customers')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (custError) throw custError;
+                allCustomers = customers || [];
+                
+                // Update UI
+                updateStats();
+                renderNewQuotes();
+                renderAllQuotes();
+                renderProduction();
+                renderCustomers();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+        
+        // Update Stats
+        function updateStats() {
+            const newQuotes = allEstimates.filter(e => e.status === 'sent').length;
+            const awaitingConfirm = allEstimates.filter(e => e.status === 'quoted').length;
+            const inProduction = allEstimates.filter(e => e.status === 'in_production' || e.status === 'confirmed').length;
+            
+            document.getElementById('stat-new-quotes').textContent = newQuotes;
+            document.getElementById('stat-total-quotes').textContent = awaitingConfirm;
+            document.getElementById('stat-production').textContent = inProduction;
+            document.getElementById('stat-customers').textContent = allCustomers.length;
+            
+            // Badges
+            document.getElementById('badge-new').textContent = newQuotes;
+            document.getElementById('badge-quoted').textContent = awaitingConfirm;
+            document.getElementById('badge-prod').textContent = inProduction;
+        }
+        
+        // Render New Quotes
+        function renderNewQuotes() {
+            const container = document.getElementById('new-quotes-list');
+            const newQuotes = allEstimates.filter(e => e.status === 'sent');
+            
+            if (newQuotes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">✅</div>
+                        <p>No pending requests. All caught up!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = renderTable(newQuotes, true);
+        }
+        
+        // Render Awaiting Confirmation (quoted only)
+        function renderAllQuotes() {
+            const container = document.getElementById('all-quotes-list');
+            const quoted = allEstimates.filter(e => e.status === 'quoted');
+            
+            if (quoted.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <p>No quotes awaiting confirmation</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = renderTableWithConfirmButton(quoted);
+        }
+        
+        // Render Table with Confirm Button
+        function renderTableWithConfirmButton(estimates) {
+            return `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Estimate #</th>
+                            <th>Customer</th>
+                            <th>Project</th>
+                            <th>Windows</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${estimates.map(est => {
+                            const customer = est.customers || {};
+                            const itemCount = est.estimate_items?.length || 0;
+                            
+                            return `
+                                <tr>
+                                    <td><strong>${est.estimate_number || est.id.substring(0, 8).toUpperCase()}</strong></td>
+                                    <td>${customer.full_name || customer.company_name || customer.email || 'Unknown'}</td>
+                                    <td>${est.project_name || '-'}</td>
+                                    <td>${itemCount}</td>
+                                    <td><strong>£${formatPrice(est.total_price)}</strong></td>
+                                    <td><span class="status-badge status-${est.status}">${getStatusLabel(est.status)}</span></td>
+                                    <td>${formatDate(est.created_at)}</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm" onclick="viewEstimate('${est.id}')">View</button>
+                                        <button class="btn btn-success btn-sm" onclick="confirmDepositPaid('${est.id}')">Deposit Paid</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        // Render Production
+        function renderProduction() {
+            const container = document.getElementById('production-list');
+            const inProd = allEstimates.filter(e => 
+                e.status === 'confirmed' || e.status === 'in_production'
+            );
+            
+            if (inProd.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔨</div>
+                        <p>No orders in production</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = renderTable(inProd);
+        }
+        
+        // Render Customers
+        function renderCustomers() {
+            const container = document.getElementById('customers-list');
+            
+            if (allCustomers.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">👥</div>
+                        <p>No customers yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Quotes</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allCustomers.map(cust => `
+                            <tr>
+                                <td><strong>${cust.customer_code || '-'}</strong></td>
+                                <td>${cust.full_name || cust.company_name || '-'}</td>
+                                <td>${cust.email || '-'}</td>
+                                <td>${cust.phone || '-'}</td>
+                                <td>${allEstimates.filter(e => e.customer_id === cust.id).length}</td>
+                                <td>${formatDate(cust.created_at)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        // Render Table
+        function renderTable(estimates, showQuoteAction = false) {
+            return `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Estimate #</th>
+                            <th>Customer</th>
+                            <th>Project</th>
+                            <th>Windows</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${estimates.map(est => {
+                            const customer = est.customers || {};
+                            const itemCount = est.estimate_items?.length || 0;
+                            
+                            return `
+                                <tr>
+                                    <td><strong>${est.estimate_number || est.id.substring(0, 8).toUpperCase()}</strong></td>
+                                    <td>${customer.full_name || customer.company_name || customer.email || 'Unknown'}</td>
+                                    <td>${est.project_name || '-'}</td>
+                                    <td>${itemCount}</td>
+                                    <td><strong>£${formatPrice(est.total_price)}</strong></td>
+                                    <td><span class="status-badge status-${est.status}">${getStatusLabel(est.status)}</span></td>
+                                    <td>${formatDate(est.created_at)}</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm" onclick="viewEstimate('${est.id}')">View</button>
+                                        ${showQuoteAction ? `<button class="btn btn-success btn-sm" onclick="sendQuote('${est.id}')">Send Quote</button>` : ''}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        // View Estimate Detail
+        function viewEstimate(id) {
+            const est = allEstimates.find(e => e.id === id);
+            if (!est) return;
+            
+            const customer = est.customers || {};
+            const items = est.estimate_items || [];
+            
+            document.getElementById('modal-body').innerHTML = `
+                <h2 style="font-family: 'Playfair Display', serif; color: var(--primary-color); margin-bottom: 25px;">
+                    Estimate ${est.estimate_number || est.id.substring(0, 8).toUpperCase()}
+                </h2>
+                
+                <div class="detail-grid">
+                    <div class="detail-section">
+                        <h4>👤 Customer Details</h4>
+                        <p><strong>Name:</strong> ${customer.full_name || '-'}</p>
+                        <p><strong>Company:</strong> ${customer.company_name || '-'}</p>
+                        <p><strong>Email:</strong> ${customer.email || '-'}</p>
+                        <p><strong>Phone:</strong> ${customer.phone || '-'}</p>
+                        <p><strong>Code:</strong> ${customer.customer_code || '-'}</p>
+                    </div>
+                    <div class="detail-section">
+                        <h4>📋 Project Info</h4>
+                        <p><strong>Project:</strong> ${est.project_name || '-'}</p>
+                        <p><strong>Address:</strong> ${est.delivery_address || '-'}</p>
+                        <p><strong>Status:</strong> <span class="status-badge status-${est.status}">${getStatusLabel(est.status)}</span></p>
+                        <p><strong>Created:</strong> ${formatDate(est.created_at)}</p>
+                        ${est.notes ? `<p><strong>Notes:</strong> ${est.notes}</p>` : ''}
+                    </div>
+                </div>
+                
+                <h4 style="color: var(--primary-color); margin-bottom: 15px;">🪟 Windows (${items.length})</h4>
+                <table class="data-table" style="margin-bottom: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Window</th>
+                            <th>Size</th>
+                            <th>Frame</th>
+                            <th>Glass</th>
+                            <th>Color</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${items.map(item => `
+                            <tr>
+                                <td><strong>${item.window_number}</strong></td>
+                                <td>${item.width}×${item.height}mm</td>
+                                <td>${item.frame_type}</td>
+                                <td>${item.glass_type}</td>
+                                <td>${item.color_single || item.color_interior || '-'}</td>
+                                <td>${item.quantity}</td>
+                                <td>£${formatPrice(item.total_price)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <div class="total-box">
+                    <span class="amount">Total: £${formatPrice(est.total_price)}</span>
+                </div>
+                
+                <div class="modal-actions">
+                    ${est.status === 'sent' ? `
+                        <button class="btn btn-success" onclick="sendQuote('${est.id}'); closeModal();">✉️ Send Quote</button>
+                    ` : ''}
+                    ${est.status === 'quoted' ? `
+                        <button class="btn btn-success" onclick="confirmOrder('${est.id}'); closeModal();">✅ Confirm Order</button>
+                    ` : ''}
+                    ${est.status === 'confirmed' ? `
+                        <button class="btn btn-warning" onclick="startProduction('${est.id}'); closeModal();">🔨 Start Production</button>
+                    ` : ''}
+                    ${est.status === 'in_production' ? `
+                        <button class="btn btn-success" onclick="completeOrder('${est.id}'); closeModal();">✅ Mark Completed</button>
+                    ` : ''}
+                    <button class="btn btn-primary" onclick="closeModal()">Close</button>
+                </div>
+            `;
+            
+            document.getElementById('quote-modal').classList.add('active');
+        }
+        
+        // Close Modal
+        function closeModal() {
+            document.getElementById('quote-modal').classList.remove('active');
+        }
+        
+        // Click outside modal to close
+        document.getElementById('quote-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'quote-modal') {
+                closeModal();
+            }
+        });
+        
+        // Status Actions
+        async function sendQuote(id) {
+            if (!confirm('Mark this estimate as quoted and notify customer?')) return;
+            await updateStatus(id, 'quoted');
+        }
+        
+        async function confirmDepositPaid(id) {
+            if (!confirm('Confirm deposit paid - move to production?')) return;
+            await updateStatus(id, 'confirmed');
+        }
+        
+        async function confirmOrder(id) {
+            if (!confirm('Confirm this order?')) return;
+            await updateStatus(id, 'confirmed');
+        }
+        
+        async function startProduction(id) {
+            if (!confirm('Start production for this order?')) return;
+            await updateStatus(id, 'in_production');
+        }
+        
+        async function completeOrder(id) {
+            if (!confirm('Mark this order as completed?')) return;
+            await updateStatus(id, 'completed');
+        }
+        
+        async function updateStatus(id, newStatus) {
+            try {
+                const { error } = await supabaseClient
+                    .from('estimates')
+                    .update({ 
+                        status: newStatus, 
+                        updated_at: new Date().toISOString() 
+                    })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                alert('Status updated successfully!');
+                await loadAllData();
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // Helpers
+        function getStatusLabel(status) {
+            const labels = {
+                'draft': 'Draft',
+                'saved': 'Draft',
+                'sent': 'Awaiting Quote',
+                'quoted': 'Awaiting Confirmation',
+                'confirmed': 'Confirmed',
+                'in_production': 'In Production',
+                'completed': 'Completed',
+                'cancelled': 'Cancelled'
+            };
+            return labels[status] || status;
+        }
+        
+        function formatPrice(price) {
+            return new Intl.NumberFormat('en-GB', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price || 0);
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+    </script>
+</body>
+</html>
