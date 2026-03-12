@@ -2208,3 +2208,75 @@ body {
   flex-direction: row !important;
   gap: 6px !important;
 }
+
+/* BTN-APPLY - Prime Sash shimmer style */
+.btn-apply,
+.btn,
+.btn-secondary {
+  font-family: 'Jost', sans-serif !important;
+  font-size: 0.6rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.4em !important;
+  text-transform: uppercase !important;
+  padding: 0.9rem 2.4rem !important;
+  background: #0A1628 !important;
+  border: 1px solid rgba(158,158,144,.3) !important;
+  border-radius: 0 !important;
+  color: rgba(255,255,255,.7) !important;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s !important;
+  box-shadow: none !important;
+  transform: none !important;
+  width: 100%;
+  text-align: center;
+  display: block;
+}
+.btn-apply:hover,
+.btn:hover,
+.btn-secondary:hover {
+  border-color: rgba(158,158,144,.6) !important;
+  color: rgba(255,255,255,.9) !important;
+  background: #0e1e35 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.btn-apply.applied {
+  border-color: rgba(158,158,144,.6) !important;
+  color: rgba(255,255,255,.9) !important;
+  animation: none !important;
+}
+.btn-apply.btn-locked {
+  background: rgba(158,158,144,.1) !important;
+  color: rgba(255,255,255,.3) !important;
+  border-color: rgba(158,158,144,.1) !important;
+}
+/* Silver shimmer line above button */
+.btn-apply::before,
+.btn::before,
+.btn-secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right,
+    transparent 0%, #707068 15%, #B8B8AE 40%,
+    #D4D4C8 50%, #B8B8AE 60%, #707068 85%, transparent 100%);
+}
+/* Silver shimmer line below button */
+.btn-apply::after,
+.btn::after,
+.btn-secondary::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right,
+    transparent 0%, #707068 15%, #B8B8AE 40%,
+    #D4D4C8 50%, #B8B8AE 60%, #707068 85%, transparent 100%);
+}
