@@ -1523,6 +1523,51 @@
     });
     observer.observe(mainPrice, { childList: true, characterData: true, subtree: true });
   }
+
+  // INFO PANEL - mirror measurement-info to infobox
+  var infoPanel = document.getElementById('info-panel-content');
+  var measureInfo = document.getElementById('measurement-info');
+  var activeCategory = 'dimensions';
+  
+  function updateInfoPanel() {
+    if (!infoPanel) return;
+    
+    if (activeCategory === 'dimensions' && measureInfo && measureInfo.style.display === 'block') {
+      var w = document.getElementById('actual-width');
+      var h = document.getElementById('actual-height');
+      var wVal = w ? w.textContent : '-';
+      var hVal = h ? h.textContent : '-';
+      infoPanel.innerHTML = 
+        '<p class="info-title">Frame dimensions</p>' +
+        '<p>Width: <span class="info-highlight">' + wVal + ' mm</span></p>' +
+        '<p>Height: <span class="info-highlight">' + hVal + ' mm</span></p>' +
+        '<p class="info-note">Frame overlaps brickwork by 150mm (W) and 75mm (H)</p>';
+    } else {
+      infoPanel.innerHTML = '';
+    }
+  }
+  
+  // Watch measurement-info for style changes
+  if (measureInfo) {
+    var infoObserver = new MutationObserver(updateInfoPanel);
+    infoObserver.observe(measureInfo, { attributes: true, attributeFilter: ['style'] });
+    // Also watch actual-width/height text changes
+    var aw = document.getElementById('actual-width');
+    var ah = document.getElementById('actual-height');
+    if (aw) new MutationObserver(updateInfoPanel).observe(aw, { childList: true, characterData: true, subtree: true });
+    if (ah) new MutationObserver(updateInfoPanel).observe(ah, { childList: true, characterData: true, subtree: true });
+  }
+  
+  // Override showCategory to track active + clear info
+  var origShowCategory = showCategory;
+  showCategory = function(cat) {
+    activeCategory = cat;
+    origShowCategory(cat);
+    updateInfoPanel();
+  };
+  
+  // Initial
+  updateInfoPanel();
 })();
 </script>
 
