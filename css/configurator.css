@@ -2147,3 +2147,17 @@ body {
 .price-summary .total-price {
   font-family: 'Jost', sans-serif !important;
 }
+
+/* OPTIONS - 2 COLUMNS */
+.configurator-options {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  align-content: start !important;
+}
+
+@media (max-width: 1024px) {
+  .configurator-options {
+    grid-template-columns: 1fr !important;
+  }
+}
