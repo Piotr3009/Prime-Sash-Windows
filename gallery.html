@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S88RZLHQL2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-S88RZLHQL2');
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Prime Sash Windows - Gallery of our completed sash window projects across London.">
+    <title>Gallery | Prime Sash Windows</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    
+    <style>
+        .login-button-top {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .login-button-top a {
+            display: inline-block;
+            padding: 12px 25px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .login-button-top a:hover {
+            background: #1a4d36;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .gallery-intro {
+            background: linear-gradient(135deg, #f7f9fa 0%, #ffffff 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            border-radius: 8px;
+            margin: 2rem 0 3rem 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        
+        .gallery-intro h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #0f2d22;
+            margin-bottom: 1rem;
+        }
+        
+        .gallery-intro p {
+            font-size: 1.1rem;
+            color: #555;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .project-section {
+            margin-bottom: 3rem;
+            background-color: var(--light-gray);
+            padding: 2rem;
+            border-radius: 8px;
+        }
+        
+        .project-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .project-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 0.3rem;
+        }
+        
+        .project-address {
+            font-family: 'Raleway', sans-serif;
+            font-size: 1.1rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .project-divider {
+            height: 2px;
+            background: linear-gradient(90deg, var(--secondary-color), transparent);
+            margin: 1rem 0 1.5rem 0;
+            max-width: 300px;
+        }
+        
+        .project-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .project-images img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .project-images img:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .no-projects {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+        
+        .no-projects h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .lightbox.active {
+            display: flex;
+        }
+        
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 5px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 3rem;
+            color: white;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .lightbox-close:hover {
+            color: var(--secondary-color);
+        }
+        
+        .footer-new {
+            background: #0f2d22;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+        
+        .footer-new p {
+            margin: 0.5rem 0;
+        }
+        
+        .footer-new .footer-links {
+            margin-top: 1rem;
+        }
+        
+        .footer-new .footer-links a {
+            color: #c9a648;
+            text-decoration: none;
+            margin: 0 1rem;
+            transition: color 0.3s;
+        }
+        
+        .footer-new .footer-links a:hover {
+            color: #b08f3a;
+        }
+        
+        @media (max-width: 768px) {
+            .project-images {
+                grid-template-columns: 1fr;
+            }
+            
+            .gallery-intro {
+                padding: 2rem 1rem;
+            }
+            
+            .gallery-intro h2 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAV -->
+    <nav id="if-nav">
+      <a href="index.html" class="logo-wrap">
+        <div class="silver-line"></div>
+        <span class="logo">Prime Sash</span>
+        <span class="logo">Windows</span>
+        <div class="silver-line"></div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" data-page="index">Home</a></li>
+        <li><a href="online-estimate.html" data-page="online">Online Estimate</a></li>
+        <li><a href="gallery.html" data-page="gallery">Gallery</a></li>
+        <li><a href="certifications.html" data-page="cert">Certifications</a></li>
+        <li><a href="contact.html" data-page="contact">Contact</a></li>
+        <li><a href="login.html" data-page="login" id="login-menu-link">Login</a></li>
+      </ul>
+      <div class="hamburger" id="ham"><span></span><span></span><span></span></div>
+    </nav>
+    <div id="mob-menu">
+      <a href="index.html">Home</a>
+      <a href="online-estimate.html">Online Estimate</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container">
+        
+        <section class="gallery-intro">
+            <h2>Our Completed Projects</h2>
+            <p>Browse through our portfolio of beautifully crafted sash windows installed across London's finest period properties. Each project showcases our commitment to quality craftsmanship and attention to detail.</p>
+        </section>
+
+        <div id="gallery-container">
+            <!-- Projects loaded dynamically -->
+            <div class="no-projects">
+                <h3>Loading projects...</h3>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <img src="" alt="Full size image" id="lightbox-img">
+    </div>
+
+    <!-- Footer -->
+    <footer id="if-footer">
+      <div class="ft-top-line"></div>
+      <div class="ft-grid">
+        <div>
+          <div class="ft-logo-block">
+            <div class="silver-line"></div>
+            <span class="ft-logo">Prime Sash Windows</span>
+            <div class="silver-line"></div>
+          </div>
+          <p class="ft-brand-text">Premium timber sash windows for London's period homes.<br/>Every window handcrafted. Every project — unique.</p>
+        </div>
+        <div class="ft-col"><h4>Navigation</h4><ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="online-estimate.html">Online Estimate</a></li>
+          <li><a href="gallery.html">Gallery</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul></div>
+        <div class="ft-col"><h4>Contact</h4><ul>
+          <li><a href="tel:+447842510060">+44 7842 510060</a></li>
+          <li><a href="mailto:info@primesashwindows.co.uk">info@primesashwindows.co.uk</a></li>
+        </ul></div>
+      </div>
+      <div class="ft-bottom">
+        <p>&copy; 2026 Prime Sash Windows. All rights reserved. A trading name of Skylon Joinery LTD</p>
+        <p><a href="#" style="color:inherit;text-decoration:none;">Privacy Policy</a></p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/menu-loader.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const authSystem = new AuthSystem();
+        
+        // Load gallery projects
+        async function loadGallery() {
+            const container = document.getElementById('gallery-container');
+            
+            try {
+                // Load projects with images
+                const { data: projects, error } = await window.supabaseClient
+                    .from('gallery_projects')
+                    .select(`
+                        id,
+                        title,
+                        address,
+                        display_order,
+                        gallery_images (
+                            id,
+                            image_url,
+                            display_order
+                        )
+                    `)
+                    .order('display_order', { ascending: true });
+                
+                if (error) throw error;
+                
+                if (!projects || projects.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-projects">
+                            <h3>Coming Soon</h3>
+                            <p>We're preparing our gallery. Check back soon to see our completed projects.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Render projects
+                container.innerHTML = projects.map(project => {
+                    const images = project.gallery_images || [];
+                    images.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+                    
+                    return `
+                        <section class="project-section">
+                            <div class="project-header">
+                                <h2 class="project-title">${project.title}</h2>
+                                <p class="project-address">${project.address}</p>
+                                <div class="project-divider"></div>
+                            </div>
+                            <div class="project-images">
+                                ${images.map(img => `
+                                    <img src="${img.image_url}" 
+                                         alt="${project.title}" 
+                                         onclick="openLightbox('${img.image_url}')"
+                                         loading="lazy">
+                                `).join('')}
+                                ${images.length === 0 ? '<p style="color: #999;">No images yet</p>' : ''}
+                            </div>
+                        </section>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading gallery:', error);
+                container.innerHTML = `
+                    <div class="no-projects">
+                        <h3>Error Loading Gallery</h3>
+                        <p>Please try refreshing the page.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Lightbox functions
+        function openLightbox(imageUrl) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = imageUrl;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Close on ESC or click outside
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+        
+        document.getElementById('lightbox').addEventListener('click', (e) => {
+            if (e.target.id === 'lightbox') closeLightbox();
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadGallery);
+    </script>
+    <script>
+      (function(){
+        var page = location.pathname.split('/').pop() || 'index.html';
+        document.querySelectorAll('.nav-links a[data-page]').forEach(function(a){
+          if(a.dataset.page && page.startsWith(a.dataset.page)) a.classList.add('active');
+        });
+        var ham = document.getElementById('ham');
+        var mob = document.getElementById('mob-menu');
+        if(ham && mob){
+          ham.addEventListener('click', function(){ mob.classList.toggle('open'); });
+          mob.querySelectorAll('a').forEach(function(a){
+            a.addEventListener('click', function(){ mob.classList.remove('open'); });
+          });
+        }
+      })();
+    </script>
+</body>
+</html>
