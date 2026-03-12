@@ -2149,16 +2149,21 @@ body {
 }
 
 
-/* OPTIONS - 2 COLUMNS */
-.configurator-options {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 8px !important;
-  align-content: start !important;
+/* OPTIONS - HORIZONTAL COMPACT */
+.configurator-options .dimension-input-wrapper {
+  display: flex !important;
+  gap: 10px !important;
+  align-items: flex-end !important;
 }
-
-@media (max-width: 1024px) {
-  .configurator-options {
-    grid-template-columns: 1fr !important;
-  }
+.configurator-options .dimension-input-wrapper .input-group {
+  flex: 1;
+}
+.configurator-options .input-group {
+  display: inline-block;
+  vertical-align: top;
+}
+.configurator-options .radio-group {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 6px !important;
 }
