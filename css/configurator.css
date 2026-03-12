@@ -179,14 +179,7 @@
 
 /* PRICE SUMMARY */
 .price-summary {
-  background: var(--primary-color) !important;
-  padding: 12px 24px !important;
-  border-radius: 24px !important;
-  margin-top: 16px;
-  width: auto !important;
-  position: relative !important;
-  bottom: auto !important;
-  box-shadow: none !important;
+  display: none !important;
 }
 .price-summary h3 {
   color: rgba(255,255,255,.5) !important;
@@ -206,17 +199,17 @@
   flex: none !important;
   min-width: 0 !important;
   margin: 0 !important;
-  padding: 20px 24px !important;
+  padding: 12px 16px !important;
   border-right: none !important;
   background: var(--white);
   overflow-y: auto;
-  max-height: 500px;
+  max-height: none;
 }
 
-/* CONFIG SECTIONS */
+/* CONFIG SECTIONS - COMPACT */
 .config-section {
-  margin-bottom: 16px !important;
-  padding: 16px !important;
+  margin-bottom: 8px !important;
+  padding: 10px 14px !important;
   border-left: 2px solid var(--secondary-color) !important;
   background: var(--light-gray) !important;
   box-shadow: none !important;
@@ -227,12 +220,12 @@
 }
 .config-section h3 {
   font-family: 'Jost', sans-serif !important;
-  font-size: 0.7rem !important;
+  font-size: 0.65rem !important;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--secondary-color) !important;
   border-bottom: none !important;
-  margin-bottom: 12px !important;
+  margin-bottom: 8px !important;
   padding-bottom: 0 !important;
   font-weight: 400;
 }
@@ -2095,4 +2088,62 @@ h1, h2, h3, h4, h5, h6 {
   .btn-confirm-selection {
     width: 100%;
   }
+}
+/* ============================================================
+   COMPACT OVERRIDES - fonts, inputs, labels
+   ============================================================ */
+.input-group {
+  margin-bottom: 8px !important;
+}
+.input-group label {
+  font-family: 'Jost', sans-serif !important;
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+  color: var(--text-color) !important;
+  margin-bottom: 4px !important;
+  letter-spacing: 0.5px;
+}
+.input-group input[type="number"],
+.input-group select,
+.dimension-select {
+  padding: 8px 10px !important;
+  font-family: 'Jost', sans-serif !important;
+  font-size: 0.8rem !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 4px !important;
+  background: var(--white) !important;
+}
+.input-group input:focus,
+.input-group select:focus,
+.dimension-select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(10,22,40,.08) !important;
+}
+.input-group input[type="checkbox"] {
+  width: 40px !important;
+  height: 20px !important;
+}
+.radio-group {
+  gap: 6px !important;
+}
+.radio-label {
+  font-family: 'Jost', sans-serif !important;
+  font-size: 0.78rem !important;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Jost', sans-serif !important;
+}
+body {
+  font-family: 'Jost', sans-serif !important;
+}
+.measurement-info-box {
+  font-size: 0.78rem !important;
+  padding: 8px 12px !important;
+}
+.header {
+  display: none !important;
+}
+.price-summary h3,
+.price-summary .total-price {
+  font-family: 'Jost', sans-serif !important;
 }
