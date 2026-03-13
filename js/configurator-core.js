@@ -604,8 +604,10 @@ class ConfiguratorCore {
     this.appliedSections = {};
     localStorage.removeItem('byow_applied_sections');
     localStorage.removeItem('byow_saved_config');
+    localStorage.removeItem('lastWindowConfig');
     this.resetButtonTexts();
     this.updateApplyButtonsState();
+    location.reload();
   }
 
   // Mapa oryginalnych tekstów buttonów
@@ -994,4 +996,14 @@ ready(() => {
       window.configuratorCore.invalidateSection(buttonId);
     }
   };
+
+  // Reset window button
+  const resetBtn = document.getElementById('btn-reset-window');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (window.configuratorCore?.isInitialized) {
+        window.configuratorCore.fullReset();
+      }
+    });
+  }
 });
