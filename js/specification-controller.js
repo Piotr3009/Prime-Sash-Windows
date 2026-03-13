@@ -209,7 +209,7 @@ class SpecificationController {
             infoPanel.innerHTML =
               '<p class="info-title">Slim Frame</p>' +
               '<p><span class="info-highlight">Note:</span> Slim frame cannot accommodate Triple Glazing</p>' +
-              '<p class="info-note">Non-standard product — additional cost applies</p>';
+              '<p class="info-warning">Non-standard product — additional cost applies</p>';
           } else {
             infoPanel.innerHTML = '';
           }

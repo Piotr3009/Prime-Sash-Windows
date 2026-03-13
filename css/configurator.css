@@ -408,6 +408,13 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 6px;
 }
 
+.info-panel-content .info-warning {
+  font-size: 0.65rem;
+  color: #cc3300;
+  font-style: italic;
+  margin-top: 6px;
+}
+
 /* ============================================================
    10. PRICE SUMMARY (hidden - shown in sidebar)
    ============================================================ */
