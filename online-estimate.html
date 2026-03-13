@@ -620,51 +620,53 @@
       
       <div class="config-section" data-category="design">
         <h3>Step 2: Georgian Bars</h3>
-        <div class="bars-group">
-          <h4>Upper Sash Bars:</h4>
-          <div class="input-group">
-            <select id="upper-bars" class="detail-select" data-detail-type="bars">
-              <option value="none">No Bars</option>
-              <option value="2x2">2x2 Pattern</option>
-              <option value="3x3">3x3 Pattern</option>
-              <option value="4x4">4x4 Pattern</option>
-              <option value="6x6">6x6 Pattern</option>
-              <option value="9x9">9x9 Pattern</option>
-              <option value="2-vertical">2 Vertical Bars</option>
-              <option value="1-vertical">1 Vertical Bar</option>
-              <!-- DISABLED: <option value="custom">Custom Design</option> -->
-            </select>
+        <div class="bars-inline-row">
+          <div class="bars-group">
+            <h4>Upper Sash Bars:</h4>
+            <div class="input-group">
+              <select id="upper-bars" class="detail-select" data-detail-type="bars">
+                <option value="none">No Bars</option>
+                <option value="2x2">2x2 Pattern</option>
+                <option value="3x3">3x3 Pattern</option>
+                <option value="4x4">4x4 Pattern</option>
+                <option value="6x6">6x6 Pattern</option>
+                <option value="9x9">9x9 Pattern</option>
+                <option value="2-vertical">2 Vertical Bars</option>
+                <option value="1-vertical">1 Vertical Bar</option>
+                <!-- DISABLED: <option value="custom">Custom Design</option> -->
+              </select>
+            </div>
+            <div id="upper-custom-bars-position" style="display: none;">
+              <label for="upper-bar-position">Distance from Edge (mm):</label>
+              <input type="number" id="upper-bar-position" min="50" max="500" value="150" step="10">
+            </div>
           </div>
-          <div id="upper-custom-bars-position" style="display: none;">
-            <label for="upper-bar-position">Distance from Edge (mm):</label>
-            <input type="number" id="upper-bar-position" min="50" max="500" value="150" step="10">
+          
+          <div class="bars-group">
+            <h4>Lower Sash Bars:</h4>
+            <div class="input-group">
+              <select id="lower-bars" class="detail-select" data-detail-type="bars">
+                <option value="none">No Bars</option>
+                <option value="2x2">2x2 Pattern</option>
+                <option value="3x3">3x3 Pattern</option>
+                <option value="4x4">4x4 Pattern</option>
+                <option value="6x6">6x6 Pattern</option>
+                <option value="9x9">9x9 Pattern</option>
+                <option value="2-vertical">2 Vertical Bars</option>
+                <option value="1-vertical">1 Vertical Bar</option>
+                <!-- DISABLED: <option value="custom">Custom Design</option> -->
+              </select>
+            </div>
+            <div id="lower-custom-bars-position" style="display: none;">
+              <label for="lower-bar-position">Distance from Edge (mm):</label>
+              <input type="number" id="lower-bar-position" min="50" max="500" value="150" step="10">
+            </div>
           </div>
-        </div>
-        
-        <div class="bars-group">
-          <h4>Lower Sash Bars:</h4>
-          <div class="input-group">
-            <select id="lower-bars" class="detail-select" data-detail-type="bars">
-              <option value="none">No Bars</option>
-              <option value="2x2">2x2 Pattern</option>
-              <option value="3x3">3x3 Pattern</option>
-              <option value="4x4">4x4 Pattern</option>
-              <option value="6x6">6x6 Pattern</option>
-              <option value="9x9">9x9 Pattern</option>
-              <option value="2-vertical">2 Vertical Bars</option>
-              <option value="1-vertical">1 Vertical Bar</option>
-              <!-- DISABLED: <option value="custom">Custom Design</option> -->
-            </select>
+
+          <div class="input-group same-pattern">
+            <label for="same-bars-both-sashes">Use same pattern</label>
+            <input type="checkbox" id="same-bars-both-sashes" checked>
           </div>
-          <div id="lower-custom-bars-position" style="display: none;">
-            <label for="lower-bar-position">Distance from Edge (mm):</label>
-            <input type="number" id="lower-bar-position" min="50" max="500" value="150" step="10">
-          </div>
-        </div>
-        
-        <div class="input-group">
-          <input type="checkbox" id="same-bars-both-sashes" checked>
-          <label for="same-bars-both-sashes">Use same pattern for both sashes</label>
         </div>
         
         <!-- HIDDEN: Custom Bar Design Panel - kept for canvas functionality -->

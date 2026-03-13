@@ -807,6 +807,52 @@ h1, h2, h3, h4, h5, h6 {
 /* ============================================================
    17. GEORGIAN BARS
    ============================================================ */
+
+/* Bars inline row: Upper | Lower | Checkbox */
+.bars-inline-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+}
+
+.bars-inline-row .bars-group {
+  flex: 1;
+  margin-bottom: 0 !important;
+}
+
+.bars-inline-row .bars-group h4 {
+  font-size: 0.65rem !important;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--secondary-color);
+  margin-bottom: 4px;
+  font-weight: 400;
+}
+
+.bars-inline-row .input-group.same-pattern {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 0 !important;
+  padding-bottom: 2px;
+}
+
+.bars-inline-row .input-group.same-pattern label {
+  font-size: 0.6rem !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--secondary-color) !important;
+  text-align: center;
+  margin-bottom: 4px !important;
+  white-space: nowrap;
+}
+
+.bars-inline-row .input-group.same-pattern input[type="checkbox"] {
+  margin: 0 !important;
+}
 .bars-group {
   margin-bottom: 20px;
 }
