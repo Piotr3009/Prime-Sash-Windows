@@ -70,7 +70,14 @@ class PriceCalculator {
     const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
     
     // 4. SUMA PRZED RABATEM
-    const subtotal = basePrice + barsPrice + additionalPrice;
+    let subtotal = basePrice + barsPrice + additionalPrice;
+
+    // DUAL COLOR: +15% od całkowitej ceny okna
+    if (configuration.colorType === 'dual') {
+      const dualSurcharge = subtotal * 0.15;
+      console.log('Dual color: 15% × £' + subtotal.toFixed(2) + ' = £' + dualSurcharge.toFixed(2));
+      subtotal += dualSurcharge;
+    }
     
     // 5. RABAT ILOŚCIOWY
     const quantity = configuration.quantity || 1;
@@ -227,20 +234,8 @@ class PriceCalculator {
       console.log('Opening (' + configuration.openingType + '): £' + openingPrice);
     }
     
-    // Color type - DUAL: 10% od ceny bazowej
-    if (configuration.colorType && options.colorTypes[configuration.colorType]) {
-      const colorMultiplier = options.colorTypes[configuration.colorType];
-      if (colorMultiplier > 0 && colorMultiplier < 1) {
-        // To jest procent (np. 0.10 = 10%)
-        const colorPrice = basePrice * colorMultiplier;
-        additionalPrice += colorPrice;
-        console.log('Color type (' + configuration.colorType + '): ' + (colorMultiplier * 100) + '% × £' + basePrice.toFixed(2) + ' = £' + colorPrice.toFixed(2));
-      } else {
-        // Stała kwota
-        additionalPrice += colorMultiplier;
-        console.log('Color type (' + configuration.colorType + '): £' + colorMultiplier);
-      }
-    }
+    // Color type - DUAL: liczone od subtotal (patrz niżej)
+    // (przeniesione poza tę funkcję)
     
     // Color surcharge based on color choice
     if (options.colorSurcharges) {

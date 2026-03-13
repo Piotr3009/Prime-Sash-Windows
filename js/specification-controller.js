@@ -320,11 +320,18 @@ class SpecificationController {
           if (singleSelector) singleSelector.classList.remove('colour-greyed');
           document.getElementById('single-color-preview-info').style.display = 'block';
           document.getElementById('dual-color-preview-info').style.display = 'none';
+          const infoPanel = document.getElementById('info-panel-content');
+          if (infoPanel) infoPanel.innerHTML = '';
         } else {
           if (dualSection) dualSection.classList.remove('colour-greyed');
           if (singleSelector) singleSelector.classList.add('colour-greyed');
           document.getElementById('single-color-preview-info').style.display = 'none';
           document.getElementById('dual-color-preview-info').style.display = 'block';
+          const infoPanel = document.getElementById('info-panel-content');
+          if (infoPanel) infoPanel.innerHTML =
+            '<p class="info-title">Dual Colour</p>' +
+            '<p><span class="info-highlight">Additional cost:</span> +15% applied to total window price</p>' +
+            '<p class="info-note">Interior and exterior can be different colours</p>';
         }
       });
     });

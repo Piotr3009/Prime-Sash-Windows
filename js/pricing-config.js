@@ -84,7 +84,7 @@ const pricingConfig = {
     // Color
     colorTypes: {
       'single': 0,        // bazowe
-      'dual': 0.10        // +10% od ceny bazowej
+      'dual': 0.15        // +15% od całkowitej ceny okna
     },
     
     // Color surcharges (based on color choice)
