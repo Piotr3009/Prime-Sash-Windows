@@ -69,14 +69,20 @@ class PriceCalculator {
     // 3. DODATKOWE OPCJE (przekazujemy sqm i basePrice)
     const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
     
-    // 4. SUMA PRZED RABATEM
+    // 4. SUMA PRZED RABATEM (bez dopłaty za kolor)
     let subtotal = basePrice + barsPrice + additionalPrice;
 
-    // DUAL COLOR: +15% od całkowitej ceny okna
+    // KOLOR: liczone od czystego subtotal (single white = baza)
     if (configuration.colorType === 'dual') {
+      // Dual color: +15% od subtotal single white
       const dualSurcharge = subtotal * 0.15;
       console.log('Dual color: 15% × £' + subtotal.toFixed(2) + ' = £' + dualSurcharge.toFixed(2));
       subtotal += dualSurcharge;
+    } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
+      // Single inny kolor: +5% od subtotal
+      const colorSurcharge = subtotal * 0.05;
+      console.log('Single colour (non-white): 5% × £' + subtotal.toFixed(2) + ' = £' + colorSurcharge.toFixed(2));
+      subtotal += colorSurcharge;
     }
     
     // 5. RABAT ILOŚCIOWY
@@ -238,41 +244,7 @@ class PriceCalculator {
     // (przeniesione poza tę funkcję)
     
     // Color surcharge based on color choice
-    if (options.colorSurcharges) {
-      let colorSurcharge = 0;
-      
-      // Get the colors being used
-      const colorsToCheck = [];
-      if (configuration.colorType === 'single' && configuration.colorSingle) {
-        colorsToCheck.push(configuration.colorSingle);
-      } else if (configuration.colorType === 'dual') {
-        if (configuration.colorInterior) colorsToCheck.push(configuration.colorInterior);
-        if (configuration.colorExterior) colorsToCheck.push(configuration.colorExterior);
-      }
-      
-      // Find the highest surcharge from selected colors
-      colorsToCheck.forEach(color => {
-        let surcharge = 0;
-        if (color === 'white') {
-          surcharge = options.colorSurcharges.white || 0;
-        } else if (color === 'oak') {
-          surcharge = options.colorSurcharges.oak || 0.20;
-        } else if (color === 'custom') {
-          surcharge = options.colorSurcharges.custom || 0.10;
-        } else {
-          surcharge = options.colorSurcharges.other || 0.05;
-        }
-        if (surcharge > colorSurcharge) {
-          colorSurcharge = surcharge;
-        }
-      });
-      
-      if (colorSurcharge > 0) {
-        const surchargePrice = basePrice * colorSurcharge;
-        additionalPrice += surchargePrice;
-        console.log('Color surcharge: ' + (colorSurcharge * 100) + '% × £' + basePrice.toFixed(2) + ' = £' + surchargePrice.toFixed(2));
-      }
-    }
+    // Color surcharges handled above (single non-white +5%, dual +15%)
     
     // PAS24
     if (configuration.pas24 && options.pas24[configuration.pas24]) {

@@ -83,11 +83,11 @@ const pricingConfig = {
     
     // Color
     colorTypes: {
-      'single': 0,        // bazowe
-      'dual': 0.15        // +15% od całkowitej ceny okna
+      'single': 0,        // white = baza, inny kolor = +5% (liczone w price-calculator)
+      'dual': 0.15        // +15% od subtotal single white
     },
     
-    // Color surcharges (based on color choice)
+    // Color surcharges - nieużywane, obsługiwane bezpośrednio w price-calculator
     colorSurcharges: {
       'white': 0,         // Pure White - bez dopłaty
       'oak': 0.20,        // Oak - +20%
