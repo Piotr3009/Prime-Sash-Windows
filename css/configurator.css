@@ -247,10 +247,10 @@
 .config-section {
   margin-bottom: 8px !important;
   padding: 10px 14px !important;
-  border-left: 2px solid var(--secondary-color) !important;
+  border-left: none !important;
   background: var(--light-gray) !important;
   box-shadow: none !important;
-  border-radius: 0 var(--radius) var(--radius) 0 !important;
+  border-radius: 0 !important;
 }
 .config-section:hover {
   box-shadow: none !important;
