@@ -144,7 +144,7 @@ class AppState {
     this.config = {
       width: 800,
       height: 1000,
-      measurementType: 'brick-to-brick',
+      measurementType: 'box-to-box',
       frameType: 'standard',
       colorType: 'single',
       singleColor: 'white',
@@ -194,7 +194,7 @@ class AppState {
     this.config = {
       width: 800,
       height: 1000,
-      measurementType: 'brick-to-brick',
+      measurementType: 'box-to-box',
       frameType: 'standard',
       colorType: 'single',
       singleColor: 'white',

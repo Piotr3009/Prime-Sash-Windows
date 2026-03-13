@@ -363,7 +363,7 @@ class FormHandler {
     
     // Reset radios to defaults
     const defaults = {
-      'measurement-type': 'brick-to-brick',
+      'measurement-type': 'box-to-box',
       'frame-type': 'standard',
       'color-type': 'single',
       'glass-type': 'double',
