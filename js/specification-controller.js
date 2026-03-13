@@ -203,9 +203,16 @@ class SpecificationController {
     const frameRadios = document.querySelectorAll('input[name="frame-type"]');
     frameRadios.forEach(radio => {
       radio.addEventListener('change', (e) => {
-        const warningBox = document.getElementById('slim-frame-warning');
-        if (warningBox) {
-          warningBox.style.display = e.target.value === 'slim' ? 'block' : 'none';
+        const infoPanel = document.getElementById('info-panel-content');
+        if (infoPanel) {
+          if (e.target.value === 'slim') {
+            infoPanel.innerHTML =
+              '<p class="info-title">Slim Frame</p>' +
+              '<p><span class="info-highlight">Note:</span> Slim frame cannot accommodate Triple Glazing</p>' +
+              '<p class="info-note">Non-standard product — additional cost applies</p>';
+          } else {
+            infoPanel.innerHTML = '';
+          }
         }
       });
     });
