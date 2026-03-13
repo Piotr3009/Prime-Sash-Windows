@@ -14,8 +14,15 @@ class ConfiguratorCore {
       await this.initializeModules();
       this.attachEventHandlers();
       this.isInitialized = true;  // Ustawić PRZED loadSavedConfiguration i updateAll
-      this.loadSavedConfiguration();
-      this.updateAll();
+
+      const justReset = localStorage.getItem('byow_just_reset');
+      if (justReset) {
+        localStorage.removeItem('byow_just_reset');
+        // Po resecie - nie ładujemy konfiguracji, spec zostaje pusta
+      } else {
+        this.loadSavedConfiguration();
+        this.updateAll();
+      }
       
       // Auto-save przy zamykaniu strony
       window.addEventListener('beforeunload', () => {
@@ -605,6 +612,7 @@ class ConfiguratorCore {
     localStorage.removeItem('byow_applied_sections');
     localStorage.removeItem('byow_saved_config');
     localStorage.removeItem('lastWindowConfig');
+    localStorage.setItem('byow_just_reset', '1');
     this.resetButtonTexts();
     this.updateApplyButtonsState();
     location.reload();
