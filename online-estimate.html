@@ -753,16 +753,11 @@
       <!-- COLOUR COL 1: Single Color -->
       <div class="config-section" data-category="colour">
         <h3>Step 4: Color Selection</h3>
+
         <div class="input-group">
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="single-color" name="color-type" value="single" checked>
-              <label for="single-color" class="radio-label">Single Color</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="dual-color" name="color-type" value="dual">
-              <label for="dual-color" class="radio-label">Dual Color (In/Out)</label>
-            </div>
+          <div class="radio-option" style="display:inline-block;">
+            <input type="radio" id="single-color" name="color-type" value="single" checked>
+            <label for="single-color" class="radio-label">Single Color</label>
           </div>
         </div>
 
@@ -826,10 +821,16 @@
         <button class="btn btn-apply" id="apply-color">Apply Color</button>
       </div>
 
-      <!-- COLOUR COL 2: Dual Color (always visible, greyed until selected) -->
+      <!-- COLOUR COL 2: Dual Color (greyed until radio selected) -->
       <div class="config-section colour-greyed" id="dual-colour-section" data-category="colour">
         <h3>Dual Color</h3>
-        <p class="color-info">All dual color combinations: +10%</p>
+
+        <div class="input-group">
+          <div class="radio-option" style="display:inline-block;">
+            <input type="radio" id="dual-color" name="color-type" value="dual">
+            <label for="dual-color" class="radio-label">Dual Color (In/Out) +10%</label>
+          </div>
+        </div>
 
         <div id="dual-color-selector">
           <div class="dual-color-section">
