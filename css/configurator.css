@@ -560,8 +560,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .radio-option input:checked + .radio-label {
   background-color: var(--primary-color);
-  color: var(--secondary-color);
+  color: var(--secondary-color) !important;
   border: 1px solid rgba(158,158,144,.3);
+  -webkit-text-fill-color: var(--secondary-color);
 }
 
 /* ============================================================
