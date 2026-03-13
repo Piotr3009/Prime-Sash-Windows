@@ -311,15 +311,18 @@ class SpecificationController {
         if (window.currentConfig) {
           window.currentConfig.colorType = radio.value;
         }
-        
+
+        const dualSection = document.getElementById('dual-colour-section');
+        const singleSelector = document.getElementById('single-color-selector');
+
         if (radio.value === 'single') {
-          document.getElementById('single-color-selector').style.display = 'block';
-          document.getElementById('dual-color-selector').style.display = 'none';
+          if (dualSection) dualSection.classList.add('colour-greyed');
+          if (singleSelector) singleSelector.classList.remove('colour-greyed');
           document.getElementById('single-color-preview-info').style.display = 'block';
           document.getElementById('dual-color-preview-info').style.display = 'none';
         } else {
-          document.getElementById('single-color-selector').style.display = 'none';
-          document.getElementById('dual-color-selector').style.display = 'block';
+          if (dualSection) dualSection.classList.remove('colour-greyed');
+          if (singleSelector) singleSelector.classList.add('colour-greyed');
           document.getElementById('single-color-preview-info').style.display = 'none';
           document.getElementById('dual-color-preview-info').style.display = 'block';
         }

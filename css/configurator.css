@@ -636,6 +636,13 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-text-fill-color: var(--secondary-color);
 }
 
+/* Dual colour section - greyed until selected */
+.colour-greyed {
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
 /* ============================================================
    15. COLOR OPTIONS
    ============================================================ */

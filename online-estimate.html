@@ -750,6 +750,7 @@
         <button class="btn btn-apply" id="apply-frame">Apply Frame Type</button>
       </div>
       
+      <!-- COLOUR COL 1: Single Color -->
       <div class="config-section" data-category="colour">
         <h3>Step 4: Color Selection</h3>
         <div class="input-group">
@@ -764,8 +765,8 @@
             </div>
           </div>
         </div>
-        
-        <div id="single-color-selector" style="margin-bottom: 15px;">
+
+        <div id="single-color-selector">
           <label>Select Color (both inside and outside):</label>
           <div class="color-options">
             <div class="color-option-wrapper">
@@ -822,12 +823,17 @@
             </div>
           </div>
         </div>
-        
-        <div id="dual-color-selector" style="display: none;">
-          <p class="color-info">All dual color combinations: +10%</p>
-          <div class="dual-color-columns">
+        <button class="btn btn-apply" id="apply-color">Apply Color</button>
+      </div>
+
+      <!-- COLOUR COL 2: Dual Color (always visible, greyed until selected) -->
+      <div class="config-section colour-greyed" id="dual-colour-section" data-category="colour">
+        <h3>Dual Color</h3>
+        <p class="color-info">All dual color combinations: +10%</p>
+
+        <div id="dual-color-selector">
           <div class="dual-color-section">
-            <label>Select Interior Color:</label>
+            <label>Interior Color:</label>
             <div class="color-options">
               <div class="color-option-wrapper">
                 <div class="color-option interior-color selected" style="background-color: #FAFAFA;" data-color="white" data-name="Pure White" data-ral="RAL 9016"></div>
@@ -873,8 +879,9 @@
               </div>
             </div>
           </div>
+
           <div class="dual-color-section">
-            <label>Select Exterior Color:</label>
+            <label>Exterior Color:</label>
             <div class="color-options">
               <div class="color-option-wrapper">
                 <div class="color-option exterior-color" style="background-color: #FAFAFA;" data-color="white" data-name="Pure White" data-ral="RAL 9016"></div>
@@ -920,7 +927,7 @@
               </div>
             </div>
           </div>
-          </div><!-- end dual-color-columns -->
+
           <div class="color-preview-info" id="dual-color-preview-info">
             <div class="preview-item">
               <span class="preview-label">Interior:</span>
@@ -932,9 +939,7 @@
             </div>
           </div>
         </div>
-        <button class="btn btn-apply" id="apply-color">Apply Color</button>
       </div>
-      
       <div class="config-section" data-category="glass">
         <h3>Step 5: Glass Type</h3>
         <div class="radio-group">
