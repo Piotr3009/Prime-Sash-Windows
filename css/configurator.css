@@ -30,6 +30,7 @@
     "infobox options spec";
   gap: 0;
   min-height: 80vh;
+  margin-top: 4px;
   border: none;
   border-radius: 0;
   overflow: hidden;
@@ -1906,6 +1907,14 @@ body {
 
 
 /* OPTIONS - COMPACT INPUTS */
+.dim-row {
+  display: flex;
+  gap: 10px;
+}
+.dim-row .input-group {
+  flex: 1;
+  min-width: 0;
+}
 .configurator-options .radio-group {
   display: flex !important;
   flex-direction: row !important;
