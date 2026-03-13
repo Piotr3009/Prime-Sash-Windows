@@ -353,7 +353,9 @@ class FormHandler {
   }
 
   reset() {
-    // Reset dimensions
+    // Reset dimensions - target correct select IDs
+    UIHelpers.setValue('width-select', 0);
+    UIHelpers.setValue('height-select', 0);
     UIHelpers.setValue('width', 0);
     UIHelpers.setValue('height', 0);
     UIHelpers.setText('width-display', 0);
