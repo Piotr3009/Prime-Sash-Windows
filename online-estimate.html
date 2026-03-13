@@ -1491,6 +1491,8 @@
   
   catBtns.forEach(function(btn) {
     btn.addEventListener('click', function() {
+      // Usuń podświetlenie next-step
+      catBtns.forEach(function(b) { b.classList.remove('next-step'); });
       showCategory(this.dataset.target);
     });
   });

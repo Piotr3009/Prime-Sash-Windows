@@ -119,6 +119,18 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
 }
 
+.cat-btn.next-step {
+  border-left-color: var(--secondary-color) !important;
+  color: rgba(255,255,255,.95) !important;
+  animation: pulse-next 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-next {
+  0%   { background: rgba(255,255,255,.08); }
+  50%  { background: rgba(158,158,144,.15); }
+  100% { background: rgba(255,255,255,.08); }
+}
+
 /* ============================================================
    7. SIDEBAR
    ============================================================ */

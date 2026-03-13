@@ -222,6 +222,9 @@ class ConfiguratorCore {
         
         // Odblokuj następny button
         this.updateApplyButtonsState();
+
+        // Podświetl następną kategorię w sidebar
+        this.highlightNextCategory(id);
       });
     });
     
@@ -613,10 +616,30 @@ class ConfiguratorCore {
     this.appliedSections = {};
     localStorage.removeItem('byow_applied_sections');
     // NIE usuwaj byow_saved_config - zachowaj parametry dla następnego okna
+    document.querySelectorAll('.cat-btn.next-step').forEach(b => b.classList.remove('next-step'));
     this.resetButtonTexts();
     this.updateApplyButtonsState();
   }
-  
+
+  highlightNextCategory(applyButtonId) {
+    const map = {
+      'apply-dimensions': 'design',
+      'apply-bars':       'colour',
+      'apply-frame':      'colour',
+      'apply-color':      'glass',
+      'apply-glass':      'glass',
+      'apply-opening':    'hardware',
+      'apply-pas24':      'hardware',
+      'apply-details':    'quantity',
+      'apply-glass-spec': 'quantity'
+    };
+    const nextCat = map[applyButtonId];
+    if (!nextCat) return;
+    document.querySelectorAll('.cat-btn.next-step').forEach(b => b.classList.remove('next-step'));
+    const nextBtn = document.querySelector(`.cat-btn[data-target="${nextCat}"]`);
+    if (nextBtn) nextBtn.classList.add('next-step');
+  }
+
   // Pełny reset (przy całkowicie nowej konfiguracji)
   fullReset() {
     this.appliedSections = {};
