@@ -231,7 +231,7 @@
   font-size: 1.4rem !important;
 }
 
-/* OPTIONS - center bottom */
+/* OPTIONS - center bottom, 3 columns */
 .configurator-options {
   grid-area: options;
   flex: none !important;
@@ -241,6 +241,10 @@
   border-right: none !important;
   background: var(--light-gray);
   overflow-y: auto;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  align-content: start;
 }
 
 /* CONFIG SECTIONS - COMPACT */
@@ -351,6 +355,7 @@
   }
   .configurator-options {
     max-height: none;
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -1900,19 +1905,7 @@ body {
 }
 
 
-/* OPTIONS - HORIZONTAL COMPACT */
-.configurator-options .dimension-input-wrapper {
-  display: flex !important;
-  gap: 10px !important;
-  align-items: flex-end !important;
-}
-.configurator-options .dimension-input-wrapper .input-group {
-  flex: 1;
-}
-.configurator-options .input-group {
-  display: inline-block;
-  vertical-align: top;
-}
+/* OPTIONS - COMPACT INPUTS */
 .configurator-options .radio-group {
   display: flex !important;
   flex-direction: row !important;
