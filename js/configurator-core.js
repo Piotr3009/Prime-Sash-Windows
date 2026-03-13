@@ -18,7 +18,18 @@ class ConfiguratorCore {
       const justReset = localStorage.getItem('byow_just_reset');
       if (justReset) {
         localStorage.removeItem('byow_just_reset');
-        // Po resecie - nie ładujemy konfiguracji, spec zostaje pusta
+        // Czyść formularz - 0/0
+        if (this.modules.form) this.modules.form.reset();
+        // Ukryj wszystkie sekcje specyfikacji
+        const specSections = [
+          'spec-dimensions', 'spec-bars', 'spec-frame', 'spec-color',
+          'spec-single-color', 'spec-dual-color', 'spec-glass',
+          'spec-opening', 'spec-pas24', 'spec-details', 'spec-glass-spec'
+        ];
+        specSections.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
       } else {
         this.loadSavedConfiguration();
         this.updateAll();

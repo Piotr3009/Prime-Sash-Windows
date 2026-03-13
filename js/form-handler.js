@@ -354,10 +354,10 @@ class FormHandler {
 
   reset() {
     // Reset dimensions
-    UIHelpers.setValue('width', 800);
-    UIHelpers.setValue('height', 1000);
-    UIHelpers.setText('width-display', 800);
-    UIHelpers.setText('height-display', 1000);
+    UIHelpers.setValue('width', 0);
+    UIHelpers.setValue('height', 0);
+    UIHelpers.setText('width-display', 0);
+    UIHelpers.setText('height-display', 0);
     
     // Reset radios to defaults
     const defaults = {
