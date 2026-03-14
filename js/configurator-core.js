@@ -189,8 +189,8 @@ class ConfiguratorCore {
       { id: 'apply-glass', handler: () => this.applySection('glass'), order: 5 },
       { id: 'apply-opening', handler: () => this.applySection('opening'), order: 6 },
       { id: 'apply-pas24', handler: () => this.applySection('pas24'), order: 7 },
-      { id: 'apply-details', handler: () => this.applySection('details'), order: 8 },
-      { id: 'apply-glass-spec', handler: () => this.applySection('glassSpec'), order: 9 }
+      { id: 'apply-details', handler: () => this.applySection('details'), order: 9 },
+      { id: 'apply-glass-spec', handler: () => this.applySection('glassSpec'), order: 8 }
     ];
     
     // Zapamiętaj listę buttonów
