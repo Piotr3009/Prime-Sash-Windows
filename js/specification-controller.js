@@ -233,6 +233,23 @@ class SpecificationController {
         window.open('certifications.html', '_blank');
       });
     }
+
+    // PAS24 radio - show info in info panel
+    const pas24Radios = document.querySelectorAll('input[name="pas24"]');
+    pas24Radios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        const infoPanel = document.getElementById('info-panel-content');
+        if (!infoPanel) return;
+        if (radio.value === 'yes') {
+          infoPanel.innerHTML =
+            '<p class="info-title">PAS 24 Security Standard</p>' +
+            '<p>PAS 24 is an enhanced security specification for doors and windows. It tests resistance to <span class="info-highlight">physical attack, manipulation and weather</span>.</p>' +
+            '<p class="info-note">Required for most insurance policies and Building Regulations Part Q. <a href="certifications.html" target="_blank" class="measurement-link">Learn more →</a></p>';
+        } else {
+          infoPanel.innerHTML = '';
+        }
+      });
+    });
   }
 
   setupColorPreviews() {
