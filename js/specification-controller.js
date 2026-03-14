@@ -244,7 +244,8 @@ class SpecificationController {
           infoPanel.innerHTML =
             '<p class="info-title">PAS 24 Security Standard</p>' +
             '<p>PAS 24 is an enhanced security specification for doors and windows. It tests resistance to <span class="info-highlight">physical attack, manipulation and weather</span>.</p>' +
-            '<p class="info-note">Required for most insurance policies and Building Regulations Part Q. <a href="certifications.html" target="_blank" class="measurement-link">Learn more →</a></p>';
+            '<p class="info-red">Required for most insurance policies and Building Regulations Part Q.</p>' +
+            '<p class="info-note"><a href="certifications.html" target="_blank" class="measurement-link">Learn more →</a></p>';
         } else {
           infoPanel.innerHTML = '';
         }

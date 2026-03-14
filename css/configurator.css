@@ -379,9 +379,9 @@ h1, h2, h3, h4, h5, h6 {
 .info-panel-content {
   padding: 14px 16px;
   font-family: 'Jost', sans-serif;
-  font-size: 0.75rem;
-  color: #555;
-  line-height: 1.5;
+  font-size: 0.85rem;
+  color: #444;
+  line-height: 1.6;
 }
 
 .info-panel-content:empty {
@@ -389,7 +389,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .info-panel-content .info-title {
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--secondary-color);
@@ -402,17 +402,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .info-panel-content .info-note {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: #888;
   font-style: italic;
   margin-top: 6px;
 }
 
 .info-panel-content .info-warning {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: #cc3300;
   font-style: italic;
   margin-top: 6px;
+}
+
+.info-panel-content .info-red {
+  color: #cc3300;
 }
 
 /* ============================================================
