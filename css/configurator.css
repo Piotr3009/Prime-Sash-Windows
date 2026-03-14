@@ -122,13 +122,13 @@ h1, h2, h3, h4, h5, h6 {
 .cat-btn.next-step {
   border-left-color: var(--secondary-color) !important;
   color: rgba(255,255,255,.95) !important;
-  animation: pulse-next 1.5s ease-in-out infinite;
+  animation: pulse-next 1.2s ease-in-out infinite;
 }
 
 @keyframes pulse-next {
-  0%   { background: rgba(255,255,255,.08); }
-  50%  { background: rgba(158,158,144,.15); }
-  100% { background: rgba(255,255,255,.08); }
+  0%   { background: rgba(255,255,255,.05); border-left-color: rgba(158,158,144,.3) !important; }
+  50%  { background: rgba(158,158,144,.2); border-left-color: var(--secondary-color) !important; box-shadow: inset 3px 0 8px rgba(158,158,144,.3); }
+  100% { background: rgba(255,255,255,.05); border-left-color: rgba(158,158,144,.3) !important; }
 }
 
 /* ============================================================
