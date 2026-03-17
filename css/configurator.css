@@ -107,10 +107,9 @@ h1, h2, h3, h4, h5, h6 {
 .configurator-grid {
   display: grid !important;
   grid-template-columns: 240px 380px 1fr 300px;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: 1fr;
   grid-template-areas:
-    "sidebar options preview spec"
-    "infobox options preview spec";
+    "sidebar options preview spec";
   gap: 0;
   height: 85vh;
   margin-top: 0;
@@ -366,7 +365,7 @@ h1, h2, h3, h4, h5, h6 {
    9. CONTEXT INFO PANEL (infobox)
    ============================================================ */
 .config-info-panel {
-  grid-area: infobox;
+  display: none;
   background: var(--light-gray);
   padding: 0;
   overflow-y: auto;
