@@ -106,11 +106,11 @@ h1, h2, h3, h4, h5, h6 {
    ============================================================ */
 .configurator-grid {
   display: grid !important;
-  grid-template-columns: 240px 1fr 380px;
-  grid-template-rows: auto auto;
+  grid-template-columns: 240px 240px 1fr 300px;
+  grid-template-rows: auto 1fr;
   grid-template-areas:
-    "sidebar preview spec"
-    "infobox options spec";
+    "sidebar options preview spec"
+    "infobox options preview spec";
   gap: 0;
   min-height: 80vh;
   margin-top: 0;
@@ -434,14 +434,29 @@ h1, h2, h3, h4, h5, h6 {
   flex: none !important;
   min-width: 0 !important;
   margin: 0 !important;
-  padding: 12px 20px !important;
-  border-right: none !important;
-  background: var(--light-gray);
+  padding: 20px 16px !important;
+  border-right: 1px solid rgba(255,255,255,0.08) !important;
+  background: #0a1628;
   overflow-y: auto;
-  display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  align-content: start;
+  display: block !important;
+  color: rgba(255,255,255,0.85);
+}
+
+.configurator-options .config-section {
+  display: block !important;
+}
+
+.configurator-options h3 {
+  font-size: 11px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: rgba(255,255,255,0.5) !important;
+  margin-bottom: 12px !important;
+  margin-top: 20px !important;
+}
+
+.configurator-options h3:first-child {
+  margin-top: 0 !important;
 }
 
 /* DIM ROW - width/height side by side */
