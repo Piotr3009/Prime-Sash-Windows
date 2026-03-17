@@ -446,7 +446,7 @@ function Scene({ config }) {
   return (
     <>
 
-      <PerspectiveCamera makeDefault position={[2.4, 0.8, 3.6]} fov={32} />
+      <PerspectiveCamera makeDefault position={[0, 0, 5.5]} fov={45} />
 
       {/* Ambient */}
       <ambientLight intensity={0.56 * b} />
@@ -495,7 +495,7 @@ function Scene({ config }) {
       <pointLight position={[-0.4, -0.3, -2.0]} intensity={0.96 * b} distance={3} decay={2} color="#f0f4ff" />
 
       <group position={[0, 0.18, 0]}>
-        <Bounds fit margin={1.2}>
+        <Bounds fit margin={2.2}>
           <group onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
             <ParametricSashWindow {...config} />
           </group>
@@ -600,13 +600,6 @@ export default function App() {
   return (
     <div className="app-shell">
       <aside className="panel">
-        <div className="eyebrow">Prime Sash Windows</div>
-        <h1>Traditional timber sash — R3F prototype</h1>
-        <p className="lede">
-          Initial parametric model built around the information we already have: standard box depth 164 mm,
-          sash depth 57 mm, simple sill, adjustable width and height, and a live 3D preview.
-        </p>
-
         <div className="card">
           <h2>Size</h2>
           <Slider label="Width" value={extWidth} min={704} max={1904} step={10} onChange={setExtWidth} />
@@ -832,14 +825,6 @@ export default function App() {
           )}
         </div>
 
-        <div className="card note">
-          <h2>Temporary assumptions</h2>
-          <ul>
-            <li>Face widths are placeholders until we read exact DXF section values into the model.</li>
-            <li>Sill is intentionally simple for V1.</li>
-            <li>No glazing bars or ironmongery yet.</li>
-          </ul>
-        </div>
       </aside>
 
       <main className="viewport">

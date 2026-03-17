@@ -1240,7 +1240,7 @@
     </div>
     
     <div class="configurator-preview">
-      <div id="root"></div>
+      <div id="root-3d"></div>
     </div>
   </div>
 </main>
@@ -1551,6 +1551,15 @@
 
   <!-- 3D Visualizer -->
   <link rel="stylesheet" href="3d/assets/window3d.css">
+  <style>
+    /* 3D visualizer container overrides */
+    #root { width: 100% !important; height: 100% !important; }
+    .configurator-preview { padding: 0 !important; overflow: hidden; }
+    .configurator-preview .app-shell { height: 600px !important; }
+    .configurator-preview .viewport { flex: 1; min-height: 0; }
+    .configurator-preview .panel { max-height: 600px; overflow-y: auto; }
+    html, body { height: auto !important; }
+  </style>
   <script type="module" src="3d/assets/window3d.js"></script>
 </body>
 </html>
