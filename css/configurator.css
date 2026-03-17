@@ -106,7 +106,7 @@ h1, h2, h3, h4, h5, h6 {
    ============================================================ */
 .configurator-grid {
   display: grid !important;
-  grid-template-columns: 240px 240px 1fr 300px;
+  grid-template-columns: 240px 380px 1fr 300px;
   grid-template-rows: auto 1fr;
   grid-template-areas:
     "sidebar options preview spec"
