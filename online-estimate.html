@@ -1568,10 +1568,13 @@
   </style>
   <script type="module" src="3d/assets/window3d.js"></script>
   <script>
-    // Force close ironmongery gallery on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      var overlay = document.getElementById('ironmongeryOverlay');
-      if (overlay) overlay.classList.remove('active');
+    // Force close ironmongery gallery after everything loads
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        var overlay = document.getElementById('ironmongeryOverlay');
+        if (overlay) overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }, 100);
     });
   </script>
   <script>
