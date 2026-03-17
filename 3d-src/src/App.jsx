@@ -446,7 +446,7 @@ function Scene({ config }) {
   return (
     <>
 
-      <PerspectiveCamera makeDefault position={[0, 0, 5.5]} fov={45} />
+      <PerspectiveCamera makeDefault position={[0, 0, 4.0]} fov={55} />
 
       {/* Ambient */}
       <ambientLight intensity={0.56 * b} />
@@ -495,7 +495,7 @@ function Scene({ config }) {
       <pointLight position={[-0.4, -0.3, -2.0]} intensity={0.96 * b} distance={3} decay={2} color="#f0f4ff" />
 
       <group position={[0, 0.18, 0]}>
-        <Bounds fit margin={1.8}>
+        <Bounds fit margin={1.05}>
           <group onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
             <ParametricSashWindow {...config} />
           </group>
