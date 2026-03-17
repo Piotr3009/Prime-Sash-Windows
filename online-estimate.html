@@ -1557,8 +1557,8 @@
     /* 3D container sizing */
     .configurator-preview {
       padding: 0 !important;
-      min-height: 560px !important;
-      height: 560px !important;
+      min-height: 580px !important;
+      height: 580px !important;
       overflow: hidden;
     }
     #root {
@@ -1567,15 +1567,23 @@
       min-height: 0 !important;
     }
     .app-shell {
-      height: 560px !important;
+      height: 580px !important;
       min-height: 0 !important;
+      grid-template-columns: 180px minmax(0,1fr) !important;
     }
     .panel {
-      height: 560px !important;
+      height: 580px !important;
       overflow-y: auto !important;
+      padding: 16px 12px !important;
+      min-width: 0 !important;
     }
+    .panel .card { padding: 12px !important; margin-bottom: 10px !important; border-radius: 14px !important; }
+    .panel h2 { font-size: 11px !important; margin-bottom: 10px !important; }
+    .panel .control { gap: 4px !important; margin-bottom: 8px !important; }
+    .panel .select-wrap { gap: 4px !important; margin-bottom: 6px !important; }
+    .panel .toggle { margin-top: 6px !important; }
     .viewport {
-      height: 560px !important;
+      height: 580px !important;
       flex: 1 !important;
     }
   </style>
