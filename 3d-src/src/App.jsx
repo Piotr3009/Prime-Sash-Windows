@@ -495,7 +495,7 @@ function Scene({ config }) {
       <pointLight position={[-0.4, -0.3, -2.0]} intensity={0.96 * b} distance={3} decay={2} color="#f0f4ff" />
 
       <group position={[0, 0.18, 0]}>
-        <Bounds fit margin={2.2}>
+        <Bounds fit margin={1.8}>
           <group onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
             <ParametricSashWindow {...config} />
           </group>
@@ -567,6 +567,33 @@ export default function App() {
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
 
+  // Expose update3D function for Online Estimate to call
+  React.useEffect(() => {
+    window.update3D = (cfg) => {
+      if (cfg.extWidth  !== undefined) setExtWidth(cfg.extWidth);
+      if (cfg.extHeight !== undefined) setExtHeight(cfg.extHeight);
+      if (cfg.upperBars !== undefined) setUpperBars(cfg.upperBars);
+      if (cfg.lowerBars !== undefined) setLowerBars(cfg.lowerBars);
+      if (cfg.sameBars  !== undefined) setSameBars(cfg.sameBars);
+      if (cfg.woodColor !== undefined) {
+        setWoodColor(cfg.woodColor);
+        setWoodColorExt(cfg.woodColor);
+        setWoodColorInt(cfg.woodColor);
+      }
+      if (cfg.woodColorExt !== undefined) setWoodColorExt(cfg.woodColorExt);
+      if (cfg.woodColorInt !== undefined) setWoodColorInt(cfg.woodColorInt);
+      if (cfg.sameColor    !== undefined) setSameColor(cfg.sameColor);
+      if (cfg.upperGlass   !== undefined) setUpperGlass(cfg.upperGlass);
+      if (cfg.lowerGlass   !== undefined) setLowerGlass(cfg.lowerGlass);
+      if (cfg.spacerColor  !== undefined) setSpacerColor(cfg.spacerColor);
+      if (cfg.boxType      !== undefined) setBoxType(cfg.boxType);
+      if (cfg.ironmongery  !== undefined) setIronmongery(cfg.ironmongery);
+      if (cfg.showHorns    !== undefined) setShowHorns(cfg.showHorns);
+      if (cfg.hornType     !== undefined) setHornType(cfg.hornType);
+    };
+    return () => { delete window.update3D; };
+  }, []);
+
   const config = useMemo(
     () => ({
       width,
@@ -601,9 +628,7 @@ export default function App() {
     <div className="app-shell">
       <aside className="panel">
         <div className="card">
-          <h2>Size</h2>
-          <Slider label="Width" value={extWidth} min={704} max={1904} step={10} onChange={setExtWidth} />
-          <Slider label="Height" value={extHeight} min={887} max={3087} step={10} onChange={setExtHeight} />
+          <h2>View Controls</h2>
           <Slider
             label="Lower sash opening"
             value={opening}

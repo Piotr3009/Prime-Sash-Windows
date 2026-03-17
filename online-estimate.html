@@ -1552,13 +1552,32 @@
   <!-- 3D Visualizer -->
   <link rel="stylesheet" href="3d/assets/window3d.css">
   <style>
-    /* 3D visualizer container overrides */
-    #root { width: 100% !important; height: 100% !important; }
-    .configurator-preview { padding: 0 !important; overflow: hidden; }
-    .configurator-preview .app-shell { height: 600px !important; }
-    .configurator-preview .viewport { flex: 1; min-height: 0; }
-    .configurator-preview .panel { max-height: 600px; overflow-y: auto; }
-    html, body { height: auto !important; }
+    /* Override 3D css that hijacks page height */
+    html, body { height: auto !important; overflow: auto !important; }
+    /* 3D container sizing */
+    .configurator-preview {
+      padding: 0 !important;
+      min-height: 560px !important;
+      height: 560px !important;
+      overflow: hidden;
+    }
+    #root {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 0 !important;
+    }
+    .app-shell {
+      height: 560px !important;
+      min-height: 0 !important;
+    }
+    .panel {
+      height: 560px !important;
+      overflow-y: auto !important;
+    }
+    .viewport {
+      height: 560px !important;
+      flex: 1 !important;
+    }
   </style>
   <script type="module" src="3d/assets/window3d.js"></script>
 </body>
