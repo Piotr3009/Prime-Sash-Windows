@@ -446,7 +446,7 @@ function Scene({ config }) {
   return (
     <>
 
-      <PerspectiveCamera makeDefault position={[0, 0, 5.0]} fov={50} />
+      <PerspectiveCamera makeDefault position={[0, 0, 6.0]} fov={50} />
 
       {/* Ambient */}
       <ambientLight intensity={0.56 * b} />
@@ -521,28 +521,13 @@ function Scene({ config }) {
         autoRotateSpeed={0.9}
       />
 
-      <Html
-        position={[0, 0, 0]}
-        style={{ position: 'fixed', bottom: '12px', right: '12px', pointerEvents: 'none' }}
-        zIndexRange={[0, 0]}
-      >
-        <div style={{
-          width: '36px', height: '36px', borderRadius: '50%',
-          background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(0,0,0,0.1)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '18px', cursor: 'default', userSelect: 'none',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
-        }} title="Drag to rotate">
-          ↻
-        </div>
-      </Html>
+
     </>
   );
 }
 
 export default function App() {
-  const [extWidth, setExtWidth] = useState(1200);
+  const [extWidth, setExtWidth] = useState(1000);
   const [extHeight, setExtHeight] = useState(1500);
   const width = extWidth - 104;
   const height = extHeight - 87;
@@ -863,7 +848,16 @@ export default function App() {
 
       </aside>
 
-      <main className="viewport">
+      <main className="viewport" style={{ position: 'relative' }}>
+        <div style={{
+          position: 'absolute', bottom: '12px', right: '12px', zIndex: 10,
+          width: '32px', height: '32px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(0,0,0,0.1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '17px', pointerEvents: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)', color: '#1f3354'
+        }} title="Drag to rotate">↻</div>
         <Canvas shadows dpr={[1, 2]} gl={{ alpha: true }}>
           <Scene config={config} />
         </Canvas>
