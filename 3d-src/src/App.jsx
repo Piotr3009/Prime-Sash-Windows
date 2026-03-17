@@ -446,7 +446,7 @@ function Scene({ config }) {
   return (
     <>
 
-      <PerspectiveCamera makeDefault position={[2, 1, 3]} fov={50} />
+      <PerspectiveCamera makeDefault position={[2, 1, 1.5]} fov={50} />
 
       {/* Ambient */}
       <ambientLight intensity={0.56 * b} />
