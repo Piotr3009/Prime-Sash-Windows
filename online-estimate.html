@@ -1240,31 +1240,7 @@
     </div>
     
     <div class="configurator-preview">
-      <div class="view-toggle">
-        <button class="view-btn active" data-view="external">External</button>
-        <button class="view-btn" data-view="internal">Internal</button>
-      </div>
-      <div class="svg-window-visualization">
-        <div class="view view-external active">
-          <div class="window-container" id="external-window-container">
-            <img src="configurator-overlay/img/window_external_base.png" class="base" alt="External Window">
-            <div class="opening-indicators" id="external-opening-indicators"></div>
-          </div>
-        </div>
-        <div class="view view-internal">
-          <div class="window-container" id="internal-window-container">
-            <img src="configurator-overlay/img/window_internal_base.png" class="base" alt="Internal Window">
-            <div class="opening-indicators" id="internal-opening-indicators"></div>
-          </div>
-        </div>
-      </div>
-      <div class="price-summary">
-        <h3>Estimated Price</h3>
-        <p class="total-price"><span id="total-price">£0.00</span></p>
-        <div id="unit-price-display">
-          <p style="color: #bc9e00">excluding VAT</p>
-        </div>
-      </div>
+      <div id="root-3d"></div>
     </div>
   </div>
 </main>
@@ -1507,36 +1483,7 @@
   // Show dimensions by default
   showCategory('dimensions');
   
-  // VIEW TOGGLE (External/Internal)
-  var viewBtns = document.querySelectorAll('.view-btn');
-  var extView = document.querySelector('.view-external');
-  var intView = document.querySelector('.view-internal');
-  
-  viewBtns.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var v = this.dataset.view;
-      viewBtns.forEach(function(b) { b.classList.remove('active'); });
-      this.classList.add('active');
-      if (extView && intView) {
-        extView.style.display = v === 'external' ? 'block' : 'none';
-        intView.style.display = v === 'internal' ? 'block' : 'none';
-      }
-    });
-  });
-  
-  // Show external by default
-  if (extView) extView.style.display = 'block';
-  if (intView) intView.style.display = 'none';
-  
-  // SYNC SIDEBAR PRICE
-  var sidebarPrice = document.getElementById('sidebar-total-price');
-  var mainPrice = document.getElementById('total-price');
-  if (sidebarPrice && mainPrice) {
-    var observer = new MutationObserver(function() {
-      sidebarPrice.textContent = mainPrice.textContent;
-    });
-    observer.observe(mainPrice, { childList: true, characterData: true, subtree: true });
-  }
+  // SYNC SIDEBAR PRICE - handled by price-calculator.js
 
   // INFO PANEL - mirror measurement-info to infobox
   var infoPanel = document.getElementById('info-panel-content');
@@ -1602,5 +1549,8 @@
   })();
 </script>
 
+  <!-- 3D Visualizer -->
+  <link rel="stylesheet" href="3d/assets/window3d.css">
+  <script type="module" src="3d/assets/window3d.js"></script>
 </body>
 </html>
