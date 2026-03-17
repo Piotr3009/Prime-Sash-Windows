@@ -447,6 +447,14 @@ class SpecificationController {
 
     // Show success feedback
     this.showAppliedFeedback('apply-dimensions');
+
+    // Update 3D visualizer
+    if (typeof window.update3D === 'function') {
+      window.update3D({
+        extWidth: frameWidth,
+        extHeight: frameHeight
+      });
+    }
   }
 
   applyBars() {
