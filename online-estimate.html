@@ -1558,8 +1558,8 @@
     /* 3D container sizing */
     .configurator-preview {
       padding: 0 !important;
-      min-height: 580px !important;
-      height: 580px !important;
+      height: 100% !important;
+      min-height: 0 !important;
       overflow: hidden;
     }
     #root {
@@ -1569,14 +1569,15 @@
     }
     .app-shell {
       width: 100% !important;
-      height: 580px !important;
+      height: 100% !important;
       min-height: 0 !important;
       grid-template-columns: 150px minmax(0,1fr) !important;
     }
-    #root { display: block !important; width: 100% !important; }
+    #root { display: block !important; width: 100% !important; height: 100% !important; }
+    .viewport { height: 100% !important; }
     .viewport canvas { width: 100% !important; height: 100% !important; }
     .panel {
-      height: 580px !important;
+      height: 100% !important;
       overflow-y: auto !important;
       padding: 16px 12px !important;
       min-width: 0 !important;
