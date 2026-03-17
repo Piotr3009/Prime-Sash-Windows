@@ -495,11 +495,9 @@ function Scene({ config }) {
       <pointLight position={[-0.4, -0.3, -2.0]} intensity={0.96 * b} distance={3} decay={2} color="#f0f4ff" />
 
       <group position={[0, 0.18, 0]}>
-        <Bounds fit margin={1.05}>
           <group onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
             <ParametricSashWindow {...config} />
           </group>
-        </Bounds>
       </group>
 
       <WallBackground />
@@ -509,10 +507,11 @@ function Scene({ config }) {
 
       <OrbitControls
         makeDefault
+        target={[0, 0.18, 0]}
         enablePan={true}
         screenSpacePanning={true}
-        minDistance={0.15}
-        maxDistance={8}
+        minDistance={0.5}
+        maxDistance={10}
         zoomSpeed={1.2}
         panSpeed={1.0}
         minPolarAngle={0}
