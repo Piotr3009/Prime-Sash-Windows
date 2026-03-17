@@ -255,10 +255,12 @@
     <!-- CATEGORY SIDEBAR -->
     <div class="config-sidebar">
       <p class="sidebar-label">Configure</p>
-      <button class="cat-btn active" data-target="dim-design">Dimensions / Design<span class="cat-hint" id="hint-dim-design">1000 × 1500mm</span></button>
-      <button class="cat-btn" data-target="colour">Colour<span class="cat-hint" id="hint-colour">White</span></button>
-      <button class="cat-btn" data-target="glass">Glass & Opening<span class="cat-hint" id="hint-glass">Standard DG</span></button>
-      <button class="cat-btn" data-target="hardware">Hardware<span class="cat-hint" id="hint-hardware">Ironmongery</span></button>
+      <button class="cat-btn active" data-target="dimensions">Dimensions<span class="cat-hint">1000 × 1500mm</span></button>
+      <button class="cat-btn" data-target="design">Design<span class="cat-hint">Bars & Frame</span></button>
+      <button class="cat-btn" data-target="colour">Colour<span class="cat-hint">White</span></button>
+      <button class="cat-btn" data-target="glass">Glass & Opening<span class="cat-hint">Standard DG</span></button>
+      <button class="cat-btn" data-target="hardware">Hardware<span class="cat-hint">Ironmongery</span></button>
+      <button class="cat-btn" data-target="quantity">Quantity<span class="cat-hint">Add to estimate</span></button>
       <div class="sidebar-price">
         <p class="sidebar-price-label">Total</p>
         <p class="sidebar-price-value" id="sidebar-total-price">£0.00</p>
@@ -271,7 +273,7 @@
 
 
     <div class="configurator-options">
-      <div class="config-section" data-category="dim-design">
+      <div class="config-section" data-category="dimensions">
         <h3>Step 1: Window Dimensions</h3>
         <!-- HIDDEN DISPLAY ELEMENTS FIX -->
         <div style="display:none">
@@ -617,7 +619,7 @@
         <button class="btn btn-apply" id="apply-dimensions">Apply Dimensions</button>
       </div>
       
-      <div class="config-section" data-category="dim-design">
+      <div class="config-section" data-category="design">
         <h3>Step 2: Georgian Bars</h3>
         <div class="bars-inline-row">
           <div class="bars-group">
@@ -734,7 +736,7 @@
         <button class="btn btn-apply" id="apply-bars">Apply Georgian Bars</button>
       </div>
       
-      <div class="config-section" data-category="dim-design">
+      <div class="config-section" data-category="design">
         <h3>Step 3: Frame Version</h3>
         <div class="radio-group">
           <div class="radio-option">
@@ -748,27 +750,7 @@
         </div>
         <button class="btn btn-apply" id="apply-frame">Apply Frame Type</button>
       </div>
-
-      <!-- SASH HORNS -->
-      <div class="config-section" data-category="dim-design">
-        <h3>Sash Horns</h3>
-        <div class="radio-group">
-          <div class="radio-option">
-            <input type="radio" id="horns-none" name="horn-type" value="none">
-            <label for="horns-none" class="radio-label">No Horns</label>
-          </div>
-          <div class="radio-option">
-            <input type="radio" id="horns-richmond" name="horn-type" value="A" checked>
-            <label for="horns-richmond" class="radio-label">Richmond</label>
-          </div>
-          <div class="radio-option">
-            <input type="radio" id="horns-typed" name="horn-type" value="D">
-            <label for="horns-typed" class="radio-label">Type D</label>
-          </div>
-        </div>
-        <button class="btn btn-apply" id="apply-horns">Apply Sash Horns</button>
-      </div>
-
+      
       <!-- COLOUR COL 1: Single Color -->
       <div class="config-section" data-category="colour">
         <h3>Step 4: Color Selection</h3>
@@ -1102,7 +1084,7 @@
         <button class="btn btn-apply" id="apply-glass-spec">Apply Glass Specification</button>
       </div>
       
-      <div class="config-section" data-category="hardware">
+      <div class="config-section" data-category="quantity">
         <h3>Step 10: Window Quantity</h3>
         <div class="input-group">
           <label for="window-quantity">Number of windows with this configuration:</label>
@@ -1111,7 +1093,7 @@
         </div>
       </div>
       
-      <div class="config-section estimate-selector-section" data-category="hardware">
+      <div class="config-section estimate-selector-section" data-category="quantity">
         <h3>Add Window To:</h3>
         <div class="estimate-selector-container">
           <select id="estimate-selector" class="estimate-dropdown">
@@ -1131,7 +1113,7 @@
         </div>
       </div>
       
-      <div class="config-section" data-category="hardware" style="background:transparent!important;border:none!important;padding:0!important;">
+      <div class="config-section" data-category="quantity" style="background:transparent!important;border:none!important;padding:0!important;">
       <button class="btn" id="add-to-estimate">Create New Estimate & Add Window</button>
       <button class="btn btn-secondary" id="view-my-estimates">View My Estimates</button>
       </div>
@@ -1481,7 +1463,7 @@
   });
   
   // Show dimensions by default
-  showCategory('dim-design');
+  showCategory('dimensions');
   
   // SYNC SIDEBAR PRICE - handled by price-calculator.js
 
@@ -1567,28 +1549,5 @@
     .panel h2 { font-size: 11px !important; margin-bottom: 10px !important; }
   </style>
   <script type="module" src="3d/assets/window3d.js"></script>
-  <script>
-    // Force close ironmongery gallery after everything loads
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        var overlay = document.getElementById('ironmongeryOverlay');
-        if (overlay) overlay.classList.remove('active');
-        document.body.style.overflow = '';
-      }, 100);
-    });
-  </script>
-  <script>
-    // Sash Horns → 3D
-    document.getElementById('apply-horns').addEventListener('click', function() {
-      var val = document.querySelector('input[name="horn-type"]:checked')?.value;
-      if (typeof window.update3D === 'function') {
-        if (val === 'none') {
-          window.update3D({ showHorns: false });
-        } else {
-          window.update3D({ showHorns: true, hornType: val });
-        }
-      }
-    });
-  </script>
 </body>
 </html>
