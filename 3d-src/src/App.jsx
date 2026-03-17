@@ -446,7 +446,7 @@ function Scene({ config }) {
   return (
     <>
 
-      <PerspectiveCamera makeDefault position={[0, 0, 4.0]} fov={55} />
+      <PerspectiveCamera makeDefault position={[0, 0, 5.0]} fov={50} />
 
       {/* Ambient */}
       <ambientLight intensity={0.56 * b} />
@@ -521,11 +521,22 @@ function Scene({ config }) {
         autoRotateSpeed={0.9}
       />
 
-      {hovered && (
-        <Html position={[0, 1.55, 0]} center distanceFactor={8}>
-          <div className="badge">Drag to rotate</div>
-        </Html>
-      )}
+      <Html
+        position={[0, 0, 0]}
+        style={{ position: 'fixed', bottom: '12px', right: '12px', pointerEvents: 'none' }}
+        zIndexRange={[0, 0]}
+      >
+        <div style={{
+          width: '36px', height: '36px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(0,0,0,0.1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '18px', cursor: 'default', userSelect: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+        }} title="Drag to rotate">
+          ↻
+        </div>
+      </Html>
     </>
   );
 }
