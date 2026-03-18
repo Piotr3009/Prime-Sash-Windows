@@ -277,8 +277,8 @@ class FormHandler {
     const config = {};
     
     // Dimensions
-    config.width = parseInt(UIHelpers.getValue('width') || 800);
-    config.height = parseInt(UIHelpers.getValue('height') || 1000);
+    config.width = parseInt(UIHelpers.getValue('width') || 1000);
+    config.height = parseInt(UIHelpers.getValue('height') || 1500);
     
     // Radio values
     const radioNames = [
@@ -354,12 +354,12 @@ class FormHandler {
 
   reset() {
     // Reset dimensions - target correct select IDs
-    UIHelpers.setValue('width-select', 0);
-    UIHelpers.setValue('height-select', 0);
-    UIHelpers.setValue('width', 0);
-    UIHelpers.setValue('height', 0);
-    UIHelpers.setText('width-display', 0);
-    UIHelpers.setText('height-display', 0);
+    UIHelpers.setValue('width-select', 1000);
+    UIHelpers.setValue('height-select', 1500);
+    UIHelpers.setValue('width', 1000);
+    UIHelpers.setValue('height', 1500);
+    UIHelpers.setText('width-display', 1000);
+    UIHelpers.setText('height-display', 1500);
     
     // Reset radios to defaults
     const defaults = {

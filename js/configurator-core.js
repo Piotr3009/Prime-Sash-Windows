@@ -185,12 +185,13 @@ class ConfiguratorCore {
       { id: 'apply-dimensions', handler: () => this.applySection('dimensions'), order: 1 },
       { id: 'apply-bars', handler: () => this.applySection('bars'), order: 2 },
       { id: 'apply-frame', handler: () => this.applySection('frame'), order: 3 },
-      { id: 'apply-color', handler: () => this.applySection('color'), order: 4 },
+      { id: 'apply-horns', handler: () => this.applySection('horns'), order: 4 },
       { id: 'apply-glass', handler: () => this.applySection('glass'), order: 5 },
-      { id: 'apply-opening', handler: () => this.applySection('opening'), order: 6 },
-      { id: 'apply-pas24', handler: () => this.applySection('pas24'), order: 7 },
-      { id: 'apply-details', handler: () => this.applySection('details'), order: 9 },
-      { id: 'apply-glass-spec', handler: () => this.applySection('glassSpec'), order: 8 }
+      { id: 'apply-glass-spec', handler: () => this.applySection('glassSpec'), order: 6 },
+      { id: 'apply-opening', handler: () => this.applySection('opening'), order: 7 },
+      { id: 'apply-pas24', handler: () => this.applySection('pas24'), order: 8 },
+      { id: 'apply-color', handler: () => this.applySection('color'), order: 9 },
+      { id: 'apply-details', handler: () => this.applySection('details'), order: 10 }
     ];
     
     // Zapamiętaj listę buttonów
@@ -623,15 +624,16 @@ class ConfiguratorCore {
 
   highlightNextCategory(applyButtonId) {
     const map = {
-      'apply-dimensions': 'design',
-      'apply-bars':       'colour',
-      'apply-frame':      'colour',
-      'apply-color':      'glass',
+      'apply-dimensions': 'dim-design',
+      'apply-bars':       'dim-design',
+      'apply-frame':      'dim-design',
+      'apply-horns':      'glass',
       'apply-glass':      'glass',
-      'apply-opening':    'hardware',
-      'apply-pas24':      'hardware',
-      'apply-details':    'quantity',
-      'apply-glass-spec': 'quantity'
+      'apply-glass-spec': 'opening',
+      'apply-opening':    'opening',
+      'apply-pas24':      'colour',
+      'apply-color':      'hardware',
+      'apply-details':    null
     };
     const nextCat = map[applyButtonId];
     if (!nextCat) return;
@@ -658,6 +660,7 @@ class ConfiguratorCore {
       'apply-dimensions': 'Apply Dimensions',
       'apply-bars': 'Apply Georgian Bars',
       'apply-frame': 'Apply Frame Type',
+      'apply-horns': 'Apply Sash Horns',
       'apply-color': 'Apply Color',
       'apply-glass': 'Apply Glass Type',
       'apply-opening': 'Apply Opening Type',
@@ -718,6 +721,7 @@ class ConfiguratorCore {
         case 'dimensions': this.modules.spec.applyDimensions(); break;
         case 'bars': this.modules.spec.applyBars(); break;
         case 'frame': this.modules.spec.applyFrame(); break;
+        case 'horns': this.modules.spec.applyHorns(); break;
         case 'color': this.modules.spec.applyColor(); break;
         case 'glass': this.modules.spec.applyGlass(); break;
         case 'opening': this.modules.spec.applyOpening(); break;

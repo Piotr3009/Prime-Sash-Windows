@@ -316,7 +316,7 @@
           <div class="dimension-input-wrapper">
             <select id="width-select" class="dimension-select">
               <option value="custom">Custom size</option>
-              <option value="0" selected>0 mm</option>
+              <option value="0">0 mm</option>
               <option value="400">400 mm</option>
               <option value="410">410 mm</option>
               <option value="420">420 mm</option>
@@ -377,7 +377,7 @@
               <option value="970">970 mm</option>
               <option value="980">980 mm</option>
               <option value="990">990 mm</option>
-              <option value="1000">1000 mm</option>
+              <option value="1000" selected>1000 mm</option>
               <option value="1010">1010 mm</option>
               <option value="1020">1020 mm</option>
               <option value="1030">1030 mm</option>
@@ -429,7 +429,7 @@
               <option value="1490">1490 mm</option>
               <option value="1500">1500 mm</option>
             </select>
-            <input type="number" id="width" min="400" max="1500" value="800" step="10" style="display: none;">
+            <input type="number" id="width" min="400" max="1500" value="1000" step="10" style="display: none;">
           </div>
         </div>
         
@@ -438,7 +438,7 @@
           <div class="dimension-input-wrapper">
             <select id="height-select" class="dimension-select">
               <option value="custom">Custom size</option>
-              <option value="0"selected>0 mm</option>
+              <option value="0">0 mm</option>
               <option value="800">800 mm</option>
               <option value="810">810 mm</option>
               <option value="820">820 mm</option>
@@ -509,7 +509,7 @@
               <option value="1470">1470 mm</option>
               <option value="1480">1480 mm</option>
               <option value="1490">1490 mm</option>
-              <option value="1500">1500 mm</option>
+              <option value="1500" selected>1500 mm</option>
               <option value="1510">1510 mm</option>
               <option value="1520">1520 mm</option>
               <option value="1530">1530 mm</option>
@@ -611,7 +611,7 @@
               <option value="2490">2490 mm</option>
               <option value="2500">2500 mm</option>
             </select>
-            <input type="number" id="height" min="800" max="2500" value="1000" step="10" style="display: none;">
+            <input type="number" id="height" min="800" max="2500" value="1500" step="10" style="display: none;">
           </div>
         </div>
         </div>
@@ -1677,38 +1677,6 @@
 
       togglePanels();
     })();
-  </script>
-
-  <script>
-    // Sash Horns → 3D + feedback
-    document.getElementById('apply-horns').addEventListener('click', function() {
-      var val = document.querySelector('input[name="horn-type"]:checked')?.value;
-      if (typeof window.update3D === 'function') {
-        if (val === 'none') {
-          window.update3D({ showHorns: false });
-        } else {
-          window.update3D({ showHorns: true, hornType: val });
-        }
-      }
-
-      // Update spec
-      var hornsItem = document.getElementById('spec-horns-item');
-      var hornsVal = document.getElementById('spec-horns');
-      if (hornsItem && hornsVal) {
-        hornsItem.style.display = 'flex';
-        var names = { 'none': 'No Horns', 'A': 'Richmond', 'D': 'Type D' };
-        hornsVal.textContent = names[val] || val;
-      }
-
-      // Show Applied feedback
-      var btn = document.getElementById('apply-horns');
-      if (btn && window.specificationController) {
-        window.specificationController.showAppliedFeedback('apply-horns');
-      } else if (btn) {
-        btn.textContent = '✓ Applied';
-        btn.classList.add('applied');
-      }
-    });
   </script>
 </body>
 </html>

@@ -55,7 +55,7 @@ class DimensionHandler {
         inputEl.focus();
 
         // Ustaw obecną wartość
-        const currentValue = window.currentConfig ? window.currentConfig[dimension] : (dimension === 'width' ? 800 : 1000);
+        const currentValue = window.currentConfig ? window.currentConfig[dimension] : (dimension === 'width' ? 1000 : 1500);
         inputEl.value = currentValue;
       } else {
         // Ukryj input, użyj wartości z select
@@ -128,13 +128,9 @@ class DimensionHandler {
 
     // Aktualizuj wyświetlanie
     const displayEl = document.getElementById(`${dimension}-display`);
-    console.log('Display element:', displayEl);
 
     if (displayEl) {
       displayEl.textContent = value;
-      console.log('Updated display to:', value);
-    } else {
-      console.error('Display element not found for:', dimension);
     }
 
     // Aktualizuj konfigurację
@@ -152,6 +148,16 @@ class DimensionHandler {
       window.configuratorCore.updateAll();
     }
 
+    // ✅ LIVE 3D UPDATE
+    if (typeof window.update3D === 'function') {
+      const w = parseInt(document.getElementById('width').value) || 1000;
+      const h = parseInt(document.getElementById('height').value) || 1500;
+      const measureType = document.querySelector('input[name="measurement-type"]:checked')?.value;
+      const frameW = measureType === 'brick-to-brick' ? w + 150 : w;
+      const frameH = measureType === 'brick-to-brick' ? h + 75 : h;
+      window.update3D({ extWidth: frameW, extHeight: frameH });
+    }
+
     // Aktualizuj measurement info
     this.updateMeasurementInfo();
   }
@@ -161,8 +167,8 @@ class DimensionHandler {
     const infoBox = document.getElementById('measurement-info');
     
     if (measurementType === 'brick-to-brick') {
-      const width = parseInt(document.getElementById('width').value) || 800;
-      const height = parseInt(document.getElementById('height').value) || 1000;
+      const width = parseInt(document.getElementById('width').value) || 1000;
+      const height = parseInt(document.getElementById('height').value) || 1500;
       
       const actualWidth = width + 150;
       const actualHeight = height + 75;

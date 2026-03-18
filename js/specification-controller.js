@@ -54,25 +54,28 @@ class SpecificationController {
     // Sekcja 3: Frame
     this.watchSection(['frame-type'], 'apply-frame');
 
-    // Sekcja 4: Color
-    this.watchSection(['color-type'], 'apply-color');
-    // Dodatkowe obserwowanie dla color options
-    this.watchColorSection();
+    // Sekcja 4: Horns
+    this.watchSection(['horn-type'], 'apply-horns');
 
     // Sekcja 5: Glass
     this.watchSection(['glass-type'], 'apply-glass');
 
-    // Sekcja 6: Opening
+    // Sekcja 6: Glass Spec
+    this.watchSection(['glass-spec', 'glass-finish', 'frosted-location'], 'apply-glass-spec');
+
+    // Sekcja 7: Opening
     this.watchSection(['opening-type'], 'apply-opening');
 
-    // Sekcja 7: PAS 24
+    // Sekcja 8: PAS 24
     this.watchSection(['pas24'], 'apply-pas24');
 
-    // Sekcja 8: Details
-    this.watchSection(['horns'], 'apply-details');
+    // Sekcja 9: Color
+    this.watchSection(['color-type'], 'apply-color');
+    // Dodatkowe obserwowanie dla color options
+    this.watchColorSection();
 
-    // Sekcja 9: Glass Spec
-    this.watchSection(['glass-spec', 'glass-finish', 'frosted-location'], 'apply-glass-spec');
+    // Sekcja 10: Details (Hardware)
+    this.watchSection([], 'apply-details');
   }
 
   watchSection(fieldIds, buttonId) {
@@ -161,6 +164,12 @@ class SpecificationController {
     const applyFrameBtn = document.getElementById('apply-frame');
     if (applyFrameBtn) {
       applyFrameBtn.addEventListener('click', () => this.applyFrame());
+    }
+
+    // Apply Horns
+    const applyHornsBtn = document.getElementById('apply-horns');
+    if (applyHornsBtn) {
+      applyHornsBtn.addEventListener('click', () => this.applyHorns());
     }
 
     // Apply Color
@@ -514,6 +523,30 @@ class SpecificationController {
     document.getElementById('spec-frame-type').textContent = frameType === 'standard' ? 'Standard Frame (165mm)' : 'Slim Frame (145mm)';
 
     this.showAppliedFeedback('apply-frame');
+  }
+
+  applyHorns() {
+    const val = document.querySelector('input[name="horn-type"]:checked')?.value;
+
+    // Update 3D
+    if (typeof window.update3D === 'function') {
+      if (val === 'none') {
+        window.update3D({ showHorns: false });
+      } else {
+        window.update3D({ showHorns: true, hornType: val });
+      }
+    }
+
+    // Update spec
+    const hornsItem = document.getElementById('spec-horns-item');
+    const hornsVal = document.getElementById('spec-horns');
+    if (hornsItem && hornsVal) {
+      hornsItem.style.display = 'flex';
+      const names = { 'none': 'No Horns', 'A': 'Richmond', 'D': 'Type D' };
+      hornsVal.textContent = names[val] || val;
+    }
+
+    this.showAppliedFeedback('apply-horns');
   }
 
   applyColor() {
