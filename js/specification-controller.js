@@ -513,6 +513,14 @@ class SpecificationController {
       window.currentConfig.lowerBarPosition = lowerBarPosition;
     }
 
+    // ✅ UPDATE 3D visualizer
+    if (typeof window.update3D === 'function') {
+      window.update3D({
+        upperBars: upperBars,
+        lowerBars: lowerBars
+      });
+    }
+
     this.showAppliedFeedback('apply-bars');
   }
 
