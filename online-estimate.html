@@ -1538,7 +1538,7 @@
       function getHeight() { return parseInt(document.getElementById('height').value) || 1500; }
 
       function fromLabel(type, idx) {
-        if (type === 'v') return idx === 0 ? 'from left' : 'from right';
+        if (type === 'v') return idx === 0 ? 'from right' : 'from left';
         return idx === 0 ? 'from bottom' : 'from top';
       }
 
