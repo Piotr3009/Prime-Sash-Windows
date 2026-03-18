@@ -490,9 +490,9 @@ class SpecificationController {
     document.getElementById('spec-upper-bars').textContent = barNames[upperBars] || upperBars;
     document.getElementById('spec-lower-bars').textContent = barNames[effectiveLower] || effectiveLower;
     
-    // Hide old distance row if it exists
-    const distanceRow = document.getElementById('spec-bar-distance-row');
-    if (distanceRow) distanceRow.style.display = 'none';
+    // Custom bar details for spec
+    this.renderBarDetails('spec-upper-bars-detail', customData.upperCustomBars || [], upperBars);
+    this.renderBarDetails('spec-lower-bars-detail', customData.lowerCustomBars || [], effectiveLower);
     
     // ✅ AKTUALIZUJ window.currentConfig
     if (window.currentConfig) {
@@ -765,6 +765,36 @@ class SpecificationController {
     }
 
     this.showAppliedFeedback('apply-glass-spec');
+  }
+
+  renderBarDetails(containerId, bars, barType) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (barType !== 'custom' || !bars || bars.length === 0) {
+      container.style.display = 'none';
+      container.innerHTML = '';
+      return;
+    }
+
+    const vBars = bars.filter(b => b.type === 'v');
+    const hBars = bars.filter(b => b.type === 'h');
+
+    let html = '';
+    bars.forEach(b => {
+      if (b.type === 'v') {
+        const idx = vBars.indexOf(b);
+        const from = idx === 0 ? 'from left' : 'from right';
+        html += `<div class="spec-item spec-detail"><span class="spec-label">↕ Vertical</span><span class="spec-value">${b.mm}mm ${from}</span></div>`;
+      } else {
+        const idx = hBars.indexOf(b);
+        const from = idx === 0 ? 'from bottom' : 'from top';
+        html += `<div class="spec-item spec-detail"><span class="spec-label">↔ Horizontal</span><span class="spec-value">${b.mm}mm ${from}</span></div>`;
+      }
+    });
+
+    container.innerHTML = html;
+    container.style.display = 'block';
   }
 
   formatName(name) {
