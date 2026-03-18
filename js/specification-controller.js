@@ -58,7 +58,7 @@ class SpecificationController {
     this.watchSection(['horn-type'], 'apply-horns');
 
     // Sekcja 5: Glass
-    this.watchSection(['glass-type'], 'apply-glass');
+    this.watchSection(['glass-type', 'spacer-color'], 'apply-glass');
 
     // Sekcja 6: Glass Spec
     this.watchSection(['glass-spec', 'glass-finish', 'frosted-location'], 'apply-glass-spec');
@@ -232,6 +232,16 @@ class SpecificationController {
       radio.addEventListener('change', (e) => {
         if (e.target.checked && window.visualizationManager && window.visualizationManager.updateOpeningIndicators) {
           window.visualizationManager.updateOpeningIndicators(e.target.value);
+        }
+      });
+    });
+
+    // Spacer colour radios - live 3D update
+    const spacerRadios = document.querySelectorAll('input[name="spacer-color"]');
+    spacerRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if (typeof window.update3D === 'function') {
+          window.update3D({ spacerColor: e.target.value });
         }
       });
     });
@@ -609,6 +619,7 @@ class SpecificationController {
 
   applyGlass() {
     const glassType = document.querySelector('input[name="glass-type"]:checked')?.value;
+    const spacerColor = document.querySelector('input[name="spacer-color"]:checked')?.value || 'silver';
 
     const glassNames = {
       'double': 'Double Glazing (U-value: 1.4)',
@@ -616,8 +627,20 @@ class SpecificationController {
       'passive': 'Passive Glass (U-value: 0.8)'
     };
 
+    const spacerNames = {
+      'silver': 'Silver (Stainless Steel)',
+      'white': 'White',
+      'black': 'Black'
+    };
+
     document.getElementById('spec-glass').style.display = 'block';
     document.getElementById('spec-glass-type').textContent = glassNames[glassType] || glassType;
+    document.getElementById('spec-spacer-color').textContent = spacerNames[spacerColor] || spacerColor;
+
+    // ✅ UPDATE 3D
+    if (typeof window.update3D === 'function') {
+      window.update3D({ spacerColor: spacerColor });
+    }
 
     this.showAppliedFeedback('apply-glass');
   }

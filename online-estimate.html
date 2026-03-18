@@ -921,6 +921,23 @@
             <label for="passive-glass" class="radio-label">Passive Glass<br>(U-value: 0.8)</label>
           </div>
         </div>
+        <div class="input-group" style="margin-top:12px;">
+          <label>Spacer Colour:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="spacer-silver" name="spacer-color" value="silver" checked>
+              <label for="spacer-silver" class="radio-label">Silver</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="spacer-white" name="spacer-color" value="white">
+              <label for="spacer-white" class="radio-label">White</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="spacer-black" name="spacer-color" value="black">
+              <label for="spacer-black" class="radio-label">Black</label>
+            </div>
+          </div>
+        </div>
         <button class="btn btn-apply" id="apply-glass">Apply Glass Type</button>
       </div>
       
@@ -1151,6 +1168,10 @@
           <div class="spec-item">
             <span class="spec-label">Type:</span>
             <span class="spec-value" id="spec-glass-type">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Spacer:</span>
+            <span class="spec-value" id="spec-spacer-color">-</span>
           </div>
         </div>
         
