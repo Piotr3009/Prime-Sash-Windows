@@ -1680,7 +1680,7 @@
   </script>
 
   <script>
-    // Sash Horns → 3D
+    // Sash Horns → 3D + feedback
     document.getElementById('apply-horns').addEventListener('click', function() {
       var val = document.querySelector('input[name="horn-type"]:checked')?.value;
       if (typeof window.update3D === 'function') {
@@ -1689,6 +1689,24 @@
         } else {
           window.update3D({ showHorns: true, hornType: val });
         }
+      }
+
+      // Update spec
+      var hornsItem = document.getElementById('spec-horns-item');
+      var hornsVal = document.getElementById('spec-horns');
+      if (hornsItem && hornsVal) {
+        hornsItem.style.display = 'flex';
+        var names = { 'none': 'No Horns', 'A': 'Richmond', 'D': 'Type D' };
+        hornsVal.textContent = names[val] || val;
+      }
+
+      // Show Applied feedback
+      var btn = document.getElementById('apply-horns');
+      if (btn && window.specificationController) {
+        window.specificationController.showAppliedFeedback('apply-horns');
+      } else if (btn) {
+        btn.textContent = '✓ Applied';
+        btn.classList.add('applied');
       }
     });
   </script>
