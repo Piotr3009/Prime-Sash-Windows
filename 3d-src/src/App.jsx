@@ -570,6 +570,8 @@ export default function App() {
       if (cfg.upperBars !== undefined) setUpperBars(cfg.upperBars);
       if (cfg.lowerBars !== undefined) setLowerBars(cfg.lowerBars);
       if (cfg.sameBars  !== undefined) setSameBars(cfg.sameBars);
+      if (cfg.upperCustomBars !== undefined) setUpperCustomBars(cfg.upperCustomBars);
+      if (cfg.lowerCustomBars !== undefined) setLowerCustomBars(cfg.lowerCustomBars);
       if (cfg.woodColor !== undefined) {
         setWoodColor(cfg.woodColor);
         setWoodColorExt(cfg.woodColor);
@@ -640,128 +642,6 @@ export default function App() {
             step={5}
             onChange={setUpperOpening}
           />
-        </div>
-
-        <div className="card">
-          <h2>Glazing bars</h2>
-          <Toggle
-            label="Same bars for both sashes"
-            checked={sameBars}
-            onChange={(v) => {
-              setSameBars(v);
-              if (v) setLowerBars(upperBars);
-            }}
-          />
-          <label className="select-wrap">
-            <span>Upper sash</span>
-            <select
-              value={upperBars}
-              onChange={(e) => {
-                setUpperBars(e.target.value);
-                if (sameBars) setLowerBars(e.target.value);
-              }}
-            >
-              <option value="none">No bars</option>
-              <option value="2x2">2×2</option>
-              <option value="3x3">3×3</option>
-              <option value="4x4">4×4</option>
-              <option value="6x6">6×6</option>
-              <option value="9x9">9×9</option>
-              <option value="custom">Custom</option>
-            </select>
-          </label>
-          {upperBars === 'custom' && (
-            <div className="custom-bars">
-              <div className="custom-bars__actions">
-                <button
-                  onClick={() => setUpperCustomBars(b => [...b, { type: 'v', mm: 100 }])}
-                  disabled={upperCustomBars.filter(b => b.type === 'v').length >= 2}
-                >+ Vertical</button>
-                <button
-                  onClick={() => setUpperCustomBars(b => [...b, { type: 'h', mm: 100 }])}
-                  disabled={upperCustomBars.filter(b => b.type === 'h').length >= 2}
-                >+ Horizontal</button>
-              </div>
-              {upperCustomBars.map((bar, i) => {
-                const sameType = upperCustomBars.slice(0, i).filter(b => b.type === bar.type);
-                const idx = sameType.length;
-                const fromLabel = bar.type === 'v'
-                  ? (idx === 0 ? 'from left' : 'from right')
-                  : (idx === 0 ? 'from bottom' : 'from top');
-                const maxVal = bar.type === 'v' ? width - 10 : height / 2 - 10;
-                return (
-                  <label key={i} className="control">
-                    <div className="control__row">
-                      <span>{bar.type === 'v' ? 'Vertical' : 'Horizontal'} — {fromLabel}</span>
-                      <button onClick={() => setUpperCustomBars(b => b.filter((_, j) => j !== i))}>✕</button>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <input type="range" min="10" max={maxVal} step="1" value={bar.mm}
-                        onChange={(e) => setUpperCustomBars(b => b.map((x, j) => j === i ? { ...x, mm: Number(e.target.value) } : x))}
-                        style={{ flex: 1 }} />
-                      <input type="number" min="10" max={maxVal} value={bar.mm}
-                        onChange={(e) => setUpperCustomBars(b => b.map((x, j) => j === i ? { ...x, mm: Number(e.target.value) } : x))}
-                        style={{ width: '60px' }} />
-                      <span>mm</span>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          )}
-          {!sameBars && (
-            <label className="select-wrap">
-              <span>Lower sash</span>
-              <select value={lowerBars} onChange={(e) => setLowerBars(e.target.value)}>
-                <option value="none">No bars</option>
-                <option value="2x2">2×2</option>
-                <option value="3x3">3×3</option>
-                <option value="4x4">4×4</option>
-                <option value="6x6">6×6</option>
-                <option value="9x9">9×9</option>
-                <option value="custom">Custom</option>
-              </select>
-            </label>
-          )}
-          {!sameBars && lowerBars === 'custom' && (
-            <div className="custom-bars">
-              <div className="custom-bars__actions">
-                <button
-                  onClick={() => setLowerCustomBars(b => [...b, { type: 'v', mm: 100 }])}
-                  disabled={lowerCustomBars.filter(b => b.type === 'v').length >= 2}
-                >+ Vertical</button>
-                <button
-                  onClick={() => setLowerCustomBars(b => [...b, { type: 'h', mm: 100 }])}
-                  disabled={lowerCustomBars.filter(b => b.type === 'h').length >= 2}
-                >+ Horizontal</button>
-              </div>
-              {lowerCustomBars.map((bar, i) => {
-                const sameType = lowerCustomBars.slice(0, i).filter(b => b.type === bar.type);
-                const idx = sameType.length;
-                const fromLabel = bar.type === 'v'
-                  ? (idx === 0 ? 'from left' : 'from right')
-                  : (idx === 0 ? 'from bottom' : 'from top');
-                const maxVal = bar.type === 'v' ? width - 10 : height / 2 - 10;
-                return (
-                  <label key={i} className="control">
-                    <div className="control__row">
-                      <span>{bar.type === 'v' ? 'Vertical' : 'Horizontal'} — {fromLabel}</span>
-                      <button onClick={() => setLowerCustomBars(b => b.filter((_, j) => j !== i))}>✕</button>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <input type="range" min="10" max={maxVal} step="1" value={bar.mm}
-                        onChange={(e) => setLowerCustomBars(b => b.map((x, j) => j === i ? { ...x, mm: Number(e.target.value) } : x))}
-                        style={{ flex: 1 }} />
-                      <input type="number" min="10" max={maxVal} value={bar.mm}
-                        onChange={(e) => setLowerCustomBars(b => b.map((x, j) => j === i ? { ...x, mm: Number(e.target.value) } : x))}
-                        style={{ width: '60px' }} />
-                      <span>mm</span>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="card">

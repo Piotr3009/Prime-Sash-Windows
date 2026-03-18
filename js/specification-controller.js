@@ -49,7 +49,7 @@ class SpecificationController {
     this.watchSection(['width', 'width-select', 'height', 'height-select', 'measurement-type'], 'apply-dimensions');
 
     // Sekcja 2: Georgian Bars
-    this.watchSection(['upper-bars', 'lower-bars', 'same-bars-both-sashes', 'upper-bar-position', 'lower-bar-position'], 'apply-bars');
+    this.watchSection(['upper-bars', 'lower-bars', 'same-bars-both-sashes'], 'apply-bars');
 
     // Sekcja 3: Frame
     this.watchSection(['frame-type'], 'apply-frame');
@@ -460,8 +460,8 @@ class SpecificationController {
   applyBars() {
     const upperBars = document.getElementById('upper-bars').value;
     const lowerBars = document.getElementById('lower-bars').value;
-    const upperBarPosition = document.getElementById('upper-bar-position')?.value;
-    const lowerBarPosition = document.getElementById('lower-bar-position')?.value;
+    const sameBars = document.getElementById('same-bars-both-sashes')?.checked;
+    const customData = typeof window.getCustomBars === 'function' ? window.getCustomBars() : {};
 
     // Get bar names
     const barNames = {
@@ -471,53 +471,36 @@ class SpecificationController {
       '4x4': '4x4 Pattern',
       '6x6': '6x6 Pattern',
       '9x9': '9x9 Pattern',
-      '2-vertical': '2 Vertical Bars',
-      '1-vertical': '1 Vertical Bar',
       'custom': 'Custom Design'
     };
+
+    const effectiveLower = sameBars ? upperBars : lowerBars;
 
     // Update specification
     document.getElementById('spec-bars').style.display = 'block';
     document.getElementById('spec-upper-bars').textContent = barNames[upperBars] || upperBars;
-    document.getElementById('spec-lower-bars').textContent = barNames[lowerBars] || lowerBars;
+    document.getElementById('spec-lower-bars').textContent = barNames[effectiveLower] || effectiveLower;
     
-    // Show distance from edge for vertical bars
+    // Hide old distance row if it exists
     const distanceRow = document.getElementById('spec-bar-distance-row');
-    const distanceValue = document.getElementById('spec-bar-distance');
-    const verticalBarsSelected = ['1-vertical', '2-vertical'].includes(upperBars) || ['1-vertical', '2-vertical'].includes(lowerBars);
-    
-    if (distanceRow && distanceValue && verticalBarsSelected) {
-      // Get the appropriate distance value
-      let distance = '';
-      if (['1-vertical', '2-vertical'].includes(upperBars) && upperBarPosition) {
-        distance = upperBarPosition + 'mm';
-      } else if (['1-vertical', '2-vertical'].includes(lowerBars) && lowerBarPosition) {
-        distance = lowerBarPosition + 'mm';
-      }
-      
-      if (distance) {
-        distanceValue.textContent = distance;
-        distanceRow.style.display = 'flex';
-      } else {
-        distanceRow.style.display = 'none';
-      }
-    } else if (distanceRow) {
-      distanceRow.style.display = 'none';
-    }
+    if (distanceRow) distanceRow.style.display = 'none';
     
     // ✅ AKTUALIZUJ window.currentConfig
     if (window.currentConfig) {
       window.currentConfig.upperBars = upperBars;
-      window.currentConfig.lowerBars = lowerBars;
-      window.currentConfig.upperBarPosition = upperBarPosition;
-      window.currentConfig.lowerBarPosition = lowerBarPosition;
+      window.currentConfig.lowerBars = effectiveLower;
+      window.currentConfig.upperCustomBars = customData.upperCustomBars || [];
+      window.currentConfig.lowerCustomBars = customData.lowerCustomBars || [];
     }
 
     // ✅ UPDATE 3D visualizer
     if (typeof window.update3D === 'function') {
       window.update3D({
         upperBars: upperBars,
-        lowerBars: lowerBars
+        lowerBars: effectiveLower,
+        sameBars: sameBars,
+        upperCustomBars: customData.upperCustomBars || [],
+        lowerCustomBars: customData.lowerCustomBars || []
       });
     }
 

@@ -631,18 +631,12 @@
                 <option value="4x4">4x4 Pattern</option>
                 <option value="6x6">6x6 Pattern</option>
                 <option value="9x9">9x9 Pattern</option>
-                <option value="2-vertical">2 Vertical Bars</option>
-                <option value="1-vertical">1 Vertical Bar</option>
-                <!-- DISABLED: <option value="custom">Custom Design</option> -->
+                <option value="custom">Custom</option>
               </select>
-            </div>
-            <div id="upper-custom-bars-position" style="display: none;">
-              <label for="upper-bar-position">Distance from Edge (mm):</label>
-              <input type="number" id="upper-bar-position" min="50" max="500" value="150" step="10">
             </div>
           </div>
           
-          <div class="bars-group">
+          <div class="bars-group" id="lower-bars-group">
             <h4>Lower Sash Bars:</h4>
             <div class="input-group">
               <select id="lower-bars" class="detail-select" data-detail-type="bars">
@@ -652,14 +646,8 @@
                 <option value="4x4">4x4 Pattern</option>
                 <option value="6x6">6x6 Pattern</option>
                 <option value="9x9">9x9 Pattern</option>
-                <option value="2-vertical">2 Vertical Bars</option>
-                <option value="1-vertical">1 Vertical Bar</option>
-                <!-- DISABLED: <option value="custom">Custom Design</option> -->
+                <option value="custom">Custom</option>
               </select>
-            </div>
-            <div id="lower-custom-bars-position" style="display: none;">
-              <label for="lower-bar-position">Distance from Edge (mm):</label>
-              <input type="number" id="lower-bar-position" min="50" max="500" value="150" step="10">
             </div>
           </div>
 
@@ -668,68 +656,24 @@
             <input type="checkbox" id="same-bars-both-sashes" checked>
           </div>
         </div>
-        
-        <!-- HIDDEN: Custom Bar Design Panel - kept for canvas functionality -->
-        <div id="custom-bars-container" class="custom-bars-container" style="display: none !important;">
-          <h4>Custom Bar Design</h4>
-          <div class="sash-panel">
-            <h5>Upper Sash</h5>
-            <div class="bar-pattern-buttons">
-              <button class="pattern-btn" data-sash="upper" data-pattern="2x2">2×2</button>
-              <button class="pattern-btn" data-sash="upper" data-pattern="3x3">3×3</button>
-              <button class="pattern-btn" data-sash="upper" data-pattern="4x4">4×4</button>
-              <button class="pattern-btn selected" data-sash="upper" data-pattern="6x6">6×6</button>
-              <button class="pattern-btn" data-sash="upper" data-pattern="9x9">9×9</button>
-              <button class="pattern-btn advanced" data-sash="upper" data-pattern="custom">Manual Edit</button>
-            </div>
-            
-            <div id="upper-sash-canvas-container" class="canvas-container">
-              <div class="canvas-wrapper">
-                <canvas id="upper-sash-bars-canvas" class="bars-canvas" width="300" height="200"></canvas>
-                <div class="canvas-background"></div>
-              </div>
-              <div class="bars-info">Upper Sash</div>
-            </div>
-            <div class="advanced-tools" id="upper-advanced-tools" style="display: none;">
-              <button class="tool-btn" data-sash="upper" data-tool="add-horizontal">Add Horizontal</button>
-              <button class="tool-btn" data-sash="upper" data-tool="add-vertical">Add Vertical</button>
-              <button class="tool-btn" data-sash="upper" data-tool="clear">Clear All</button>
-            </div>
+
+        <!-- Custom bars panel: Upper -->
+        <div id="upper-custom-panel" style="display:none; margin-top:12px;">
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button type="button" class="btn-custom-bar" id="upper-add-v">+ Vertical</button>
+            <button type="button" class="btn-custom-bar" id="upper-add-h">+ Horizontal</button>
           </div>
-          
-          <div class="same-pattern-control">
-            <input type="checkbox" id="same-pattern-both-sashes" checked>
-            <label for="same-pattern-both-sashes">Apply same pattern to both sashes</label>
+          <div id="upper-custom-list"></div>
+        </div>
+
+        <!-- Custom bars panel: Lower -->
+        <div id="lower-custom-panel" style="display:none; margin-top:12px;">
+          <h4 style="margin-bottom:6px;">Lower sash custom:</h4>
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button type="button" class="btn-custom-bar" id="lower-add-v">+ Vertical</button>
+            <button type="button" class="btn-custom-bar" id="lower-add-h">+ Horizontal</button>
           </div>
-          
-          <div class="sash-panel" id="lower-sash-panel" style="display: none;">
-            <h5>Lower Sash</h5>
-            <div class="bar-pattern-buttons">
-              <button class="pattern-btn" data-sash="lower" data-pattern="2x2">2×2</button>
-              <button class="pattern-btn" data-sash="lower" data-pattern="3x3">3×3</button>
-              <button class="pattern-btn" data-sash="lower" data-pattern="4x4">4×4</button>
-              <button class="pattern-btn selected" data-sash="lower" data-pattern="6x6">6×6</button>
-              <button class="pattern-btn" data-sash="lower" data-pattern="9x9">9×9</button>
-              <button class="pattern-btn advanced" data-sash="lower" data-pattern="custom">Manual Edit</button>
-            </div>
-            <div id="lower-sash-canvas-container" class="canvas-container">
-              <div class="canvas-wrapper">
-                <canvas id="lower-sash-bars-canvas" class="bars-canvas" width="300" height="200"></canvas>
-                <div class="canvas-background"></div>
-              </div>
-              <div class="bars-info">Lower Sash</div>
-            </div>
-            <div class="advanced-tools" id="lower-advanced-tools" style="display: none;">
-              <button class="tool-btn" data-sash="lower" data-tool="add-horizontal">Add Horizontal</button>
-              <button class="tool-btn" data-sash="lower" data-tool="add-vertical">Add Vertical</button>
-              <button class="tool-btn" data-sash="lower" data-tool="clear">Clear All</button>
-            </div>
-          </div>
-          
-          <div class="bar-pattern-actions">
-            <button class="btn" id="apply-pattern">Apply</button>
-            <button class="btn btn-secondary" id="cancel-pattern">Cancel</button>
-          </div>
+          <div id="lower-custom-list"></div>
         </div>
         
         <button class="btn btn-apply" id="apply-bars">Apply Georgian Bars</button>
@@ -1578,6 +1522,136 @@
       }, 100);
     });
   </script>
+  <script>
+    // ── Custom Bars Manager ──
+    (function(){
+      var upperCustom = []; // [{type:'v',mm:100}, ...]
+      var lowerCustom = [];
+      var MAX_PER_TYPE = 2;
+
+      var upperSel = document.getElementById('upper-bars');
+      var lowerSel = document.getElementById('lower-bars');
+      var sameChk  = document.getElementById('same-bars-both-sashes');
+      var lowerGrp = document.getElementById('lower-bars-group');
+      var upperPanel = document.getElementById('upper-custom-panel');
+      var lowerPanel = document.getElementById('lower-custom-panel');
+
+      function getWidth()  { return parseInt(document.getElementById('width').value) || 1000; }
+      function getHeight() { return parseInt(document.getElementById('height').value) || 1500; }
+
+      function fromLabel(type, idx) {
+        if (type === 'v') return idx === 0 ? 'from left' : 'from right';
+        return idx === 0 ? 'from bottom' : 'from top';
+      }
+
+      function renderList(bars, container, setter) {
+        container.innerHTML = '';
+        bars.forEach(function(bar, i) {
+          var sameType = bars.slice(0, i).filter(function(b){ return b.type === bar.type; });
+          var idx = sameType.length;
+          var label = (bar.type === 'v' ? 'Vertical' : 'Horizontal') + ' — ' + fromLabel(bar.type, idx);
+          var maxVal = bar.type === 'v' ? getWidth() - 10 : Math.floor(getHeight() / 2) - 10;
+
+          var row = document.createElement('div');
+          row.className = 'custom-bar-row';
+          row.innerHTML =
+            '<div class="custom-bar-header">' +
+              '<span>' + label + '</span>' +
+              '<button type="button" class="btn-remove-bar" data-idx="' + i + '">✕</button>' +
+            '</div>' +
+            '<div class="custom-bar-controls">' +
+              '<input type="range" min="10" max="' + maxVal + '" step="1" value="' + bar.mm + '" data-idx="' + i + '" class="bar-range">' +
+              '<input type="number" min="10" max="' + maxVal + '" value="' + bar.mm + '" data-idx="' + i + '" class="bar-number">' +
+              '<span>mm</span>' +
+            '</div>';
+          container.appendChild(row);
+
+          row.querySelector('.btn-remove-bar').addEventListener('click', function() {
+            bars.splice(i, 1);
+            setter(bars);
+            renderList(bars, container, setter);
+            updateAddBtns();
+          });
+          row.querySelector('.bar-range').addEventListener('input', function() {
+            bar.mm = Number(this.value);
+            row.querySelector('.bar-number').value = bar.mm;
+          });
+          row.querySelector('.bar-number').addEventListener('input', function() {
+            bar.mm = Number(this.value);
+            row.querySelector('.bar-range').value = bar.mm;
+          });
+        });
+      }
+
+      function updateAddBtns() {
+        var uvCount = upperCustom.filter(function(b){ return b.type==='v'; }).length;
+        var uhCount = upperCustom.filter(function(b){ return b.type==='h'; }).length;
+        document.getElementById('upper-add-v').disabled = uvCount >= MAX_PER_TYPE;
+        document.getElementById('upper-add-h').disabled = uhCount >= MAX_PER_TYPE;
+
+        var lvCount = lowerCustom.filter(function(b){ return b.type==='v'; }).length;
+        var lhCount = lowerCustom.filter(function(b){ return b.type==='h'; }).length;
+        document.getElementById('lower-add-v').disabled = lvCount >= MAX_PER_TYPE;
+        document.getElementById('lower-add-h').disabled = lhCount >= MAX_PER_TYPE;
+      }
+
+      function togglePanels() {
+        var same = sameChk.checked;
+        upperPanel.style.display = upperSel.value === 'custom' ? 'block' : 'none';
+        lowerGrp.style.display = same ? 'none' : '';
+        lowerPanel.style.display = (!same && lowerSel.value === 'custom') ? 'block' : 'none';
+
+        if (same) {
+          lowerSel.value = upperSel.value;
+        }
+      }
+
+      upperSel.addEventListener('change', function() {
+        if (sameChk.checked) lowerSel.value = upperSel.value;
+        if (upperSel.value !== 'custom') upperCustom.length = 0;
+        togglePanels();
+      });
+      lowerSel.addEventListener('change', function() {
+        if (lowerSel.value !== 'custom') lowerCustom.length = 0;
+        togglePanels();
+      });
+      sameChk.addEventListener('change', togglePanels);
+
+      document.getElementById('upper-add-v').addEventListener('click', function() {
+        upperCustom.push({type:'v', mm:100});
+        renderList(upperCustom, document.getElementById('upper-custom-list'), function(b){upperCustom=b;});
+        updateAddBtns();
+      });
+      document.getElementById('upper-add-h').addEventListener('click', function() {
+        upperCustom.push({type:'h', mm:100});
+        renderList(upperCustom, document.getElementById('upper-custom-list'), function(b){upperCustom=b;});
+        updateAddBtns();
+      });
+      document.getElementById('lower-add-v').addEventListener('click', function() {
+        lowerCustom.push({type:'v', mm:100});
+        renderList(lowerCustom, document.getElementById('lower-custom-list'), function(b){lowerCustom=b;});
+        updateAddBtns();
+      });
+      document.getElementById('lower-add-h').addEventListener('click', function() {
+        lowerCustom.push({type:'h', mm:100});
+        renderList(lowerCustom, document.getElementById('lower-custom-list'), function(b){lowerCustom=b;});
+        updateAddBtns();
+      });
+
+      // Expose for applyBars
+      window.getCustomBars = function() {
+        var same = sameChk.checked;
+        return {
+          upperCustomBars: upperSel.value === 'custom' ? upperCustom.map(function(b){return {type:b.type, mm:b.mm};}) : [],
+          lowerCustomBars: (same && upperSel.value === 'custom') ? upperCustom.map(function(b){return {type:b.type, mm:b.mm};})
+            : (lowerSel.value === 'custom' ? lowerCustom.map(function(b){return {type:b.type, mm:b.mm};}) : [])
+        };
+      };
+
+      togglePanels();
+    })();
+  </script>
+
   <script>
     // Sash Horns → 3D
     document.getElementById('apply-horns').addEventListener('click', function() {
