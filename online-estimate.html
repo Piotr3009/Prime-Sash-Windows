@@ -1523,9 +1523,9 @@
     });
   </script>
   <script>
-    // ── Custom Bars Manager ──
+    // ── Custom Bars Manager (live preview) ──
     (function(){
-      var upperCustom = []; // [{type:'v',mm:100}, ...]
+      var upperCustom = [];
       var lowerCustom = [];
       var MAX_PER_TYPE = 2;
 
@@ -1542,6 +1542,24 @@
       function fromLabel(type, idx) {
         if (type === 'v') return idx === 0 ? 'from left' : 'from right';
         return idx === 0 ? 'from bottom' : 'from top';
+      }
+
+      // ── LIVE UPDATE 3D ──
+      function liveUpdate() {
+        if (typeof window.update3D !== 'function') return;
+        var same = sameChk.checked;
+        var uBars = upperSel.value;
+        var lBars = same ? uBars : lowerSel.value;
+        var uCustom = uBars === 'custom' ? upperCustom.map(function(b){return {type:b.type, mm:b.mm};}) : [];
+        var lCustom = (same && uBars === 'custom') ? uCustom
+          : (lBars === 'custom' ? lowerCustom.map(function(b){return {type:b.type, mm:b.mm};}) : []);
+        window.update3D({
+          upperBars: uBars,
+          lowerBars: lBars,
+          sameBars: same,
+          upperCustomBars: uCustom,
+          lowerCustomBars: lCustom
+        });
       }
 
       function renderList(bars, container, setter) {
@@ -1571,14 +1589,17 @@
             setter(bars);
             renderList(bars, container, setter);
             updateAddBtns();
+            liveUpdate();
           });
           row.querySelector('.bar-range').addEventListener('input', function() {
             bar.mm = Number(this.value);
             row.querySelector('.bar-number').value = bar.mm;
+            liveUpdate();
           });
           row.querySelector('.bar-number').addEventListener('input', function() {
             bar.mm = Number(this.value);
             row.querySelector('.bar-range').value = bar.mm;
+            liveUpdate();
           });
         });
       }
@@ -1600,45 +1621,51 @@
         upperPanel.style.display = upperSel.value === 'custom' ? 'block' : 'none';
         lowerGrp.style.display = same ? 'none' : '';
         lowerPanel.style.display = (!same && lowerSel.value === 'custom') ? 'block' : 'none';
-
-        if (same) {
-          lowerSel.value = upperSel.value;
-        }
+        if (same) lowerSel.value = upperSel.value;
       }
 
       upperSel.addEventListener('change', function() {
         if (sameChk.checked) lowerSel.value = upperSel.value;
         if (upperSel.value !== 'custom') upperCustom.length = 0;
         togglePanels();
+        liveUpdate();
       });
       lowerSel.addEventListener('change', function() {
         if (lowerSel.value !== 'custom') lowerCustom.length = 0;
         togglePanels();
+        liveUpdate();
       });
-      sameChk.addEventListener('change', togglePanels);
+      sameChk.addEventListener('change', function() {
+        togglePanels();
+        liveUpdate();
+      });
 
       document.getElementById('upper-add-v').addEventListener('click', function() {
         upperCustom.push({type:'v', mm:100});
         renderList(upperCustom, document.getElementById('upper-custom-list'), function(b){upperCustom=b;});
         updateAddBtns();
+        liveUpdate();
       });
       document.getElementById('upper-add-h').addEventListener('click', function() {
         upperCustom.push({type:'h', mm:100});
         renderList(upperCustom, document.getElementById('upper-custom-list'), function(b){upperCustom=b;});
         updateAddBtns();
+        liveUpdate();
       });
       document.getElementById('lower-add-v').addEventListener('click', function() {
         lowerCustom.push({type:'v', mm:100});
         renderList(lowerCustom, document.getElementById('lower-custom-list'), function(b){lowerCustom=b;});
         updateAddBtns();
+        liveUpdate();
       });
       document.getElementById('lower-add-h').addEventListener('click', function() {
         lowerCustom.push({type:'h', mm:100});
         renderList(lowerCustom, document.getElementById('lower-custom-list'), function(b){lowerCustom=b;});
         updateAddBtns();
+        liveUpdate();
       });
 
-      // Expose for applyBars
+      // Expose for applyBars (spec save)
       window.getCustomBars = function() {
         var same = sameChk.checked;
         return {

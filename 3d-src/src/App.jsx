@@ -695,17 +695,6 @@ export default function App() {
               <option value="antique_brass">Antique Brass</option>
             </select>
           </label>
-          <label className="select-wrap">
-            <span>Sash horns</span>
-            <select value={showHorns ? hornType : 'none'} onChange={(e) => {
-              if (e.target.value === 'none') { setShowHorns(false); }
-              else { setShowHorns(true); setHornType(e.target.value); }
-            }}>
-              <option value="none">No horns</option>
-              <option value="A">Richmond</option>
-              <option value="D">Type D</option>
-            </select>
-          </label>
         </div>
 
         <div className="card">
