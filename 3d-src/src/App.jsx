@@ -644,23 +644,6 @@ export default function App() {
           />
         </div>
 
-        <div className="card">
-          <h2>Glass</h2>
-          <label className="select-wrap">
-            <span>Upper sash</span>
-            <select value={upperGlass} onChange={(e) => setUpperGlass(e.target.value)}>
-              <option value="clear">Clear</option>
-              <option value="frosted">Frosted</option>
-            </select>
-          </label>
-          <label className="select-wrap">
-            <span>Lower sash</span>
-            <select value={lowerGlass} onChange={(e) => setLowerGlass(e.target.value)}>
-              <option value="clear">Clear</option>
-              <option value="frosted">Frosted</option>
-            </select>
-          </label>
-        </div>
 
         <div className="card">
           <h2>Build</h2>

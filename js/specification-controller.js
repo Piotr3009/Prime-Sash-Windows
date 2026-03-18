@@ -387,51 +387,56 @@ class SpecificationController {
     const frostedOptions = document.getElementById('frosted-options');
 
     if (frostedRadio && clearRadio && frostedOptions) {
+      const updateFrosted3D = () => {
+        if (typeof window.update3D !== 'function') return;
+        if (clearRadio.checked) {
+          window.update3D({ upperGlass: 'clear', lowerGlass: 'clear' });
+        } else {
+          const loc = document.querySelector('input[name="frosted-location"]:checked')?.value || 'bottom';
+          window.update3D({
+            upperGlass: loc === 'both' ? 'frosted' : 'clear',
+            lowerGlass: 'frosted'
+          });
+        }
+      };
+
       const toggleFrostedOptions = () => {
         frostedOptions.style.display = frostedRadio.checked ? 'block' : 'none';
 
-        // Jeśli zmieniliśmy na clear, resetuj i zaktualizuj natychmiast
         if (clearRadio.checked && window.currentConfig) {
           window.currentConfig.glassFinish = 'clear';
           window.currentConfig.frostedLocation = 'bottom';
-
           if (window.visualizationManager) {
             window.visualizationManager.updateFrostedGlass(window.currentConfig);
           }
-        }
-        // Jeśli zmieniliśmy na frosted, ustaw i zaktualizuj natychmiast
-        else if (frostedRadio.checked && window.currentConfig) {
+        } else if (frostedRadio.checked && window.currentConfig) {
           window.currentConfig.glassFinish = 'frosted';
-          // Pobierz aktualnie wybraną lokalizację
           const frostedLocationElement = document.querySelector('input[name="frosted-location"]:checked');
           window.currentConfig.frostedLocation = frostedLocationElement ? frostedLocationElement.value : 'bottom';
-
           if (window.visualizationManager) {
             window.visualizationManager.updateFrostedGlass(window.currentConfig);
           }
         }
+        updateFrosted3D();
       };
 
       frostedRadio.addEventListener('change', toggleFrostedOptions);
       clearRadio.addEventListener('change', toggleFrostedOptions);
 
-      // WAŻNE: Dodaj listener do frosted location radios dla natychmiastowej aktualizacji
       const frostedLocationRadios = document.querySelectorAll('input[name="frosted-location"]');
       frostedLocationRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
-          // Natychmiast zaktualizuj jeśli frosted jest wybrane
           if (frostedRadio.checked && window.currentConfig) {
             window.currentConfig.frostedLocation = e.target.value;
-            window.currentConfig.glassFinish = 'frosted'; // upewnij się że frosted jest ustawione
-
+            window.currentConfig.glassFinish = 'frosted';
             if (window.visualizationManager) {
               window.visualizationManager.updateFrostedGlass(window.currentConfig);
             }
           }
+          updateFrosted3D();
         });
       });
 
-      // Sprawdź początkowy stan
       toggleFrostedOptions();
     }
   }
@@ -783,14 +788,24 @@ class SpecificationController {
       window.currentConfig.glassFinish = glassFinish;
       window.currentConfig.frostedLocation = frostedLocation;
 
-      // Wymuś natychmiastową aktualizację frosted glass
       if (window.visualizationManager) {
         window.visualizationManager.updateFrostedGlass(window.currentConfig);
       }
 
-      // Wymuś pełną aktualizację konfiguratora
       if (window.configuratorCore && window.configuratorCore.isInitialized) {
         window.configuratorCore.updateAll();
+      }
+    }
+
+    // ✅ UPDATE 3D
+    if (typeof window.update3D === 'function') {
+      if (glassFinish === 'clear') {
+        window.update3D({ upperGlass: 'clear', lowerGlass: 'clear' });
+      } else {
+        window.update3D({
+          upperGlass: frostedLocation === 'both' ? 'frosted' : 'clear',
+          lowerGlass: 'frosted'
+        });
       }
     }
 
