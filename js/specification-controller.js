@@ -784,7 +784,7 @@ class SpecificationController {
     bars.forEach(b => {
       if (b.type === 'v') {
         const idx = vBars.indexOf(b);
-        const from = idx === 0 ? 'from left' : 'from right';
+        const from = idx === 0 ? 'from right' : 'from left';
         html += `<div class="spec-item spec-detail"><span class="spec-label">↕ Vertical</span><span class="spec-value">${b.mm}mm ${from}</span></div>`;
       } else {
         const idx = hBars.indexOf(b);
