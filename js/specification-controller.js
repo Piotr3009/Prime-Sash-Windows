@@ -236,13 +236,20 @@ class SpecificationController {
       });
     });
 
-    // Spacer colour radios - live 3D update
+    // Spacer colour radios - live 3D update + info panel
     const spacerRadios = document.querySelectorAll('input[name="spacer-color"]');
+    const spacerInfoHtml =
+      '<p class="info-title" style="color:#c0392b;font-weight:600;">Spacer colour affects the overall look!</p>' +
+      '<p><span class="info-highlight">Black</span> — best for dark frames (Anthracite, Black, Burgundy)</p>' +
+      '<p><span class="info-highlight">White</span> — best for White, Off-White, Cream frames</p>' +
+      '<p><span class="info-highlight">Silver</span> — neutral, works with any colour</p>';
     spacerRadios.forEach(radio => {
       radio.addEventListener('change', (e) => {
         if (typeof window.update3D === 'function') {
           window.update3D({ spacerColor: e.target.value });
         }
+        const infoPanel = document.getElementById('info-panel-content');
+        if (infoPanel) infoPanel.innerHTML = spacerInfoHtml;
       });
     });
 
