@@ -674,23 +674,6 @@ export default function App() {
           </label>
         </div>
 
-        <div className="card">
-          <h2>Colour</h2>
-          <Toggle label="Same colour both sides" checked={sameColor} onChange={(v) => {
-            setSameColor(v);
-            if (v) { setWoodColorExt(woodColorExt); setWoodColorInt(woodColorExt); }
-          }} />
-          {sameColor ? (
-            <ColorPicker label="Colour" value={woodColorExt} onChange={(hex) => { setWoodColorExt(hex); setWoodColorInt(hex); setWoodColor(hex); }} inputId="cp-both" />
-          ) : (
-            <>
-              <ColorPicker label="External colour" value={woodColorExt} onChange={setColorExt} inputId="cp-ext" />
-              <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-tertiary)', margin: '8px 0' }} />
-              <ColorPicker label="Internal colour" value={woodColorInt} onChange={setColorInt} inputId="cp-int" />
-            </>
-          )}
-        </div>
-
       </aside>
 
       <main className="viewport" style={{ position: 'relative' }}>

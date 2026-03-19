@@ -292,6 +292,20 @@ class SpecificationController {
   }
 
   setupColorPreviews() {
+    // Color name → hex map for 3D
+    const colorHexMap = {
+      'white':     '#FAFAFA',
+      'black':     '#0A0A0A',
+      'anthracite':'#293133',
+      'olive':     '#424632',
+      'offwhite':  '#F7F9F5',
+      'cream':     '#F1EFDC',
+      'burgundy':  '#5E2028',
+      'royal':     '#222D5A',
+      'oak':       '#8B6914'
+    };
+    this._colorHexMap = colorHexMap;
+
     // Single color options
     const singleColorOptions = document.querySelectorAll('#single-color-selector .color-option');
     singleColorOptions.forEach(option => {
@@ -307,10 +321,15 @@ class SpecificationController {
         document.getElementById('single-preview-name').textContent = name;
         document.getElementById('single-preview-ral').textContent = ral;
         
-        // ✅ Zapisz do currentConfig od razu
         if (window.currentConfig) {
           window.currentConfig.colorSingle = color;
           window.currentConfig.colorSingleName = name;
+        }
+
+        // ✅ LIVE 3D update
+        const hex = colorHexMap[color];
+        if (hex && typeof window.update3D === 'function') {
+          window.update3D({ woodColor: hex, sameColor: true });
         }
       });
     });
@@ -319,9 +338,7 @@ class SpecificationController {
     const interiorColorOptions = document.querySelectorAll('.interior-color');
     interiorColorOptions.forEach(option => {
       option.addEventListener('click', () => {
-        // Remove selected from all interior colors
         interiorColorOptions.forEach(opt => opt.classList.remove('selected'));
-        // Add selected to clicked
         option.classList.add('selected');
 
         const name = option.dataset.name;
@@ -329,10 +346,15 @@ class SpecificationController {
         const color = option.dataset.color;
         document.getElementById('dual-preview-interior').textContent = `${name} (${ral})`;
         
-        // ✅ Zapisz do currentConfig od razu
         if (window.currentConfig) {
           window.currentConfig.colorInterior = color;
           window.currentConfig.colorInteriorName = name;
+        }
+
+        // ✅ LIVE 3D update (interior)
+        const hex = colorHexMap[color];
+        if (hex && typeof window.update3D === 'function') {
+          window.update3D({ woodColorInt: hex, sameColor: false });
         }
       });
     });
@@ -341,9 +363,7 @@ class SpecificationController {
     const exteriorColorOptions = document.querySelectorAll('.exterior-color');
     exteriorColorOptions.forEach(option => {
       option.addEventListener('click', () => {
-        // Remove selected from all exterior colors
         exteriorColorOptions.forEach(opt => opt.classList.remove('selected'));
-        // Add selected to clicked
         option.classList.add('selected');
 
         const name = option.dataset.name;
@@ -351,10 +371,15 @@ class SpecificationController {
         const color = option.dataset.color;
         document.getElementById('dual-preview-exterior').textContent = `${name} (${ral})`;
         
-        // ✅ Zapisz do currentConfig od razu
         if (window.currentConfig) {
           window.currentConfig.colorExterior = color;
           window.currentConfig.colorExteriorName = name;
+        }
+
+        // ✅ LIVE 3D update (exterior)
+        const hex = colorHexMap[color];
+        if (hex && typeof window.update3D === 'function') {
+          window.update3D({ woodColorExt: hex, sameColor: false });
         }
       });
     });
@@ -635,6 +660,23 @@ class SpecificationController {
           window.currentConfig.colorExteriorName = extName; // display name
           window.currentConfig.customExteriorColor = extName === 'Custom' ? extName : null;
         }
+      }
+    }
+
+    // ✅ UPDATE 3D with color
+    if (typeof window.update3D === 'function' && this._colorHexMap) {
+      const cType = document.querySelector('input[name="color-type"]:checked')?.value;
+      if (cType === 'single') {
+        const sel = document.querySelector('#single-color-selector .color-option.selected');
+        const hex = sel ? this._colorHexMap[sel.dataset.color] : null;
+        if (hex) window.update3D({ woodColor: hex, sameColor: true });
+      } else {
+        const selInt = document.querySelector('.interior-color.selected');
+        const selExt = document.querySelector('.exterior-color.selected');
+        const hexInt = selInt ? this._colorHexMap[selInt.dataset.color] : null;
+        const hexExt = selExt ? this._colorHexMap[selExt.dataset.color] : null;
+        if (hexInt) window.update3D({ woodColorInt: hexInt, sameColor: false });
+        if (hexExt) window.update3D({ woodColorExt: hexExt, sameColor: false });
       }
     }
 
