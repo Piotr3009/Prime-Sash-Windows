@@ -199,12 +199,12 @@ export default function HeroWindow() {
     await animateColor('#F6F6F6', '#c8b898', 1500);
     await wait(1200);
 
-    // Sand -> Terra Brown
-    await animateColor('#c8b898', '#4E3B31', 1500);
+    // Sand -> Elephant's Breath (F&B warm neutral)
+    await animateColor('#c8b898', '#ccbfb3', 1500);
     await wait(1200);
 
-    // Terra -> Vert de Terre (F&B)
-    await animateColor('#4E3B31', '#bbbe9f', 1500);
+    // Elephant's Breath -> Vert de Terre (F&B)
+    await animateColor('#ccbfb3', '#bbbe9f', 1500);
     await wait(1200);
 
     // Vert de Terre -> back to White
