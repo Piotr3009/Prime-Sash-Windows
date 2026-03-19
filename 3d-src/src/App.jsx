@@ -532,6 +532,7 @@ export default function App() {
   const height = extHeight - 87;
   const [opening, setOpening] = useState(0);
   const [upperOpening, setUpperOpening] = useState(0);
+  const [openingType, setOpeningType] = useState('both');
   const [autoRotate, setAutoRotate] = useState(true);
   const [showGuides, setShowGuides] = useState(true);
   const [showHorns, setShowHorns] = useState(true);
@@ -574,6 +575,11 @@ export default function App() {
       if (cfg.lowerCustomBars !== undefined) setLowerCustomBars(cfg.lowerCustomBars);
       if (cfg.opening !== undefined) setOpening(cfg.opening);
       if (cfg.upperOpening !== undefined) setUpperOpening(cfg.upperOpening);
+      if (cfg.openingType !== undefined) {
+        setOpeningType(cfg.openingType);
+        if (cfg.openingType === 'fixed') { setOpening(0); setUpperOpening(0); }
+        if (cfg.openingType === 'bottom') { setUpperOpening(0); }
+      }
       if (cfg.woodColor !== undefined) {
         setWoodColor(cfg.woodColor);
         setWoodColorExt(cfg.woodColor);
@@ -635,22 +641,26 @@ export default function App() {
           maxWidth: '200px', width: '100%',
           pointerEvents: 'auto'
         }}>
-          <Slider
-            label="Lower sash"
-            value={opening}
-            min={0}
-            max={maxSashOpening}
-            step={5}
-            onChange={setOpening}
-          />
-          <Slider
-            label="Upper sash"
-            value={upperOpening}
-            min={0}
-            max={maxSashOpening}
-            step={5}
-            onChange={setUpperOpening}
-          />
+          <div style={{ opacity: openingType === 'fixed' ? 0.3 : 1, pointerEvents: openingType === 'fixed' ? 'none' : 'auto' }}>
+            <Slider
+              label="Lower sash"
+              value={opening}
+              min={0}
+              max={maxSashOpening}
+              step={5}
+              onChange={setOpening}
+            />
+          </div>
+          <div style={{ opacity: (openingType === 'fixed' || openingType === 'bottom') ? 0.3 : 1, pointerEvents: (openingType === 'fixed' || openingType === 'bottom') ? 'none' : 'auto' }}>
+            <Slider
+              label="Upper sash"
+              value={upperOpening}
+              min={0}
+              max={maxSashOpening}
+              step={5}
+              onChange={setUpperOpening}
+            />
+          </div>
           <Slider label="Brightness" value={Math.round((brightness - 1) * 100)} min={-30} max={30} step={5} suffix="%" onChange={(v) => setBrightness(1 + v / 100)} />
         </div>
 

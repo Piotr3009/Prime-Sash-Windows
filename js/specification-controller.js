@@ -239,11 +239,7 @@ class SpecificationController {
           // 3D overlay + sash reset
           this.updateOpeningOverlay(e.target.value);
           if (typeof window.update3D === 'function') {
-            if (e.target.value === 'fixed') {
-              window.update3D({ opening: 0, upperOpening: 0 });
-            } else if (e.target.value === 'bottom') {
-              window.update3D({ upperOpening: 0 });
-            }
+            window.update3D({ openingType: e.target.value });
           }
         }
       });
@@ -263,6 +259,20 @@ class SpecificationController {
         }
         const infoPanel = document.getElementById('info-panel-content');
         if (infoPanel) infoPanel.innerHTML = spacerInfoHtml;
+      });
+    });
+
+    // Horn type radios - live 3D update
+    const hornRadios = document.querySelectorAll('input[name="horn-type"]');
+    hornRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if (typeof window.update3D === 'function') {
+          if (e.target.value === 'none') {
+            window.update3D({ showHorns: false });
+          } else {
+            window.update3D({ showHorns: true, hornType: e.target.value });
+          }
+        }
       });
     });
 
@@ -859,11 +869,7 @@ class SpecificationController {
 
     // ✅ UPDATE 3D
     if (typeof window.update3D === 'function') {
-      if (openingType === 'fixed') {
-        window.update3D({ opening: 0, upperOpening: 0 });
-      } else if (openingType === 'bottom') {
-        window.update3D({ upperOpening: 0 });
-      }
+      window.update3D({ openingType: openingType });
     }
 
     this.showAppliedFeedback('apply-opening');
