@@ -2019,15 +2019,15 @@ export default function ParametricSashWindow({
           ? [-mm(sashWidth / 2 - 250), mm(sashWidth / 2 - 250)]
           : [0];
 
-        // Body: na dolnym railu górnej sashki — interior face (od środka pokoju)
-        const upperSashBottom = (yTopClosed - mm(upperOpeningDrop)) - mm(upperSashHeight) / 2;
-        const bodyZ = trackRearZ - mm(sashDepth / 2); // interior face górnej sashki
-
-        // Keep: na górnym railu dolnej sashki — interior face
+        // Body: na górnym railu dolnej sashki — interior face (uchwyt obrotowy)
         const lowerSashTop = (yBottomClosed + mm(lowerOpeningLift)) + mm(lowerSashHeight) / 2;
-        const keepY = lowerSashTop; // na górnej powierzchni meeting railu dolnej sashki
-        const bodyY = upperSashBottom + mm(43); // górna powierzchnia meeting railu górnej sashki
-        const keepZ = trackFrontZ - mm(sashDepth / 2) + mm(85); // interior face dolnej sashki +85mm
+        const bodyY = lowerSashTop; // na górnej powierzchni meeting railu dolnej sashki
+        const bodyZ = trackFrontZ - mm(sashDepth / 2) + mm(85); // interior face dolnej sashki
+
+        // Keep: na dolnym railu górnej sashki — interior face (blaszka)
+        const upperSashBottom = (yTopClosed - mm(upperOpeningDrop)) - mm(upperSashHeight) / 2;
+        const keepY = upperSashBottom + mm(43); // dolna powierzchnia meeting railu górnej sashki
+        const keepZ = trackRearZ - mm(sashDepth / 2); // interior face górnej sashki
 
         return xPositions.map((x, i) => (
           <group key={i}>
