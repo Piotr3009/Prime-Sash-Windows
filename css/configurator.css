@@ -458,7 +458,16 @@ h1, h2, h3, h4, h5, h6 {
   overflow-y: auto;
   display: block !important;
   color: #1a1a1a;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(10,22,40,0.3) transparent;
 }
+.configurator-options::-webkit-scrollbar { width: 8px; }
+.configurator-options::-webkit-scrollbar-track { background: transparent; }
+.configurator-options::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.25); border-radius: 4px; }
+.configurator-options::-webkit-scrollbar-thumb:hover { background: rgba(10,22,40,0.4); }
+
+select::-webkit-scrollbar { width: 8px; }
+select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius: 4px; }
 
 .configurator-options .config-section {
   display: block;

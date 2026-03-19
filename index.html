@@ -72,6 +72,35 @@
     </div>
     <div class="hero-text">
       <p class="hero-eyebrow">Traditional Craftsmanship · Modern Performance</p>
+      <div class="hero-arc">
+        <svg viewBox="0 0 320 40" width="320" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path id="arcPath" d="M10 35 Q160 -10 310 35" stroke="url(#arcGrad)" stroke-width="1" fill="none" opacity="0.4"/>
+          <defs>
+            <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="transparent"/>
+              <stop offset="30%" stop-color="#B8B8AE"/>
+              <stop offset="50%" stop-color="#D4D4C8"/>
+              <stop offset="70%" stop-color="#B8B8AE"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </linearGradient>
+            <radialGradient id="sparkGrad">
+              <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
+              <stop offset="40%" stop-color="#D4D4C8" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#9E9E90" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle r="3" fill="url(#sparkGrad)">
+            <animateMotion dur="3.5s" repeatCount="indefinite" rotate="auto">
+              <mpath href="#arcPath"/>
+            </animateMotion>
+          </circle>
+          <circle r="6" fill="url(#sparkGrad)" opacity="0.3">
+            <animateMotion dur="3.5s" repeatCount="indefinite" rotate="auto">
+              <mpath href="#arcPath"/>
+            </animateMotion>
+          </circle>
+        </svg>
+      </div>
       <h1 class="hero-h1">Timber Sash<br/>Windows <span class="silver">London</span></h1>
       <div class="hero-rule"></div>
       <p class="hero-body">Handcrafted timber sash windows for period homes. Design and price your bespoke windows online in minutes — no calls, no waiting.</p>
