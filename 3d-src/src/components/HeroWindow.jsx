@@ -9,14 +9,18 @@ function HeroScene({ config }) {
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[1.6, 0.9, 1.1]} fov={48} />
+      <PerspectiveCamera makeDefault position={[0, 0.5, 2.4]} fov={42} />
       <OrbitControls
         enablePan={false}
         enableZoom={false}
+        enableDamping
         autoRotate
         autoRotateSpeed={0.6}
-        minPolarAngle={Math.PI / 4}
+        minPolarAngle={Math.PI / 2.8}
         maxPolarAngle={Math.PI / 2.2}
+        minDistance={2.4}
+        maxDistance={2.4}
+        target={[0, 0.5, 0]}
       />
       <ambientLight intensity={0.4} />
       <directionalLight
