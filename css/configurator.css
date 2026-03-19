@@ -749,22 +749,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .color-options {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  gap: 18px;
-  margin: 18px 0 24px;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 8px;
+  margin: 10px 0 14px;
 }
 
 .color-option-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
 }
 
 .color-option {
-  width: 60px;
-  height: 40px;
-  border-radius: var(--radius);
+  width: 36px;
+  height: 28px;
+  border-radius: 3px;
   cursor: pointer;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   border: 2px solid transparent;
@@ -772,20 +772,70 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .color-option:hover {
-  transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: scale(1.12);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
 .color-option.selected {
   border: 2px solid var(--secondary-color);
-  transform: scale(1.08);
-  box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--secondary-color), 0 6px 16px rgba(158,158,144,0.3);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 1px var(--white), 0 0 0 3px var(--secondary-color);
 }
 
 .color-name {
-  font-size: 0.78rem;
+  font-size: 0.6rem;
   text-align: center;
   color: var(--text-color);
+  line-height: 1.1;
+}
+
+/* ── COLOR DROPDOWNS (RAL / F&B) ── */
+.color-dropdown-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.color-dropdown-row select {
+  flex: 1;
+  padding: 6px 8px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--white);
+  cursor: pointer;
+}
+.color-dropdown-row select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(10,22,40,.08);
+}
+.ral-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.ral-input-row input {
+  flex: 1;
+  padding: 5px 8px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+}
+.ral-input-row button {
+  padding: 5px 12px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.7rem;
+  background: var(--primary-color);
+  color: rgba(255,255,255,.7);
+  border: 1px solid rgba(158,158,144,.3);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.ral-input-row .ral-error {
+  color: #c0392b;
+  font-size: 0.65rem;
 }
 
 /* ============================================================

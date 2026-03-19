@@ -14,6 +14,7 @@ class SpecificationController {
   setup() {
     this.attachEventListeners();
     this.setupColorPreviews();
+    this.setupColorDropdowns();
     this.setupSectionChangeListeners();
     this.setupFrostedOptions();
     this.setupGlobalAutoSave();
@@ -416,6 +417,112 @@ class SpecificationController {
         }
       });
     });
+  }
+
+  setupColorDropdowns() {
+    // Full RAL lookup map for number input
+    const RAL = {
+      '1000':'#BEBD7F','1001':'#C2B078','1002':'#C6A664','1003':'#E5BE01','1004':'#CDA434',
+      '1005':'#A98307','1006':'#E4A010','1007':'#DC9D00','1011':'#8A6642','1012':'#C7B446',
+      '1013':'#EAE6CA','1014':'#E1CC4F','1015':'#E6D690','1016':'#EDFF21','1017':'#F5D033',
+      '1018':'#F8F32B','1019':'#9E9764','1020':'#999950','1021':'#F3DA0B','1023':'#FAD201',
+      '1024':'#AEA04B','1026':'#FFFF00','1027':'#9D9101','1028':'#F4A900','1032':'#D6AE01',
+      '1033':'#F3A505','1034':'#EFA94A','2000':'#ED760E','2001':'#C93C20','2002':'#CB2821',
+      '2003':'#FF7514','2004':'#F44611','3000':'#AF2B1E','3001':'#A52019','3002':'#A2231D',
+      '3003':'#9B111E','3004':'#75151E','3005':'#5E2129','3007':'#412227','3009':'#642424',
+      '3011':'#781F19','3012':'#C1876B','3013':'#A12312','3014':'#D36E70','3015':'#EA899A',
+      '3016':'#B32821','3017':'#E63244','3018':'#D53032','3020':'#CC0605','3022':'#D95030',
+      '3027':'#C51D34','3031':'#B32428','4001':'#6D3F5B','4002':'#922B3E','4003':'#DE4C8A',
+      '4004':'#641C34','4005':'#6C4675','4006':'#A03472','4007':'#4A192C','4008':'#924E7D',
+      '5000':'#354D73','5001':'#1F3438','5002':'#1E2460','5003':'#1D1E33','5004':'#18171C',
+      '5005':'#1E2460','5007':'#3E5F8A','5008':'#26252D','5009':'#025669','5010':'#0E4243',
+      '5011':'#1B2A4A','5012':'#3B83BD','5013':'#1E213D','5014':'#606E8C','5015':'#2271B3',
+      '5017':'#063971','5018':'#3F888F','5019':'#1B5583','5020':'#1D334A','5021':'#256D7B',
+      '5022':'#252850','5023':'#49678D','5024':'#5D9B9B','6000':'#316650','6001':'#287233',
+      '6002':'#2D572C','6003':'#424632','6004':'#1F3A3D','6005':'#2F4538','6006':'#3E3B32',
+      '6007':'#343B29','6008':'#39352A','6009':'#31372B','6010':'#35682D','6011':'#587246',
+      '6012':'#343E40','6013':'#6C7156','6014':'#47402E','6016':'#1E5945','7000':'#78858B',
+      '7001':'#8A9597','7002':'#817F68','7003':'#7D7F7D','7004':'#9EA0A1','7005':'#6C7059',
+      '7006':'#756F61','7008':'#6A5F31','7011':'#434B4D','7012':'#4E5754','7015':'#434750',
+      '7016':'#293133','7021':'#23282B','7022':'#332F2C','7023':'#8B8C7A','7024':'#474A51',
+      '7030':'#8B8B7A','7031':'#474B4E','7032':'#B8B799','7033':'#7D8471','7034':'#8F8B66',
+      '7035':'#D7D7D7','7036':'#7F7679','7037':'#7D7F7D','7038':'#B5B8B1','7039':'#6C6960',
+      '7040':'#9DA1AA','7042':'#8D948D','7043':'#4E5452','7044':'#CAC4B0','7045':'#909090',
+      '7046':'#82898F','7047':'#D0D0D0','8000':'#826C34','8001':'#955F20','8002':'#6C3B2A',
+      '8003':'#734222','8004':'#8E402A','8007':'#59351F','8008':'#6F4F28','8011':'#6F3B2A',
+      '8014':'#382C1E','8017':'#45322E','8019':'#403A3A','8022':'#212121','8024':'#79553D',
+      '8025':'#755C48','8028':'#4E3B31','9001':'#FDF4E3','9002':'#E7EBDA','9003':'#F4F4F4',
+      '9004':'#282828','9005':'#0A0A0A','9006':'#A5A5A5','9007':'#8F8F8F','9010':'#FFFFFF',
+      '9011':'#1C2023','9016':'#F6F6F6','9017':'#1E1E1E','9018':'#D7D7D7'
+    };
+
+    const update3DColor = (hex, target) => {
+      if (typeof window.update3D !== 'function') return;
+      if (target === 'single') {
+        window.update3D({ woodColor: hex, sameColor: true });
+      } else if (target === 'interior') {
+        window.update3D({ woodColorInt: hex, sameColor: false });
+      } else if (target === 'exterior') {
+        window.update3D({ woodColorExt: hex, sameColor: false });
+      }
+    };
+
+    // RAL & F&B dropdown handlers
+    document.querySelectorAll('.color-ral-dropdown, .color-fb-dropdown').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const hex = e.target.value;
+        const target = e.target.dataset.target;
+        if (!hex) return;
+        update3DColor(hex, target);
+        // Reset the other dropdown in same row
+        const row = e.target.closest('.color-dropdown-row');
+        row.querySelectorAll('select').forEach(s => { if (s !== e.target) s.value = ''; });
+        // Update preview text
+        const text = e.target.options[e.target.selectedIndex].text;
+        if (target === 'single') {
+          document.getElementById('single-preview-name').textContent = text;
+          document.getElementById('single-preview-ral').textContent = hex;
+        } else if (target === 'interior') {
+          document.getElementById('dual-preview-interior').textContent = text + ' (' + hex + ')';
+        } else if (target === 'exterior') {
+          document.getElementById('dual-preview-exterior').textContent = text + ' (' + hex + ')';
+        }
+        e.target.value = '';
+      });
+    });
+
+    // RAL number input handlers
+    const setupRalInput = (inputId, btnId, errorId, target) => {
+      const input = document.getElementById(inputId);
+      const btn = document.getElementById(btnId);
+      const err = document.getElementById(errorId);
+      if (!input || !btn) return;
+
+      const applyRal = () => {
+        const key = input.value.trim().replace(/^ral\s*/i, '');
+        const hex = RAL[key];
+        if (hex) {
+          update3DColor(hex, target);
+          err.textContent = '';
+          if (target === 'single') {
+            document.getElementById('single-preview-name').textContent = 'RAL ' + key;
+            document.getElementById('single-preview-ral').textContent = hex;
+          } else if (target === 'interior') {
+            document.getElementById('dual-preview-interior').textContent = 'RAL ' + key + ' (' + hex + ')';
+          } else if (target === 'exterior') {
+            document.getElementById('dual-preview-exterior').textContent = 'RAL ' + key + ' (' + hex + ')';
+          }
+        } else {
+          err.textContent = 'Unknown RAL';
+        }
+      };
+      btn.addEventListener('click', applyRal);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyRal(); });
+    };
+
+    setupRalInput('single-ral-input', 'single-ral-apply', 'single-ral-error', 'single');
+    setupRalInput('int-ral-input', 'int-ral-apply', 'int-ral-error', 'interior');
+    setupRalInput('ext-ral-input', 'ext-ral-apply', 'ext-ral-error', 'exterior');
   }
 
   setupFrostedOptions() {
