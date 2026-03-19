@@ -624,12 +624,21 @@ export default function App() {
   );
 
   return (
-    <div className="app-shell">
-      <aside className="panel">
-        <div className="card">
-          <h2>View Controls</h2>
+    <div className="app-shell" style={{ gridTemplateColumns: '1fr' }}>
+      <main className="viewport" style={{ position: 'relative' }}>
+        {/* Floating controls - top left */}
+        <div style={{
+          position: 'absolute', top: '12px', left: '12px', zIndex: 10,
+          display: 'flex', flexDirection: 'column', gap: '8px',
+          background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)',
+          borderRadius: '12px', padding: '12px 14px',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
+          border: '1px solid rgba(0,0,0,0.08)',
+          maxWidth: '200px', width: '100%',
+          pointerEvents: 'auto'
+        }}>
           <Slider
-            label="Lower sash opening"
+            label="Lower sash"
             value={opening}
             min={0}
             max={maxSashOpening}
@@ -637,46 +646,49 @@ export default function App() {
             onChange={setOpening}
           />
           <Slider
-            label="Upper sash opening"
+            label="Upper sash"
             value={upperOpening}
             min={0}
             max={maxSashOpening}
             step={5}
             onChange={setUpperOpening}
           />
-        </div>
-
-
-        <div className="card">
-          <h2>Build</h2>
-          <label className="select-wrap">
-            <span>Box type</span>
-            <select value={boxType} onChange={(event) => setBoxType(event.target.value)}>
-              <option value="standard">Standard 164 mm</option>
-              <option value="slim">Slim 146 mm</option>
-            </select>
-          </label>
-          <div className="stats">
-            <div><span>Box depth</span><strong>{config.boxDepth} mm</strong></div>
-            <div><span>Sash depth</span><strong>{config.sashDepth} mm</strong></div>
-          </div>
-          <Toggle label="Auto rotate" checked={autoRotate} onChange={setAutoRotate} />
-          <Toggle label="Show guide dimensions" checked={showGuides} onChange={setShowGuides} />
           <Slider label="Brightness" value={Math.round((brightness - 1) * 100)} min={-30} max={30} step={5} suffix="%" onChange={(v) => setBrightness(1 + v / 100)} />
-          <label className="select-wrap">
-            <span>Ironmongery finish</span>
-            <select value={ironmongery} onChange={(e) => setIronmongery(e.target.value)}>
-              <option value="brass">Brass</option>
-              <option value="chrome">Chrome</option>
-              <option value="stainless">Stainless Steel</option>
-              <option value="antique_brass">Antique Brass</option>
-            </select>
-          </label>
         </div>
 
-      </aside>
+        {/* Floating toggles - bottom left */}
+        <div style={{
+          position: 'absolute', bottom: '12px', left: '12px', zIndex: 10,
+          display: 'flex', gap: '8px',
+          pointerEvents: 'auto'
+        }}>
+          <button
+            onClick={() => setAutoRotate(!autoRotate)}
+            style={{
+              background: autoRotate ? 'rgba(10,22,40,0.85)' : 'rgba(255,255,255,0.75)',
+              color: autoRotate ? '#fff' : '#1f3354',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              borderRadius: '8px', padding: '6px 10px',
+              fontSize: '11px', cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}
+          >{autoRotate ? '⏸ Rotate' : '▶ Rotate'}</button>
+          <button
+            onClick={() => setShowGuides(!showGuides)}
+            style={{
+              background: showGuides ? 'rgba(10,22,40,0.85)' : 'rgba(255,255,255,0.75)',
+              color: showGuides ? '#fff' : '#1f3354',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              borderRadius: '8px', padding: '6px 10px',
+              fontSize: '11px', cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}
+          >{showGuides ? '📏 Guides' : '📏 Guides'}</button>
+        </div>
 
-      <main className="viewport" style={{ position: 'relative' }}>
+        {/* Rotate hint - bottom right */}
         <div style={{
           position: 'absolute', bottom: '12px', right: '12px', zIndex: 10,
           width: '32px', height: '32px', borderRadius: '50%',
@@ -686,6 +698,7 @@ export default function App() {
           fontSize: '17px', pointerEvents: 'none',
           boxShadow: '0 2px 8px rgba(0,0,0,0.12)', color: '#1f3354'
         }} title="Drag to rotate">↻</div>
+
         <Canvas shadows dpr={[1, 2]} gl={{ alpha: true }}>
           <Scene config={config} />
         </Canvas>
