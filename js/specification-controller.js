@@ -226,12 +226,24 @@ class SpecificationController {
       });
     });
 
-    // Opening type radios - immediate update
+    // Opening type radios - immediate update (overlay + 3D)
     const openingRadios = document.querySelectorAll('input[name="opening-type"]');
     openingRadios.forEach(radio => {
       radio.addEventListener('change', (e) => {
-        if (e.target.checked && window.visualizationManager && window.visualizationManager.updateOpeningIndicators) {
-          window.visualizationManager.updateOpeningIndicators(e.target.value);
+        if (e.target.checked) {
+          // Old visualization manager
+          if (window.visualizationManager && window.visualizationManager.updateOpeningIndicators) {
+            window.visualizationManager.updateOpeningIndicators(e.target.value);
+          }
+          // 3D overlay + sash reset
+          this.updateOpeningOverlay(e.target.value);
+          if (typeof window.update3D === 'function') {
+            if (e.target.value === 'fixed') {
+              window.update3D({ opening: 0, upperOpening: 0 });
+            } else if (e.target.value === 'bottom') {
+              window.update3D({ upperOpening: 0 });
+            }
+          }
         }
       });
     });
@@ -669,17 +681,58 @@ class SpecificationController {
     document.getElementById('spec-opening').style.display = 'block';
     document.getElementById('spec-opening-type').textContent = openingNames[openingType] || openingType;
 
-    // Update opening indicators
+    // Update opening indicators (old + new)
     this.updateOpeningIndicators(openingType);
+    this.updateOpeningOverlay(openingType);
+
+    // ✅ UPDATE 3D
+    if (typeof window.update3D === 'function') {
+      if (openingType === 'fixed') {
+        window.update3D({ opening: 0, upperOpening: 0 });
+      } else if (openingType === 'bottom') {
+        window.update3D({ upperOpening: 0 });
+      }
+    }
 
     this.showAppliedFeedback('apply-opening');
   }
 
   updateOpeningIndicators(openingType) {
-    // This will be handled by visualization-manager.js
     if (window.visualizationManager && window.visualizationManager.updateOpeningIndicators) {
       window.visualizationManager.updateOpeningIndicators(openingType);
     }
+  }
+
+  updateOpeningOverlay(openingType) {
+    const overlay = document.getElementById('opening-overlay');
+    const upper = document.getElementById('opening-upper');
+    const lower = document.getElementById('opening-lower');
+    if (!overlay || !upper || !lower) return;
+
+    overlay.style.display = 'block';
+
+    if (openingType === 'both') {
+      upper.className = 'opening-indicator arrow';
+      upper.textContent = '↕';
+      lower.className = 'opening-indicator arrow';
+      lower.textContent = '↕';
+    } else if (openingType === 'bottom') {
+      upper.className = 'opening-indicator cross';
+      upper.textContent = '✕';
+      lower.className = 'opening-indicator arrow';
+      lower.textContent = '↕';
+    } else if (openingType === 'fixed') {
+      upper.className = 'opening-indicator cross';
+      upper.textContent = '✕';
+      lower.className = 'opening-indicator cross';
+      lower.textContent = '✕';
+    }
+
+    // Auto-hide after 3 seconds
+    clearTimeout(this._overlayTimeout);
+    this._overlayTimeout = setTimeout(() => {
+      overlay.style.display = 'none';
+    }, 3000);
   }
 
   applyPAS24() {

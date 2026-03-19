@@ -1222,8 +1222,12 @@
         </div>
     </div>
     
-    <div class="configurator-preview">
+    <div class="configurator-preview" style="position:relative;">
       <div id="root-3d" style="width:100%;height:100%;"></div>
+      <div id="opening-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10;">
+        <div id="opening-upper" class="opening-indicator" style="position:absolute; top:28%; left:50%; transform:translate(-50%,-50%);"></div>
+        <div id="opening-lower" class="opening-indicator" style="position:absolute; top:68%; left:50%; transform:translate(-50%,-50%);"></div>
+      </div>
     </div>
   </div>
 </main>

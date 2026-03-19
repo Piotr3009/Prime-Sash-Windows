@@ -572,6 +572,8 @@ export default function App() {
       if (cfg.sameBars  !== undefined) setSameBars(cfg.sameBars);
       if (cfg.upperCustomBars !== undefined) setUpperCustomBars(cfg.upperCustomBars);
       if (cfg.lowerCustomBars !== undefined) setLowerCustomBars(cfg.lowerCustomBars);
+      if (cfg.opening !== undefined) setOpening(cfg.opening);
+      if (cfg.upperOpening !== undefined) setUpperOpening(cfg.upperOpening);
       if (cfg.woodColor !== undefined) {
         setWoodColor(cfg.woodColor);
         setWoodColorExt(cfg.woodColor);

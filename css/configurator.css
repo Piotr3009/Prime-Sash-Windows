@@ -293,6 +293,22 @@ h1, h2, h3, h4, h5, h6 {
   padding: 3px;
 }
 
+/* ── OPENING INDICATORS (overlay on 3D) ── */
+.opening-indicator {
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transition: opacity 0.3s;
+}
+.opening-indicator.arrow {
+  color: #2ecc71;
+}
+.opening-indicator.cross {
+  color: #e74c3c;
+}
+
 .view-btn {
   padding: 6px 18px;
   border: none;
