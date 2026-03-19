@@ -469,12 +469,33 @@ class SpecificationController {
       }
     };
 
+    // Helper: switch swatch to Custom when RAL/F&B is used
+    const switchToCustomSwatch = (target) => {
+      if (target === 'single') {
+        document.querySelectorAll('#single-color-selector .color-option').forEach(o => o.classList.remove('selected'));
+        const customBtn = document.querySelector('#single-color-selector .custom-color-btn');
+        if (customBtn) customBtn.classList.add('selected');
+        if (window.currentConfig) { window.currentConfig.colorSingle = 'custom'; window.currentConfig.colorSingleName = 'Custom Color'; }
+      } else if (target === 'interior') {
+        document.querySelectorAll('.interior-color').forEach(o => o.classList.remove('selected'));
+        const customBtn = document.querySelector('.interior-color.custom-color-btn');
+        if (customBtn) customBtn.classList.add('selected');
+        if (window.currentConfig) { window.currentConfig.colorInterior = 'custom'; window.currentConfig.colorInteriorName = 'Custom Color'; }
+      } else if (target === 'exterior') {
+        document.querySelectorAll('.exterior-color').forEach(o => o.classList.remove('selected'));
+        const customBtn = document.querySelector('.exterior-color.custom-color-btn');
+        if (customBtn) customBtn.classList.add('selected');
+        if (window.currentConfig) { window.currentConfig.colorExterior = 'custom'; window.currentConfig.colorExteriorName = 'Custom Color'; }
+      }
+    };
+
     // RAL & F&B dropdown handlers
     document.querySelectorAll('.color-ral-dropdown, .color-fb-dropdown').forEach(sel => {
       sel.addEventListener('change', (e) => {
         const hex = e.target.value;
         const target = e.target.dataset.target;
         if (!hex) return;
+        switchToCustomSwatch(target);
         update3DColor(hex, target);
         // Reset the other dropdown in same row
         const row = e.target.closest('.color-dropdown-row');
@@ -503,6 +524,7 @@ class SpecificationController {
         const key = input.value.trim().replace(/^ral\s*/i, '');
         const hex = RAL[key];
         if (hex) {
+          switchToCustomSwatch(target);
           update3DColor(hex, target);
           err.textContent = '';
           if (target === 'single') {
