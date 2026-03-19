@@ -145,11 +145,11 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
    ============================================================ */
 
 /* HERO */
-#hero { display:grid; grid-template-columns:55% 45%; min-height:75vh; padding-top:82px; }
+#hero { display:grid; grid-template-columns:55% 45%; min-height:60vh; padding-top:82px; }
 .hero-img { position:relative; overflow:hidden; background:var(--cream2); }
 .hero-img .bg { position:absolute; inset:0; background-size:cover; background-position:center; transform:scale(1.04); animation:hZoom 14s ease-out forwards; }
 @keyframes hZoom { to { transform:scale(1); } }
-.hero-text { display:flex; flex-direction:column; justify-content:center; padding:7rem 6vw 7rem 5vw; background:var(--cream); border-left:1px solid rgba(158,158,144,.4); }
+.hero-text { display:flex; flex-direction:column; justify-content:center; padding:4rem 5vw 4rem 4vw; background:var(--cream); border-left:1px solid rgba(158,158,144,.4); }
 .hero-eyebrow { font-size:.52rem; letter-spacing:.6em; text-transform:uppercase; color:var(--muted); margin-bottom:2rem; opacity:0; animation:aUp .9s .3s forwards; }
 .hero-h1 { font-family:var(--serif); font-size:clamp(3.2rem,5.5vw,5.5rem); font-weight:500; line-height:1.08; margin-bottom:2rem; opacity:0; animation:aUp 1s .55s forwards; }
 .hero-rule { width:36px; height:2px; background:var(--silver); margin-bottom:2rem; opacity:0; animation:aFade .8s .85s forwards; }
@@ -158,12 +158,12 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 .hero-cta { display:flex; gap:.8rem; flex-wrap:wrap; opacity:0; animation:aUp .9s 1.2s forwards; }
 
 /* ABOUT / FEATURES SECTION */
-.split-section { display:grid; grid-template-columns:55% 45%; min-height:52vh; border-top:2px solid var(--silver); }
+.split-section { display:grid; grid-template-columns:55% 45%; min-height:40vh; border-top:2px solid var(--silver); }
 .split-section.reverse { direction: rtl; }
 .split-section.reverse > * { direction: ltr; }
-.split-img { position:relative; overflow:hidden; background:var(--cream2); min-height:300px; }
+.split-img { position:relative; overflow:hidden; background:var(--cream2); min-height:240px; }
 .split-img img { width:100%; height:100%; object-fit:cover; }
-.split-text { padding:7rem 5vw; border-left:2px solid var(--silver); display:flex; flex-direction:column; justify-content:center; }
+.split-text { padding:4rem 4vw; border-left:2px solid var(--silver); display:flex; flex-direction:column; justify-content:center; }
 .split-section.reverse .split-text { border-left:none; border-right:2px solid var(--silver); }
 
 /* STATS */
@@ -173,7 +173,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 
 /* WHY CHOOSE / FEATURES GRID */
 .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
-.feature-item { padding:3rem 2.5rem; border-left:2px solid var(--silver); }
+.feature-item { padding:2rem 2rem; border-left:2px solid var(--silver); }
 .feature-item:first-child { border-left:none; }
 .feature-num { font-size:.48rem; letter-spacing:.4em; text-transform:uppercase; color:var(--muted); margin-bottom:1.2rem; display:block; }
 .feature-title { font-family:var(--serif); font-size:1.35rem; font-weight:400; color:var(--ink); margin-bottom:1rem; }
@@ -215,7 +215,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 }
 
 /* CERTIFICATIONS */
-.cert-row { display:flex; align-items:center; justify-content:center; gap:3rem; flex-wrap:wrap; padding:4rem 5vw; background:var(--cream2); border-top:2px solid var(--silver); }
+.cert-row { display:flex; align-items:center; justify-content:center; gap:3rem; flex-wrap:wrap; padding:2.5rem 5vw; background:var(--cream2); border-top:2px solid var(--silver); }
 .cert-row img { height:50px; opacity:.6; transition:opacity .3s; }
 .cert-row img:hover { opacity:1; }
 
@@ -227,7 +227,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 }
 .portfolio-grid img {
   width: 100%;
-  height: 225px;
+  height: 180px;
   object-fit: cover;
   transition: transform .6s;
 }

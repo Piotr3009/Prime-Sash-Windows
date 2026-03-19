@@ -74,32 +74,49 @@
       <p class="hero-eyebrow">Traditional Craftsmanship · Modern Performance</p>
       <div class="hero-arc">
         <svg viewBox="0 0 320 40" width="320" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path id="arcPath" d="M10 35 Q160 -10 310 35" stroke="url(#arcGrad)" stroke-width="1" fill="none" opacity="0.4"/>
+          <path id="arcPath" d="M10 35 Q160 -10 310 35" stroke="url(#arcGrad)" stroke-width="1" fill="none" opacity="0.35"/>
           <defs>
             <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stop-color="transparent"/>
-              <stop offset="30%" stop-color="#B8B8AE"/>
-              <stop offset="50%" stop-color="#D4D4C8"/>
-              <stop offset="70%" stop-color="#B8B8AE"/>
+              <stop offset="30%" stop-color="#0A1628"/>
+              <stop offset="50%" stop-color="#1a3060"/>
+              <stop offset="70%" stop-color="#0A1628"/>
               <stop offset="100%" stop-color="transparent"/>
             </linearGradient>
             <radialGradient id="sparkGrad">
               <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
-              <stop offset="40%" stop-color="#D4D4C8" stop-opacity="0.8"/>
+              <stop offset="30%" stop-color="#D4D4C8" stop-opacity="0.9"/>
+              <stop offset="60%" stop-color="#9E9E90" stop-opacity="0.4"/>
               <stop offset="100%" stop-color="#9E9E90" stop-opacity="0"/>
             </radialGradient>
           </defs>
-          <circle r="3" fill="url(#sparkGrad)">
-            <animateMotion dur="3.5s" repeatCount="indefinite" rotate="auto">
-              <mpath href="#arcPath"/>
-            </animateMotion>
-          </circle>
-          <circle r="6" fill="url(#sparkGrad)" opacity="0.3">
-            <animateMotion dur="3.5s" repeatCount="indefinite" rotate="auto">
-              <mpath href="#arcPath"/>
-            </animateMotion>
-          </circle>
+          <g id="sparkGroup" style="opacity:0">
+            <circle r="2.5" fill="url(#sparkGrad)"/>
+            <circle r="5" fill="url(#sparkGrad)" opacity="0.25"/>
+          </g>
         </svg>
+        <script>
+        (function(){
+          var path = document.getElementById('arcPath');
+          var spark = document.getElementById('sparkGroup');
+          var len = path.getTotalLength();
+          function animate() {
+            spark.style.opacity = '1';
+            var start = null;
+            var dur = 3000;
+            function step(ts) {
+              if (!start) start = ts;
+              var t = Math.min((ts - start) / dur, 1);
+              var pt = path.getPointAtLength(t * len);
+              spark.setAttribute('transform', 'translate(' + pt.x + ',' + pt.y + ')');
+              if (t < 1) { requestAnimationFrame(step); }
+              else { spark.style.opacity = '0'; setTimeout(animate, 60000); }
+            }
+            requestAnimationFrame(step);
+          }
+          setTimeout(animate, 1500);
+        })();
+        </script>
       </div>
       <h1 class="hero-h1">Timber Sash<br/>Windows <span class="silver">London</span></h1>
       <div class="hero-rule"></div>
