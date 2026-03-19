@@ -317,10 +317,10 @@ class SpecificationController {
         option.classList.add('selected');
 
         const name = option.dataset.name;
-        const ral = option.dataset.ral;
         const color = option.dataset.color;
+        const hex = colorHexMap[color] || option.style.backgroundColor;
         document.getElementById('single-preview-name').textContent = name;
-        document.getElementById('single-preview-ral').textContent = ral;
+        document.getElementById('single-preview-ral').textContent = hex || color;
         
         if (window.currentConfig) {
           window.currentConfig.colorSingle = color;
@@ -328,7 +328,6 @@ class SpecificationController {
         }
 
         // ✅ LIVE 3D update
-        const hex = colorHexMap[color];
         if (hex && typeof window.update3D === 'function') {
           window.update3D({ woodColor: hex, sameColor: true });
         }
@@ -389,7 +388,6 @@ class SpecificationController {
     const colorTypeRadios = document.querySelectorAll('input[name="color-type"]');
     colorTypeRadios.forEach(radio => {
       radio.addEventListener('change', () => {
-        // ✅ Zapisz colorType do currentConfig
         if (window.currentConfig) {
           window.currentConfig.colorType = radio.value;
         }
@@ -398,17 +396,21 @@ class SpecificationController {
         const singleSelector = document.getElementById('single-color-selector');
 
         if (radio.value === 'single') {
-          if (dualSection) dualSection.classList.add('colour-greyed');
-          if (singleSelector) singleSelector.classList.remove('colour-greyed');
-          document.getElementById('single-color-preview-info').style.display = 'block';
-          document.getElementById('dual-color-preview-info').style.display = 'none';
+          if (dualSection) dualSection.style.display = 'none';
+          if (singleSelector) singleSelector.style.display = 'block';
+          const singlePreview = document.getElementById('single-color-preview-info');
+          const dualPreview = document.getElementById('dual-color-preview-info');
+          if (singlePreview) singlePreview.style.display = 'block';
+          if (dualPreview) dualPreview.style.display = 'none';
           const infoPanel = document.getElementById('info-panel-content');
           if (infoPanel) infoPanel.innerHTML = '';
         } else {
-          if (dualSection) dualSection.classList.remove('colour-greyed');
-          if (singleSelector) singleSelector.classList.add('colour-greyed');
-          document.getElementById('single-color-preview-info').style.display = 'none';
-          document.getElementById('dual-color-preview-info').style.display = 'block';
+          if (dualSection) dualSection.style.display = 'block';
+          if (singleSelector) singleSelector.style.display = 'none';
+          const singlePreview = document.getElementById('single-color-preview-info');
+          const dualPreview = document.getElementById('dual-color-preview-info');
+          if (singlePreview) singlePreview.style.display = 'none';
+          if (dualPreview) dualPreview.style.display = 'block';
           const infoPanel = document.getElementById('info-panel-content');
           if (infoPanel) infoPanel.innerHTML =
             '<p class="info-title">Dual Colour</p>' +
@@ -487,7 +489,6 @@ class SpecificationController {
         } else if (target === 'exterior') {
           document.getElementById('dual-preview-exterior').textContent = text + ' (' + hex + ')';
         }
-        e.target.value = '';
       });
     });
 
