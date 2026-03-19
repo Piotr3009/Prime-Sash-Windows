@@ -532,7 +532,7 @@ export default function App() {
   const height = extHeight - 87;
   const [opening, setOpening] = useState(0);
   const [upperOpening, setUpperOpening] = useState(0);
-  const [autoRotate, setAutoRotate] = useState(false);
+  const [autoRotate, setAutoRotate] = useState(true);
   const [showGuides, setShowGuides] = useState(true);
   const [showHorns, setShowHorns] = useState(true);
   const [brightness, setBrightness] = useState(1.0);
