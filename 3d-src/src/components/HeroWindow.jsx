@@ -6,7 +6,7 @@ import ParametricSashWindow from './ParametricSashWindow';
 function HeroScene({ config }) {
   return (
     <>
-      <PerspectiveCamera makeDefault position={[0, 0.55, 2.3]} fov={42} />
+      <PerspectiveCamera makeDefault position={[0, 0.7, 2.3]} fov={42} />
       <OrbitControls
         enablePan={false}
         enableZoom={false}
@@ -17,7 +17,7 @@ function HeroScene({ config }) {
         maxPolarAngle={Math.PI / 2.2}
         minDistance={2.3}
         maxDistance={2.3}
-        target={[0, 0.55, 0]}
+        target={[0, 0.7, 0]}
       />
       <ambientLight intensity={0.5} />
       <directionalLight
