@@ -630,10 +630,8 @@ export default function App() {
         <div style={{
           position: 'absolute', top: '12px', left: '12px', zIndex: 10,
           display: 'flex', flexDirection: 'column', gap: '8px',
-          background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)',
-          borderRadius: '12px', padding: '12px 14px',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
-          border: '1px solid rgba(0,0,0,0.08)',
+          background: 'transparent',
+          padding: '8px',
           maxWidth: '200px', width: '100%',
           pointerEvents: 'auto'
         }}>
@@ -665,25 +663,23 @@ export default function App() {
           <button
             onClick={() => setAutoRotate(!autoRotate)}
             style={{
-              background: autoRotate ? 'rgba(10,22,40,0.85)' : 'rgba(255,255,255,0.75)',
-              color: autoRotate ? '#fff' : '#1f3354',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(0,0,0,0.08)',
+              background: autoRotate ? 'rgba(10,22,40,0.5)' : 'transparent',
+              color: autoRotate ? '#fff' : 'rgba(255,255,255,0.7)',
+              border: '1px solid rgba(255,255,255,0.25)',
               borderRadius: '8px', padding: '6px 10px',
               fontSize: '11px', cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              boxShadow: 'none'
             }}
           >{autoRotate ? '⏸ Rotate' : '▶ Rotate'}</button>
           <button
             onClick={() => setShowGuides(!showGuides)}
             style={{
-              background: showGuides ? 'rgba(10,22,40,0.85)' : 'rgba(255,255,255,0.75)',
-              color: showGuides ? '#fff' : '#1f3354',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(0,0,0,0.08)',
+              background: showGuides ? 'rgba(10,22,40,0.5)' : 'transparent',
+              color: showGuides ? '#fff' : 'rgba(255,255,255,0.7)',
+              border: '1px solid rgba(255,255,255,0.25)',
               borderRadius: '8px', padding: '6px 10px',
               fontSize: '11px', cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              boxShadow: 'none'
             }}
           >{showGuides ? '📏 Guides' : '📏 Guides'}</button>
         </div>
@@ -692,11 +688,10 @@ export default function App() {
         <div style={{
           position: 'absolute', bottom: '12px', right: '12px', zIndex: 10,
           width: '32px', height: '32px', borderRadius: '50%',
-          background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(0,0,0,0.1)',
+          background: 'transparent',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '17px', pointerEvents: 'none',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)', color: '#1f3354'
+          color: 'rgba(255,255,255,0.5)'
         }} title="Drag to rotate">↻</div>
 
         <Canvas shadows dpr={[1, 2]} gl={{ alpha: true }}>
