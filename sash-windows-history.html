@@ -121,21 +121,44 @@
       .genius-grid { grid-template-columns: 1fr; }
     }
 
-    /* IMAGE PLACEHOLDERS */
-    .img-placeholder {
-      width: 100%; max-width: 380px; aspect-ratio: 1; margin: 2rem auto;
-      background: var(--cream2); border: 2px dashed var(--silver);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .6rem; letter-spacing: .3em; text-transform: uppercase;
-      color: var(--muted); border-radius: 2px;
+    /* ARTICLE IMAGES */
+    .article-img-float {
+      float: right; margin: 0 0 1.5rem 2.5rem;
+      width: 220px; height: 220px; object-fit: cover;
+      border-radius: 2px; cursor: pointer;
+      transition: opacity .3s;
     }
-    .img-placeholder-inline {
-      display: inline-flex; float: right; margin: 0 0 1.5rem 2.5rem;
-      width: 340px; height: 340px;
-      background: var(--cream2); border: 2px dashed var(--silver);
+    .article-img-float:hover { opacity: .85; }
+    .article-img-center {
+      display: block; margin: 2rem auto;
+      width: 100%; max-width: 260px; height: 260px;
+      object-fit: cover; border-radius: 2px; cursor: pointer;
+      transition: opacity .3s;
+    }
+    .article-img-center:hover { opacity: .85; }
+
+    /* LIGHTBOX */
+    .lightbox-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,.88); cursor: pointer;
       align-items: center; justify-content: center;
-      font-size: .55rem; letter-spacing: .3em; text-transform: uppercase;
-      color: var(--muted); border-radius: 2px;
+    }
+    .lightbox-overlay.active { display: flex; }
+    .lightbox-overlay img {
+      max-width: 90vw; max-height: 90vh; object-fit: contain;
+      border-radius: 4px; box-shadow: 0 8px 40px rgba(0,0,0,.5);
+    }
+    .lightbox-close {
+      position: absolute; top: 24px; right: 32px;
+      font-size: 2rem; color: rgba(255,255,255,.6);
+      cursor: pointer; font-family: var(--sans); font-weight: 200;
+      transition: color .3s;
+    }
+    .lightbox-close:hover { color: #fff; }
+
+    @media (max-width: 768px) {
+      .article-img-float { float: none; display: block; margin: 1.5rem auto; width: 200px; height: 200px; }
+      .article-img-center { max-width: 220px; height: 220px; }
     }
 
     /* GENIUS SECTION */
@@ -238,7 +261,7 @@
   <!-- ARTICLE PART 1: HISTORY & MECHANISM -->
   <div class="article-content">
 
-    <img src="img/index-page/began.webp" alt="Traditional sash window mechanism and construction" loading="lazy" style="float:right; margin:0 0 1.5rem 2.5rem; width:340px; height:340px; object-fit:cover; border-radius:2px;"/>
+    <img src="img/index-page/began.webp" alt="Traditional sash window mechanism and construction" loading="lazy" class="article-img-float" onclick="openLightbox(this)"/>
 
     <h2>Where It All Began</h2>
     <p>The sash window is one of the most ingenious pieces of engineering in architectural history. It appeared in England in the late 1600s, and within a century it had become the defining feature of British homes — from modest terraces to grand Georgian townhouses.</p>
@@ -246,7 +269,7 @@
 
     <h2>A Timeline of Evolution</h2>
 
-    <img src="img/index-page/timeline1.webp" alt="Georgian sash window architectural detail" loading="lazy" style="display:block; width:100%; max-width:380px; height:380px; object-fit:cover; margin:2rem auto; border-radius:2px;"/>
+    <img src="img/index-page/timeline1.webp" alt="Georgian sash window architectural detail" loading="lazy" class="article-img-center" onclick="openLightbox(this)"/>
 
     <div class="timeline">
       <div class="timeline-item">
@@ -390,7 +413,7 @@
 
     <h2>The Craft Behind Every Window</h2>
 
-    <img src="img/index-page/cnc1.webp" alt="CNC machine crafting timber sash window components" loading="lazy" style="float:right; margin:0 0 1.5rem 2.5rem; width:340px; height:340px; object-fit:cover; border-radius:2px;"/>
+    <img src="img/index-page/cnc1.webp" alt="CNC machine crafting timber sash window components" loading="lazy" class="article-img-float" onclick="openLightbox(this)"/>
 
     <p>Building a traditional sash window is not manufacturing — it is joinery. Each window is assembled from dozens of individual timber components, each shaped with specific moulding profiles, mortise and tenon joints, and precise tolerances that allow the sashes to slide smoothly for decades.</p>
     <p>The glazing bars alone require four different profiles — a flat face on the exterior for weather resistance, an ovolo (curved) moulding on the interior for elegance, and putty channels on both sides to hold the glass. This is repeated for every single bar in every single pane.</p>
@@ -452,6 +475,27 @@
       <p><a href="#" style="color:inherit;text-decoration:none;">Privacy Policy</a></p>
     </div>
   </footer>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightbox-img" src="" alt=""/>
+  </div>
+
+  <script>
+    function openLightbox(img) {
+      var lb = document.getElementById('lightbox');
+      document.getElementById('lightbox-img').src = img.src;
+      document.getElementById('lightbox-img').alt = img.alt;
+      lb.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeLightbox(); });
+  </script>
 
   <script>
     (function(){
