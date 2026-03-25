@@ -94,6 +94,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
   display: flex; flex-direction: column;
   align-items: flex-start; gap: 4px;
   padding: 8px 0; text-decoration: none;
+  flex-shrink: 0;
 }
 .logo-wrap .silver-line { width: 100%; min-width: 180px; }
 .logo {
@@ -112,18 +113,37 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
   animation: shimmer 5s linear infinite;
 }
 
-.nav-links { list-style: none; display: flex; gap: 2.5rem; }
-.nav-links a {
-  font-size: .72rem; font-weight: 400; letter-spacing: .3em;
+/* 2-ROW NAV */
+.nav-rows { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; }
+.nav-row { list-style: none; display: flex; gap: 2rem; justify-content: flex-end; margin: 0; padding: 0; }
+.nav-row a {
+  font-size: .62rem; font-weight: 400; letter-spacing: .25em;
   text-transform: uppercase; text-decoration: none;
-  color: rgba(255,255,255,.5); transition: color .3s; position: relative;
+  color: rgba(255,255,255,.45); transition: color .3s; position: relative;
+  white-space: nowrap;
 }
-.nav-links a::after {
-  content: ''; position: absolute; bottom: -4px; left: 0;
+.nav-row a::after {
+  content: ''; position: absolute; bottom: -3px; left: 0;
   width: 0; height: 1px; background: rgba(255,255,255,.35); transition: width .3s;
 }
-.nav-links a:hover, .nav-links a.active { color: rgba(255,255,255,.95); }
-.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+.nav-row a:hover, .nav-row a.active { color: rgba(255,255,255,.95); }
+.nav-row a:hover::after, .nav-row a.active::after { width: 100%; }
+
+/* USER ICON */
+.nav-user {
+  flex-shrink: 0; margin-left: 1.5rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.2);
+  transition: border-color .3s;
+  text-decoration: none;
+}
+.nav-user:hover { border-color: rgba(255,255,255,.6); }
+.nav-user svg { width: 16px; height: 16px; fill: none; stroke: rgba(255,255,255,.5); stroke-width: 1.5; }
+.nav-user:hover svg { stroke: rgba(255,255,255,.9); }
+
+/* Keep old .nav-links hidden (backward compat) */
+.nav-links { list-style: none; display: none; }
 
 .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
 .hamburger span { display: block; width: 22px; height: 1px; background: rgba(255,255,255,.6); }
@@ -304,6 +324,8 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 }
 @media (max-width: 680px) {
   .nav-links  { display: none; }
+  .nav-rows   { display: none; }
+  .nav-user   { display: none; }
   .hamburger  { display: flex; }
   .sec        { padding: 5rem 6vw; }
   .hero-text  { padding: 4rem 6vw; }
