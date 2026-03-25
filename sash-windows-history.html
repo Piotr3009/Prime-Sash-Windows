@@ -124,15 +124,15 @@
     /* ARTICLE IMAGES */
     .article-img-float {
       float: right; margin: 0 0 1.5rem 2.5rem;
-      width: 220px; height: 220px; object-fit: cover;
+      width: 340px; height: auto; object-fit: contain;
       border-radius: 2px; cursor: pointer;
       transition: opacity .3s;
     }
     .article-img-float:hover { opacity: .85; }
     .article-img-center {
       display: block; margin: 2rem auto;
-      width: 100%; max-width: 260px; height: 260px;
-      object-fit: cover; border-radius: 2px; cursor: pointer;
+      width: 100%; max-width: 380px; height: auto;
+      object-fit: contain; border-radius: 2px; cursor: pointer;
       transition: opacity .3s;
     }
     .article-img-center:hover { opacity: .85; }
@@ -157,8 +157,8 @@
     .lightbox-close:hover { color: #fff; }
 
     @media (max-width: 768px) {
-      .article-img-float { float: none; display: block; margin: 1.5rem auto; width: 200px; height: 200px; }
-      .article-img-center { max-width: 220px; height: 220px; }
+      .article-img-float { float: none; display: block; margin: 1.5rem auto; width: 280px; height: auto; }
+      .article-img-center { max-width: 300px; height: auto; }
     }
 
     /* GENIUS SECTION */
