@@ -41,23 +41,23 @@
       max-width: 800px; margin: 0 auto; padding: 6rem 5vw;
     }
     .article-content h2 {
-      font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem);
+      font-family: var(--serif); font-size: clamp(2.3rem, 4vw, 3.5rem);
       font-weight: 500; line-height: 1.2; color: var(--ink);
       margin: 4rem 0 1.5rem;
     }
     .article-content h2:first-child { margin-top: 0; }
     .article-content h3 {
-      font-family: var(--serif); font-size: 1.5rem; font-weight: 500;
+      font-family: var(--serif); font-size: 1.75rem; font-weight: 500;
       color: var(--ink); margin: 2.5rem 0 1rem;
     }
     .article-content p {
-      font-size: .88rem; line-height: 2; color: var(--muted); margin-bottom: 1.5rem;
+      font-size: 1.02rem; line-height: 2; color: var(--muted); margin-bottom: 1.5rem;
     }
     .article-content .highlight-box {
       background: var(--cream2); border-left: 3px solid var(--silver);
       padding: 2rem 2.5rem; margin: 2.5rem 0; border-radius: 0 4px 4px 0;
     }
-    .article-content .highlight-box p { margin-bottom: 0; color: var(--ink); font-style: italic; }
+    .article-content .highlight-box p { margin-bottom: 0; color: var(--ink); font-style: italic; font-size: 1.02rem; }
 
     /* TIMELINE */
     .timeline { margin: 3rem 0; padding: 0; }
@@ -66,7 +66,7 @@
       padding-bottom: 3rem; position: relative;
     }
     .timeline-year {
-      font-family: var(--serif); font-size: 1.6rem; font-weight: 500;
+      font-family: var(--serif); font-size: 1.85rem; font-weight: 500;
       color: var(--navy); text-align: right; padding-top: 0.2rem;
     }
     .timeline-line { background: var(--silver); position: relative; }
@@ -76,11 +76,11 @@
       background: var(--navy); border-radius: 50%;
     }
     .timeline-text h4 {
-      font-family: var(--sans); font-size: .78rem; font-weight: 400;
+      font-family: var(--sans); font-size: .9rem; font-weight: 400;
       letter-spacing: .2em; text-transform: uppercase; color: var(--ink);
       margin-bottom: .6rem;
     }
-    .timeline-text p { font-size: .82rem; line-height: 1.9; color: var(--muted); margin: 0; }
+    .timeline-text p { font-size: .95rem; line-height: 1.9; color: var(--muted); margin: 0; }
 
     /* MECHANISM DIAGRAM */
     .mechanism-grid {
@@ -95,10 +95,10 @@
       color: var(--muted); margin-bottom: 1rem; display: block;
     }
     .mechanism-card h4 {
-      font-family: var(--serif); font-size: 1.3rem; font-weight: 400;
+      font-family: var(--serif); font-size: 1.5rem; font-weight: 400;
       color: var(--ink); margin-bottom: 1rem;
     }
-    .mechanism-card p { font-size: .82rem; line-height: 1.9; color: var(--muted); margin: 0; }
+    .mechanism-card p { font-size: .95rem; line-height: 1.9; color: var(--muted); margin: 0; }
 
     /* CTA BAND */
     .cta-band {
@@ -117,7 +117,7 @@
     @media (max-width: 768px) {
       .mechanism-grid { grid-template-columns: 1fr; }
       .timeline-item { grid-template-columns: 70px 3px 1fr; gap: 1rem; }
-      .timeline-year { font-size: 1.2rem; }
+      .timeline-year { font-size: 1.4rem; }
       .genius-grid { grid-template-columns: 1fr; }
     }
 
@@ -151,7 +151,7 @@
       font-weight: 500; color: var(--ink); line-height: 1.2; margin-bottom: 1.5rem;
     }
     .genius-intro-inner p {
-      font-size: .88rem; line-height: 2; color: var(--muted);
+      font-size: 1.02rem; line-height: 2; color: var(--muted);
       margin-bottom: 1.5rem;
     }
     .genius-grid {
@@ -166,11 +166,11 @@
       color: var(--silver); margin-bottom: .8rem; display: block;
     }
     .genius-card h4 {
-      font-family: var(--serif); font-size: 1.15rem; font-weight: 400;
+      font-family: var(--serif); font-size: 1.32rem; font-weight: 400;
       color: var(--ink); margin-bottom: .6rem;
     }
     .genius-card p {
-      font-size: .78rem; line-height: 1.85; color: var(--muted); margin: 0;
+      font-size: .9rem; line-height: 1.85; color: var(--muted); margin: 0;
     }
   </style>
 
@@ -224,61 +224,18 @@
     <p class="hero-subtitle">A simple British invention that solved problems no other window could. Discover why the sash window — 350 years old — remains the most intelligent window ever engineered.</p>
   </section>
 
-  <!-- GENIUS OF SIMPLICITY -->
+  <!-- INTRO -->
   <section class="genius-intro">
     <div class="genius-intro-inner">
       <p class="eyebrow">The Genius of Simplicity</p>
       <h2>A Simple Invention. A <span class="silver">Brilliant</span> One.</h2>
       <p>At first glance, a sash window is just a window. Two panels that slide up and down. Nothing complicated. Nothing flashy. And that is precisely what makes it one of the most quietly brilliant inventions in British engineering history.</p>
       <p>Britain has a long tradition of inventing things that seem obvious only after someone has thought of them — the flush toilet, the postage stamp, the pneumatic tyre, the World Wide Web. Simple ideas, executed with precision, that change everything. The sash window belongs in that company. It solved half a dozen problems simultaneously — with no moving parts beyond a cord, a pulley, and a weight.</p>
-      <p>Every other window type since has tried to match it. None have succeeded. Here's why.</p>
-    </div>
-
-    <div class="genius-grid">
-      <div class="genius-card">
-        <span class="g-num">01</span>
-        <h4>No Stress on Hinges</h4>
-        <p>A casement window hangs its entire weight on two or three hinges. Over time, those hinges wear, sag, and fail — the window drops, sticks, won't close properly. A sash window has no hinges at all. Its weight is carried by counterweights inside the frame, distributed evenly on both sides. No single point of stress. No sagging. No failure point. That's why 200-year-old sash windows still open smoothly.</p>
-      </div>
-      <div class="genius-card">
-        <span class="g-num">02</span>
-        <h4>Dual Ventilation</h4>
-        <p>Open the top down and the bottom up at the same time: warm stale air escapes through the top, cool fresh air enters from the bottom. A natural convection cycle — no fans, no trickle vents, no electricity. No casement, tilt-and-turn, or PVC window can do this. It is unique to the sash design.</p>
-      </div>
-      <div class="genius-card">
-        <span class="g-num">03</span>
-        <h4>Designed for Fireplaces</h4>
-        <p>British homes were built around fireplaces. A fireplace needs a constant supply of fresh air to draw properly and prevent smoke backing into the room. The sash window's bottom opening feeds air into the room at low level — exactly where the fireplace needs it. Open just 20mm at the bottom and the fire draws perfectly. This wasn't accidental. It was designed this way.</p>
-      </div>
-      <div class="genius-card">
-        <span class="g-num">04</span>
-        <h4>No Draughts When Closed</h4>
-        <p>A casement window has a compression seal that degrades. Tilt-and-turn mechanisms wear and create gaps. A sash window slides within a channel formed by beads — timber against timber, with modern brush-pile draught strips. The geometry itself prevents air infiltration. No rubber seals to perish. No mechanisms to fail.</p>
-      </div>
-      <div class="genius-card">
-        <span class="g-num">05</span>
-        <h4>Your Window Sill Stays Yours</h4>
-        <p>A casement window swings inward or outward. Inward — and it blocks your entire sill, your plants, your books, your morning coffee. Outward — and it blocks the façade, catches wind, and is a hazard on upper floors. A sash window slides vertically. The sill is always clear. The exterior is always flush. Nothing protrudes. Nothing gets in the way.</p>
-      </div>
-      <div class="genius-card">
-        <span class="g-num">06</span>
-        <h4>Built to be Repaired, Not Replaced</h4>
-        <p>Every component of a sash window is individually accessible and replaceable. A broken cord? Ten minutes. A cracked pane? Replaced without touching the frame. A worn bead? Prised out and swapped. No other window type is designed like this. PVC fails as a unit — when one part goes, you replace the whole thing. A sash window is a system of parts, each one serviceable for centuries.</p>
-      </div>
-      <div class="genius-card">
-        <span class="g-num">07</span>
-        <h4>Wind Resistance Without Effort</h4>
-        <p>A casement window catches wind like a sail — it strains against its hinges, rattles, and can be torn open or slammed shut in a storm. A sash window sits within its frame. Wind pushes it tighter into its track. The harder it blows, the better the seal. On upper floors of London townhouses — exposed to weather for 300 years — this matters enormously.</p>
-      </div>
-      <div class="genius-card">
-        <span class="g-num">08</span>
-        <h4>Effortless Proportions</h4>
-        <p>The vertical emphasis of a sash window naturally complements the proportions of British architecture — tall rooms, narrow frontages, symmetrical façades. The glazing bars divide the glass into panes that echo the rhythm of the brickwork. No architect needed to "design" this relationship. The window and the building evolved together — each making the other look better.</p>
-      </div>
+      <p>But to understand why it's so remarkable, you need to know where it came from.</p>
     </div>
   </section>
 
-  <!-- ARTICLE -->
+  <!-- ARTICLE PART 1: HISTORY & MECHANISM -->
   <div class="article-content">
 
     <div class="img-placeholder-inline">Image: Sash window mechanism diagram</div>
@@ -359,6 +316,63 @@
         <p>The staff bead holds the inner sash in place on the interior side. The parting bead separates the two sashes, creating two independent tracks. Both are removable — allowing easy access for maintenance, glass replacement, or draught-proofing.</p>
       </div>
     </div>
+
+  </div>
+
+  <!-- EIGHT PROBLEMS, ONE SOLUTION -->
+  <section class="genius-intro">
+    <div class="genius-intro-inner">
+      <p class="eyebrow">Why Nothing Else Comes Close</p>
+      <h2>Eight Problems. <span class="silver">One Solution.</span></h2>
+      <p>Now that you know how a sash window works and where it came from, consider what it actually solves. Every other window type addresses one or two of these problems. The sash window addresses all eight — with a design that hasn't needed changing in 350 years.</p>
+    </div>
+
+    <div class="genius-grid">
+      <div class="genius-card">
+        <span class="g-num">01</span>
+        <h4>No Stress on Hinges</h4>
+        <p>A casement window hangs its entire weight on two or three hinges. Over time, those hinges wear, sag, and fail — the window drops, sticks, won't close properly. A sash window has no hinges at all. Its weight is carried by counterweights inside the frame, distributed evenly on both sides. No single point of stress. No sagging. No failure point. That's why 200-year-old sash windows still open smoothly.</p>
+      </div>
+      <div class="genius-card">
+        <span class="g-num">02</span>
+        <h4>Dual Ventilation</h4>
+        <p>Open the top down and the bottom up at the same time: warm stale air escapes through the top, cool fresh air enters from the bottom. A natural convection cycle — no fans, no trickle vents, no electricity. No casement, tilt-and-turn, or PVC window can do this. It is unique to the sash design.</p>
+      </div>
+      <div class="genius-card">
+        <span class="g-num">03</span>
+        <h4>Designed for Fireplaces</h4>
+        <p>British homes were built around fireplaces. A fireplace needs a constant supply of fresh air to draw properly and prevent smoke backing into the room. The sash window's bottom opening feeds air into the room at low level — exactly where the fireplace needs it. Open just 20mm at the bottom and the fire draws perfectly. This wasn't accidental. It was designed this way.</p>
+      </div>
+      <div class="genius-card">
+        <span class="g-num">04</span>
+        <h4>No Draughts When Closed</h4>
+        <p>A casement window has a compression seal that degrades. Tilt-and-turn mechanisms wear and create gaps. A sash window slides within a channel formed by beads — timber against timber, with modern brush-pile draught strips. The geometry itself prevents air infiltration. No rubber seals to perish. No mechanisms to fail.</p>
+      </div>
+      <div class="genius-card">
+        <span class="g-num">05</span>
+        <h4>Your Window Sill Stays Yours</h4>
+        <p>A casement window swings inward or outward. Inward — and it blocks your entire sill, your plants, your books, your morning coffee. Outward — and it blocks the façade, catches wind, and is a hazard on upper floors. A sash window slides vertically. The sill is always clear. The exterior is always flush. Nothing protrudes. Nothing gets in the way.</p>
+      </div>
+      <div class="genius-card">
+        <span class="g-num">06</span>
+        <h4>Built to be Repaired, Not Replaced</h4>
+        <p>Every component of a sash window is individually accessible and replaceable. A broken cord? Ten minutes. A cracked pane? Replaced without touching the frame. A worn bead? Prised out and swapped. No other window type is designed like this. PVC fails as a unit — when one part goes, you replace the whole thing. A sash window is a system of parts, each one serviceable for centuries.</p>
+      </div>
+      <div class="genius-card">
+        <span class="g-num">07</span>
+        <h4>Wind Resistance Without Effort</h4>
+        <p>A casement window catches wind like a sail — it strains against its hinges, rattles, and can be torn open or slammed shut in a storm. A sash window sits within its frame. Wind pushes it tighter into its track. The harder it blows, the better the seal. On upper floors of London townhouses — exposed to weather for 300 years — this matters enormously.</p>
+      </div>
+      <div class="genius-card">
+        <span class="g-num">08</span>
+        <h4>Effortless Proportions</h4>
+        <p>The vertical emphasis of a sash window naturally complements the proportions of British architecture — tall rooms, narrow frontages, symmetrical façades. The glazing bars divide the glass into panes that echo the rhythm of the brickwork. No architect needed to "design" this relationship. The window and the building evolved together — each making the other look better.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARTICLE PART 2: DEEPER TOPICS -->
+  <div class="article-content">
 
     <h2>The Ventilation No One Talks About</h2>
     <p>You already know that a sash window ventilates from top and bottom simultaneously. But what most people don't realise is how deeply this feature shaped British domestic life — and why modern building regulations still struggle to replicate it.</p>
