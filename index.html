@@ -38,33 +38,8 @@
 <body>
 
   <!-- NAV -->
-  <nav id="if-nav">
-    <a href="index.html" class="logo-wrap">
-      <div class="silver-line"></div>
-      <span class="logo">Prime Sash</span>
-      <span class="logo">Windows</span>
-      <div class="silver-line"></div>
-    </a>
-    <ul class="nav-links">
-      <li><a href="index.html" data-page="index">Home</a></li>
-      <li><a href="sash-windows-history.html" data-page="sash-windows-history">Sash Windows History</a></li>
-      <li><a href="why-not-sash-windows.html" data-page="why-not">Why You Shouldn't Buy</a></li>
-      <li><a href="faq-top-companies.html" data-page="faq-top">FAQ & Top Companies</a></li>
-      <li><a href="online-estimate.html" data-page="online">Online Estimate & 3D</a></li>
-      <li><a href="gallery.html" data-page="gallery">Gallery</a></li>
-      <li><a href="contact.html" data-page="contact">Contact</a></li>
-    </ul>
-    <div class="hamburger" id="ham"><span></span><span></span><span></span></div>
-  </nav>
-  <div id="mob-menu">
-    <a href="index.html">Home</a>
-    <a href="sash-windows-history.html">Sash Windows History</a>
-    <a href="why-not-sash-windows.html">Why You Shouldn't Buy</a>
-    <a href="faq-top-companies.html">FAQ & Top Companies</a>
-    <a href="online-estimate.html">Online Estimate & 3D</a>
-    <a href="gallery.html">Gallery</a>
-    <a href="contact.html">Contact</a>
-  </div>
+  <div id="nav-placeholder"></div>
+  <script src="js/nav.js"></script>
 
   <!-- HERO -->
   <section id="hero" class="hero-dark">
@@ -288,18 +263,7 @@
 
   <script>
     (function(){
-      var page = location.pathname.split('/').pop() || 'index.html';
-      document.querySelectorAll('.nav-links a[data-page]').forEach(function(a){
-        if(a.dataset.page && page.startsWith(a.dataset.page)) a.classList.add('active');
-      });
-      var ham = document.getElementById('ham');
-      var mob = document.getElementById('mob-menu');
-      if(ham && mob){
-        ham.addEventListener('click', function(){ mob.classList.toggle('open'); });
-        mob.querySelectorAll('a').forEach(function(a){
-          a.addEventListener('click', function(){ mob.classList.remove('open'); });
-        });
-      }
+      // Nav handled by js/nav.js
       var io = new IntersectionObserver(function(entries){
         entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('in'); });
       },{threshold:0.1});
