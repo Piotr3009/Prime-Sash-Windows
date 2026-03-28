@@ -452,6 +452,7 @@
                                         <th style="padding:4px 6px;text-align:left;">Date</th>
                                         <th style="padding:4px 6px;text-align:left;">Time</th>
                                         <th style="padding:4px 6px;text-align:left;">Customer</th>
+                                        <th style="padding:4px 6px;text-align:left;">Surveyor</th>
                                         <th style="padding:4px 6px;text-align:left;">Actions</th>
                                     </tr></thead>
                                     <tbody id="booked-appointments-tbody"></tbody>
@@ -1254,7 +1255,7 @@
                 if (!tbody) return;
                 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;padding:10px;">No upcoming appointments</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:10px;">No upcoming appointments</td></tr>';
                     return;
                 }
                 
@@ -1263,6 +1264,7 @@
                         <td style="padding:4px 6px;">${s.slot_date}</td>
                         <td style="padding:4px 6px;">${s.slot_time}</td>
                         <td style="padding:4px 6px;">${s.customer_name}</td>
+                        <td style="padding:4px 6px;">${s.assigned_to || '—'}</td>
                         <td style="padding:4px 6px;"><button onclick="AdminCalendar.cancelBooking('${s.id}')" style="font-size:.65rem;padding:1px 6px;cursor:pointer;border:1px solid #f44336;color:#f44336;background:none;border-radius:3px;">Cancel</button></td>
                     </tr>
                 `).join('');
