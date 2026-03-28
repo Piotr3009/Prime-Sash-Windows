@@ -816,7 +816,8 @@ class CustomerDashboard {
     // Download estimate as PDF
     async downloadEstimatePDF(estimate) {
         try {
-            const { jsPDF } = window.jspdf;
+            const jsPDF = (window.jspdf && window.jspdf.jsPDF) || (window.jsPDF) || (typeof jspdf !== 'undefined' && jspdf.jsPDF);
+            if (!jsPDF) throw new Error('jsPDF library not loaded. Please refresh the page.');
             const doc = new jsPDF();
             
             // Header
