@@ -4,18 +4,18 @@
 // ============================================================
 
 (function(){
-  // ── ROW 1 ITEMS (education / trust) ──
+  // ── ROW 1 (primary — bright) ──
   var row1 = [
     { href: 'index.html',                page: 'index',                label: 'Home' },
     { href: 'sash-windows-history.html',  page: 'sash-windows-history', label: 'Sash Windows History' },
     { href: 'why-not-sash-windows.html',  page: 'why-not',              label: "Why You Shouldn\u2019t Buy" },
     { href: 'faq-top-companies.html',     page: 'faq-top',              label: 'FAQ & Top Companies' },
-    { href: 'certifications.html',       page: 'cert',                 label: 'Certifications' }
+    { href: 'certifications.html',       page: 'cert',                 label: 'Certifications' },
+    { href: 'online-estimate.html',      page: 'online',               label: 'Online Estimate & 3D' }
   ];
 
-  // ── ROW 2 ITEMS (action) ──
+  // ── ROW 2 (secondary — subtle) ──
   var row2 = [
-    { href: 'online-estimate.html',       page: 'online',    label: 'Online Estimate & 3D' },
     { href: 'measurement-guide.html',    page: 'measure',   label: 'Measurement Guide' },
     { href: 'gallery.html',              page: 'gallery',   label: 'Gallery' },
     { href: 'contact.html',              page: 'contact',   label: 'Contact' },
@@ -56,19 +56,16 @@
 
   var mobHTML = '<div id="mob-menu">\n  ' + mobLinks + '\n</div>';
 
-  // ── INJECT ──
   var placeholder = document.getElementById('nav-placeholder');
   if (placeholder) {
     placeholder.innerHTML = navHTML + '\n' + mobHTML;
   }
 
-  // ── ACTIVE PAGE ──
   var page = location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-row a[data-page]').forEach(function(a){
     if (a.dataset.page && page.startsWith(a.dataset.page)) a.classList.add('active');
   });
 
-  // ── HAMBURGER TOGGLE ──
   var ham = document.getElementById('ham');
   var mob = document.getElementById('mob-menu');
   if (ham && mob) {
@@ -78,7 +75,6 @@
     });
   }
 
-  // ── AUTH: Load Supabase & check login status ──
   function loadScript(src, cb) {
     if (document.querySelector('script[src="' + src + '"]')) { cb(); return; }
     var s = document.createElement('script');
@@ -112,7 +108,6 @@
         return;
       }
 
-      // Logged in — check if admin
       window.supabaseClient.from('customers').select('role').eq('user_id', user.id).single()
         .then(function(r) {
           if (r.data && r.data.role === 'admin' && row2El) {
