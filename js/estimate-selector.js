@@ -90,10 +90,10 @@ class EstimateSelectorManager {
         if (!info || !addBtn) return;
 
         if (this.selectedEstimateId === 'new') {
-            info.textContent = 'A new estimate will be created when you add the window';
+            info.textContent = 'Create a new estimate first, then configure and add windows';
             info.style.color = '#666';
             info.style.fontWeight = 'normal';
-            addBtn.textContent = 'Create New Estimate & Add Window';
+            addBtn.textContent = 'Create New Estimate';
         } else {
             const estimate = this.estimates.find(e => e.id === this.selectedEstimateId);
             if (estimate) {

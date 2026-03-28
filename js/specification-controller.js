@@ -1136,7 +1136,8 @@ class SpecificationController {
       'apply-horns': 'glass',
       'apply-glass-spec': 'opening',
       'apply-pas24': 'colour',
-      'apply-color': 'hardware'
+      'apply-color': 'hardware',
+      'apply-details': 'finalise'
     };
 
     const next = nextCategory[buttonId];

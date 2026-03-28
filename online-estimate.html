@@ -238,6 +238,7 @@
       <button class="cat-btn" data-target="opening">Opening<span class="cat-hint" id="hint-opening">Both Open</span></button>
       <button class="cat-btn" data-target="colour">Colour<span class="cat-hint" id="hint-colour">White</span></button>
       <button class="cat-btn" data-target="hardware">Hardware<span class="cat-hint" id="hint-hardware">Ironmongery</span></button>
+      <button class="cat-btn" data-target="finalise">Finalise<span class="cat-hint" id="hint-finalise">Add to Estimate</span></button>
       <div class="sidebar-price">
         <p class="sidebar-price-label">Total</p>
         <p class="sidebar-price-value" id="sidebar-total-price">£0.00</p>
@@ -1008,7 +1009,7 @@
         </div>
       </div>
       
-      <div class="config-section estimate-selector-section" data-category="hardware">
+      <div class="config-section estimate-selector-section" data-category="finalise">
         <h3>Add Window To:</h3>
         <div class="estimate-selector-container">
           <select id="estimate-selector" class="estimate-dropdown">
@@ -1028,8 +1029,8 @@
         </div>
       </div>
       
-      <div class="config-section" data-category="hardware" style="background:transparent!important;border:none!important;padding:0!important;">
-      <button class="btn" id="add-to-estimate">Create New Estimate & Add Window</button>
+      <div class="config-section" data-category="finalise" style="background:transparent!important;border:none!important;padding:0!important;">
+      <button class="btn" id="add-to-estimate">Create New Estimate</button>
       <button class="btn btn-secondary" id="view-my-estimates">View My Estimates</button>
       </div>
     </div>
@@ -1441,7 +1442,6 @@
 <script>
   (function(){
     // Nav handled by js/nav.js
-    }
   })();
 </script>
 

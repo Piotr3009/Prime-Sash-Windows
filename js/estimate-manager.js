@@ -340,20 +340,28 @@ class EstimateManager {
         const addBtn = document.getElementById('add-to-estimate');
         if (addBtn) {
             addBtn.addEventListener('click', async () => {
-                // Pobierz konfigurację okna z konfiguratora
-                const windowConfig = this.getCurrentWindowConfig();
-                const price = this.getCurrentPrice();
-
                 // Pobierz wybrany estimate z dropdowna
                 if (window.estimateSelectorManager) {
+                    const isNew = window.estimateSelectorManager.selectedEstimateId === 'new';
                     const estimateId = await window.estimateSelectorManager.getOrCreateEstimate();
                     if (!estimateId) {
                         console.log('No estimate selected or creation cancelled');
                         return;
                     }
+
+                    // If just created new estimate — DON'T add window yet
+                    if (isNew) {
+                        console.log('New estimate created — waiting for user to configure window first');
+                        return;
+                    }
+
+                    // Existing estimate — add window
+                    const windowConfig = this.getCurrentWindowConfig();
+                    const price = this.getCurrentPrice();
                     await this.addWindowToEstimate(windowConfig, price, estimateId);
                 } else {
-                    // Fallback - użyj starej logiki
+                    const windowConfig = this.getCurrentWindowConfig();
+                    const price = this.getCurrentPrice();
                     await this.addWindowToEstimate(windowConfig, price);
                 }
             });
