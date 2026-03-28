@@ -874,6 +874,11 @@ class SpecificationController {
     document.getElementById('spec-glass-type').textContent = glassNames[glassType] || glassType;
     document.getElementById('spec-spacer-color').textContent = spacerNames[spacerColor] || spacerColor;
 
+    // ✅ Save to currentConfig
+    if (window.currentConfig) {
+      window.currentConfig.spacerColor = spacerColor;
+    }
+
     // ✅ UPDATE 3D
     if (typeof window.update3D === 'function') {
       window.update3D({ spacerColor: spacerColor });

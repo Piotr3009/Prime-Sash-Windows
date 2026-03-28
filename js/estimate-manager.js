@@ -193,6 +193,7 @@ class EstimateManager {
                     glass_type: windowConfig.glassType,
                     glass_spec: windowConfig.glassSpec,
                     glass_finish: windowConfig.glassFinish,
+                    spacer_color: windowConfig.spacerColor || windowConfig.fullConfig?.spacerColor || 'silver',
                     frosted_location: windowConfig.glassFinish === 'frosted' ? (windowConfig.frostedLocation || windowConfig.fullConfig?.frostedLocation || null) : null,
                     
                     opening_type: windowConfig.openingType,
@@ -425,6 +426,7 @@ class EstimateManager {
                 glassSpec: window.currentConfig.glassSpec,
                 glassFinish: window.currentConfig.glassFinish,
                 frostedLocation: window.currentConfig.frostedLocation,
+                spacerColor: window.currentConfig.spacerColor || 'silver',
                 
                 // Opening
                 openingType: window.currentConfig.openingType,

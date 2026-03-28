@@ -431,6 +431,7 @@ class CustomerDashboard {
                             ${this.specRow('Opening', openingText)}
                             ${this.specRow('Glass', `${item.glass_type || 'double'}${item.glass_type === 'double' ? ' (4/16/4, U:1.4)' : item.glass_type === 'triple' ? ' (Triple)' : ''}`)}
                             ${item.glass_spec ? this.specRow('Glass Spec', item.glass_spec) : ''}
+                            ${this.specRow('Spacer Bar', (() => { const s = item.spacer_color || 'silver'; const names = {'silver':'Silver (Stainless Steel)','white':'White','black':'Black'}; return names[s] || s; })())}
                             ${glassFinish !== 'clear' ? this.specRow('Glass Finish', glassFinish) : ''}
                             ${showFrosted ? this.specRow('Frosted', item.frosted_location) : ''}
                             ${this.specRow('Colour', colorDisplay)}
