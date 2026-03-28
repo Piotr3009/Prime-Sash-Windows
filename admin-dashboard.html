@@ -97,7 +97,7 @@
             border-bottom: none;
         }
         
-        .status-badge {
+        .status-badge, .estimate-status {
             display: inline-block;
             padding: 4px 12px;
             border-radius: 15px;
@@ -123,13 +123,16 @@
             font-family: 'Jost', sans-serif;
         }
         
-        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary { background: #2c6e5a; color: white; border: 1px solid #2c6e5a; }
         .btn-primary:hover { background: #1a4a3a; }
         .btn-success { background: #28a745; color: white; }
         .btn-success:hover { background: #218838; }
         .btn-warning { background: #ffc107; color: #333; }
         .btn-danger { background: #dc3545; color: white; }
-        .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+        .btn-sm { padding: 5px 12px; font-size: 0.8rem; background: #2c6e5a; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.3s; }
+        .btn-sm:hover { background: #1a4a3a; }
+        .btn-sm.danger { background: #dc3545; }
+        .btn-sm.danger:hover { background: #c82333; }
         
         .empty-state {
             text-align: center;
