@@ -126,15 +126,26 @@ class CustomerDashboard {
     updateCustomerInfo() {
         if (!this.customerData) return;
 
-        document.getElementById('customer-name').textContent = 
-            `Welcome Back, ${this.customerData.full_name.split(' ')[0]}`;
-        document.getElementById('customer-fullname').textContent = this.customerData.full_name;
-        document.getElementById('customer-email').textContent = this.customerData.email;
-        document.getElementById('customer-phone').textContent = this.customerData.phone || 'Not provided';
+        const heroTitle = document.getElementById('hero-title');
+        const heroEmail = document.getElementById('hero-email');
+        if (heroTitle) heroTitle.textContent = `Welcome Back, ${this.customerData.full_name.split(' ')[0]}`;
+        if (heroEmail) heroEmail.textContent = this.customerData.email;
+
+        const nameEl = document.getElementById('customer-fullname');
+        if (nameEl) nameEl.textContent = this.customerData.full_name;
+        
+        const emailEl = document.getElementById('customer-email');
+        if (emailEl) emailEl.textContent = this.customerData.email;
+        
+        const phoneEl = document.getElementById('customer-phone');
+        if (phoneEl) phoneEl.textContent = this.customerData.phone || 'Not provided';
+
+        const codeEl = document.getElementById('customer-code');
+        if (codeEl) codeEl.textContent = this.customerData.customer_code || '—';
         
         const memberSince = new Date(this.customerData.created_at);
-        document.getElementById('customer-since').textContent = 
-            memberSince.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+        const sinceEl = document.getElementById('customer-since');
+        if (sinceEl) sinceEl.textContent = memberSince.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
     }
 
     // Load estimates from database
@@ -169,13 +180,13 @@ class CustomerDashboard {
 
     // Update statistics
     updateStats() {
-        const drafts = this.orders.filter(o => o.status === 'draft').length;
-        const sent = this.orders.filter(o => o.status === 'sent').length;
-        const approved = this.orders.filter(o => o.status === 'approved').length;
+        const estimates = this.orders.filter(o => ['sent', 'pending', 'draft', 'saved'].includes(o.status)).length;
+        const active = this.orders.filter(o => ['approved', 'confirmed', 'in_production', 'ordered'].includes(o.status)).length;
+        const completed = this.orders.filter(o => o.status === 'completed').length;
 
-        document.getElementById('stat-estimates').textContent = drafts + sent;  // Draft + Sent = Total Estimates
-        document.getElementById('stat-orders').textContent = approved;  // Approved = Ready for Production
-        document.getElementById('stat-completed').textContent = this.orders.filter(o => o.status === 'ordered').length;  // Ordered
+        document.getElementById('stat-estimates').textContent = estimates;
+        document.getElementById('stat-orders').textContent = active;
+        document.getElementById('stat-completed').textContent = completed;
     }
 
     // Render orders list
@@ -210,89 +221,40 @@ class CustomerDashboard {
         const statusConfig = this.getStatusConfig(order.status);
         const createdDate = new Date(order.created_at).toLocaleDateString('en-GB');
         const itemCount = order.estimate_items?.length || 0;
-        
-        // Check if estimate is in draft/saved state - admin cannot see it
-        const isDraft = order.status === 'draft' || order.status === 'saved';
-        
-        // Warning message for draft estimates
-        const draftWarning = isDraft ? `
-            <div class="draft-warning" style="
-                background: #fff3cd;
-                border: 2px solid #ffc107;
-                border-radius: 8px;
-                padding: 12px 15px;
-                margin-bottom: 15px;
-                text-align: center;
-            ">
-                <p style="margin: 0 0 8px 0; color: #856404; font-weight: 600;">
-                    ⚠️ This estimate is NOT visible to our team yet!
-                </p>
-                <p style="margin: 0 0 12px 0; color: #856404; font-size: 0.9rem;">
-                    Click "Submit for Quote" to send it for review and receive a formal quotation.
-                </p>
-                <button class="btn" onclick="dashboard.submitEstimate('${order.id}')" style="
-                    background: #28a745;
-                    padding: 10px 25px;
-                    font-size: 1rem;
-                ">
-                    📤 Submit for Quote
-                </button>
-            </div>
-        ` : '';
 
         return `
-            <div class="order-card" data-order-id="${order.id}">
-                <div class="order-header">
+            <div class="estimate-card" data-order-id="${order.id}">
+                <div class="estimate-header" onclick="this.parentElement.classList.toggle('open')">
                     <div>
-                        <h3>Estimate #${order.estimate_number || order.id.substring(0, 8).toUpperCase()}</h3>
-                        <p class="order-date">Created: ${createdDate}</p>
+                        <span class="estimate-title">Estimate #${order.estimate_number || order.id.substring(0, 8).toUpperCase()}</span>
+                        <span class="estimate-meta"> — ${createdDate} — ${itemCount} window${itemCount !== 1 ? 's' : ''} — £${this.formatPrice(order.total_price)}</span>
                     </div>
-                    <span class="status-badge status-${order.status}">${statusConfig.label}</span>
+                    <span class="estimate-status status-${order.status}">${statusConfig.label}</span>
                 </div>
-
-                <div class="order-body">
-                    ${draftWarning}
-                    
-                    <div class="order-info">
-                        <div class="info-row">
-                            <span class="info-label">Windows:</span>
-                            <span class="info-value">${itemCount} window${itemCount !== 1 ? 's' : ''}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Total:</span>
-                            <span class="info-value price">£${this.formatPrice(order.total_price)}</span>
-                        </div>
-                        ${order.deposit_amount ? `
-                        <div class="info-row">
-                            <span class="info-label">Deposit:</span>
-                            <span class="info-value ${order.deposit_paid ? 'paid' : 'unpaid'}">
-                                £${this.formatPrice(order.deposit_amount)} 
-                                ${order.deposit_paid ? '✓ Paid' : '⚠ Pending'}
-                            </span>
-                        </div>
-                        ` : ''}
+                <div class="estimate-body">
+                    <div class="estimate-info-row">
+                        <span class="lbl">Windows</span>
+                        <span class="val">${itemCount} window${itemCount !== 1 ? 's' : ''}</span>
                     </div>
-
+                    <div class="estimate-info-row">
+                        <span class="lbl">Total Price</span>
+                        <span class="val">£${this.formatPrice(order.total_price)}</span>
+                    </div>
+                    ${order.deposit_amount ? `
+                    <div class="estimate-info-row">
+                        <span class="lbl">Deposit</span>
+                        <span class="val">£${this.formatPrice(order.deposit_amount)} ${order.deposit_paid ? '✓ Paid' : '— Pending'}</span>
+                    </div>
+                    ` : ''}
+                    <div class="estimate-info-row">
+                        <span class="lbl">Status</span>
+                        <span class="val">${statusConfig.label}</span>
+                    </div>
                     ${this.renderOrderProgress(order)}
-                </div>
-
-                <div class="order-footer">
-                    <button class="btn-secondary" onclick="dashboard.viewOrderDetails('${order.id}')">
-                        View Details
-                    </button>
-                    ${order.status === 'saved' ? `
-                        <button class="btn" onclick="dashboard.placeOrder('${order.id}')">
-                            Place Order
-                        </button>
-                    ` : ''}
-                    ${order.status === 'sent' || order.status === 'approved' ? `
-                        <button class="btn" onclick="dashboard.addLineDetailsForDeposit('${order.id}')">
-                            Add line & details to send invoice for deposit
-                        </button>
-                    ` : ''}
-                    <button class="btn-danger" onclick="dashboard.deleteEstimate('${order.id}')">
-                        Delete
-                    </button>
+                    <div class="estimate-actions">
+                        <button class="btn-sm" onclick="dashboard.viewOrderDetails('${order.id}')">View Details</button>
+                        <button class="btn-sm danger" onclick="dashboard.deleteEstimate('${order.id}')">Delete</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -300,32 +262,23 @@ class CustomerDashboard {
 
     // Render order progress timeline
     renderOrderProgress(order) {
-        const isDraft = order.status === 'draft' || order.status === 'saved';
-        
         const timeline = [
-            { status: 'draft', label: 'Saved Estimate', icon: '📋' },
-            { status: 'sent', label: 'Submitted', icon: '📤' },
-            { status: 'confirmed', label: 'Confirmed', icon: '✓' },
-            { status: 'in_production', label: 'Production', icon: '🔨' },
-            { status: 'completed', label: 'Completed', icon: '✅' }
+            { status: 'sent', label: 'Sent' },
+            { status: 'confirmed', label: 'Confirmed' },
+            { status: 'in_production', label: 'Production' },
+            { status: 'completed', label: 'Completed' }
         ];
 
         const currentIndex = timeline.findIndex(t => t.status === order.status);
 
         return `
-            <div class="order-timeline">
-                ${timeline.map((step, index) => {
-                    // Special styling for Submit step when draft
-                    const needsAction = isDraft && step.status === 'sent';
-                    
-                    return `
-                        <div class="timeline-step ${index <= currentIndex ? 'active' : ''} ${index === currentIndex ? 'current' : ''} ${needsAction ? 'needs-action' : ''}">
-                            <div class="timeline-icon">${step.icon}</div>
-                            <div class="timeline-label">${step.label}</div>
-                            ${needsAction ? '<div class="action-arrow" style="color: #dc3545; font-size: 0.75rem; font-weight: 600;">⬆ Click above</div>' : ''}
-                        </div>
-                    `;
-                }).join('')}
+            <div class="timeline">
+                ${timeline.map((step, index) => `
+                    <div class="timeline-step ${index <= currentIndex ? 'active' : ''}">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-step-label">${step.label}</div>
+                    </div>
+                `).join('')}
             </div>
         `;
     }
@@ -333,9 +286,9 @@ class CustomerDashboard {
     // Get status configuration
     getStatusConfig(status) {
         const configs = {
-            draft: { label: 'DRAFT', color: '#6c757d' },
-            saved: { label: 'DRAFT', color: '#6c757d' },
-            sent: { label: 'Submitted - Awaiting Quote', color: '#17a2b8' },
+            draft: { label: 'Sent', color: '#17a2b8' },
+            saved: { label: 'Sent', color: '#17a2b8' },
+            sent: { label: 'Sent — Under Review', color: '#17a2b8' },
             pending: { label: 'Pending Review', color: '#ffc107' },
             approved: { label: 'Approved', color: '#28a745' },
             confirmed: { label: 'Confirmed', color: '#28a745' },
@@ -344,7 +297,7 @@ class CustomerDashboard {
             completed: { label: 'Completed', color: '#28a745' },
             cancelled: { label: 'Cancelled', color: '#dc3545' }
         };
-        return configs[status] || configs.draft;
+        return configs[status] || configs.sent;
     }
 
     // Format price

@@ -179,7 +179,7 @@ class EstimateSelectorManager {
                     project_name: projectName,
                     delivery_address: address || null,
                     notes: notes || null,
-                    status: 'draft',
+                    status: 'sent',
                     total_price: 0
                 }])
                 .select()
