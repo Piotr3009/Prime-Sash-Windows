@@ -425,8 +425,9 @@ class CustomerDashboard {
 
                     <div style="padding:1.5rem;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
-                            ${this.specRow('Dimensions', `${item.width}mm × ${item.height}mm`)}
-                            ${item.original_width && item.original_height && (item.original_width !== item.width || item.original_height !== item.height) ? this.specRow('Structural Opening', `${item.original_width}mm × ${item.original_height}mm`) : ''}
+                            ${item.original_width && item.original_height && (item.original_width !== item.width || item.original_height !== item.height) 
+                                ? this.specRow('Window Size (Frame)', `${item.width}mm × ${item.height}mm`) + this.specRow('Structural Opening (Brick-to-Brick)', `${item.original_width}mm × ${item.original_height}mm`)
+                                : this.specRow('Dimensions', `${item.width}mm × ${item.height}mm`)}
                             ${this.specRow('Frame', `${item.frame_type || 'standard'} (164mm)`)}
                             ${this.specRow('Opening', openingText)}
                             ${this.specRow('Glass', `${item.glass_type || 'double'}${item.glass_type === 'double' ? ' (4/16/4, U:1.4)' : item.glass_type === 'triple' ? ' (Triple)' : ''}`)}
@@ -437,7 +438,7 @@ class CustomerDashboard {
                             ${this.specRow('Colour', colorDisplay)}
                             ${item.upper_bars && item.upper_bars !== 'none' ? this.specRow('Georgian Bars', `Upper: ${item.upper_bars}, Lower: ${item.lower_bars || item.upper_bars}`) : this.specRow('Georgian Bars', 'None')}
                             ${this.specRow('PAS24', item.pas24 ? 'Yes ✓' : 'No')}
-                            ${horns && horns !== 'none' ? this.specRow('Horns', horns) : this.specRow('Horns', 'None')}
+                            ${horns && horns !== 'none' ? this.specRow('Horns', ({'A':'Richmond','D':'Type D'})[horns] || horns) : this.specRow('Horns', 'None')}
                             ${hardwareFinish ? this.specRow('Hardware Finish', hardwareFinish) : ''}
                         </div>
 
