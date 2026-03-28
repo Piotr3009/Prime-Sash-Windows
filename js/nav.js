@@ -4,17 +4,19 @@
 // ============================================================
 
 (function(){
-  // ── ROW 1 ITEMS ──
+  // ── ROW 1 ITEMS (education / trust) ──
   var row1 = [
     { href: 'index.html',                page: 'index',                label: 'Home' },
     { href: 'sash-windows-history.html',  page: 'sash-windows-history', label: 'Sash Windows History' },
     { href: 'why-not-sash-windows.html',  page: 'why-not',              label: "Why You Shouldn\u2019t Buy" },
-    { href: 'faq-top-companies.html',     page: 'faq-top',              label: 'FAQ & Top Companies' }
+    { href: 'faq-top-companies.html',     page: 'faq-top',              label: 'FAQ & Top Companies' },
+    { href: 'certifications.html',       page: 'cert',                 label: 'Certifications' }
   ];
 
-  // ── ROW 2 ITEMS ──
+  // ── ROW 2 ITEMS (action) ──
   var row2 = [
     { href: 'online-estimate.html',       page: 'online',    label: 'Online Estimate & 3D' },
+    { href: 'measurement-guide.html',    page: 'measure',   label: 'Measurement Guide' },
     { href: 'gallery.html',              page: 'gallery',   label: 'Gallery' },
     { href: 'contact.html',              page: 'contact',   label: 'Contact' },
     { href: 'customer-dashboard.html',   page: 'customer',  label: 'My Account' }
@@ -98,9 +100,7 @@
       var row2El = document.getElementById('nav-row-2');
 
       if (!user) {
-        // Not logged in — My Account click goes to login
         if (userBtn) { userBtn.href = 'login.html'; userBtn.title = 'Login / Register'; }
-        // My Account in menu also goes to login
         document.querySelectorAll('.nav-row a[data-page="customer"]').forEach(function(a){
           a.href = 'login.html';
         });
@@ -116,7 +116,6 @@
       window.supabaseClient.from('customers').select('role').eq('user_id', user.id).single()
         .then(function(r) {
           if (r.data && r.data.role === 'admin' && row2El) {
-            // Add Admin Panel link
             var adminLi = document.createElement('li');
             adminLi.innerHTML = '<a href="admin-panel.html" data-page="admin">Admin Panel</a>';
             row2El.appendChild(adminLi);
