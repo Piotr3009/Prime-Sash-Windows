@@ -186,38 +186,66 @@ class EstimateManager {
                     height: windowConfig.height,
                     measurement_type: windowConfig.measurementType,
                     
-                    // NOWE: Oryginalne wymiary (przed brick-to-brick adjustment)
                     original_width: windowConfig.originalWidth,
                     original_height: windowConfig.originalHeight,
                     
                     frame_type: windowConfig.frameType,
                     glass_type: windowConfig.glassType,
-                    
-                    // NOWE: Glass specification
                     glass_spec: windowConfig.glassSpec,
                     glass_finish: windowConfig.glassFinish,
-                    frosted_location: windowConfig.frostedLocation,
+                    frosted_location: windowConfig.glassFinish === 'frosted' ? (windowConfig.frostedLocation || windowConfig.fullConfig?.frostedLocation || null) : null,
                     
                     opening_type: windowConfig.openingType,
-                    color_type: windowConfig.colorType,
-                    color_single: windowConfig.colorSingle,
-                    color_interior: windowConfig.colorInterior,
-                    color_exterior: windowConfig.colorExterior,
                     
-                    // NOWE: Custom exterior color
-                    custom_exterior_color: windowConfig.customExteriorColor,
+                    // Color — pull from fullConfig when direct fields are "custom" or null
+                    color_type: windowConfig.colorType,
+                    color_single: (() => {
+                        const fc = windowConfig.fullConfig || {};
+                        if (windowConfig.colorType === 'single') {
+                            // Use colorSingleName if available, otherwise singleColor from fullConfig
+                            return fc.colorSingleName || fc.singleColor || windowConfig.colorSingle || 'white';
+                        }
+                        return windowConfig.colorSingle;
+                    })(),
+                    color_interior: (() => {
+                        const fc = windowConfig.fullConfig || {};
+                        return windowConfig.colorInterior || fc.interiorColor || fc.colorInterior || null;
+                    })(),
+                    color_exterior: (() => {
+                        const fc = windowConfig.fullConfig || {};
+                        return windowConfig.colorExterior || fc.exteriorColor || fc.colorExterior || null;
+                    })(),
+                    custom_exterior_color: windowConfig.customExteriorColor || windowConfig.fullConfig?.customExteriorColor || null,
                     
                     upper_bars: windowConfig.upperBars || null,
                     lower_bars: windowConfig.lowerBars || null,
-                    horns: windowConfig.horns,
                     
-                    // ZMIENIONE: ironmongery jako JSONB (nie VARCHAR)
-                    ironmongery: windowConfig.ironmongery ? JSON.stringify(windowConfig.ironmongery) : null,
+                    // Horns — fullConfig stores "none" while windowConfig stores null
+                    horns: (() => {
+                        const h = windowConfig.horns || windowConfig.fullConfig?.horns || 'none';
+                        return h === 'none' ? null : h;
+                    })(),
                     
-                    // NOWE: Ironmongery finish
-                    ironmongery_finish: windowConfig.ironmongeryFinish,
+                    // Ironmongery — pull from fullConfig when direct field is null
+                    ironmongery: (() => {
+                        const iron = windowConfig.ironmongery || windowConfig.fullConfig?.ironmongery || null;
+                        if (!iron) return null;
+                        return typeof iron === 'string' ? iron : JSON.stringify(iron);
+                    })(),
                     
-                    pas24: windowConfig.pas24 || false,
+                    // Ironmongery finish — derive from ironmongery products
+                    ironmongery_finish: (() => {
+                        if (windowConfig.ironmongeryFinish) return windowConfig.ironmongeryFinish;
+                        const iron = windowConfig.fullConfig?.ironmongery;
+                        if (iron) {
+                            // Get finish from first product that has a color
+                            const products = [iron.lock, iron.fingerLift, iron.pullHandles, iron.stoppers].filter(p => p && p.color);
+                            if (products.length > 0) return products[0].color;
+                        }
+                        return null;
+                    })(),
+                    
+                    pas24: windowConfig.pas24 === true || windowConfig.pas24 === 'yes' || windowConfig.fullConfig?.pas24 === 'yes' || false,
                     quantity: windowConfig.quantity || 1,
                     unit_price: price.unitPrice,
                     total_price: price.totalPrice,
