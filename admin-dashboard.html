@@ -340,6 +340,11 @@
                     <div class="stat-value" id="stat-appointments">0</div>
                     <div class="stat-label">Upcoming Appointments</div>
                 </div>
+                <div class="stat-card" onclick="switchView('appointments')" style="cursor: pointer;">
+                    <div class="stat-icon">📩</div>
+                    <div class="stat-value" id="stat-appt-queries">0</div>
+                    <div class="stat-label">Appointment Queries</div>
+                </div>
             </div>
         </section>
 
@@ -1113,6 +1118,11 @@
                 
                 const container = document.getElementById('pending-requests-list');
                 if (!container) return;
+                
+                // Update stat card
+                const pendingCount = (data || []).length;
+                const qEl = document.getElementById('stat-appt-queries');
+                if (qEl) qEl.textContent = pendingCount;
                 
                 if (!data || data.length === 0) {
                     container.innerHTML = '<p style="color:#999;font-size:.75rem;">No pending requests</p>';
