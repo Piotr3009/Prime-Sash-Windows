@@ -259,6 +259,33 @@
             padding-top: 20px;
             border-top: 1px solid var(--border-color);
         }
+        /* Compact Appointments Calendar */
+        .appt-cal { background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.08); }
+        .appt-cal-header { display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--primary-color,#0A1628);color:#fff;font-size:.85rem;font-weight:600; }
+        .appt-cal-header button { background:none;border:1px solid rgba(255,255,255,.4);color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.9rem;line-height:1; }
+        .appt-cal-header button:hover { background:rgba(255,255,255,.15); }
+        .appt-cal-weekdays { display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.65rem;font-weight:600;color:#888;padding:6px 4px 2px;background:#fafafa; }
+        .appt-cal-days { display:grid;grid-template-columns:repeat(7,1fr);gap:1px;padding:4px; }
+        .appt-day { text-align:center;padding:4px 2px;font-size:.72rem;cursor:pointer;border-radius:3px;position:relative;min-height:28px; }
+        .appt-day:hover { background:#e8f0fe; }
+        .appt-day.other { color:#ccc; }
+        .appt-day.today { font-weight:700;color:#1a73e8; }
+        .appt-day.selected { background:var(--primary-color,#0A1628);color:#fff;border-radius:3px; }
+        .appt-day .cnt { display:block;font-size:.55rem;color:#4caf50;margin-top:1px; }
+        .appt-day .cnt.booked { color:#ff9800; }
+        .appt-day-detail { margin-top:10px;padding:10px;background:#f9f9f9;border-radius:6px;border:1px solid #eee;font-size:.78rem; }
+        .slot-row { display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #f0f0f0;font-size:.72rem; }
+        .slot-row:last-child { border:none; }
+        .slot-avail { color:#4caf50; }
+        .slot-booked { color:#ff9800;font-weight:600; }
+        .slot-blocked { color:#ccc;text-decoration:line-through; }
+        .slot-actions button { background:none;border:none;cursor:pointer;font-size:.7rem;padding:1px 4px; }
+        .pending-card { background:#fff;border:1px solid #e0e0e0;border-radius:4px;padding:8px;margin-bottom:6px;font-size:.75rem; }
+        .pending-card strong { color:var(--primary-color,#0A1628); }
+        .pending-card .actions { margin-top:5px;display:flex;gap:5px; }
+        .pending-card .actions button { font-size:.68rem;padding:2px 8px;border-radius:3px;cursor:pointer;border:none; }
+        .pending-card .actions .confirm { background:#4caf50;color:#fff; }
+        .pending-card .actions .reject { background:#f44336;color:#fff; }
     </style>
 </head>
 <body>
@@ -308,6 +335,11 @@
                     <div class="stat-value" id="stat-customers">0</div>
                     <div class="stat-label">Customers</div>
                 </div>
+                <div class="stat-card" onclick="switchView('appointments')" style="cursor: pointer;">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value" id="stat-appointments">0</div>
+                    <div class="stat-label">Upcoming Appointments</div>
+                </div>
             </div>
         </section>
 
@@ -325,6 +357,9 @@
                 </button>
                 <button class="admin-tab" data-view="customers">
                     👥 Customers
+                </button>
+                <button class="admin-tab" data-view="appointments">
+                    📅 Appointments <span class="badge" id="badge-appt">0</span>
                 </button>
             </div>
 
@@ -373,6 +408,55 @@
                         <div class="icon">⏳</div>
                         <p>Loading...</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Appointments View -->
+            <div id="view-appointments" class="admin-view">
+                <h2 class="section-title">📅 Appointments</h2>
+                <div style="background:#e8f5e9;border:1px solid #4caf50;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:.8rem;">
+                    <strong>Auto-Generation Active:</strong> Slots Mon-Fri, 4 weeks ahead. Click a day to manage slots.
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                    <!-- Compact Calendar -->
+                    <div>
+                        <div class="appt-cal">
+                            <div class="appt-cal-header">
+                                <button onclick="AdminCalendar.prevMonth()">‹</button>
+                                <span id="admin-calendar-month-year"></span>
+                                <button onclick="AdminCalendar.nextMonth()">›</button>
+                            </div>
+                            <div class="appt-cal-weekdays"><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div></div>
+                            <div class="appt-cal-days" id="admin-calendar-days"></div>
+                        </div>
+                        <div id="admin-day-detail" class="appt-day-detail">
+                            <h4 id="admin-day-title" style="font-size:.85rem;margin-bottom:8px;">Select a day</h4>
+                            <div id="admin-day-slots"></div>
+                            <button class="btn-sm" style="margin-top:8px;font-size:.7rem;" onclick="AdminCalendar.generateSlotsForDay()">+ Add Slots</button>
+                        </div>
+                    </div>
+                    <!-- Pending Requests -->
+                    <div>
+                        <h4 style="font-size:.85rem;margin-bottom:8px;color:var(--primary-color,#0A1628);">Pending Requests</h4>
+                        <div id="pending-requests-list" style="max-height:250px;overflow-y:auto;"></div>
+                        <div style="margin-top:15px;border-top:1px solid #ddd;padding-top:10px;">
+                            <h4 style="font-size:.85rem;margin-bottom:8px;">📅 Upcoming Booked</h4>
+                            <div style="max-height:200px;overflow-y:auto;">
+                                <table style="width:100%;font-size:.75rem;border-collapse:collapse;">
+                                    <thead><tr style="background:#f5f5f5;">
+                                        <th style="padding:4px 6px;text-align:left;">Date</th>
+                                        <th style="padding:4px 6px;text-align:left;">Time</th>
+                                        <th style="padding:4px 6px;text-align:left;">Customer</th>
+                                        <th style="padding:4px 6px;text-align:left;">Actions</th>
+                                    </tr></thead>
+                                    <tbody id="booked-appointments-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:10px;text-align:right;">
+                    <button class="btn-sm" onclick="AdminCalendar.generateSlotsForWeek()">+ Generate Week Slots</button>
                 </div>
             </div>
         </section>
@@ -487,6 +571,7 @@
                 renderAllQuotes();
                 renderProduction();
                 renderCustomers();
+                AdminCalendar.init();
                 
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -795,6 +880,344 @@
                 year: 'numeric'
             });
         }
+
+        // ═══════════════════════════════════════
+        // ADMIN CALENDAR CONTROLLER
+        // ═══════════════════════════════════════
+        const AdminCalendar = {
+            currentDate: new Date(),
+            selectedDate: null,
+            slots: {},
+            
+            async init() {
+                await this.ensureSlotsExist();
+                await this.loadSlots();
+                this.renderCalendar();
+                this.loadPendingRequests();
+                this.loadBookedAppointments();
+            },
+
+            async ensureSlotsExist() {
+                try {
+                    const today = new Date();
+                    const endDate = new Date();
+                    endDate.setDate(today.getDate() + 28);
+                    
+                    const { data: existing } = await supabaseClient
+                        .from('appointment_slots')
+                        .select('slot_date')
+                        .gte('slot_date', today.toISOString().split('T')[0])
+                        .lte('slot_date', endDate.toISOString().split('T')[0]);
+                    
+                    const existingDates = new Set((existing || []).map(s => s.slot_date));
+                    const times = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00'];
+                    const newSlots = [];
+                    
+                    for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
+                        const day = d.getDay();
+                        if (day === 0 || day === 6) continue;
+                        const dateStr = d.toISOString().split('T')[0];
+                        if (existingDates.has(dateStr)) continue;
+                        times.forEach(t => newSlots.push({ slot_date: dateStr, slot_time: t, is_available: true }));
+                    }
+                    
+                    if (newSlots.length > 0) {
+                        await supabaseClient.from('appointment_slots').insert(newSlots);
+                    }
+                } catch(e) { console.error('Slot generation error:', e); }
+            },
+
+            async loadSlots() {
+                const start = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
+                const end = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
+                
+                const { data } = await supabaseClient
+                    .from('appointment_slots')
+                    .select('*')
+                    .gte('slot_date', start.toISOString().split('T')[0])
+                    .lte('slot_date', end.toISOString().split('T')[0])
+                    .order('slot_time');
+                
+                this.slots = {};
+                (data || []).forEach(s => {
+                    if (!this.slots[s.slot_date]) this.slots[s.slot_date] = [];
+                    this.slots[s.slot_date].push(s);
+                });
+
+                // Update stat
+                const bookedCount = (data || []).filter(s => s.customer_name).length;
+                const el = document.getElementById('stat-appointments');
+                if (el) el.textContent = bookedCount;
+                const badge = document.getElementById('badge-appt');
+                if (badge) badge.textContent = bookedCount;
+            },
+
+            renderCalendar() {
+                const year = this.currentDate.getFullYear();
+                const month = this.currentDate.getMonth();
+                const label = document.getElementById('admin-calendar-month-year');
+                if (label) label.textContent = new Date(year, month).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+                
+                const firstDay = new Date(year, month, 1).getDay() || 7;
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const prevDays = new Date(year, month, 0).getDate();
+                const today = new Date().toISOString().split('T')[0];
+                
+                let html = '';
+                // Previous month days
+                for (let i = firstDay - 1; i > 0; i--) {
+                    html += `<div class="appt-day other">${prevDays - i + 1}</div>`;
+                }
+                // Current month
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    const daySlots = this.slots[dateStr] || [];
+                    const avail = daySlots.filter(s => s.is_available && !s.customer_name).length;
+                    const booked = daySlots.filter(s => s.customer_name).length;
+                    const isToday = dateStr === today;
+                    const isSel = dateStr === this.selectedDate;
+                    let cls = 'appt-day';
+                    if (isToday) cls += ' today';
+                    if (isSel) cls += ' selected';
+                    
+                    let cnt = '';
+                    if (booked > 0) cnt = `<span class="cnt booked">${booked} booked</span>`;
+                    else if (avail > 0) cnt = `<span class="cnt">${avail} free</span>`;
+                    
+                    html += `<div class="${cls}" onclick="AdminCalendar.selectDay('${dateStr}')">${d}${cnt}</div>`;
+                }
+                
+                const container = document.getElementById('admin-calendar-days');
+                if (container) container.innerHTML = html;
+            },
+
+            async selectDay(dateStr) {
+                this.selectedDate = dateStr;
+                this.renderCalendar();
+                
+                const { data: slots } = await supabaseClient
+                    .from('appointment_slots')
+                    .select('*')
+                    .eq('slot_date', dateStr)
+                    .order('slot_time');
+                
+                const title = document.getElementById('admin-day-title');
+                if (title) title.textContent = new Date(dateStr + 'T12:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+                
+                const container = document.getElementById('admin-day-slots');
+                if (!container) return;
+                
+                if (!slots || slots.length === 0) {
+                    container.innerHTML = '<p style="color:#999;font-size:.75rem;">No slots for this day</p>';
+                    return;
+                }
+                
+                container.innerHTML = slots.map(s => {
+                    let status, cls;
+                    if (s.customer_name) {
+                        status = `<strong>${s.customer_name}</strong>`;
+                        cls = 'slot-booked';
+                    } else if (!s.is_available) {
+                        status = 'Blocked';
+                        cls = 'slot-blocked';
+                    } else {
+                        status = 'Available';
+                        cls = 'slot-avail';
+                    }
+                    return `<div class="slot-row">
+                        <span>${s.slot_time}</span>
+                        <span class="${cls}">${status}</span>
+                        <span class="slot-actions">
+                            ${s.customer_name ? `
+                                <button onclick="AdminCalendar.cancelBooking('${s.id}')" title="Cancel">✕</button>
+                            ` : `
+                                <button onclick="AdminCalendar.toggleAvailability('${s.id}', ${s.is_available})" title="${s.is_available ? 'Block' : 'Unblock'}">${s.is_available ? '🔒' : '🔓'}</button>
+                            `}
+                        </span>
+                    </div>`;
+                }).join('');
+            },
+
+            async toggleAvailability(slotId, currentState) {
+                await supabaseClient.from('appointment_slots').update({ is_available: !currentState }).eq('id', slotId);
+                await this.loadSlots();
+                this.renderCalendar();
+                if (this.selectedDate) this.selectDay(this.selectedDate);
+            },
+
+            async cancelBooking(slotId) {
+                if (!confirm('Cancel this booking?')) return;
+                await supabaseClient.from('appointment_slots').update({ customer_name: null, customer_address: null, assigned_to: null, notes: null, is_available: true }).eq('id', slotId);
+                await this.loadSlots();
+                this.renderCalendar();
+                if (this.selectedDate) this.selectDay(this.selectedDate);
+                this.loadBookedAppointments();
+            },
+
+            async generateSlotsForDay() {
+                if (!this.selectedDate) { alert('Select a day first'); return; }
+                const times = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00'];
+                const { data: existing } = await supabaseClient.from('appointment_slots').select('slot_time').eq('slot_date', this.selectedDate);
+                const existingTimes = new Set((existing || []).map(s => s.slot_time));
+                const newSlots = times.filter(t => !existingTimes.has(t)).map(t => ({ slot_date: this.selectedDate, slot_time: t, is_available: true }));
+                if (newSlots.length > 0) {
+                    await supabaseClient.from('appointment_slots').insert(newSlots);
+                    await this.loadSlots();
+                    this.renderCalendar();
+                    this.selectDay(this.selectedDate);
+                } else {
+                    alert('All slots already exist for this day');
+                }
+            },
+
+            async generateSlotsForWeek() {
+                const start = new Date();
+                const end = new Date();
+                end.setDate(start.getDate() + 7);
+                const times = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00'];
+                
+                const { data: existing } = await supabaseClient.from('appointment_slots').select('slot_date, slot_time')
+                    .gte('slot_date', start.toISOString().split('T')[0])
+                    .lte('slot_date', end.toISOString().split('T')[0]);
+                
+                const existingSet = new Set((existing || []).map(s => s.slot_date + '_' + s.slot_time));
+                const newSlots = [];
+                
+                for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                    const day = d.getDay();
+                    if (day === 0 || day === 6) continue;
+                    const dateStr = d.toISOString().split('T')[0];
+                    times.forEach(t => {
+                        if (!existingSet.has(dateStr + '_' + t)) {
+                            newSlots.push({ slot_date: dateStr, slot_time: t, is_available: true });
+                        }
+                    });
+                }
+                
+                if (newSlots.length > 0) {
+                    await supabaseClient.from('appointment_slots').insert(newSlots);
+                    await this.loadSlots();
+                    this.renderCalendar();
+                    alert(`${newSlots.length} slots generated`);
+                } else {
+                    alert('All slots already exist');
+                }
+            },
+
+            async loadPendingRequests() {
+                const { data } = await supabaseClient
+                    .from('appointment_requests')
+                    .select('*')
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: false });
+                
+                const container = document.getElementById('pending-requests-list');
+                if (!container) return;
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p style="color:#999;font-size:.75rem;">No pending requests</p>';
+                    return;
+                }
+                
+                container.innerHTML = data.map(r => {
+                    const slots = r.preferred_slots || [];
+                    const slotsText = slots.map(s => `${s.date} ${s.time}`).join(', ');
+                    return `<div class="pending-card">
+                        <strong>${r.customer_name}</strong><br>
+                        <span style="color:#666;">${r.email}</span><br>
+                        <span style="font-size:.7rem;">Preferred: ${slotsText}</span>
+                        ${r.message ? `<br><span style="font-size:.7rem;color:#888;">${r.message}</span>` : ''}
+                        <div class="actions">
+                            <button class="confirm" onclick="AdminCalendar.confirmRequest('${r.id}','${(r.customer_name||'').replace(/'/g,"\\'")}','${(r.message||'').replace(/'/g,"\\'")}')">✓ Confirm</button>
+                            <button class="reject" onclick="AdminCalendar.rejectRequest('${r.id}')">✕ Reject</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            },
+
+            async confirmRequest(requestId, customerName, address) {
+                const slotDate = prompt('Enter date to book (YYYY-MM-DD):');
+                if (!slotDate) return;
+                const slotTime = prompt('Enter time (e.g. 10:00):');
+                if (!slotTime) return;
+                
+                try {
+                    // Find the slot
+                    const { data: slots } = await supabaseClient.from('appointment_slots').select('*')
+                        .eq('slot_date', slotDate).eq('slot_time', slotTime).eq('is_available', true).is('customer_name', null);
+                    
+                    if (!slots || slots.length === 0) {
+                        alert('No available slot at that time');
+                        return;
+                    }
+                    
+                    // Book the slot
+                    await supabaseClient.from('appointment_slots').update({
+                        customer_name: customerName,
+                        customer_address: address,
+                        is_available: false
+                    }).eq('id', slots[0].id);
+                    
+                    // Update request
+                    await supabaseClient.from('appointment_requests').update({
+                        status: 'confirmed',
+                        confirmed_slot_id: slots[0].id
+                    }).eq('id', requestId);
+                    
+                    alert('Appointment confirmed!');
+                    await this.loadSlots();
+                    this.renderCalendar();
+                    this.loadPendingRequests();
+                    this.loadBookedAppointments();
+                } catch(e) {
+                    alert('Error: ' + e.message);
+                }
+            },
+
+            async rejectRequest(requestId) {
+                if (!confirm('Reject this request?')) return;
+                await supabaseClient.from('appointment_requests').update({ status: 'rejected' }).eq('id', requestId);
+                this.loadPendingRequests();
+            },
+
+            async loadBookedAppointments() {
+                const today = new Date().toISOString().split('T')[0];
+                const { data } = await supabaseClient
+                    .from('appointment_slots')
+                    .select('*')
+                    .gte('slot_date', today)
+                    .not('customer_name', 'is', null)
+                    .order('slot_date')
+                    .order('slot_time');
+                
+                const tbody = document.getElementById('booked-appointments-tbody');
+                if (!tbody) return;
+                
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;padding:10px;">No upcoming appointments</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.map(s => `
+                    <tr style="border-bottom:1px solid #f0f0f0;">
+                        <td style="padding:4px 6px;">${s.slot_date}</td>
+                        <td style="padding:4px 6px;">${s.slot_time}</td>
+                        <td style="padding:4px 6px;">${s.customer_name}</td>
+                        <td style="padding:4px 6px;"><button onclick="AdminCalendar.cancelBooking('${s.id}')" style="font-size:.65rem;padding:1px 6px;cursor:pointer;border:1px solid #f44336;color:#f44336;background:none;border-radius:3px;">Cancel</button></td>
+                    </tr>
+                `).join('');
+            },
+
+            prevMonth() {
+                this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+                this.loadSlots().then(() => this.renderCalendar());
+            },
+            
+            nextMonth() {
+                this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+                this.loadSlots().then(() => this.renderCalendar());
+            }
+        };
     </script>
 </body>
 </html>
