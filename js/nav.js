@@ -10,7 +10,7 @@
     { href: 'sash-windows-history.html',  page: 'sash-windows-history', label: 'Sash Windows History' },
     { href: 'why-not-sash-windows.html',  page: 'why-not',              label: "Why You Shouldn\u2019t Buy" },
     { href: 'faq-top-companies.html',     page: 'faq-top',              label: 'FAQ & Top Companies' },
-    { href: 'certifications.html',       page: 'cert',                 label: 'Certifications' },
+    { href: 'certifications.html',       page: 'cert',                 label: 'Certifications & Technology' },
     { href: 'online-estimate.html',      page: 'online',               label: 'Online Estimate & 3D' }
   ];
 
