@@ -117,16 +117,26 @@
         .then(function(r) {
           if (r.data && r.data.role === 'admin' && row2El) {
             var adminLi = document.createElement('li');
-            adminLi.innerHTML = '<a href="admin-panel.html" data-page="admin">Admin Panel</a>';
+            adminLi.innerHTML = '<a href="admin-panel.html" data-page="admin-panel">Admin Panel</a>';
             row2El.appendChild(adminLi);
+            var dashLi = document.createElement('li');
+            dashLi.innerHTML = '<a href="admin-dashboard.html" data-page="admin-dashboard">Admin Dashboard</a>';
+            row2El.appendChild(dashLi);
             if (mob) {
               var adminMob = document.createElement('a');
               adminMob.href = 'admin-panel.html';
               adminMob.textContent = 'Admin Panel';
               mob.appendChild(adminMob);
+              var dashMob = document.createElement('a');
+              dashMob.href = 'admin-dashboard.html';
+              dashMob.textContent = 'Admin Dashboard';
+              mob.appendChild(dashMob);
             }
-            if (page.startsWith('admin')) {
+            if (page.startsWith('admin-panel')) {
               adminLi.querySelector('a').classList.add('active');
+            }
+            if (page.startsWith('admin-dashboard')) {
+              dashLi.querySelector('a').classList.add('active');
             }
           }
         });
