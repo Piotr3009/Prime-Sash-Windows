@@ -1375,6 +1375,9 @@
     });
   }
   
+  // Make globally accessible for auto-switching
+  window.showCategory = showCategory;
+  
   catBtns.forEach(function(btn) {
     btn.addEventListener('click', function() {
       // Usuń podświetlenie next-step

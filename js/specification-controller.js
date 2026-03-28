@@ -1126,6 +1126,34 @@ class SpecificationController {
       localStorage.setItem('lastWindowConfig', JSON.stringify(window.currentConfig));
       console.log('💾 Auto-saved after', buttonId);
     }
+
+    // AUTO-SWITCH to next category after last Apply in each section
+    // dim-design: dimensions → bars → frame → horns → GLASS
+    // glass: glass → glass-spec → OPENING
+    // opening: opening → pas24 → COLOUR
+    // colour: color → HARDWARE
+    const nextCategory = {
+      'apply-horns': 'glass',
+      'apply-glass-spec': 'opening',
+      'apply-pas24': 'colour',
+      'apply-color': 'hardware'
+    };
+
+    const next = nextCategory[buttonId];
+    if (next && typeof window.showCategory === 'function') {
+      setTimeout(() => {
+        window.showCategory(next);
+        // Highlight the next tab briefly
+        const nextBtn = document.querySelector(`.cat-btn[data-target="${next}"]`);
+        if (nextBtn) {
+          nextBtn.classList.add('next-step');
+          setTimeout(() => nextBtn.classList.remove('next-step'), 2000);
+        }
+        // Scroll to top of configurator
+        const configPanel = document.querySelector('.config-panel');
+        if (configPanel) configPanel.scrollTop = 0;
+      }, 600);
+    }
   }
 }
 

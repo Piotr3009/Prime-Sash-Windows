@@ -200,7 +200,16 @@ class EstimateSelectorManager {
             document.getElementById('estimate-selector').value = data.id;
             this.updateEstimateInfo();
 
-            alert(`Estimate ${estimateNumber} created successfully!`);
+            alert(`Estimate ${estimateNumber} created!\n\nNow configure your first window using the panels on the left, then click "Create New Estimate & Add Window" to save it.`);
+
+            // Highlight window name field
+            const nameInput = document.getElementById('window-custom-name');
+            if (nameInput) {
+                nameInput.style.border = '2px solid #c8a96e';
+                nameInput.placeholder = 'Enter window name (e.g. Kitchen Left, W1...)';
+                nameInput.focus();
+                setTimeout(() => { nameInput.style.border = ''; }, 5000);
+            }
 
         } catch (error) {
             console.error('Error creating estimate:', error);
