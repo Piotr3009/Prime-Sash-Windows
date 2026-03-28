@@ -368,7 +368,8 @@ class IronmongeryGallery {
       card.addEventListener('click', (e) => {
         // Jeśli kliknięto zdjęcie - powiększ
         if (e.target.classList.contains('product-card-image')) {
-          this.zoomImage(e.target.src);
+          const productId = card.dataset.productId;
+          this.zoomProduct(productId);
           return;
         }
         
@@ -573,17 +574,57 @@ class IronmongeryGallery {
     previewContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;';
   }
 
+  zoomProduct(productId) {
+    // Find product across all categories
+    let product = null;
+    for (const catKey of Object.keys(IRONMONGERY_DATA.categories)) {
+      const found = IRONMONGERY_DATA.categories[catKey].products.find(p => p.id === productId);
+      if (found) { product = found; break; }
+    }
+    if (!product) return;
+
+    const imgSrc = product.image || product.image_url || 'img/placeholder-ironmongery.jpg';
+    const price = product.prices ? product.prices.net : (product.price_net || product.price || 0);
+    const priceVat = product.prices ? product.prices.vat : null;
+    const color = product.color ? product.color.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
+
+    const modal = document.createElement('div');
+    modal.className = 'ironmongery-zoom-modal';
+    modal.innerHTML = `
+      <div class="izm-backdrop"></div>
+      <div class="izm-container">
+        <button class="izm-close">&times;</button>
+        <div class="izm-body">
+          <div class="izm-image-wrap">
+            <img src="${imgSrc}" alt="${product.name}" onerror="this.src='img/placeholder-ironmongery.jpg'">
+          </div>
+          <div class="izm-details">
+            <h2 class="izm-title">${product.name}</h2>
+            ${color ? `<p class="izm-color">Finish: ${color}</p>` : ''}
+            ${product.description ? `<p class="izm-desc">${product.description}</p>` : ''}
+            <div class="izm-price">
+              <span class="izm-price-net">£${price.toFixed(2)} <small>+ VAT</small></span>
+              ${priceVat ? `<span class="izm-price-vat">£${priceVat.toFixed(2)} incl. VAT</span>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Close handlers
+    modal.querySelector('.izm-close').addEventListener('click', () => document.body.removeChild(modal));
+    modal.querySelector('.izm-backdrop').addEventListener('click', () => document.body.removeChild(modal));
+    document.body.appendChild(modal);
+  }
+
+  // Legacy fallback
   zoomImage(imageSrc) {
-    // Utwórz modal do powiększenia
     const modal = document.createElement('div');
     modal.className = 'image-zoom-modal active';
     modal.innerHTML = `<img src="${imageSrc}" alt="Zoomed product">`;
-    
-    // Zamknij po kliknięciu
     modal.addEventListener('click', () => {
       document.body.removeChild(modal);
     });
-    
     document.body.appendChild(modal);
   }
 
