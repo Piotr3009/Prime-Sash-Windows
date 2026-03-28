@@ -117,7 +117,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 .nav-rows { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; }
 .nav-row { list-style: none; display: flex; gap: 2rem; justify-content: flex-end; margin: 0; padding: 0; }
 .nav-row a {
-  font-size: .62rem; font-weight: 400; letter-spacing: .25em;
+  font-size: .78rem; font-weight: 400; letter-spacing: .25em;
   text-transform: uppercase; text-decoration: none;
   color: rgba(255,255,255,.45); transition: color .3s; position: relative;
   white-space: nowrap;

@@ -14,9 +14,10 @@
 
   // ── ROW 2 ITEMS ──
   var row2 = [
-    { href: 'online-estimate.html',  page: 'online',  label: 'Online Estimate & 3D' },
-    { href: 'gallery.html',         page: 'gallery', label: 'Gallery' },
-    { href: 'contact.html',         page: 'contact', label: 'Contact' }
+    { href: 'online-estimate.html',       page: 'online',    label: 'Online Estimate & 3D' },
+    { href: 'gallery.html',              page: 'gallery',   label: 'Gallery' },
+    { href: 'contact.html',              page: 'contact',   label: 'Contact' },
+    { href: 'customer-dashboard.html',   page: 'customer',  label: 'My Account' }
   ];
 
   var allItems = row1.concat(row2);
@@ -43,7 +44,7 @@
     +   '<ul class="nav-row">' + buildRow(row1) + '</ul>'
     +   '<ul class="nav-row" id="nav-row-2">' + buildRow(row2) + '</ul>'
     + '</div>'
-    + '<a href="login.html" class="nav-user" id="nav-user-btn" title="Login / Register">' + userIcon + '</a>'
+    + '<a href="customer-dashboard.html" class="nav-user" id="nav-user-btn" title="My Account">' + userIcon + '</a>'
     + '<div class="hamburger" id="ham"><span></span><span></span><span></span></div>'
     + '</nav>';
 
@@ -51,9 +52,7 @@
     return '<a href="' + item.href + '">' + item.label + '</a>';
   }).join('\n  ');
 
-  var mobHTML = '<div id="mob-menu">\n  ' + mobLinks
-    + '\n  <a href="login.html" id="mob-account-link">Login / Register</a>'
-    + '\n</div>';
+  var mobHTML = '<div id="mob-menu">\n  ' + mobLinks + '\n</div>';
 
   // ── INJECT ──
   var placeholder = document.getElementById('nav-placeholder');
@@ -86,7 +85,6 @@
   }
 
   function initAuth() {
-    // Init supabase if not yet
     if (!window.supabaseClient && window.supabase) {
       var url = 'https://rfelsfwjszjdtzuovlal.supabase.co';
       var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmZWxzZndqc3pqZHR6dW92bGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Nzc1MTgsImV4cCI6MjA5MDA1MzUxOH0.Ut9EtffoU-L1g6IKiqcaVaoA2sEDoc0so821L1Uxn_A';
@@ -97,41 +95,46 @@
     window.supabaseClient.auth.getUser().then(function(res) {
       var user = res.data && res.data.user;
       var userBtn = document.getElementById('nav-user-btn');
-      var mobLink = document.getElementById('mob-account-link');
-      var row2 = document.getElementById('nav-row-2');
+      var row2El = document.getElementById('nav-row-2');
 
-      if (user) {
-        // Logged in — icon goes to dashboard
-        if (userBtn) { userBtn.href = 'customer-dashboard.html'; userBtn.title = 'My Account'; }
-        if (mobLink) { mobLink.href = 'customer-dashboard.html'; mobLink.textContent = 'My Account'; }
-
-        // Check if admin
-        window.supabaseClient.from('customers').select('role').eq('user_id', user.id).single()
-          .then(function(r) {
-            if (r.data && r.data.role === 'admin' && row2) {
-              var adminLi = document.createElement('li');
-              adminLi.innerHTML = '<a href="admin-panel.html" data-page="admin">Admin Panel</a>';
-              row2.appendChild(adminLi);
-              // Also add to mobile menu
-              if (mob) {
-                var adminMob = document.createElement('a');
-                adminMob.href = 'admin-panel.html';
-                adminMob.textContent = 'Admin Panel';
-                mob.insertBefore(adminMob, mob.lastElementChild);
-              }
-              // Active state for admin
-              if (page.startsWith('admin')) {
-                adminLi.querySelector('a').classList.add('active');
-              }
-            }
+      if (!user) {
+        // Not logged in — My Account click goes to login
+        if (userBtn) { userBtn.href = 'login.html'; userBtn.title = 'Login / Register'; }
+        // My Account in menu also goes to login
+        document.querySelectorAll('.nav-row a[data-page="customer"]').forEach(function(a){
+          a.href = 'login.html';
+        });
+        if (mob) {
+          mob.querySelectorAll('a').forEach(function(a){
+            if (a.textContent === 'My Account') a.href = 'login.html';
           });
+        }
+        return;
       }
+
+      // Logged in — check if admin
+      window.supabaseClient.from('customers').select('role').eq('user_id', user.id).single()
+        .then(function(r) {
+          if (r.data && r.data.role === 'admin' && row2El) {
+            // Add Admin Panel link
+            var adminLi = document.createElement('li');
+            adminLi.innerHTML = '<a href="admin-panel.html" data-page="admin">Admin Panel</a>';
+            row2El.appendChild(adminLi);
+            if (mob) {
+              var adminMob = document.createElement('a');
+              adminMob.href = 'admin-panel.html';
+              adminMob.textContent = 'Admin Panel';
+              mob.appendChild(adminMob);
+            }
+            if (page.startsWith('admin')) {
+              adminLi.querySelector('a').classList.add('active');
+            }
+          }
+        });
     });
   }
 
-  // Load supabase CDN then init auth
   loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', function(){
-    // Small delay to ensure DOM is ready
     setTimeout(initAuth, 50);
   });
 
