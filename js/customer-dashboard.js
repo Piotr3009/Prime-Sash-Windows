@@ -763,6 +763,56 @@ class CustomerDashboard {
         }
     }
 
+    // Helper: parse item details for export
+    _parseItemForExport(item) {
+        const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
+        const fc = spec.fullConfig || spec || {};
+
+        // Color
+        let color = '';
+        if (item.color_type === 'single' || fc.colorType === 'single') {
+            color = fc.colorSingleName || fc.singleColor || item.color_single || 'White';
+        } else {
+            const ext = fc.colorExteriorName || fc.exteriorColor || item.color_exterior || '—';
+            const int = fc.colorInteriorName || fc.interiorColor || item.color_interior || '—';
+            color = `Ext: ${ext} / Int: ${int}`;
+        }
+
+        // Ironmongery
+        let ironText = '-';
+        const ironSource = item.ironmongery || fc.ironmongery;
+        if (ironSource) {
+            try {
+                const ironData = typeof ironSource === 'string' ? JSON.parse(ironSource) : ironSource;
+                const entries = ironData.products ? Object.values(ironData.products) : Object.values(ironData);
+                ironText = entries
+                    .filter(p => p && (p.name || p.product?.name))
+                    .map(p => `${p.quantity || 1}x ${p.product ? p.product.name : p.name}`)
+                    .join(', ');
+            } catch(e) {}
+        }
+
+        // Horns
+        const horns = item.horns || fc.horns || 'none';
+        const hornsText = ({'A':'Richmond','D':'Type D','none':'None'})[horns] || horns;
+
+        // Spacer
+        const spacer = item.spacer_color || 'silver';
+        const spacerText = ({'silver':'Silver','white':'White','black':'Black'})[spacer] || spacer;
+
+        // Bars
+        let barsText = 'None';
+        if (item.upper_bars && item.upper_bars !== 'none') {
+            barsText = `Upper: ${item.upper_bars}, Lower: ${item.lower_bars || item.upper_bars}`;
+        }
+
+        // Opening
+        const openingLabels = { both: 'Both Sashes', bottom: 'Bottom Only', fixed: 'Fixed', top: 'Top Only' };
+        const opening = openingLabels[item.opening_type] || item.opening_type || '—';
+
+        return { color, ironText, hornsText, spacerText, barsText, opening };
+    }
+
     // Download estimate as PDF
     async downloadEstimatePDF(estimate) {
         try {
@@ -771,82 +821,114 @@ class CustomerDashboard {
             
             // Header
             doc.setFontSize(20);
-            doc.setTextColor(15, 49, 36); // Primary color
-            doc.text('Skylon Timber & Glazing', 105, 20, { align: 'center' });
+            doc.setTextColor(10, 22, 40);
+            doc.text('Prime Sash Windows', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(9);
+            doc.setTextColor(120, 120, 120);
+            doc.text('A trading name of Skylon Joinery LTD', 105, 27, { align: 'center' });
             
             doc.setFontSize(14);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Estimate: ${estimate.estimate_number || estimate.id.substring(0, 8).toUpperCase()}`, 105, 30, { align: 'center' });
+            doc.setTextColor(10, 22, 40);
+            doc.text(`Estimate: ${estimate.estimate_number || ''}`, 105, 38, { align: 'center' });
             
             // Project info
-            let yPos = 45;
-            doc.setFontSize(11);
+            let yPos = 50;
+            doc.setFontSize(10);
+            doc.setTextColor(60, 60, 60);
             if (estimate.project_name) {
                 doc.text(`Project: ${estimate.project_name}`, 14, yPos);
-                yPos += 7;
+                yPos += 6;
             }
             if (estimate.delivery_address) {
                 doc.text(`Address: ${estimate.delivery_address}`, 14, yPos);
-                yPos += 7;
+                yPos += 6;
             }
-            doc.text(`Date: ${new Date(estimate.created_at).toLocaleDateString('en-GB')}`, 14, yPos);
-            yPos += 7;
+            doc.text(`Date: ${new Date(estimate.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}`, 14, yPos);
+            yPos += 6;
             doc.text(`Status: ${this.getStatusConfig(estimate.status).label}`, 14, yPos);
-            yPos += 15;
-            
-            // Windows table
-            doc.setFontSize(12);
-            doc.setTextColor(15, 49, 36);
-            doc.text('Windows', 14, yPos);
-            yPos += 5;
-            
-            const tableData = estimate.estimate_items?.map(item => {
-                let ironmongeryText = '';
-                if (item.ironmongery) {
-                    try {
-                        const ironData = typeof item.ironmongery === 'string' ? JSON.parse(item.ironmongery) : item.ironmongery;
-                        if (ironData?.products) {
-                            ironmongeryText = Object.values(ironData.products).map(p => `${p.quantity}x ${p.product.name}`).join(', ');
-                        }
-                    } catch(e) {}
-                }
-                
-                return [
-                    item.window_number,
-                    `${item.width}mm × ${item.height}mm`,
-                    `${item.frame_type}, ${item.glass_type}`,
-                    item.color_type === 'single' ? item.color_single : `${item.color_interior}/${item.color_exterior}`,
-                    ironmongeryText || '-',
-                    item.quantity,
-                    `£${this.formatPrice(item.total_price)}`
+            yPos += 12;
+
+            // Per-window detail tables
+            estimate.estimate_items?.forEach((item, idx) => {
+                const p = this._parseItemForExport(item);
+
+                // Check page space
+                if (yPos > 220) { doc.addPage(); yPos = 20; }
+
+                doc.setFontSize(11);
+                doc.setTextColor(10, 22, 40);
+                doc.text(`Window ${item.window_number} (Qty: ${item.quantity})`, 14, yPos);
+                yPos += 2;
+
+                const rows = [
+                    ['Dimensions', `${item.width}mm × ${item.height}mm`],
                 ];
-            }) || [];
-            
-            doc.autoTable({
-                startY: yPos,
-                head: [['Window', 'Size', 'Frame/Glass', 'Color', 'Ironmongery', 'Qty', 'Price']],
-                body: tableData,
-                headStyles: { fillColor: [15, 49, 36] },
-                styles: { fontSize: 8 },
-                columnStyles: {
-                    0: { cellWidth: 20 },
-                    4: { cellWidth: 40 }
+                if (item.original_width && item.original_height && (item.original_width !== item.width || item.original_height !== item.height)) {
+                    rows[0] = ['Window Size (Frame)', `${item.width}mm × ${item.height}mm`];
+                    rows.push(['Structural Opening', `${item.original_width}mm × ${item.original_height}mm`]);
                 }
+                rows.push(
+                    ['Frame', `${item.frame_type || 'standard'} (164mm)`],
+                    ['Opening', p.opening],
+                    ['Glass', item.glass_type || 'double'],
+                    ['Glass Spec', item.glass_spec || 'standard'],
+                    ['Spacer Bar', p.spacerText],
+                    ['Colour', p.color],
+                    ['Georgian Bars', p.barsText],
+                    ['PAS24', item.pas24 ? 'Yes' : 'No'],
+                    ['Horns', p.hornsText],
+                    ['Ironmongery', p.ironText],
+                    ['Price', `£${this.formatPrice(item.total_price)} + VAT`]
+                );
+
+                doc.autoTable({
+                    startY: yPos,
+                    body: rows,
+                    theme: 'plain',
+                    styles: { fontSize: 8, cellPadding: 1.5 },
+                    columnStyles: {
+                        0: { fontStyle: 'bold', cellWidth: 40, textColor: [100, 100, 100] },
+                        1: { cellWidth: 140 }
+                    },
+                    margin: { left: 14 }
+                });
+
+                yPos = doc.lastAutoTable.finalY + 8;
             });
+
+            // Totals with VAT
+            if (yPos > 250) { doc.addPage(); yPos = 20; }
             
-            // Total
-            const finalY = doc.lastAutoTable.finalY + 10;
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Total: £${this.formatPrice(estimate.total_price)}`, 196, finalY, { align: 'right' });
+            doc.setDrawColor(10, 22, 40);
+            doc.line(14, yPos, 196, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Subtotal (excl. VAT):', 140, yPos, { align: 'right' });
+            doc.setTextColor(10, 22, 40);
+            doc.text(`£${this.formatPrice(estimate.total_price)}`, 196, yPos, { align: 'right' });
+            yPos += 6;
+
+            doc.setTextColor(100, 100, 100);
+            doc.text('VAT (20%):', 140, yPos, { align: 'right' });
+            doc.setTextColor(10, 22, 40);
+            doc.text(`£${this.formatPrice(estimate.total_price * 0.2)}`, 196, yPos, { align: 'right' });
+            yPos += 8;
+
+            doc.setFontSize(13);
+            doc.setTextColor(10, 22, 40);
+            doc.text('Total (incl. VAT):', 140, yPos, { align: 'right' });
+            doc.text(`£${this.formatPrice(estimate.total_price * 1.2)}`, 196, yPos, { align: 'right' });
             
             // Footer
-            doc.setFontSize(9);
-            doc.setTextColor(100, 100, 100);
-            doc.text('Skylon Timber & Glazing | A trading name of Skylon Joinery LTD', 105, 285, { align: 'center' });
-            doc.text('info@skylonjoinery.co.uk | 07842 510 060', 105, 290, { align: 'center' });
+            doc.setFontSize(8);
+            doc.setTextColor(140, 140, 140);
+            doc.text('Prime Sash Windows | A trading name of Skylon Joinery LTD', 105, 282, { align: 'center' });
+            doc.text('info@skylonjoinery.co.uk | 07842 510 060 | 01992 450 848', 105, 287, { align: 'center' });
+            doc.text('Unit 3, Leaside Industrial Park, Sedge Green, Nazeing, EN9 2BF', 105, 292, { align: 'center' });
             
-            // Download
             doc.save(`Estimate_${estimate.estimate_number || estimate.id.substring(0, 8)}.pdf`);
             
         } catch (error) {
@@ -858,60 +940,58 @@ class CustomerDashboard {
     // Download estimate as Excel
     downloadEstimateExcel(estimate) {
         try {
-            // Prepare data
             const wsData = [
-                ['Skylon Timber & Glazing - Estimate'],
+                ['Prime Sash Windows — Estimate'],
+                ['A trading name of Skylon Joinery LTD'],
                 [''],
-                ['Estimate Number:', estimate.estimate_number || estimate.id.substring(0, 8).toUpperCase()],
+                ['Estimate Number:', estimate.estimate_number || ''],
                 ['Project:', estimate.project_name || '-'],
                 ['Address:', estimate.delivery_address || '-'],
                 ['Date:', new Date(estimate.created_at).toLocaleDateString('en-GB')],
                 ['Status:', this.getStatusConfig(estimate.status).label],
-                [''],
-                ['Windows:'],
-                ['Window', 'Width (mm)', 'Height (mm)', 'Frame', 'Glass', 'Color', 'Ironmongery', 'Qty', 'Price']
+                ['']
             ];
-            
+
+            // Header row
+            wsData.push(['Window', 'Width', 'Height', 'Frame', 'Glass', 'Glass Spec', 'Spacer', 'Opening', 'Colour', 'Bars', 'PAS24', 'Horns', 'Ironmongery', 'Qty', 'Price + VAT']);
+
             estimate.estimate_items?.forEach(item => {
-                let ironmongeryText = '';
-                if (item.ironmongery) {
-                    try {
-                        const ironData = typeof item.ironmongery === 'string' ? JSON.parse(item.ironmongery) : item.ironmongery;
-                        if (ironData?.products) {
-                            ironmongeryText = Object.values(ironData.products).map(p => `${p.quantity}x ${p.product.name}`).join(', ');
-                        }
-                    } catch(e) {}
-                }
-                
+                const p = this._parseItemForExport(item);
                 wsData.push([
                     item.window_number,
                     item.width,
                     item.height,
-                    item.frame_type,
-                    item.glass_type,
-                    item.color_type === 'single' ? item.color_single : `${item.color_interior}/${item.color_exterior}`,
-                    ironmongeryText || '-',
+                    item.frame_type || 'standard',
+                    item.glass_type || 'double',
+                    item.glass_spec || 'standard',
+                    p.spacerText,
+                    p.opening,
+                    p.color,
+                    p.barsText,
+                    item.pas24 ? 'Yes' : 'No',
+                    p.hornsText,
+                    p.ironText,
                     item.quantity,
-                    item.total_price
+                    parseFloat(item.total_price) || 0
                 ]);
             });
             
             wsData.push(['']);
-            wsData.push(['', '', '', '', '', '', '', 'TOTAL:', estimate.total_price]);
+            wsData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', 'Subtotal:', parseFloat(estimate.total_price) || 0]);
+            wsData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', 'VAT (20%):', (parseFloat(estimate.total_price) || 0) * 0.2]);
+            wsData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', 'Total incl. VAT:', (parseFloat(estimate.total_price) || 0) * 1.2]);
             
-            // Create workbook
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             
-            // Set column widths
             ws['!cols'] = [
-                { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
-                { wch: 12 }, { wch: 20 }, { wch: 35 }, { wch: 6 }, { wch: 12 }
+                { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 10 },
+                { wch: 10 }, { wch: 12 }, { wch: 8 }, { wch: 14 },
+                { wch: 25 }, { wch: 20 }, { wch: 6 }, { wch: 10 },
+                { wch: 40 }, { wch: 5 }, { wch: 12 }
             ];
             
             XLSX.utils.book_append_sheet(wb, ws, 'Estimate');
-            
-            // Download
             XLSX.writeFile(wb, `Estimate_${estimate.estimate_number || estimate.id.substring(0, 8)}.xlsx`);
             
         } catch (error) {
