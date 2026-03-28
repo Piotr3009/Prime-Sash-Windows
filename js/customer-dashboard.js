@@ -336,34 +336,73 @@ class CustomerDashboard {
         const content = document.getElementById('order-detail-content');
 
         const itemsHTML = estimate.estimate_items?.map(item => {
-            // Parse ironmongery
+            // Parse specification and fullConfig (contains ALL real data)
+            const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
+            const fc = spec.fullConfig || spec || {};
+
+            // IRONMONGERY — read from fullConfig if top-level is null
             let ironList = [];
-            if (item.ironmongery) {
+            let ironSource = item.ironmongery;
+            if (!ironSource && fc.ironmongery) {
+                ironSource = fc.ironmongery;
+            }
+            if (ironSource) {
                 try {
-                    const ironData = typeof item.ironmongery === 'string' ? JSON.parse(item.ironmongery) : item.ironmongery;
-                    if (ironData && ironData.products) {
-                        ironList = Object.values(ironData.products).map(p => ({
-                            name: p.product.name,
-                            qty: p.quantity,
-                            img: p.product.image_url || p.product.image || ''
+                    const ironData = typeof ironSource === 'string' ? JSON.parse(ironSource) : ironSource;
+                    // Handle both formats: {products: {...}} and {lock: {...}, fingerLift: {...}}
+                    const entries = ironData.products ? Object.values(ironData.products) : Object.values(ironData);
+                    ironList = entries
+                        .filter(p => p && p.name) // skip nulls (e.g. horns: null)
+                        .map(p => ({
+                            name: p.product ? p.product.name : p.name,
+                            qty: p.quantity || 1,
+                            img: p.product ? (p.product.image_url || p.product.image || '') : (p.image_url || p.image || ''),
+                            color: p.product ? p.product.color : p.color
                         }));
-                    }
-                } catch(e) {}
+                } catch(e) { console.warn('Ironmongery parse error:', e); }
             }
 
-            // Color display — extract actual color names
+            // IRONMONGERY FINISH — derive from products if not set
+            let hardwareFinish = item.ironmongery_finish || fc.ironmongeryFinish;
+            if (!hardwareFinish && ironList.length > 0) {
+                const colors = [...new Set(ironList.map(p => p.color).filter(Boolean))];
+                hardwareFinish = colors.length > 0 ? colors.join(' / ') : null;
+            }
+
+            // COLOR — read actual color names from fullConfig
             let colorDisplay = '';
-            const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
-            
-            if (item.color_type === 'single') {
-                const colorName = spec.colorSingleName || item.color_single || 'White';
-                colorDisplay = colorName === 'custom' ? (spec.colorSingleName || item.color_exterior || item.color_interior || 'Custom') : colorName;
+            if (item.color_type === 'single' || fc.colorType === 'single') {
+                if (fc.singleColor && fc.singleColor !== 'custom' && fc.singleColor !== 'white') {
+                    colorDisplay = fc.colorSingleName || fc.singleColor;
+                } else if (fc.singleColor === 'white') {
+                    colorDisplay = 'Pure White';
+                } else if (spec.colorSingleName && spec.colorSingleName !== 'Custom Color') {
+                    colorDisplay = spec.colorSingleName;
+                } else if (fc.exteriorColor || fc.interiorColor) {
+                    // "custom" but has actual colors in fullConfig
+                    const ext = fc.exteriorColor || '—';
+                    const int = fc.interiorColor || '—';
+                    if (ext === int) {
+                        colorDisplay = ext.charAt(0).toUpperCase() + ext.slice(1);
+                    } else {
+                        colorDisplay = `Ext: ${ext} / Int: ${int}`;
+                    }
+                } else {
+                    colorDisplay = item.color_single || 'White';
+                }
             } else {
-                const extName = spec.colorExteriorName || item.color_exterior || '—';
-                const intName = spec.colorInteriorName || item.color_interior || '—';
+                const extName = fc.colorExteriorName || fc.exteriorColor || item.color_exterior || '—';
+                const intName = fc.colorInteriorName || fc.interiorColor || item.color_interior || '—';
                 colorDisplay = `Ext: ${extName} / Int: ${intName}`;
                 if (item.custom_exterior_color) colorDisplay += ` (Custom: ${item.custom_exterior_color})`;
             }
+
+            // HORNS — read from fullConfig if null
+            const horns = item.horns || fc.horns || 'none';
+
+            // FROSTED — only show if glass_finish is NOT clear
+            const glassFinish = item.glass_finish || fc.glassFinish || 'clear';
+            const showFrosted = glassFinish !== 'clear' && item.frosted_location;
 
             // Opening display
             const openingLabels = { both: 'Both Sashes', bottom: 'Bottom Only', fixed: 'Fixed', top: 'Top Only' };
@@ -392,13 +431,13 @@ class CustomerDashboard {
                             ${this.specRow('Opening', openingText)}
                             ${this.specRow('Glass', `${item.glass_type || 'double'}${item.glass_type === 'double' ? ' (4/16/4, U:1.4)' : item.glass_type === 'triple' ? ' (Triple)' : ''}`)}
                             ${item.glass_spec ? this.specRow('Glass Spec', item.glass_spec) : ''}
-                            ${item.glass_finish && item.glass_finish !== 'clear' ? this.specRow('Glass Finish', item.glass_finish) : ''}
-                            ${item.frosted_location ? this.specRow('Frosted', item.frosted_location) : ''}
+                            ${glassFinish !== 'clear' ? this.specRow('Glass Finish', glassFinish) : ''}
+                            ${showFrosted ? this.specRow('Frosted', item.frosted_location) : ''}
                             ${this.specRow('Colour', colorDisplay)}
                             ${item.upper_bars && item.upper_bars !== 'none' ? this.specRow('Georgian Bars', `Upper: ${item.upper_bars}, Lower: ${item.lower_bars || item.upper_bars}`) : this.specRow('Georgian Bars', 'None')}
                             ${this.specRow('PAS24', item.pas24 ? 'Yes ✓' : 'No')}
-                            ${item.horns && item.horns !== 'none' ? this.specRow('Horns', item.horns) : this.specRow('Horns', 'None')}
-                            ${item.ironmongery_finish ? this.specRow('Hardware Finish', item.ironmongery_finish) : ''}
+                            ${horns && horns !== 'none' ? this.specRow('Horns', horns) : this.specRow('Horns', 'None')}
+                            ${hardwareFinish ? this.specRow('Hardware Finish', hardwareFinish) : ''}
                         </div>
 
                         ${ironList.length > 0 ? `
