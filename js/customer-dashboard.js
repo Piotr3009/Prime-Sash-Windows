@@ -335,157 +335,228 @@ class CustomerDashboard {
         const modal = document.getElementById('order-modal');
         const content = document.getElementById('order-detail-content');
 
-        // Color to RAL mapping
-        const colorRAL = {
-            'Pure White': 'RAL 9016',
-            'Jet Black': 'RAL 9005',
-            'Anthracite Grey': 'RAL 7016',
-            'Olive Green': 'RAL 6003',
-            'Off-White': 'RAL 9010',
-            'Cream': 'RAL 9001',
-            'Burgundy Red': 'RAL 3005',
-            'Royal Blue': 'RAL 5002'
-        };
-
         const itemsHTML = estimate.estimate_items?.map(item => {
-            // Parse ironmongery if it's a JSON string
-            let ironmongeryDisplay = '';
-            let ironmongeryThumbnails = '';
+            // Parse ironmongery
+            let ironList = [];
             if (item.ironmongery) {
                 try {
                     const ironData = typeof item.ironmongery === 'string' ? JSON.parse(item.ironmongery) : item.ironmongery;
                     if (ironData && ironData.products) {
-                        const productsList = Object.values(ironData.products).map(p => 
-                            `${p.quantity}x ${p.product.name}`
-                        ).join(', ');
-                        ironmongeryDisplay = productsList;
-                        
-                        // Generate thumbnails
-                        ironmongeryThumbnails = `
-                            <div class="ironmongery-thumbnails" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-                                ${Object.values(ironData.products).map(p => {
-                                    const imgSrc = p.product.image_url || p.product.image || 'img/placeholder.png';
-                                    const qty = p.quantity;
-                                    return `
-                                        <div style="position: relative; width: 50px; height: 50px;">
-                                            <img src="${imgSrc}" 
-                                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;"
-                                                 onerror="this.src='img/placeholder.png'"
-                                                 title="${p.product.name}">
-                                            ${qty > 1 ? `<span style="position: absolute; top: -5px; right: -5px; background: var(--primary-color, #0F3124); color: white; font-size: 10px; padding: 2px 5px; border-radius: 50%; min-width: 16px; text-align: center;">${qty}</span>` : ''}
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        `;
+                        ironList = Object.values(ironData.products).map(p => ({
+                            name: p.product.name,
+                            qty: p.quantity,
+                            img: p.product.image_url || p.product.image || ''
+                        }));
                     }
-                } catch(e) {
-                    ironmongeryDisplay = typeof item.ironmongery === 'string' ? item.ironmongery : JSON.stringify(item.ironmongery);
-                }
+                } catch(e) {}
             }
 
-            // Get measurement type display text
-            const measurementDisplay = item.measurement_type === 'brick-to-brick' ? 'Brick-to-Brick' : 
-                                      item.measurement_type === 'box-to-box' ? 'Box-to-Box' : 
-                                      item.measurement_type === 'sight-size' ? 'Sight Size' : 
-                                      'Framed Dimension';
+            // Color display
+            let colorDisplay = '';
+            if (item.color_type === 'single') {
+                colorDisplay = item.color_single || 'White';
+            } else if (item.color_type === 'dual' || item.color_type === 'custom') {
+                colorDisplay = `Ext: ${item.color_exterior || '—'} / Int: ${item.color_interior || '—'}`;
+            }
+
+            // Opening display
+            const openingLabels = { both: 'Both Sashes', bottom: 'Bottom Only', fixed: 'Fixed', top: 'Top Only' };
+            const openingText = openingLabels[item.opening_type] || item.opening_type || '—';
+
+            // Generate SVG window drawing
+            const svg = this.generateWindowSVG(item);
 
             return `
-            <div class="order-item-detail">
-                <h4>Window ${item.window_number}</h4>
-                <div class="item-specs">
-                    <p><strong>${measurementDisplay}:</strong> ${item.width}mm × ${item.height}mm</p>
-                    ${item.original_width && item.original_height && (item.original_width !== item.width || item.original_height !== item.height) ? 
-                        `<p><strong>Original Dimensions:</strong> ${item.original_width}mm × ${item.original_height}mm</p>` : ''
-                    }
-                    <p><strong>Frame:</strong> ${item.frame_type} (164mm deep)</p>
-                    <p><strong>Glass:</strong> ${item.glass_type}${item.glass_type === 'double' ? ' (standard 4x16x4mm, U-value 1.4)' : ''}</p>
-                    ${item.glass_spec ? `<p><strong>Glass Spec:</strong> ${item.glass_spec}</p>` : ''}
-                    ${item.glass_finish && item.glass_finish !== 'clear' ? `<p><strong>Glass Finish:</strong> ${item.glass_finish}</p>` : ''}
-                    ${item.frosted_location ? `<p><strong>Frosted Location:</strong> ${item.frosted_location}</p>` : ''}
-                    ${item.opening_type ? `<p><strong>Opening:</strong> ${item.opening_type}</p>` : ''}
-                    ${item.color_type === 'single' ? 
-                        `<p><strong>Color:</strong> ${item.color_single}${colorRAL[item.color_single] ? ' (' + colorRAL[item.color_single] + ')' : ''}</p>` : 
-                        `<p><strong>Interior:</strong> ${item.color_interior}${colorRAL[item.color_interior] ? ' (' + colorRAL[item.color_interior] + ')' : ''}<br><strong>Exterior:</strong> ${item.color_exterior}${colorRAL[item.color_exterior] ? ' (' + colorRAL[item.color_exterior] + ')' : ''}${item.custom_exterior_color ? ' [Custom: ' + item.custom_exterior_color + ']' : ''}</p>`
-                    }
-                    ${item.upper_bars || item.lower_bars ? 
-                        `<p><strong>Georgian Bars:</strong> Upper: ${item.upper_bars || 'None'}, Lower: ${item.lower_bars || 'None'}</p>` : ''
-                    }
-                    ${item.horns ? `<p><strong>Horns:</strong> ${item.horns}</p>` : ''}
-                    ${ironmongeryDisplay ? `<p><strong>Ironmongery:</strong> ${ironmongeryDisplay}</p>${ironmongeryThumbnails}` : ''}
-                    ${item.ironmongery_finish ? `<p><strong>Ironmongery Finish:</strong> ${item.ironmongery_finish}</p>` : ''}
-                    ${item.pas24 ? `<p><strong>PAS24:</strong> Yes ✓</p>` : ''}
-                    <p><strong>Quantity:</strong> ${item.quantity}</p>
-                    <p class="item-price"><strong>Price:</strong> £${this.formatPrice(item.total_price)}</p>
+            <div style="background:var(--cream2);border:1px solid rgba(158,158,144,.15);margin-bottom:1.5rem;padding:0;border-radius:2px;overflow:hidden;">
+                <!-- Window header -->
+                <div style="background:var(--navy);padding:.8rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-family:'Jost',sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#fff;">Window ${item.window_number}</span>
+                    <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${item.quantity} · £${this.formatPrice(item.total_price)}</span>
+                </div>
+
+                <div style="display:grid;grid-template-columns:220px 1fr;gap:0;">
+                    <!-- LEFT: SVG Drawing -->
+                    <div style="padding:1.5rem;display:flex;align-items:center;justify-content:center;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);">
+                        ${svg}
+                    </div>
+
+                    <!-- RIGHT: Specs -->
+                    <div style="padding:1.5rem;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
+                            ${this.specRow('Dimensions', `${item.width}mm × ${item.height}mm`)}
+                            ${item.original_width && item.original_height && (item.original_width !== item.width || item.original_height !== item.height) ? this.specRow('Structural Opening', `${item.original_width}mm × ${item.original_height}mm`) : ''}
+                            ${this.specRow('Frame', `${item.frame_type || 'standard'} (164mm)`)}
+                            ${this.specRow('Opening', openingText)}
+                            ${this.specRow('Glass', `${item.glass_type || 'double'}${item.glass_type === 'double' ? ' (4/16/4, U:1.4)' : ''}`)}
+                            ${item.glass_spec ? this.specRow('Glass Spec', item.glass_spec) : ''}
+                            ${item.glass_finish && item.glass_finish !== 'clear' ? this.specRow('Glass Finish', item.glass_finish) : ''}
+                            ${item.frosted_location ? this.specRow('Frosted', item.frosted_location) : ''}
+                            ${this.specRow('Colour', colorDisplay || 'White')}
+                            ${item.upper_bars || item.lower_bars ? this.specRow('Georgian Bars', `Upper: ${item.upper_bars || 'none'}, Lower: ${item.lower_bars || 'none'}`) : this.specRow('Georgian Bars', 'None')}
+                            ${item.bar_width ? this.specRow('Bar Width', item.bar_width + 'mm') : ''}
+                            ${this.specRow('PAS24', item.pas24 ? 'Yes ✓' : 'No')}
+                            ${item.horns ? this.specRow('Horns', item.horns) : this.specRow('Horns', 'None')}
+                            ${item.ironmongery_finish ? this.specRow('Hardware Finish', item.ironmongery_finish) : ''}
+                        </div>
+
+                        ${ironList.length > 0 ? `
+                        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(158,158,144,.15);">
+                            <div style="font-family:'Jost',sans-serif;font-size:.60rem;letter-spacing:.2em;text-transform:uppercase;color:var(--silver);margin-bottom:.5rem;">Ironmongery</div>
+                            <div style="display:flex;flex-wrap:wrap;gap:.8rem;">
+                                ${ironList.map(p => `
+                                    <div style="display:flex;align-items:center;gap:.5rem;font-family:'Jost',sans-serif;font-size:.78rem;color:var(--navy);">
+                                        ${p.img ? `<img src="${p.img}" style="width:36px;height:36px;object-fit:cover;border:1px solid rgba(158,158,144,.2);border-radius:2px;" onerror="this.style.display='none'">` : ''}
+                                        <span>${p.qty > 1 ? p.qty + 'x ' : ''}${p.name}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
-        `}).join('') || '<p>No windows in this estimate</p>';
+            `;
+        }).join('') || '<p style="text-align:center;color:var(--muted);padding:2rem;">No windows in this estimate</p>';
 
         content.innerHTML = `
-            <h2>Estimate ${estimate.estimate_number || estimate.id.substring(0, 8).toUpperCase()}</h2>
-            <div class="detail-status">
-                <span class="status-badge status-${estimate.status}">${this.getStatusConfig(estimate.status).label}</span>
+            <!-- HEADER -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(158,158,144,.2);">
+                <div>
+                    <div style="font-family:'Jost',sans-serif;font-size:.50rem;letter-spacing:.5em;text-transform:uppercase;color:var(--silver);margin-bottom:.5rem;">Prime Sash Windows</div>
+                    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--navy);">Estimate ${estimate.estimate_number || ''}</div>
+                    <div style="font-family:'Jost',sans-serif;font-size:.78rem;color:var(--muted);margin-top:.3rem;">
+                        Created ${new Date(estimate.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}
+                        ${estimate.project_name ? ` · ${estimate.project_name}` : ''}
+                    </div>
+                </div>
+                <span class="estimate-status status-${estimate.status}" style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;padding:.4rem 1rem;">${this.getStatusConfig(estimate.status).label}</span>
             </div>
-            
-            ${estimate.project_name ? `
-            <div class="detail-section">
-                <h3>Project Information</h3>
-                <p><strong>Project:</strong> ${estimate.project_name}</p>
-                ${estimate.delivery_address ? `<p><strong>Address:</strong> ${estimate.delivery_address}</p>` : ''}
-                ${estimate.notes ? `<p><strong>Notes:</strong> ${estimate.notes}</p>` : ''}
+
+            ${estimate.delivery_address || estimate.notes ? `
+            <div style="background:var(--cream2);padding:1.2rem 1.5rem;margin-bottom:2rem;border-left:3px solid var(--silver);">
+                ${estimate.delivery_address ? `<div style="font-family:'Jost',sans-serif;font-size:.82rem;color:var(--muted);"><strong style="color:var(--navy);">Address:</strong> ${estimate.delivery_address}</div>` : ''}
+                ${estimate.notes ? `<div style="font-family:'Jost',sans-serif;font-size:.82rem;color:var(--muted);margin-top:.3rem;"><strong style="color:var(--navy);">Notes:</strong> ${estimate.notes}</div>` : ''}
             </div>
             ` : ''}
-            
-            <div class="detail-section">
-                <h3>Windows (${estimate.estimate_items?.length || 0})</h3>
-                ${itemsHTML}
+
+            <!-- WINDOWS -->
+            <div style="font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:var(--silver);margin-bottom:1rem;">Windows · ${estimate.estimate_items?.length || 0}</div>
+            ${itemsHTML}
+
+            <!-- SUMMARY -->
+            <div style="display:flex;justify-content:flex-end;padding:1.5rem 0;border-top:2px solid var(--navy);margin-top:1rem;">
+                <div style="text-align:right;">
+                    <div style="font-family:'Jost',sans-serif;font-size:.60rem;letter-spacing:.3em;text-transform:uppercase;color:var(--silver);">Estimate Total</div>
+                    <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--navy);">£${this.formatPrice(estimate.total_price)}</div>
+                </div>
             </div>
 
-            <div class="detail-section">
-                <h3>Estimate Summary</h3>
-                <div class="summary-row total">
-                    <span><strong>Total Price:</strong></span>
-                    <span><strong>£${this.formatPrice(estimate.total_price)}</strong></span>
-                </div>
-                ${estimate.valid_until ? `
-                <div class="summary-row">
-                    <span>Valid Until:</span>
-                    <span>${new Date(estimate.valid_until).toLocaleDateString('en-GB')}</span>
-                </div>
-                ` : ''}
-            </div>
-
-            <div class="modal-actions">
-                ${estimate.status === 'draft' ? `
-                    <button class="btn" onclick="dashboard.submitEstimate('${estimate.id}')">
-                        Submit for Quote
-                    </button>
-                ` : ''}
-                <button class="btn btn-secondary" id="download-estimate-pdf">
-                    📄 Download PDF
-                </button>
-                <button class="btn btn-secondary" id="download-estimate-excel">
-                    📊 Download Excel
-                </button>
-                <button class="btn-secondary" onclick="dashboard.closeModal()">
-                    Close
-                </button>
+            <!-- ACTIONS -->
+            <div style="display:flex;gap:1rem;justify-content:center;padding-top:1.5rem;border-top:1px solid rgba(158,158,144,.15);">
+                <button class="btn-sm" id="download-estimate-pdf">Download PDF</button>
+                <button class="btn-sm" id="download-estimate-excel">Download Excel</button>
+                <button class="btn-sm" onclick="dashboard.closeModal()">Close</button>
             </div>
         `;
 
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
         
-        // Attach PDF download listener
         const pdfBtn = document.getElementById('download-estimate-pdf');
         if (pdfBtn) {
             pdfBtn.addEventListener('click', () => this.downloadEstimatePDF(estimate));
         }
         
-        // Attach Excel download listener
         const excelBtn = document.getElementById('download-estimate-excel');
         if (excelBtn) {
             excelBtn.addEventListener('click', () => this.downloadEstimateExcel(estimate));
         }
+    }
+
+    // Generate spec row HTML
+    specRow(label, value) {
+        return `<div style="padding:.35rem 0;border-bottom:1px solid rgba(158,158,144,.08);">
+            <div style="font-family:'Jost',sans-serif;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);">${label}</div>
+            <div style="font-family:'Jost',sans-serif;font-size:.82rem;color:var(--navy);">${value}</div>
+        </div>`;
+    }
+
+    // Generate simple SVG window drawing
+    generateWindowSVG(item) {
+        const maxW = 180, maxH = 180;
+        const w = item.width || 1000;
+        const h = item.height || 1500;
+        const ratio = Math.min(maxW / w, maxH / h);
+        const sw = Math.round(w * ratio);
+        const sh = Math.round(h * ratio);
+        const ox = Math.round((maxW - sw) / 2);
+        const oy = Math.round((maxH - sh) / 2);
+        const meetingY = Math.round(sh * 0.45); // meeting rail at ~45%
+        const stroke = 'rgba(10,22,40,.6)';
+        const light = 'rgba(10,22,40,.15)';
+        const frame = 6;
+
+        // Parse bars
+        const parsePattern = (p) => { if (!p || p === 'none') return {h:0,v:0}; const m = p.match(/(\d+)x(\d+)/); return m ? {h:parseInt(m[1]),v:parseInt(m[2])} : {h:0,v:0}; };
+        const upper = parsePattern(item.upper_bars);
+        const lower = parsePattern(item.lower_bars);
+
+        let bars = '';
+        // Upper sash bars (above meeting rail)
+        if (upper.h > 0) {
+            for (let i = 1; i <= upper.h; i++) {
+                const x = ox + frame + (sw - 2*frame) * i / (upper.h + 1);
+                bars += `<line x1="${x}" y1="${oy + frame}" x2="${x}" y2="${oy + meetingY}" stroke="${light}" stroke-width="1"/>`;
+            }
+        }
+        if (upper.v > 0) {
+            for (let i = 1; i <= upper.v; i++) {
+                const y = oy + frame + (meetingY - frame) * i / (upper.v + 1);
+                bars += `<line x1="${ox + frame}" y1="${y}" x2="${ox + sw - frame}" y2="${y}" stroke="${light}" stroke-width="1"/>`;
+            }
+        }
+        // Lower sash bars (below meeting rail)
+        if (lower.h > 0) {
+            for (let i = 1; i <= lower.h; i++) {
+                const x = ox + frame + (sw - 2*frame) * i / (lower.h + 1);
+                bars += `<line x1="${x}" y1="${oy + meetingY}" x2="${x}" y2="${oy + sh - frame}" stroke="${light}" stroke-width="1"/>`;
+            }
+        }
+        if (lower.v > 0) {
+            for (let i = 1; i <= lower.v; i++) {
+                const y = oy + meetingY + (sh - meetingY - frame) * i / (lower.v + 1);
+                bars += `<line x1="${ox + frame}" y1="${y}" x2="${ox + sw - frame}" y2="${y}" stroke="${light}" stroke-width="1"/>`;
+            }
+        }
+
+        // Opening arrows
+        let arrows = '';
+        const arrowX = ox + sw + 10;
+        if (item.opening_type === 'both') {
+            arrows += `<text x="${arrowX}" y="${oy + meetingY/2}" font-size="9" fill="${stroke}" text-anchor="middle">↑</text>`;
+            arrows += `<text x="${arrowX}" y="${oy + meetingY + (sh - meetingY)/2}" font-size="9" fill="${stroke}" text-anchor="middle">↓</text>`;
+        } else if (item.opening_type === 'bottom') {
+            arrows += `<text x="${arrowX}" y="${oy + meetingY + (sh - meetingY)/2}" font-size="9" fill="${stroke}" text-anchor="middle">↓</text>`;
+        } else if (item.opening_type === 'fixed') {
+            arrows += `<text x="${arrowX}" y="${oy + sh/2}" font-size="7" fill="rgba(10,22,40,.3)" text-anchor="middle">FIX</text>`;
+        }
+
+        // Dimension labels
+        const dimW = `<text x="${ox + sw/2}" y="${oy + sh + 14}" font-family="Jost,sans-serif" font-size="8" fill="rgba(10,22,40,.4)" text-anchor="middle">${w}mm</text>`;
+        const dimH = `<text x="${ox - 8}" y="${oy + sh/2}" font-family="Jost,sans-serif" font-size="8" fill="rgba(10,22,40,.4)" text-anchor="middle" transform="rotate(-90,${ox - 8},${oy + sh/2})">${h}mm</text>`;
+
+        return `<svg width="${maxW + 25}" height="${maxH + 20}" viewBox="0 0 ${maxW + 25} ${maxH + 20}" xmlns="http://www.w3.org/2000/svg">
+            <!-- Frame -->
+            <rect x="${ox}" y="${oy}" width="${sw}" height="${sh}" fill="none" stroke="${stroke}" stroke-width="2" rx="1"/>
+            <!-- Inner frame -->
+            <rect x="${ox + frame}" y="${oy + frame}" width="${sw - 2*frame}" height="${meetingY - frame}" fill="rgba(200,220,240,.15)" stroke="${light}" stroke-width="0.5"/>
+            <rect x="${ox + frame}" y="${oy + meetingY}" width="${sw - 2*frame}" height="${sh - meetingY - frame}" fill="rgba(200,220,240,.1)" stroke="${light}" stroke-width="0.5"/>
+            <!-- Meeting rail -->
+            <line x1="${ox}" y1="${oy + meetingY}" x2="${ox + sw}" y2="${oy + meetingY}" stroke="${stroke}" stroke-width="2"/>
+            ${bars}
+            ${arrows}
+            ${dimW}
+            ${dimH}
+        </svg>`;
     }
 
     // Close modal
