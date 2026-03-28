@@ -1,150 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-S88RZLHQL2"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-S88RZLHQL2');
-    </script>
-    
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Prime Sash Windows - PAS24 & FENSA Certified for your peace of mind" />
-    <title>PAS24 & FENSA Certifications | Prime Sash Windows</title>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S88RZLHQL2');</script>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Certifications, technology and manufacturing behind Prime Sash Windows. FENSA, PAS24, Made in Britain certified. Lignum system by The Joinery Network."/>
+    <title>Certifications & Technology | Prime Sash Windows</title>
+    <meta property="og:title" content="Certifications & Technology | Prime Sash Windows"/>
+    <meta property="og:description" content="FENSA, PAS24, Made in Britain. Lignum timber window system. Premium manufacturing technology."/>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css?v=2">
-    
-    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
-.login-button-top {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-}
-.login-button-top button {
-    padding: 12px 25px;
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-weight: 600;
-    transition: all 0.3s;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    cursor: pointer;
-}
-.login-button-top button:hover {
-    background: #071020;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
+    :root{--navy:#0A1628;--cream:#F3F0EA;--cream2:#EDEBE5;--silver:#9E9E90;--muted:#84837C;}
+    .page-hero{background:linear-gradient(135deg,var(--navy) 0%,#15243d 100%);padding:clamp(4rem,10vw,7rem) 2rem clamp(3rem,6vw,5rem);text-align:center;}
+    .page-hero .eyebrow{font-family:'Jost',sans-serif;font-size:.52rem;letter-spacing:.6em;text-transform:uppercase;color:var(--silver);margin-bottom:2rem;}
+    .page-hero h1{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(2rem,5vw,3.4rem);color:#fff;line-height:1.15;margin:0 auto 1.5rem;}
+    .page-hero h1 .silver{color:var(--silver);}
+    .page-hero .hero-subtitle{font-size:1.26rem;line-height:1.95;color:rgba(255,255,255,.5);max-width:720px;margin:0 auto;}
+    .badges-row{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:3rem;padding:2.5rem 2rem;background:var(--cream2);}
+    .badges-row img{height:70px;object-fit:contain;}
+    .section-nav{display:flex;justify-content:center;gap:2.5rem;padding:1.5rem 2rem;background:var(--cream);border-bottom:1px solid rgba(158,158,144,.3);}
+    .section-nav a{font-family:'Jost',sans-serif;font-size:.68rem;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .3s;}
+    .section-nav a:hover{color:var(--navy);}
+    .cert-section{max-width:960px;margin:0 auto;padding:4rem 2rem;}
+    .cert-section+.cert-section{padding-top:0;}
+    .section-eyebrow{font-family:'Jost',sans-serif;font-size:.48rem;letter-spacing:.5em;text-transform:uppercase;color:var(--silver);margin-bottom:1rem;}
+    .section-h2{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(1.6rem,3vw,2.4rem);color:var(--navy);margin:0 0 1.5rem;line-height:1.2;}
+    .section-text{font-family:'Jost',sans-serif;font-size:.92rem;line-height:2;color:var(--muted);margin-bottom:1.5rem;}
+    .section-text strong{color:var(--navy);font-weight:500;}
+    .cert-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin:3rem 0;}
+    .cert-card{background:var(--cream2);padding:2.5rem 2rem;text-align:center;border-radius:2px;border:1px solid rgba(158,158,144,.15);}
+    .cert-card img{height:60px;margin-bottom:1.5rem;object-fit:contain;}
+    .cert-card h3{font-family:'Jost',sans-serif;font-size:.82rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--navy);margin:0 0 1rem;}
+    .cert-card p{font-family:'Jost',sans-serif;font-size:.82rem;line-height:1.85;color:var(--muted);}
+    .tech-section{background:var(--navy);max-width:100%;padding:5rem 2rem;}
+    .tech-inner{max-width:960px;margin:0 auto;}
+    .tech-section .section-eyebrow{color:rgba(255,255,255,.3);}
+    .tech-section .section-h2{color:#fff;}
+    .tech-section .section-text{color:rgba(255,255,255,.55);}
+    .tech-section .section-text strong{color:rgba(255,255,255,.85);}
+    .tech-section .section-text a{color:rgba(212,212,200,.8);text-decoration:underline;text-decoration-color:rgba(212,212,200,.3);}
+    .tech-section .section-text a:hover{color:#fff;}
+    .tech-features{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem 3rem;margin:2.5rem 0;}
+    .tech-feature{padding:1.2rem 0;border-bottom:1px solid rgba(255,255,255,.08);}
+    .tech-feature h4{font-family:'Jost',sans-serif;font-size:.72rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.7);margin:0 0 .5rem;}
+    .tech-feature p{font-family:'Jost',sans-serif;font-size:.82rem;line-height:1.8;color:rgba(255,255,255,.4);margin:0;}
+    .partners-row{display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;margin:3rem 0 0;padding:2rem 0;border-top:1px solid rgba(255,255,255,.08);}
+    .partners-row a{font-family:'Jost',sans-serif;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);text-decoration:none;transition:color .3s;}
+    .partners-row a:hover{color:rgba(255,255,255,.8);}
+    .sustain-section{max-width:960px;margin:0 auto;padding:4rem 2rem;}
+    .sustain-points{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin:2rem 0 3rem;}
+    .sustain-point h4{font-family:'Jost',sans-serif;font-size:.72rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);margin:0 0 .5rem;}
+    .sustain-point p{font-family:'Jost',sans-serif;font-size:.84rem;line-height:1.85;color:var(--muted);margin:0;}
+    .warranty-box{background:var(--cream2);padding:2.5rem;margin:3rem 0;border-left:3px solid var(--silver);}
+    .warranty-box h3{font-family:'Jost',sans-serif;font-size:.78rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--navy);margin:0 0 1.2rem;}
+    .warranty-box p{font-family:'Jost',sans-serif;font-size:.88rem;line-height:2;color:var(--muted);margin:0;}
+    .warranty-box strong{color:var(--navy);}
+    .cta-section{text-align:center;padding:4rem 2rem;border-top:1px solid rgba(158,158,144,.2);}
+    .cta-section h2{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.8rem;color:var(--navy);margin:0 0 1rem;}
+    .cta-section p{font-family:'Jost',sans-serif;font-size:.88rem;color:var(--muted);margin:0 0 2rem;}
+    .cta-btn{display:inline-block;padding:.9rem 2.5rem;background:var(--navy);color:#fff;text-decoration:none;font-family:'Jost',sans-serif;font-size:.7rem;font-weight:400;letter-spacing:.25em;text-transform:uppercase;transition:background .3s;}
+    .cta-btn:hover{background:#15243d;}
+    @media(max-width:768px){.cert-grid{grid-template-columns:1fr;}.tech-features,.sustain-points{grid-template-columns:1fr;}.badges-row{gap:1.5rem;}.badges-row img{height:50px;}.section-nav{flex-wrap:wrap;gap:1rem;}}
     </style>
 </head>
 <body>
-    <!-- NAV -->
   <div id="nav-placeholder"></div>
   <script src="js/nav.js"></script>
 
-    <!-- Trust Badges - Top -->
-    <section style="background: #f7f9fa; padding: 2rem; text-align: center;">
-        <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 3rem; max-width: 900px; margin: 0 auto;">
-            <img src="img/MIB/fensa.webp" alt="FENSA Certified" style="height: 88px; object-fit: contain;">
-            <img src="img/MIB/PAS24.webp" alt="PAS24 Security" style="height: 88px; object-fit: contain;">
-            <img src="img/MIB/lignum.webp" alt="Lignum System" style="height: 88px; object-fit: contain;">
-            <img src="img/MIB/the joinery.webp" alt="The Joinery Network" style="height: 88px; object-fit: contain;">
-            <img src="img/MIB/mib-colour.webp" alt="Made in Britain" style="height: 88px; object-fit: contain;">
+  <section class="page-hero">
+    <p class="eyebrow">Certifications · Technology · Sustainability</p>
+    <h1>How We Build <span class="silver">Your Windows</span></h1>
+    <p class="hero-subtitle">The certifications that protect you, the technology that makes it possible, and the principles that guide every window we produce.</p>
+  </section>
+
+  <div class="badges-row">
+    <img src="img/MIB/fensa.webp" alt="FENSA Certified" loading="lazy">
+    <img src="img/MIB/PAS24.webp" alt="PAS24 Security" loading="lazy">
+    <img src="img/MIB/mib-colour.webp" alt="Made in Britain" loading="lazy">
+    <img src="img/MIB/lignum.webp" alt="Lignum System" loading="lazy">
+    <img src="img/MIB/the joinery.webp" alt="The Joinery Network" loading="lazy">
+  </div>
+
+  <div class="section-nav">
+    <a href="#certifications">Certifications</a>
+    <a href="#technology">Technology</a>
+    <a href="#sustainability">Sustainability</a>
+    <a href="#warranty">Warranty</a>
+  </div>
+
+  <!-- CERTIFICATIONS -->
+  <div class="cert-section" id="certifications">
+    <p class="section-eyebrow">Your Protection</p>
+    <h2 class="section-h2">Certifications & Accreditations</h2>
+    <p class="section-text">Every Prime Sash window is backed by independently verified certifications. These aren't marketing badges — they are legally recognised standards that protect your investment, your safety, and the value of your property.</p>
+    <div class="cert-grid">
+      <div class="cert-card">
+        <img src="img/MIB/fensa.webp" alt="FENSA">
+        <h3>FENSA</h3>
+        <p>Government-authorised scheme ensuring compliance with UK Building Regulations for all window installations. Every Prime Sash installation is automatically registered with your local authority. Essential for property sales — buyers' solicitors will request this certificate. Insurance-backed warranty included as standard.</p>
+      </div>
+      <div class="cert-card">
+        <img src="img/MIB/PAS24.webp" alt="PAS24">
+        <h3>PAS24 Security</h3>
+        <p>The UK's leading security standard for windows and doors. Our products are tested against forced entry — including mechanical attacks of up to 450kg, manual attack with tools, and impact resistance with weighted rams. Required for new builds, increasingly expected on renovations. Many insurers offer reduced premiums for PAS24 installations.</p>
+      </div>
+      <div class="cert-card">
+        <img src="img/MIB/mib-colour.webp" alt="Made in Britain">
+        <h3>Made in Britain</h3>
+        <p>Sash windows were invented in Britain over 350 years ago — and this is still the only place in the world where they are manufactured to the highest standard. Our windows are designed, engineered, tested and certified in the UK. Not imported. Not assembled from components made elsewhere. Every window carries the Made in Britain marque.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TECHNOLOGY -->
+  <section class="tech-section" id="technology">
+    <div class="tech-inner">
+      <p class="section-eyebrow">Our Manufacturing</p>
+      <h2 class="section-h2">The Lignum System & Workshop Technology</h2>
+      <p class="section-text">Our windows are manufactured using the <strong>Lignum timber window and door system</strong> — developed by <strong>Owen Dare</strong>, master of window technology and founder of <a href="https://thejoinerynetwork.co.uk/" target="_blank" rel="noopener">The Joinery Network</a>. The Lignum system was engineered from the ground up to minimise waste, eliminate unnecessary sanding and painting, and deliver a consistently premium product — every time.</p>
+      <p class="section-text">Our workshop operates in collaboration with the world's leading manufacturers of precision tooling and CNC machinery — including <a href="https://www.leitz.org/en-gb/" target="_blank" rel="noopener">Leitz</a> (Germany/UK, tooling), <a href="https://www.felder-group.com/en-gb" target="_blank" rel="noopener">Felder</a> (Austria, machinery) and <a href="https://www.biesse.com/uk/wood/" target="_blank" rel="noopener">Biesse</a> (Italy/UK, CNC machining centres). This combination of a proven window system and world-class equipment allows us to deliver <strong>premium quality at a standard price</strong> — through standardisation, efficiency, and relentless attention to process.</p>
+      <div class="tech-features">
+        <div class="tech-feature">
+          <h4>Sash Windows Only</h4>
+          <p>We specialise exclusively in timber sash windows. No casements, no PVC, no compromises. Every process in our workshop is optimised for one product — done to perfection.</p>
         </div>
-    </section>
-
-    <main class="container">
-        <section class="section">
-            <h2 class="section-title">PAS24 Security Certification</h2>
-            <p><strong>PAS24 is the UK's leading security standard</strong> for windows and doors, ensuring your home is protected against break-in attempts. Our products undergo rigorous testing to meet the highest security requirements.</p>
-            
-            <h3 style="color: var(--primary-color); margin-top: 30px; font-size: 1.5rem;">What PAS24 Guarantees:</h3>
-            <ul>
-                <li><strong>Resistance to Forced Entry</strong> - Tested against common burglary methods including mechanical attacks and impacts</li>
-                <li><strong>Building Regulations Compliance</strong> - Required for new builds under Approved Document Q</li>
-                <li><strong>Mechanical Testing</strong> - Products withstand forces up to 450kg applied to locks and hardware</li>
-                <li><strong>Manual Attack Tests</strong> - Simulates intruder attempts using tools like screwdrivers and crowbars</li>
-                <li><strong>Impact Resistance</strong> - Tested with weighted rams to ensure structural integrity</li>
-            </ul>
-
-            <h3 style="color: var(--primary-color); margin-top: 30px; font-size: 1.5rem;">Your Benefits:</h3>
-            <ul>
-                <li><strong>Enhanced Home Security</strong> - Proven protection against opportunistic burglars and break-in attempts</li>
-                <li><strong>Insurance Advantages</strong> - Many insurers offer reduced premiums for PAS24 certified installations</li>
-                <li><strong>Quality Assurance</strong> - Products are built to last and tested by UKAS-accredited laboratories</li>
-                <li><strong>Legal Compliance</strong> - Essential for new residential properties in England and Wales</li>
-                <li><strong>Peace of Mind</strong> - Independent certification guarantees security performance</li>
-            </ul>
-        </section>
-
-        <section class="section">
-            <h2 class="section-title">FENSA Certification</h2>
-            <p><strong>FENSA (Fenestration Self-Assessment Scheme)</strong> is a government-authorised scheme ensuring compliance with Building Regulations for all window and door installations. Every Prime Sash installation comes with full FENSA certification.</p>
-            
-            <h3 style="color: var(--primary-color); margin-top: 30px; font-size: 1.5rem;">What FENSA Covers:</h3>
-            <ul>
-                <li><strong>Building Regulations Compliance</strong> - Full adherence to UK Building Regulations for thermal performance and safety</li>
-                <li><strong>Local Council Registration</strong> - Your installation is automatically registered with your local authority</li>
-                <li><strong>Energy Efficiency</strong> - Certified thermal performance reduces utility costs and environmental impact</li>
-                <li><strong>Insurance-Backed Warranty</strong> - Your warranty is protected by insurance for complete peace of mind</li>
-                <li><strong>Professional Installation</strong> - Only FENSA-registered installers can issue certificates</li>
-            </ul>
-
-            <h3 style="color: var(--primary-color); margin-top: 30px; font-size: 1.5rem;">Why FENSA Matters:</h3>
-            <ul>
-                <li><strong>Legal Requirement</strong> - Mandatory for replacement windows and doors installed after April 2002</li>
-                <li><strong>Property Sales</strong> - Essential documentation when selling your home - buyers' solicitors will request it</li>
-                <li><strong>Avoid Penalties</strong> - Prevents enforcement notices, prosecution, and costly retrospective approvals (£300-400)</li>
-                <li><strong>Deposit Protection</strong> - FENSA installers must protect your deposit with indemnity schemes</li>
-                <li><strong>Quality Guarantee</strong> - Government-backed assurance of professional workmanship</li>
-            </ul>
-        </section>
-
-        <section class="section">
-            <h2 class="section-title">Why Our Certifications Matter</h2>
-            <p>At Prime Sash, we don't just meet minimum standards - we exceed them. Our dual PAS24 and FENSA certifications mean you get:</p>
-            <ul>
-                <li><strong>Maximum Security</strong> - PAS24 testing ensures your windows resist break-in attempts, protecting your family and belongings</li>
-                <li><strong>Legal Compliance</strong> - FENSA registration means your installation meets all Building Regulations and is properly documented</li>
-                <li><strong>Property Value Protection</strong> - Certified installations are essential when selling your home, avoiding delays and legal complications</li>
-                <li><strong>Warranty Assurance</strong> - Insurance-backed warranties ensure long-term protection and peace of mind</li>
-                <li><strong>Energy Savings</strong> - Certified thermal performance reduces heating costs and carbon footprint</li>
-            </ul>
-            <div style="text-align: center; margin-top: 2rem;">
-                <img src="img/MIB/mib-colour.jpg" alt="Made in Britain" style="height: 80px;">
-            </div>
-        </section>
-
-        <section class="section" style="text-align: center; background-color: var(--white); border: 3px solid var(--secondary-color);">
-            <h2 class="section-title">Ready to Get Started?</h2>
-            <p style="font-size: 1.2rem; margin-bottom: 30px;">All Prime Sash windows and doors come with PAS24 and FENSA certification as standard. Experience the difference of certified quality and craftsmanship.</p>
-            <a href="online-estimate.html"><button class="btn" style="padding: 15px 40px; font-size: 1.1rem;">Get Online Estimate</button></a>
-            <a href="index.html" style="margin-left: 20px;"><button class="btn btn-secondary" style="padding: 15px 40px; font-size: 1.1rem;">Back to Home</button></a>
-        </section>
-    </main>
-
-    <footer id="if-footer">
-      <div class="ft-top-line"></div>
-      <div class="ft-grid">
-        <div>
-          <div class="ft-logo-block">
-            <div class="silver-line"></div>
-            <span class="ft-logo">Prime Sash Windows</span>
-            <div class="silver-line"></div>
-          </div>
-          <p class="ft-brand-text">Premium timber sash windows for London's period homes.<br/>Every window handcrafted. Every project — unique.</p>
+        <div class="tech-feature">
+          <h4>Hardwood Only</h4>
+          <p>We manufacture only from premium hardwood (Meranti, Sapele), Oak for decorative applications, and Accoya for maximum longevity. We do not use softwood — the lifespan simply doesn't justify it for a premium product.</p>
         </div>
-        <div class="ft-col"><h4>Navigation</h4><ul>
+        <div class="tech-feature">
+          <h4>Certified Components</h4>
+          <p>Every seal, gasket, glazing bead and fitting is independently certified. Our glazing system is PAS24 tested for security and delivers exceptional airtightness ratings.</p>
+        </div>
+        <div class="tech-feature">
+          <h4>Premium Finishing</h4>
+          <p>Every frame is immersed in preprimer, primed twice, and topped with a finish coat using Sikkens Wood Coatings and Teknos microporous paint systems. Spray-applied for a flawless, factory-quality result.</p>
+        </div>
+        <div class="tech-feature">
+          <h4>Passive Glass Technology</h4>
+          <p>Our glazing options include slimline double glazing, triple glazing, and Passive Glass — achieving U-values as low as 0.8 W/m²K. That exceeds the thermal performance of most new-build specifications.</p>
+        </div>
+        <div class="tech-feature">
+          <h4>Lead Weight Balancing</h4>
+          <p>Traditional lead weights in the box frame — no springs, no plastic balance systems. A properly balanced sash with lead weights will operate smoothly for a century or more.</p>
+        </div>
+      </div>
+      <div class="partners-row">
+        <a href="https://thejoinerynetwork.co.uk/" target="_blank" rel="noopener">The Joinery Network</a>
+        <a href="https://www.leitz.org/en-gb/" target="_blank" rel="noopener">Leitz UK</a>
+        <a href="https://www.felder-group.com/en-gb" target="_blank" rel="noopener">Felder Group</a>
+        <a href="https://www.biesse.com/uk/wood/" target="_blank" rel="noopener">Biesse UK</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUSTAINABILITY -->
+  <div class="sustain-section" id="sustainability">
+    <p class="section-eyebrow">Sustainability</p>
+    <h2 class="section-h2">Crafting a Greener Future</h2>
+    <p class="section-text">The Joinery Network and its manufacturing partners — including us — are committed to reducing the carbon footprint of every component and process, while extending the lifespan of the finished product. Delivering practical sustainability is more than a policy — it's how we design, source, and build.</p>
+    <div class="sustain-points">
+      <div class="sustain-point">
+        <h4>FSC Certified Timber</h4>
+        <p>All timber used in Lignum products comes from sustainably managed forests certified by the Forest Stewardship Council (FSC). The wood in your windows meets strict environmental and ethical standards, protecting natural ecosystems for generations.</p>
+      </div>
+      <div class="sustain-point">
+        <h4>Sustainable Manufacturing</h4>
+        <p>Our manufacturing network invests in lowering carbon emissions through high-efficiency machinery and renewable energy. Large-scale solar and battery storage systems power operations cleanly — some workshops now meet up to half their energy needs using solar.</p>
+      </div>
+      <div class="sustain-point">
+        <h4>Minimising Waste</h4>
+        <p>The Lignum system was designed to reduce waste from the start. Lean manufacturing methods limit offcuts. Wood dust is recycled into fuel briquettes. Every element is considered — efficient, low-impact, and future-ready.</p>
+      </div>
+      <div class="sustain-point">
+        <h4>Built to Last</h4>
+        <p>A truly sustainable product is one that doesn't need replacing. Our timber windows are built with longevity in mind — with proper care, they serve homes beautifully for decades, reducing replacements and preserving resources over time.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WARRANTY -->
+  <div class="cert-section" id="warranty">
+    <p class="section-eyebrow">Your Guarantee</p>
+    <h2 class="section-h2">Comprehensive Warranty</h2>
+    <div class="warranty-box">
+      <h3>Standard Warranty</h3>
+      <p><strong>10 years</strong> on all windows as standard — covering frames, sashes, and all structural components. <strong>3 years</strong> on the paint finish (excluding mechanical damage). For Accoya timber, <strong>50 years</strong> warranty on the wood itself against rot and fungal decay. After installation, every customer receives a <strong>written guarantee document</strong>. Our warranties are insurance-backed through our FENSA registration. As members of The Joinery Network and part of the Skylon Group, your guarantee is backed by an established business — not a sole trader who might disappear.</p>
+    </div>
+  </div>
+
+  <div class="cta-section">
+    <h2>Experience It Yourself</h2>
+    <p>Design your windows in our 3D configurator. Choose timber, glazing, colour, ironmongery — and see the price instantly.</p>
+    <a href="online-estimate.html" class="cta-btn">Online Estimate & 3D Configurator</a>
+  </div>
+
+  <footer id="if-footer">
+    <div class="ft-top-line"></div>
+    <div class="ft-grid">
+      <div>
+        <div class="ft-logo-block"><div class="silver-line"></div><span class="ft-logo">Prime Sash Windows</span><div class="silver-line"></div></div>
+        <p class="ft-brand-text">Premium timber sash windows for London's period homes.<br/>Every window handcrafted. Every project — unique.</p>
+      </div>
+      <div class="ft-col"><h4>Navigation</h4><ul>
         <li><a href="index.html">Home</a></li>
         <li><a href="sash-windows-history.html">Sash Windows History</a></li>
         <li><a href="why-not-sash-windows.html">Why You Shouldn't Buy</a></li>
@@ -153,19 +216,17 @@
         <li><a href="gallery.html">Gallery</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul></div>
-        <div class="ft-col"><h4>Contact</h4><ul>
-          <li><a href="tel:+447842510060">+44 7842 510060</a></li>
-          <li><a href="mailto:info@primesashwindows.co.uk">info@primesashwindows.co.uk</a></li>
-        </ul></div>
-      </div>
-      <div class="ft-bottom">
-        <p>&copy; 2026 Prime Sash Windows. All rights reserved. A trading name of Skylon Joinery LTD</p>
-        <p><a href="#" style="color:inherit;text-decoration:none;">Privacy Policy</a></p>
-      </div>
-    </footer>
-    
-    <!-- Scripts -->
-    <script src="js/supabase-config.js?v=2"></script>
-    <script src="js/auth.js"></script>
+      <div class="ft-col"><h4>Contact</h4><ul>
+        <li><a href="tel:+447842510060">+44 7842 510060</a></li>
+        <li><a href="mailto:info@primesashwindows.co.uk">info@primesashwindows.co.uk</a></li>
+      </ul></div>
+    </div>
+    <div class="ft-bottom">
+      <p>&copy; 2026 Prime Sash Windows. All rights reserved. A trading name of Skylon Joinery LTD</p>
+      <p><a href="#" style="color:inherit;text-decoration:none;">Privacy Policy</a></p>
+    </div>
+  </footer>
+  <script src="js/supabase-config.js?v=2"></script>
+  <script src="js/auth.js"></script>
 </body>
 </html>
