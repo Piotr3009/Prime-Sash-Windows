@@ -389,6 +389,10 @@
 
     <!-- Scripts -->
     <script src="js/supabase-config.js?v=2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.3/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/estimate-renderer.js"></script>
     <script>
         // ============================================
         // ADMIN DASHBOARD CONTROLLER
@@ -685,88 +689,18 @@
             `;
         }
         
-        // View Estimate Detail
+        // View Estimate Detail — uses shared EstimateRenderer
         function viewEstimate(id) {
             const est = allEstimates.find(e => e.id === id);
             if (!est) return;
             
-            const customer = est.customers || {};
-            const items = est.estimate_items || [];
-            
-            document.getElementById('modal-body').innerHTML = `
-                <h2 style="font-family: 'Playfair Display', serif; color: var(--primary-color); margin-bottom: 25px;">
-                    Estimate ${est.estimate_number || est.id.substring(0, 8).toUpperCase()}
-                </h2>
-                
-                <div class="detail-grid">
-                    <div class="detail-section">
-                        <h4>👤 Customer Details</h4>
-                        <p><strong>Name:</strong> ${customer.full_name || '-'}</p>
-                        <p><strong>Company:</strong> ${customer.company_name || '-'}</p>
-                        <p><strong>Email:</strong> ${customer.email || '-'}</p>
-                        <p><strong>Phone:</strong> ${customer.phone || '-'}</p>
-                        <p><strong>Code:</strong> ${customer.customer_code || '-'}</p>
-                    </div>
-                    <div class="detail-section">
-                        <h4>📋 Project Info</h4>
-                        <p><strong>Project:</strong> ${est.project_name || '-'}</p>
-                        <p><strong>Address:</strong> ${est.delivery_address || '-'}</p>
-                        <p><strong>Status:</strong> <span class="status-badge status-${est.status}">${getStatusLabel(est.status)}</span></p>
-                        <p><strong>Created:</strong> ${formatDate(est.created_at)}</p>
-                        ${est.notes ? `<p><strong>Notes:</strong> ${est.notes}</p>` : ''}
-                    </div>
-                </div>
-                
-                <h4 style="color: var(--primary-color); margin-bottom: 15px;">🪟 Windows (${items.length})</h4>
-                <table class="data-table" style="margin-bottom: 20px;">
-                    <thead>
-                        <tr>
-                            <th>Window</th>
-                            <th>Size</th>
-                            <th>Frame</th>
-                            <th>Glass</th>
-                            <th>Color</th>
-                            <th>Qty</th>
-                            <th>Price</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${items.map(item => `
-                            <tr>
-                                <td><strong>${item.window_number}</strong></td>
-                                <td>${item.width}×${item.height}mm</td>
-                                <td>${item.frame_type}</td>
-                                <td>${item.glass_type}</td>
-                                <td>${item.color_single || item.color_interior || '-'}</td>
-                                <td>${item.quantity}</td>
-                                <td>£${formatPrice(item.total_price)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                
-                <div class="total-box">
-                    <span class="amount">Total: £${formatPrice(est.total_price)}</span>
-                </div>
-                
-                <div class="modal-actions">
-                    ${est.status === 'sent' ? `
-                        <button class="btn btn-success" onclick="sendQuote('${est.id}'); closeModal();">✉️ Send Quote</button>
-                    ` : ''}
-                    ${est.status === 'quoted' ? `
-                        <button class="btn btn-success" onclick="confirmOrder('${est.id}'); closeModal();">✅ Confirm Order</button>
-                    ` : ''}
-                    ${est.status === 'confirmed' ? `
-                        <button class="btn btn-warning" onclick="startProduction('${est.id}'); closeModal();">🔨 Start Production</button>
-                    ` : ''}
-                    ${est.status === 'in_production' ? `
-                        <button class="btn btn-success" onclick="completeOrder('${est.id}'); closeModal();">✅ Mark Completed</button>
-                    ` : ''}
-                    <button class="btn btn-primary" onclick="closeModal()">Close</button>
-                </div>
-            `;
+            document.getElementById('modal-body').innerHTML = EstimateRenderer.renderEstimateHTML(est, {
+                isAdmin: true,
+                isEditable: false
+            });
             
             document.getElementById('quote-modal').classList.add('active');
+            EstimateRenderer.attachExportButtons(est);
         }
         
         // Close Modal
@@ -820,6 +754,7 @@
                 if (error) throw error;
                 
                 alert('Status updated successfully!');
+                closeModal();
                 await loadAllData();
             } catch (error) {
                 console.error('Error updating status:', error);
