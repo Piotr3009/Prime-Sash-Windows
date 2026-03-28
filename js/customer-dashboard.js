@@ -806,11 +806,14 @@ class CustomerDashboard {
     // Attach event listeners
     attachEventListeners() {
         // Logout button
-        document.getElementById('logout-btn').addEventListener('click', async (e) => {
-            e.preventDefault();
-            await supabaseClient.auth.signOut();
-            window.location.href = 'index.html';
-        });
+        var logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await supabaseClient.auth.signOut();
+                window.location.href = 'index.html';
+            });
+        }
 
         // Filter buttons
         document.querySelectorAll('.filter-btn').forEach(btn => {
