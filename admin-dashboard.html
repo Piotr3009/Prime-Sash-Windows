@@ -1122,17 +1122,25 @@
                 container.innerHTML = data.map(r => {
                     const slots = r.preferred_slots || [];
                     const slotsText = slots.map(s => `${s.date} ${s.time}`).join(', ');
-                    return `<div class="pending-card">
+                    return `<div class="pending-card" data-id="${r.id}" data-name="${(r.customer_name||'').replace(/"/g,'&quot;')}" data-email="${(r.email||'').replace(/"/g,'&quot;')}" data-address="${(r.customer_address||r.message||'').replace(/"/g,'&quot;')}">
                         <strong>${r.customer_name}</strong><br>
                         <span style="color:#666;">${r.email}</span><br>
                         <span style="font-size:.7rem;">Preferred: ${slotsText}</span>
                         ${r.message ? `<br><span style="font-size:.7rem;color:#888;">${r.message}</span>` : ''}
                         <div class="actions">
-                            <button class="confirm" onclick="AdminCalendar.confirmRequest('${r.id}','${(r.customer_name||'').replace(/'/g,"\\'")}','${(r.message||'').replace(/'/g,"\\'")}')">✓ Confirm</button>
+                            <button class="confirm" onclick="AdminCalendar.confirmFromCard(this)">✓ Confirm</button>
                             <button class="reject" onclick="AdminCalendar.rejectRequest('${r.id}')">✕ Reject</button>
                         </div>
                     </div>`;
                 }).join('');
+            },
+
+            confirmFromCard(btn) {
+                const card = btn.closest('.pending-card');
+                const requestId = card.dataset.id;
+                const customerName = card.dataset.name;
+                const address = card.dataset.address;
+                this.confirmRequest(requestId, customerName, address);
             },
 
             async confirmRequest(requestId, customerName, address) {
@@ -1140,6 +1148,8 @@
                 if (!slotDate) return;
                 const slotTime = prompt('Enter time (e.g. 10:00):');
                 if (!slotTime) return;
+                const surveyorName = prompt('Surveyor name (for customer confirmation):');
+                if (!surveyorName) return;
                 
                 try {
                     // Find the slot
@@ -1155,6 +1165,7 @@
                     await supabaseClient.from('appointment_slots').update({
                         customer_name: customerName,
                         customer_address: address,
+                        assigned_to: surveyorName,
                         is_available: false
                     }).eq('id', slots[0].id);
                     
@@ -1164,7 +1175,7 @@
                         confirmed_slot_id: slots[0].id
                     }).eq('id', requestId);
                     
-                    alert('Appointment confirmed!');
+                    alert(`Appointment confirmed! Surveyor: ${surveyorName}`);
                     await this.loadSlots();
                     this.renderCalendar();
                     this.loadPendingRequests();
