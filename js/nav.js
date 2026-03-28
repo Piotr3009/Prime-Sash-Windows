@@ -41,9 +41,9 @@
     + '</a>'
     + '<div class="nav-rows">'
     +   '<ul class="nav-row">' + buildRow(row1) + '</ul>'
-    +   '<ul class="nav-row">' + buildRow(row2) + '</ul>'
+    +   '<ul class="nav-row" id="nav-row-2">' + buildRow(row2) + '</ul>'
     + '</div>'
-    + '<a href="login.html" class="nav-user" title="My Account">' + userIcon + '</a>'
+    + '<a href="login.html" class="nav-user" id="nav-user-btn" title="Login / Register">' + userIcon + '</a>'
     + '<div class="hamburger" id="ham"><span></span><span></span><span></span></div>'
     + '</nav>';
 
@@ -52,19 +52,22 @@
   }).join('\n  ');
 
   var mobHTML = '<div id="mob-menu">\n  ' + mobLinks
-    + '\n  <a href="login.html">My Account</a>'
+    + '\n  <a href="login.html" id="mob-account-link">Login / Register</a>'
     + '\n</div>';
 
+  // ── INJECT ──
   var placeholder = document.getElementById('nav-placeholder');
   if (placeholder) {
     placeholder.innerHTML = navHTML + '\n' + mobHTML;
   }
 
+  // ── ACTIVE PAGE ──
   var page = location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-row a[data-page]').forEach(function(a){
     if (a.dataset.page && page.startsWith(a.dataset.page)) a.classList.add('active');
   });
 
+  // ── HAMBURGER TOGGLE ──
   var ham = document.getElementById('ham');
   var mob = document.getElementById('mob-menu');
   if (ham && mob) {
@@ -73,4 +76,63 @@
       a.addEventListener('click', function(){ mob.classList.remove('open'); });
     });
   }
+
+  // ── AUTH: Load Supabase & check login status ──
+  function loadScript(src, cb) {
+    if (document.querySelector('script[src="' + src + '"]')) { cb(); return; }
+    var s = document.createElement('script');
+    s.src = src; s.onload = cb;
+    document.head.appendChild(s);
+  }
+
+  function initAuth() {
+    // Init supabase if not yet
+    if (!window.supabaseClient && window.supabase) {
+      var url = 'https://rfelsfwjszjdtzuovlal.supabase.co';
+      var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmZWxzZndqc3pqZHR6dW92bGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Nzc1MTgsImV4cCI6MjA5MDA1MzUxOH0.Ut9EtffoU-L1g6IKiqcaVaoA2sEDoc0so821L1Uxn_A';
+      window.supabaseClient = window.supabase.createClient(url, key);
+    }
+    if (!window.supabaseClient) return;
+
+    window.supabaseClient.auth.getUser().then(function(res) {
+      var user = res.data && res.data.user;
+      var userBtn = document.getElementById('nav-user-btn');
+      var mobLink = document.getElementById('mob-account-link');
+      var row2 = document.getElementById('nav-row-2');
+
+      if (user) {
+        // Logged in — icon goes to dashboard
+        if (userBtn) { userBtn.href = 'customer-dashboard.html'; userBtn.title = 'My Account'; }
+        if (mobLink) { mobLink.href = 'customer-dashboard.html'; mobLink.textContent = 'My Account'; }
+
+        // Check if admin
+        window.supabaseClient.from('customers').select('role').eq('user_id', user.id).single()
+          .then(function(r) {
+            if (r.data && r.data.role === 'admin' && row2) {
+              var adminLi = document.createElement('li');
+              adminLi.innerHTML = '<a href="admin-panel.html" data-page="admin">Admin Panel</a>';
+              row2.appendChild(adminLi);
+              // Also add to mobile menu
+              if (mob) {
+                var adminMob = document.createElement('a');
+                adminMob.href = 'admin-panel.html';
+                adminMob.textContent = 'Admin Panel';
+                mob.insertBefore(adminMob, mob.lastElementChild);
+              }
+              // Active state for admin
+              if (page.startsWith('admin')) {
+                adminLi.querySelector('a').classList.add('active');
+              }
+            }
+          });
+      }
+    });
+  }
+
+  // Load supabase CDN then init auth
+  loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', function(){
+    // Small delay to ensure DOM is ready
+    setTimeout(initAuth, 50);
+  });
+
 })();
