@@ -1121,8 +1121,10 @@
                 
                 container.innerHTML = data.map(r => {
                     const slots = r.preferred_slots || [];
-                    const slotsText = slots.map(s => `${s.date} ${s.time}`).join(', ');
-                    return `<div class="pending-card" data-id="${r.id}" data-name="${(r.customer_name||'').replace(/"/g,'&quot;')}" data-email="${(r.email||'').replace(/"/g,'&quot;')}" data-address="${(r.customer_address||r.message||'').replace(/"/g,'&quot;')}">
+                    // Handle both formats: array of objects {id,date,time} or array of IDs
+                    const slotsText = slots.map(s => typeof s === 'object' ? `${s.date} ${s.time}` : s).join(', ');
+                    const slotsJson = JSON.stringify(slots).replace(/"/g, '&quot;');
+                    return `<div class="pending-card" data-id="${r.id}" data-name="${(r.customer_name||'').replace(/"/g,'&quot;')}" data-email="${(r.email||'').replace(/"/g,'&quot;')}" data-address="${(r.customer_address||r.message||'').replace(/"/g,'&quot;')}" data-slots="${slotsJson}">
                         <strong>${r.customer_name}</strong><br>
                         <span style="color:#666;">${r.email}</span><br>
                         <span style="font-size:.7rem;">Preferred: ${slotsText}</span>
@@ -1140,25 +1142,62 @@
                 const requestId = card.dataset.id;
                 const customerName = card.dataset.name;
                 const address = card.dataset.address;
-                this.confirmRequest(requestId, customerName, address);
+                let preferredSlots = [];
+                try { preferredSlots = JSON.parse(card.dataset.slots || '[]'); } catch(e) {}
+                this.confirmRequest(requestId, customerName, address, preferredSlots);
             },
 
-            async confirmRequest(requestId, customerName, address) {
-                const slotDate = prompt('Enter date to book (YYYY-MM-DD):');
-                if (!slotDate) return;
-                const slotTime = prompt('Enter time (e.g. 10:00):');
-                if (!slotTime) return;
+            async confirmRequest(requestId, customerName, address, preferredSlots) {
+                let chosenSlotId = null;
+                let chosenDate = null;
+                let chosenTime = null;
+
+                if (preferredSlots.length > 0 && typeof preferredSlots[0] === 'object') {
+                    // Client selected specific slots — let admin pick one
+                    const options = preferredSlots.map((s, i) => `${i + 1}. ${s.date} ${s.time}`).join('\n');
+                    const choice = prompt(`Customer preferred slots:\n${options}\n\nEnter number (1-${preferredSlots.length}) to confirm:`);
+                    if (!choice) return;
+                    const idx = parseInt(choice) - 1;
+                    if (isNaN(idx) || idx < 0 || idx >= preferredSlots.length) {
+                        alert('Invalid selection');
+                        return;
+                    }
+                    chosenSlotId = preferredSlots[idx].id;
+                    chosenDate = preferredSlots[idx].date;
+                    chosenTime = preferredSlots[idx].time;
+                } else {
+                    // Fallback for old format (just IDs) or empty
+                    const slotDate = prompt('Enter date to book (YYYY-MM-DD):');
+                    if (!slotDate) return;
+                    const slotTime = prompt('Enter time (e.g. 09:00 - 11:00):');
+                    if (!slotTime) return;
+                    chosenDate = slotDate;
+                    chosenTime = slotTime;
+                }
+
                 const surveyorName = prompt('Surveyor name (for customer confirmation):');
                 if (!surveyorName) return;
                 
                 try {
-                    // Find the slot
-                    const { data: slots } = await supabaseClient.from('appointment_slots').select('*')
-                        .eq('slot_date', slotDate).eq('slot_time', slotTime).eq('is_available', true).is('customer_name', null);
-                    
-                    if (!slots || slots.length === 0) {
-                        alert('No available slot at that time');
-                        return;
+                    let slotId = chosenSlotId;
+
+                    // If we have a direct slot ID, verify it's still available
+                    if (slotId) {
+                        const { data: slotCheck } = await supabaseClient.from('appointment_slots').select('*')
+                            .eq('id', slotId).eq('is_available', true).is('customer_name', null);
+                        if (!slotCheck || slotCheck.length === 0) {
+                            alert('This slot is no longer available. It may have been booked already.');
+                            return;
+                        }
+                    } else {
+                        // Fallback: find slot by date+time
+                        const { data: slots } = await supabaseClient.from('appointment_slots').select('*')
+                            .eq('slot_date', chosenDate).eq('slot_time', chosenTime).eq('is_available', true).is('customer_name', null);
+                        if (!slots || slots.length === 0) {
+                            alert('No available slot at that time');
+                            return;
+                        }
+                        slotId = slots[0].id;
                     }
                     
                     // Book the slot
@@ -1167,15 +1206,15 @@
                         customer_address: address,
                         assigned_to: surveyorName,
                         is_available: false
-                    }).eq('id', slots[0].id);
+                    }).eq('id', slotId);
                     
                     // Update request
                     await supabaseClient.from('appointment_requests').update({
                         status: 'confirmed',
-                        confirmed_slot_id: slots[0].id
+                        confirmed_slot_id: slotId
                     }).eq('id', requestId);
                     
-                    alert(`Appointment confirmed! Surveyor: ${surveyorName}`);
+                    alert(`Appointment confirmed!\n${chosenDate} ${chosenTime}\nSurveyor: ${surveyorName}`);
                     await this.loadSlots();
                     this.renderCalendar();
                     this.loadPendingRequests();
