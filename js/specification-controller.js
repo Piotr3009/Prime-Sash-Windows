@@ -515,10 +515,20 @@ class SpecificationController {
         if (target === 'single') {
           document.getElementById('single-preview-name').textContent = text;
           document.getElementById('single-preview-ral').textContent = hex;
+          // Fix: save actual F&B/RAL name to currentConfig
+          if (window.currentConfig) {
+            window.currentConfig.colorSingleName = text;
+          }
         } else if (target === 'interior') {
           document.getElementById('dual-preview-interior').textContent = text + ' (' + hex + ')';
+          if (window.currentConfig) {
+            window.currentConfig.colorInteriorName = text;
+          }
         } else if (target === 'exterior') {
           document.getElementById('dual-preview-exterior').textContent = text + ' (' + hex + ')';
+          if (window.currentConfig) {
+            window.currentConfig.colorExteriorName = text;
+          }
         }
       });
     });
@@ -540,10 +550,13 @@ class SpecificationController {
           if (target === 'single') {
             document.getElementById('single-preview-name').textContent = 'RAL ' + key;
             document.getElementById('single-preview-ral').textContent = hex;
+            if (window.currentConfig) { window.currentConfig.colorSingleName = 'RAL ' + key; }
           } else if (target === 'interior') {
             document.getElementById('dual-preview-interior').textContent = 'RAL ' + key + ' (' + hex + ')';
+            if (window.currentConfig) { window.currentConfig.colorInteriorName = 'RAL ' + key; }
           } else if (target === 'exterior') {
             document.getElementById('dual-preview-exterior').textContent = 'RAL ' + key + ' (' + hex + ')';
+            if (window.currentConfig) { window.currentConfig.colorExteriorName = 'RAL ' + key; }
           }
         } else {
           err.textContent = 'Unknown RAL';
@@ -756,8 +769,13 @@ class SpecificationController {
     if (colorType === 'single') {
       const selectedColor = document.querySelector('#single-color-selector .color-option.selected');
       if (selectedColor) {
-        const name = selectedColor.dataset.name;
+        let name = selectedColor.dataset.name;
         const ral = selectedColor.dataset.ral;
+
+        // If custom swatch but we have a real F&B/RAL name stored, use it
+        if (name === 'Custom Color' && window.currentConfig && window.currentConfig.colorSingleName && window.currentConfig.colorSingleName !== 'Custom Color') {
+          name = window.currentConfig.colorSingleName;
+        }
 
         document.getElementById('spec-single-color').style.display = 'block';
         document.getElementById('spec-dual-color').style.display = 'none';
@@ -780,10 +798,18 @@ class SpecificationController {
       const selectedExterior = document.querySelector('.exterior-color.selected');
 
       if (selectedInterior && selectedExterior) {
-        const intName = selectedInterior.dataset.name;
+        let intName = selectedInterior.dataset.name;
         const intRal = selectedInterior.dataset.ral;
-        const extName = selectedExterior.dataset.name;
+        let extName = selectedExterior.dataset.name;
         const extRal = selectedExterior.dataset.ral;
+
+        // If custom swatch but we have real F&B/RAL names stored, use them
+        if (intName === 'Custom Color' && window.currentConfig && window.currentConfig.colorInteriorName && window.currentConfig.colorInteriorName !== 'Custom Color') {
+          intName = window.currentConfig.colorInteriorName;
+        }
+        if (extName === 'Custom Color' && window.currentConfig && window.currentConfig.colorExteriorName && window.currentConfig.colorExteriorName !== 'Custom Color') {
+          extName = window.currentConfig.colorExteriorName;
+        }
 
         document.getElementById('spec-single-color').style.display = 'none';
         document.getElementById('spec-dual-color').style.display = 'block';
