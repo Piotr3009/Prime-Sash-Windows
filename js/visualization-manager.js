@@ -41,7 +41,7 @@ class VisualizationManager {
       // Displays
       widthDisplay: 'width-display',
       heightDisplay: 'height-display',
-      totalPriceDisplay: 'total-price',
+      totalPriceDisplay: 'sidebar-total-price',
       glassDisplay: 'glass-display',
       
       // Horns
