@@ -536,6 +536,107 @@ class CustomerDashboard {
         </div>`;
     }
 
+    // Generate window drawing in PDF using jsPDF commands
+    generateWindowPDF(doc, item, ox, oy) {
+        const maxW = 50, maxH = 55; // mm on PDF
+        const w = item.width || 1000;
+        const h = item.height || 1500;
+        const ratio = Math.min(maxW / w, maxH / h);
+        const sw = Math.round(w * ratio);
+        const sh = Math.round(h * ratio);
+        const cx = ox + (maxW - sw) / 2;
+        const cy = oy + (maxH - sh) / 2;
+        const meetingY = Math.round(sh * 0.45);
+        const frame = 1.8;
+
+        // Bar patterns
+        const patternDefs = {
+            'none': {h:0,v:0}, '2x2': {h:0,v:1}, '3x3': {h:0,v:2},
+            '4x4': {h:1,v:1}, '6x6': {h:1,v:2}, '9x9': {h:2,v:2},
+            '2-vertical': {h:0,v:2}, '1-vertical': {h:0,v:1}, 'custom': {h:0,v:0}
+        };
+        const upperDiv = patternDefs[item.upper_bars] || {h:0,v:0};
+        const lowerDiv = patternDefs[item.lower_bars] || patternDefs[item.upper_bars] || {h:0,v:0};
+
+        const innerL = cx + frame;
+        const innerW = sw - frame * 2;
+        const upperT = cy + frame;
+        const upperH = meetingY - frame;
+        const lowerT = cy + meetingY;
+        const lowerH = sh - meetingY - frame;
+
+        // Outer frame
+        doc.setDrawColor(10, 22, 40);
+        doc.setLineWidth(0.5);
+        doc.rect(cx, cy, sw, sh);
+
+        // Upper sash — light blue fill
+        doc.setFillColor(220, 235, 248);
+        doc.setDrawColor(160, 180, 200);
+        doc.setLineWidth(0.15);
+        doc.rect(innerL, upperT, innerW, upperH, 'FD');
+
+        // Lower sash — lighter fill
+        doc.setFillColor(230, 240, 250);
+        doc.rect(innerL, lowerT, innerW, lowerH, 'FD');
+
+        // Meeting rail — thick line
+        doc.setDrawColor(10, 22, 40);
+        doc.setLineWidth(0.7);
+        doc.line(cx, cy + meetingY, cx + sw, cy + meetingY);
+
+        // Georgian bars — thin lines
+        doc.setDrawColor(140, 160, 180);
+        doc.setLineWidth(0.25);
+
+        // Upper sash vertical bars
+        for (let i = 1; i <= upperDiv.v; i++) {
+            const x = innerL + innerW * i / (upperDiv.v + 1);
+            doc.line(x, upperT, x, upperT + upperH);
+        }
+        // Upper sash horizontal bars
+        for (let i = 1; i <= upperDiv.h; i++) {
+            const y = upperT + upperH * i / (upperDiv.h + 1);
+            doc.line(innerL, y, innerL + innerW, y);
+        }
+        // Lower sash vertical bars
+        for (let i = 1; i <= lowerDiv.v; i++) {
+            const x = innerL + innerW * i / (lowerDiv.v + 1);
+            doc.line(x, lowerT, x, lowerT + lowerH);
+        }
+        // Lower sash horizontal bars
+        for (let i = 1; i <= lowerDiv.h; i++) {
+            const y = lowerT + lowerH * i / (lowerDiv.h + 1);
+            doc.line(innerL, y, innerL + innerW, y);
+        }
+
+        // Opening arrows
+        doc.setFontSize(8);
+        doc.setTextColor(10, 22, 40);
+        const arrowX = cx + sw + 3;
+        if (item.opening_type === 'both') {
+            doc.text('↑', arrowX, cy + meetingY / 2 + 1);
+            doc.text('↓', arrowX, cy + meetingY + lowerH / 2 + 1);
+        } else if (item.opening_type === 'bottom') {
+            doc.text('↓', arrowX, cy + meetingY + lowerH / 2 + 1);
+        } else if (item.opening_type === 'fixed') {
+            doc.setFontSize(5);
+            doc.setTextColor(150, 150, 150);
+            doc.text('FIX', arrowX - 1, cy + sh / 2);
+        }
+
+        // Dimension labels
+        doc.setFontSize(6);
+        doc.setTextColor(120, 120, 120);
+        // Width — bottom center
+        doc.text(`${w}mm`, cx + sw / 2, cy + sh + 4, { align: 'center' });
+        // Height — left side rotated
+        doc.text(`${h}mm`, cx - 3, cy + sh / 2, { angle: 90, align: 'center' });
+
+        // Return bottom Y position for layout
+        return oy + maxH + 8;
+    }
+
     // Generate simple SVG window drawing
     generateWindowSVG(item) {
         const maxW = 180, maxH = 180;
@@ -854,14 +955,20 @@ class CustomerDashboard {
             estimate.estimate_items?.forEach((item, idx) => {
                 const p = this._parseItemForExport(item);
 
-                // Check page space
-                if (yPos > 220) { doc.addPage(); yPos = 20; }
+                // Check page space — need ~70mm for each window
+                if (yPos > 200) { doc.addPage(); yPos = 20; }
 
+                // Window title
                 doc.setFontSize(11);
                 doc.setTextColor(10, 22, 40);
                 doc.text(`Window ${item.window_number} (Qty: ${item.quantity})`, 14, yPos);
-                yPos += 2;
+                yPos += 3;
 
+                // Draw window on left side
+                const drawStartY = yPos;
+                this.generateWindowPDF(doc, item, 14, yPos);
+
+                // Spec table on right side
                 const rows = [
                     ['Dimensions', `${item.width}mm × ${item.height}mm`],
                 ];
@@ -889,13 +996,21 @@ class CustomerDashboard {
                     theme: 'plain',
                     styles: { fontSize: 8, cellPadding: 1.5 },
                     columnStyles: {
-                        0: { fontStyle: 'bold', cellWidth: 40, textColor: [100, 100, 100] },
-                        1: { cellWidth: 140 }
+                        0: { fontStyle: 'bold', cellWidth: 30, textColor: [100, 100, 100] },
+                        1: { cellWidth: 90 }
                     },
-                    margin: { left: 14 }
+                    margin: { left: 72 }
                 });
 
-                yPos = doc.lastAutoTable.finalY + 8;
+                const tableEndY = doc.lastAutoTable.finalY;
+                const drawEndY = drawStartY + 63; // maxH(55) + 8
+                yPos = Math.max(tableEndY, drawEndY) + 5;
+
+                // Separator line
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.2);
+                doc.line(14, yPos, 196, yPos);
+                yPos += 5;
             });
 
             // Totals with VAT
