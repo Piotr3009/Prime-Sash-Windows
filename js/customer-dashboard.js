@@ -351,12 +351,18 @@ class CustomerDashboard {
                 } catch(e) {}
             }
 
-            // Color display
+            // Color display — extract actual color names
             let colorDisplay = '';
+            const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
+            
             if (item.color_type === 'single') {
-                colorDisplay = item.color_single || 'White';
-            } else if (item.color_type === 'dual' || item.color_type === 'custom') {
-                colorDisplay = `Ext: ${item.color_exterior || '—'} / Int: ${item.color_interior || '—'}`;
+                const colorName = spec.colorSingleName || item.color_single || 'White';
+                colorDisplay = colorName === 'custom' ? (spec.colorSingleName || item.color_exterior || item.color_interior || 'Custom') : colorName;
+            } else {
+                const extName = spec.colorExteriorName || item.color_exterior || '—';
+                const intName = spec.colorInteriorName || item.color_interior || '—';
+                colorDisplay = `Ext: ${extName} / Int: ${intName}`;
+                if (item.custom_exterior_color) colorDisplay += ` (Custom: ${item.custom_exterior_color})`;
             }
 
             // Opening display
@@ -368,34 +374,30 @@ class CustomerDashboard {
 
             return `
             <div style="background:var(--cream2);border:1px solid rgba(158,158,144,.15);margin-bottom:1.5rem;padding:0;border-radius:2px;overflow:hidden;">
-                <!-- Window header -->
                 <div style="background:var(--navy);padding:.8rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
                     <span style="font-family:'Jost',sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#fff;">Window ${item.window_number}</span>
                     <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${item.quantity} · £${this.formatPrice(item.total_price)}</span>
                 </div>
 
                 <div style="display:grid;grid-template-columns:220px 1fr;gap:0;">
-                    <!-- LEFT: SVG Drawing -->
                     <div style="padding:1.5rem;display:flex;align-items:center;justify-content:center;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);">
                         ${svg}
                     </div>
 
-                    <!-- RIGHT: Specs -->
                     <div style="padding:1.5rem;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
                             ${this.specRow('Dimensions', `${item.width}mm × ${item.height}mm`)}
                             ${item.original_width && item.original_height && (item.original_width !== item.width || item.original_height !== item.height) ? this.specRow('Structural Opening', `${item.original_width}mm × ${item.original_height}mm`) : ''}
                             ${this.specRow('Frame', `${item.frame_type || 'standard'} (164mm)`)}
                             ${this.specRow('Opening', openingText)}
-                            ${this.specRow('Glass', `${item.glass_type || 'double'}${item.glass_type === 'double' ? ' (4/16/4, U:1.4)' : ''}`)}
+                            ${this.specRow('Glass', `${item.glass_type || 'double'}${item.glass_type === 'double' ? ' (4/16/4, U:1.4)' : item.glass_type === 'triple' ? ' (Triple)' : ''}`)}
                             ${item.glass_spec ? this.specRow('Glass Spec', item.glass_spec) : ''}
                             ${item.glass_finish && item.glass_finish !== 'clear' ? this.specRow('Glass Finish', item.glass_finish) : ''}
                             ${item.frosted_location ? this.specRow('Frosted', item.frosted_location) : ''}
-                            ${this.specRow('Colour', colorDisplay || 'White')}
-                            ${item.upper_bars || item.lower_bars ? this.specRow('Georgian Bars', `Upper: ${item.upper_bars || 'none'}, Lower: ${item.lower_bars || 'none'}`) : this.specRow('Georgian Bars', 'None')}
-                            ${item.bar_width ? this.specRow('Bar Width', item.bar_width + 'mm') : ''}
+                            ${this.specRow('Colour', colorDisplay)}
+                            ${item.upper_bars && item.upper_bars !== 'none' ? this.specRow('Georgian Bars', `Upper: ${item.upper_bars}, Lower: ${item.lower_bars || item.upper_bars}`) : this.specRow('Georgian Bars', 'None')}
                             ${this.specRow('PAS24', item.pas24 ? 'Yes ✓' : 'No')}
-                            ${item.horns ? this.specRow('Horns', item.horns) : this.specRow('Horns', 'None')}
+                            ${item.horns && item.horns !== 'none' ? this.specRow('Horns', item.horns) : this.specRow('Horns', 'None')}
                             ${item.ironmongery_finish ? this.specRow('Hardware Finish', item.ironmongery_finish) : ''}
                         </div>
 
@@ -419,7 +421,6 @@ class CustomerDashboard {
         }).join('') || '<p style="text-align:center;color:var(--muted);padding:2rem;">No windows in this estimate</p>';
 
         content.innerHTML = `
-            <!-- HEADER -->
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(158,158,144,.2);">
                 <div>
                     <div style="font-family:'Jost',sans-serif;font-size:.50rem;letter-spacing:.5em;text-transform:uppercase;color:var(--silver);margin-bottom:.5rem;">Prime Sash Windows</div>
@@ -439,11 +440,9 @@ class CustomerDashboard {
             </div>
             ` : ''}
 
-            <!-- WINDOWS -->
             <div style="font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:var(--silver);margin-bottom:1rem;">Windows · ${estimate.estimate_items?.length || 0}</div>
             ${itemsHTML}
 
-            <!-- SUMMARY -->
             <div style="display:flex;justify-content:flex-end;padding:1.5rem 0;border-top:2px solid var(--navy);margin-top:1rem;">
                 <div style="text-align:right;">
                     <div style="font-family:'Jost',sans-serif;font-size:.60rem;letter-spacing:.3em;text-transform:uppercase;color:var(--silver);">Estimate Total</div>
@@ -451,7 +450,6 @@ class CustomerDashboard {
                 </div>
             </div>
 
-            <!-- ACTIONS -->
             <div style="display:flex;gap:1rem;justify-content:center;padding-top:1.5rem;border-top:1px solid rgba(158,158,144,.15);">
                 <button class="btn-sm" id="download-estimate-pdf">Download PDF</button>
                 <button class="btn-sm" id="download-estimate-excel">Download Excel</button>
@@ -488,70 +486,74 @@ class CustomerDashboard {
         const ratio = Math.min(maxW / w, maxH / h);
         const sw = Math.round(w * ratio);
         const sh = Math.round(h * ratio);
-        const ox = Math.round((maxW - sw) / 2);
+        const ox = Math.round((maxW - sw) / 2) + 12;
         const oy = Math.round((maxH - sh) / 2);
-        const meetingY = Math.round(sh * 0.45); // meeting rail at ~45%
+        const meetingY = Math.round(sh * 0.45);
         const stroke = 'rgba(10,22,40,.6)';
-        const light = 'rgba(10,22,40,.15)';
+        const light = 'rgba(10,22,40,.2)';
         const frame = 6;
 
-        // Parse bars
-        const parsePattern = (p) => { if (!p || p === 'none') return {h:0,v:0}; const m = p.match(/(\d+)x(\d+)/); return m ? {h:parseInt(m[1]),v:parseInt(m[2])} : {h:0,v:0}; };
-        const upper = parsePattern(item.upper_bars);
-        const lower = parsePattern(item.lower_bars);
+        // Bar pattern definitions (must match bars-unified.js)
+        const patternDefs = {
+            'none': {h:0,v:0}, '2x2': {h:0,v:1}, '3x3': {h:0,v:2},
+            '4x4': {h:1,v:1}, '6x6': {h:1,v:2}, '9x9': {h:2,v:2},
+            '2-vertical': {h:0,v:2}, '1-vertical': {h:0,v:1}, 'custom': {h:0,v:0}
+        };
+        const upperDiv = patternDefs[item.upper_bars] || {h:0,v:0};
+        const lowerDiv = patternDefs[item.lower_bars] || patternDefs[item.upper_bars] || {h:0,v:0};
 
         let bars = '';
-        // Upper sash bars (above meeting rail)
-        if (upper.h > 0) {
-            for (let i = 1; i <= upper.h; i++) {
-                const x = ox + frame + (sw - 2*frame) * i / (upper.h + 1);
-                bars += `<line x1="${x}" y1="${oy + frame}" x2="${x}" y2="${oy + meetingY}" stroke="${light}" stroke-width="1"/>`;
-            }
+        const innerL = ox + frame;
+        const innerR = ox + sw - frame;
+        const innerW = innerR - innerL;
+
+        // Upper sash bars
+        const upperT = oy + frame;
+        const upperB = oy + meetingY;
+        const upperH = upperB - upperT;
+        for (let i = 1; i <= upperDiv.v; i++) {
+            const x = innerL + innerW * i / (upperDiv.v + 1);
+            bars += `<line x1="${x}" y1="${upperT}" x2="${x}" y2="${upperB}" stroke="${light}" stroke-width="1.5"/>`;
         }
-        if (upper.v > 0) {
-            for (let i = 1; i <= upper.v; i++) {
-                const y = oy + frame + (meetingY - frame) * i / (upper.v + 1);
-                bars += `<line x1="${ox + frame}" y1="${y}" x2="${ox + sw - frame}" y2="${y}" stroke="${light}" stroke-width="1"/>`;
-            }
+        for (let i = 1; i <= upperDiv.h; i++) {
+            const y = upperT + upperH * i / (upperDiv.h + 1);
+            bars += `<line x1="${innerL}" y1="${y}" x2="${innerR}" y2="${y}" stroke="${light}" stroke-width="1.5"/>`;
         }
-        // Lower sash bars (below meeting rail)
-        if (lower.h > 0) {
-            for (let i = 1; i <= lower.h; i++) {
-                const x = ox + frame + (sw - 2*frame) * i / (lower.h + 1);
-                bars += `<line x1="${x}" y1="${oy + meetingY}" x2="${x}" y2="${oy + sh - frame}" stroke="${light}" stroke-width="1"/>`;
-            }
+
+        // Lower sash bars
+        const lowerT = oy + meetingY;
+        const lowerB = oy + sh - frame;
+        const lowerH = lowerB - lowerT;
+        for (let i = 1; i <= lowerDiv.v; i++) {
+            const x = innerL + innerW * i / (lowerDiv.v + 1);
+            bars += `<line x1="${x}" y1="${lowerT}" x2="${x}" y2="${lowerB}" stroke="${light}" stroke-width="1.5"/>`;
         }
-        if (lower.v > 0) {
-            for (let i = 1; i <= lower.v; i++) {
-                const y = oy + meetingY + (sh - meetingY - frame) * i / (lower.v + 1);
-                bars += `<line x1="${ox + frame}" y1="${y}" x2="${ox + sw - frame}" y2="${y}" stroke="${light}" stroke-width="1"/>`;
-            }
+        for (let i = 1; i <= lowerDiv.h; i++) {
+            const y = lowerT + lowerH * i / (lowerDiv.h + 1);
+            bars += `<line x1="${innerL}" y1="${y}" x2="${innerR}" y2="${y}" stroke="${light}" stroke-width="1.5"/>`;
         }
 
         // Opening arrows
         let arrows = '';
-        const arrowX = ox + sw + 10;
+        const arrowX = ox + sw + 12;
         if (item.opening_type === 'both') {
-            arrows += `<text x="${arrowX}" y="${oy + meetingY/2}" font-size="9" fill="${stroke}" text-anchor="middle">↑</text>`;
-            arrows += `<text x="${arrowX}" y="${oy + meetingY + (sh - meetingY)/2}" font-size="9" fill="${stroke}" text-anchor="middle">↓</text>`;
+            arrows += `<text x="${arrowX}" y="${oy + meetingY/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↑</text>`;
+            arrows += `<text x="${arrowX}" y="${oy + meetingY + (sh - meetingY)/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
         } else if (item.opening_type === 'bottom') {
-            arrows += `<text x="${arrowX}" y="${oy + meetingY + (sh - meetingY)/2}" font-size="9" fill="${stroke}" text-anchor="middle">↓</text>`;
+            arrows += `<text x="${arrowX}" y="${oy + meetingY + (sh - meetingY)/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
         } else if (item.opening_type === 'fixed') {
-            arrows += `<text x="${arrowX}" y="${oy + sh/2}" font-size="7" fill="rgba(10,22,40,.3)" text-anchor="middle">FIX</text>`;
+            arrows += `<text x="${arrowX}" y="${oy + sh/2 + 3}" font-family="Jost,sans-serif" font-size="7" fill="rgba(10,22,40,.3)" text-anchor="middle">FIX</text>`;
         }
 
         // Dimension labels
         const dimW = `<text x="${ox + sw/2}" y="${oy + sh + 14}" font-family="Jost,sans-serif" font-size="8" fill="rgba(10,22,40,.4)" text-anchor="middle">${w}mm</text>`;
-        const dimH = `<text x="${ox - 8}" y="${oy + sh/2}" font-family="Jost,sans-serif" font-size="8" fill="rgba(10,22,40,.4)" text-anchor="middle" transform="rotate(-90,${ox - 8},${oy + sh/2})">${h}mm</text>`;
+        const dimH = `<text x="${ox - 10}" y="${oy + sh/2}" font-family="Jost,sans-serif" font-size="8" fill="rgba(10,22,40,.4)" text-anchor="middle" transform="rotate(-90,${ox - 10},${oy + sh/2})">${h}mm</text>`;
 
-        return `<svg width="${maxW + 25}" height="${maxH + 20}" viewBox="0 0 ${maxW + 25} ${maxH + 20}" xmlns="http://www.w3.org/2000/svg">
-            <!-- Frame -->
+        return `<svg width="${maxW + 30}" height="${maxH + 20}" viewBox="0 0 ${maxW + 30} ${maxH + 20}" xmlns="http://www.w3.org/2000/svg">
             <rect x="${ox}" y="${oy}" width="${sw}" height="${sh}" fill="none" stroke="${stroke}" stroke-width="2" rx="1"/>
-            <!-- Inner frame -->
-            <rect x="${ox + frame}" y="${oy + frame}" width="${sw - 2*frame}" height="${meetingY - frame}" fill="rgba(200,220,240,.15)" stroke="${light}" stroke-width="0.5"/>
-            <rect x="${ox + frame}" y="${oy + meetingY}" width="${sw - 2*frame}" height="${sh - meetingY - frame}" fill="rgba(200,220,240,.1)" stroke="${light}" stroke-width="0.5"/>
-            <!-- Meeting rail -->
-            <line x1="${ox}" y1="${oy + meetingY}" x2="${ox + sw}" y2="${oy + meetingY}" stroke="${stroke}" stroke-width="2"/>
+            <rect x="${innerL}" y="${upperT}" width="${innerW}" height="${upperH}" fill="rgba(200,220,240,.12)" stroke="${light}" stroke-width="0.5"/>
+            <rect x="${innerL}" y="${lowerT}" width="${innerW}" height="${lowerH}" fill="rgba(200,220,240,.08)" stroke="${light}" stroke-width="0.5"/>
+            <line x1="${ox}" y1="${oy + meetingY}" x2="${ox + sw}" y2="${oy + meetingY}" stroke="${stroke}" stroke-width="2.5"/>
             ${bars}
             ${arrows}
             ${dimW}
