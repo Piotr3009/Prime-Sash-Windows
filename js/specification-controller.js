@@ -740,6 +740,11 @@ class SpecificationController {
   applyHorns() {
     const val = document.querySelector('input[name="horn-type"]:checked')?.value;
 
+    // Update currentConfig
+    if (window.currentConfig) {
+      window.currentConfig.horns = val || 'none';
+    }
+
     // Update 3D
     if (typeof window.update3D === 'function') {
       if (val === 'none') {
