@@ -2422,7 +2422,7 @@ export default function ParametricSashWindow({
 
           // ─── LEFT SIDE: left mullion → left jamb ───
           const leftCordPath = buildTripleCordPath({
-            mullionCenter: [leftMullionX, pulleyGlobalY],
+            mullionCenter: [leftMullionX + mm(25), pulleyGlobalY],
             jambCenter: [leftJambX, pulleyGlobalY],
             radius: pulleyR,
             sashY: sashRopeY,
@@ -2432,7 +2432,7 @@ export default function ParametricSashWindow({
 
           // ─── RIGHT SIDE: right mullion → right jamb ───
           const rightCordPath = buildTripleCordPath({
-            mullionCenter: [rightMullionX, pulleyGlobalY],
+            mullionCenter: [rightMullionX - mm(25), pulleyGlobalY],
             jambCenter: [rightJambX, pulleyGlobalY],
             radius: pulleyR,
             sashY: sashRopeY,
@@ -2444,13 +2444,13 @@ export default function ParametricSashWindow({
             {/* ─── LEFT SIDE ─── */}
             {/* Left mullion pulley — center-facing side */}
             <PulleyPlatePreview
-              position={[leftMullionX + mm(14), pulleyGlobalY, pulleyZ]}
+              position={[leftMullionX + mm(25), pulleyGlobalY, pulleyZ]}
               width={25} height={128} thickness={3}
               material={pulleyPlateMaterial}
               rotation={[0, -Math.PI / 2, 0]}
             />
             <PulleyWheelPreview
-              position={[leftMullionX, pulleyGlobalY, pulleyZ]}
+              position={[leftMullionX + mm(25), pulleyGlobalY, pulleyZ]}
               diameter={42} thickness={7}
               material={pulleyPlateMaterial}
               orientation={[Math.PI / 2, 0, 0]}
@@ -2481,13 +2481,13 @@ export default function ParametricSashWindow({
             {/* ─── RIGHT SIDE ─── */}
             {/* Right mullion pulley — center-facing side */}
             <PulleyPlatePreview
-              position={[rightMullionX - mm(14), pulleyGlobalY, pulleyZ]}
+              position={[rightMullionX - mm(25), pulleyGlobalY, pulleyZ]}
               width={25} height={128} thickness={3}
               material={pulleyPlateMaterial}
               rotation={[0, Math.PI / 2, 0]}
             />
             <PulleyWheelPreview
-              position={[rightMullionX, pulleyGlobalY, pulleyZ]}
+              position={[rightMullionX - mm(25), pulleyGlobalY, pulleyZ]}
               diameter={42} thickness={7}
               material={pulleyPlateMaterial}
               orientation={[Math.PI / 2, 0, 0]}
