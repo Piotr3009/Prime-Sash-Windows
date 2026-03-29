@@ -1972,18 +1972,73 @@ export default function ParametricSashWindow({
           color={cExt}
         />
 
-        {/* ═══ STAFF BEADS ═══ */}
+        {/* ═══ STAFF BEADS — 3 frames: left fix, center, right fix ═══ */}
+
+        {/* Left fix frame — vertical beads */}
+        <StaffBead
+          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
+          side="left"
+          position={[-w / 2 - mm(52) + mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          color={cExt}
+          colorInt={cInt}
+        />
+        <StaffBead
+          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
+          side="right"
+          position={[leftMullionX, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          color={cExt}
+          colorInt={cInt}
+        />
+        {/* Left fix frame — horizontal beads */}
         <StaffBeadHorizontal
-          width={w + mm(104) - mm(160)}
-          position={[0, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
+          width={leftMullionX - (-w / 2 - mm(52) + mm(80))}
+          position={[(-w / 2 - mm(52) + mm(80) + leftMullionX) / 2, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
           flipZ={false}
           color={cInt}
         />
         <StaffBeadHorizontal
-          width={w + mm(104) - mm(160)}
-          position={[0, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          width={leftMullionX - (-w / 2 - mm(52) + mm(80))}
+          position={[(-w / 2 - mm(52) + mm(80) + leftMullionX) / 2, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
           flipZ={true}
           color={cInt}
+        />
+
+        {/* Center frame — vertical beads on mullions */}
+        <StaffBead
+          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
+          side="left"
+          position={[leftMullionX, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          color={cExt}
+          colorInt={cInt}
+        />
+        <StaffBead
+          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
+          side="right"
+          position={[rightMullionX, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          color={cExt}
+          colorInt={cInt}
+        />
+        {/* Center frame — horizontal beads */}
+        <StaffBeadHorizontal
+          width={rightMullionX - leftMullionX}
+          position={[(leftMullionX + rightMullionX) / 2, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
+          flipZ={false}
+          color={cInt}
+        />
+        <StaffBeadHorizontal
+          width={rightMullionX - leftMullionX}
+          position={[(leftMullionX + rightMullionX) / 2, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          flipZ={true}
+          color={cInt}
+        />
+
+        {/* Right fix frame — vertical beads */}
+        <StaffBead
+          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
+          side="left"
+          position={[rightMullionX, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          color={cExt}
+          colorInt={cInt}
         />
         <StaffBead
           height={h + mm(52) - jambEmbedIntoSill - mm(80)}
@@ -1992,12 +2047,18 @@ export default function ParametricSashWindow({
           color={cExt}
           colorInt={cInt}
         />
-        <StaffBead
-          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
-          side="left"
-          position={[-w / 2 - mm(52) + mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          color={cExt}
-          colorInt={cInt}
+        {/* Right fix frame — horizontal beads */}
+        <StaffBeadHorizontal
+          width={(w / 2 + mm(52) - mm(80)) - rightMullionX}
+          position={[(rightMullionX + w / 2 + mm(52) - mm(80)) / 2, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
+          flipZ={false}
+          color={cInt}
+        />
+        <StaffBeadHorizontal
+          width={(w / 2 + mm(52) - mm(80)) - rightMullionX}
+          position={[(rightMullionX + w / 2 + mm(52) - mm(80)) / 2, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          flipZ={true}
+          color={cInt}
         />
 
         {/* ═══ INTERNAL BOX ═══ */}
