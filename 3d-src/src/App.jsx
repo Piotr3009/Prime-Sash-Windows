@@ -565,6 +565,12 @@ export default function App() {
   const [sameBars, setSameBars] = useState(true);
   const [upperCustomBars, setUpperCustomBars] = useState([]);
   const [lowerCustomBars, setLowerCustomBars] = useState([]);
+  const [sashType, setSashType] = useState('double');
+  const [splitRatio, setSplitRatio] = useState('1/4-1/2-1/4');
+  const [leftFixBars, setLeftFixBars] = useState('none');
+  const [rightFixBars, setRightFixBars] = useState('none');
+  const [leftFixCustomBars, setLeftFixCustomBars] = useState([]);
+  const [rightFixCustomBars, setRightFixCustomBars] = useState([]);
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
 
@@ -600,6 +606,12 @@ export default function App() {
       if (cfg.ironmongery  !== undefined) setIronmongery(cfg.ironmongery);
       if (cfg.showHorns    !== undefined) setShowHorns(cfg.showHorns);
       if (cfg.hornType     !== undefined) setHornType(cfg.hornType);
+      if (cfg.sashType     !== undefined) setSashType(cfg.sashType);
+      if (cfg.splitRatio   !== undefined) setSplitRatio(cfg.splitRatio);
+      if (cfg.leftFixBars  !== undefined) setLeftFixBars(cfg.leftFixBars);
+      if (cfg.rightFixBars !== undefined) setRightFixBars(cfg.rightFixBars);
+      if (cfg.leftFixCustomBars  !== undefined) setLeftFixCustomBars(cfg.leftFixCustomBars);
+      if (cfg.rightFixCustomBars !== undefined) setRightFixCustomBars(cfg.rightFixCustomBars);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -630,8 +642,14 @@ export default function App() {
       woodColor,
       woodColorExt: sameColor ? woodColor : woodColorExt,
       woodColorInt: sameColor ? woodColor : woodColorInt,
+      sashType,
+      splitRatio,
+      leftFixBars,
+      rightFixBars,
+      leftFixCustomBars,
+      rightFixCustomBars,
     }),
-    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor],
+    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, leftFixBars, rightFixBars, leftFixCustomBars, rightFixCustomBars],
   );
 
   return (

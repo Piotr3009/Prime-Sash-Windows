@@ -1673,6 +1673,37 @@ function TraditionalSill({ width, position, material, materialInt }) {
   );
 }
 
+function MullionPost({ height, position, material, materialInt, beadMaterial, beadMaterialInt, centerSide = 'right', beadLength = null, beadYOffset = 0, extColor = '#f0e6d3' }) {
+  const mullionWidth = mm(50);
+  const jambDepth = mm(130);
+  const jambHalf = jambDepth / 2;
+  const matInt = materialInt || material;
+  const beadMatInt = beadMaterialInt || beadMaterial;
+  const actualBeadLength = beadLength ?? height;
+
+  // Parting bead faces toward the center (operating) section
+  const beadX = centerSide === 'right' ? mullionWidth / 2 : -mullionWidth / 2;
+  const beadRotZ = centerSide === 'right' ? 0 : Math.PI;
+
+  return (
+    <group position={position}>
+      {/* Front half (exterior) */}
+      <FramePiece size={[mullionWidth, height, jambHalf]} position={[0, 0, jambHalf / 2]} material={material} />
+      {/* Back half (interior) */}
+      <FramePiece size={[mullionWidth, height, jambHalf]} position={[0, 0, -jambHalf / 2]} material={matInt} />
+      {/* Parting bead on center-section side */}
+      <group position={[beadX, beadYOffset, 0]} rotation={[0, 0, beadRotZ]}>
+        <RoundedPartingBead length={actualBeadLength} orientation="vertical" material={beadMaterial} materialInt={beadMatInt} />
+      </group>
+      {/* External mullion board — 90mm wide (20mm overhang each side) */}
+      <mesh position={[0, 0, jambHalf + mm(17) / 2]} castShadow receiveShadow>
+        <boxGeometry args={[mm(90), height, mm(17)]} />
+        <meshPhysicalMaterial color={extColor} roughness={0.5} metalness={0.0} clearcoat={0.2} clearcoatRoughness={0.12} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+      </mesh>
+    </group>
+  );
+}
+
 export default function ParametricSashWindow({
   width = 1200,
   height = 1800,
@@ -1696,6 +1727,12 @@ export default function ParametricSashWindow({
   doubleGlazing = false,
   spacerColor = 'silver',
   ironmongery = 'brass',
+  sashType = 'double',
+  splitRatio = '1/4-1/2-1/4',
+  leftFixBars = 'none',
+  rightFixBars = 'none',
+  leftFixCustomBars = [],
+  rightFixCustomBars = [],
 }) {
   const cExt = woodColorExt || woodColor;
   const cInt = woodColorInt || woodColor;
@@ -1823,6 +1860,458 @@ export default function ParametricSashWindow({
   const weightStartY = meetingY_inJamb - pulleyLocalY_calc;
   // linka do sashki: od pulley (y=0 w lokalnych) do meeting railu
   const sashDropY = meetingY_inJamb - pulleyLocalY_calc;
+
+  // ═══════════════════════════════════════════════════════════════
+  // TRIPLE SASH — early return when sashType === 'triple'
+  // ═══════════════════════════════════════════════════════════════
+  if (sashType === 'triple') {
+    const mullionJambMm = 50;
+    const availableForSections = innerW * 1000 - 2 * mullionJambMm;
+
+    let leftR, centerR, rightR;
+    if (splitRatio === '1/3-1/3-1/3') { leftR = 1/3; centerR = 1/3; rightR = 1/3; }
+    else if (splitRatio === '1/5-3/5-1/5') { leftR = 0.2; centerR = 0.6; rightR = 0.2; }
+    else { leftR = 0.25; centerR = 0.5; rightR = 0.25; }
+
+    const leftFixMm = availableForSections * leftR;
+    const centerMm = availableForSections * centerR;
+    const rightFixMm = availableForSections * rightR;
+
+    // X positions in meters (center of window = 0)
+    const leftEdge = -innerW / 2;
+    const leftFixCenterX  = leftEdge + mm(leftFixMm / 2);
+    const leftMullionX    = leftEdge + mm(leftFixMm) + mm(mullionJambMm / 2);
+    const centerCenterX   = leftEdge + mm(leftFixMm + mullionJambMm) + mm(centerMm / 2);
+    const rightMullionX   = leftEdge + mm(leftFixMm + mullionJambMm + centerMm) + mm(mullionJambMm / 2);
+    const rightFixCenterX = leftEdge + mm(leftFixMm + mullionJambMm * 2 + centerMm) + mm(rightFixMm / 2);
+
+    // Sash widths in mm (for Sash component)
+    const leftFixSashW  = leftFixMm - config.sideGap * 2;
+    const centerSashW   = centerMm - config.sideGap * 2;
+    const rightFixSashW = rightFixMm - config.sideGap * 2;
+
+    // Center section sash heights — same as double
+    const centerUpperH = upperSashHeight;
+    const centerLowerH = lowerSashHeight;
+
+    // Fix sash heights — same meeting rail line
+    const fixUpperH = upperSashHeight;
+    const fixLowerH = lowerSashHeight;
+
+    // Center lower sash opening
+    const centerLowerLift = Math.min(opening, maxLift);
+    // Upper sash in center is FIXED (no opening)
+
+    // Mullion Y position and height
+    const mullionY = sillVisibleHeight - jambEmbedIntoSill;
+    const mullionHeight = h;
+    const mullionBeadLen = h - jambThickness;
+
+    return (
+      <group rotation={[0, Math.PI, 0]}>
+
+        {/* ═══ OUTER JAMBS ═══ */}
+        <JambWithPartingBead
+          length={h}
+          position={[-w / 2 + jambThickness / 2, sillVisibleHeight - jambEmbedIntoSill, 0]}
+          material={jambMaterial}
+          materialInt={jambIntMaterial}
+          beadMaterial={beadMaterial}
+          beadMaterialInt={beadIntMaterial}
+          side="left"
+          beadLength={h - jambThickness}
+          beadYOffset={jambThickness / 2}
+          showPulleyTestCutout={false}
+        />
+        <JambWithPartingBead
+          length={h}
+          position={[w / 2 - jambThickness / 2, sillVisibleHeight - jambEmbedIntoSill, 0]}
+          material={jambMaterial}
+          materialInt={jambIntMaterial}
+          beadMaterial={beadMaterial}
+          beadMaterialInt={beadIntMaterial}
+          side="right"
+          beadLength={h - jambThickness}
+          beadYOffset={jambThickness / 2}
+          showPulleyTestCutout={false}
+        />
+
+        {/* ═══ HEAD JAMB ═══ */}
+        <JambWithPartingBead
+          length={w + mm(104)}
+          position={[0, h / 2 - jambThickness / 2 + sillVisibleHeight - jambEmbedIntoSill, 0]}
+          material={jambMaterial}
+          materialInt={jambIntMaterial}
+          beadMaterial={beadMaterial}
+          beadMaterialInt={beadIntMaterial}
+          orientation="horizontal"
+          showBead={true}
+        />
+
+        {/* ═══ SILL ═══ */}
+        <TraditionalSill
+          width={width}
+          position={[0, -h / 2 + sillVisibleHeight / 2, 0]}
+          material={sillMaterial}
+          materialInt={sillIntMaterial}
+        />
+
+        {/* ═══ EXTERNAL BOX ═══ */}
+        <ExternalBoxElement
+          height={h + mm(52)}
+          side="right"
+          position={[w / 2 - mm(100) + mm(52), jambOriginY - h / 2, bd / 2 - mm(17)]}
+          color={cExt}
+        />
+        <ExternalBoxElement
+          height={h + mm(52)}
+          side="left"
+          position={[-w / 2 + mm(100) - mm(52), jambOriginY - h / 2, bd / 2 - mm(17)]}
+          color={cExt}
+        />
+
+        {/* ═══ STAFF BEADS ═══ */}
+        <StaffBeadHorizontal
+          width={w + mm(104) - mm(160)}
+          position={[0, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
+          flipZ={false}
+          color={cInt}
+        />
+        <StaffBeadHorizontal
+          width={w + mm(104) - mm(160)}
+          position={[0, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          flipZ={true}
+          color={cInt}
+        />
+        <StaffBead
+          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
+          side="right"
+          position={[w / 2 + mm(52) - mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          color={cExt}
+          colorInt={cInt}
+        />
+        <StaffBead
+          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
+          side="left"
+          position={[-w / 2 - mm(52) + mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
+          color={cExt}
+          colorInt={cInt}
+        />
+
+        {/* ═══ INTERNAL BOX ═══ */}
+        <InternalBoxElement
+          height={h + mm(52) - jambEmbedIntoSill}
+          side="right"
+          position={[w / 2 + mm(52) - mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2]}
+          color={cInt}
+        />
+        <InternalBoxElement
+          height={h + mm(52) - jambEmbedIntoSill}
+          side="left"
+          position={[-w / 2 - mm(52) + mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2]}
+          color={cInt}
+        />
+
+        {/* Internal head board */}
+        <mesh position={[0, jambOriginY + h / 2 + mm(52) - mm(40), -bd / 2 + mm(8.5)]} castShadow receiveShadow>
+          <boxGeometry args={[w + mm(104) - mm(160), mm(80), mm(17)]} />
+          <meshPhysicalMaterial color={cInt} roughness={0.5} metalness={0.0} clearcoat={0.2} clearcoatRoughness={0.12} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+        </mesh>
+        {/* External head board */}
+        <mesh position={[0, jambOriginY + h / 2 + mm(50) - mm(48), bd / 2 - mm(8.5)]} castShadow receiveShadow>
+          <boxGeometry args={[w - mm(96), mm(100), mm(17)]} />
+          <meshPhysicalMaterial color={cExt} roughness={0.5} metalness={0.0} clearcoat={0.2} clearcoatRoughness={0.12} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+        </mesh>
+
+        {/* ═══ LEFT MULLION ═══ */}
+        <MullionPost
+          height={mullionHeight}
+          position={[leftMullionX, mullionY, 0]}
+          material={jambMaterial}
+          materialInt={jambIntMaterial}
+          beadMaterial={beadMaterial}
+          beadMaterialInt={beadIntMaterial}
+          centerSide="right"
+          beadLength={mullionBeadLen}
+          beadYOffset={jambThickness / 2}
+          extColor={cExt}
+        />
+
+        {/* ═══ RIGHT MULLION ═══ */}
+        <MullionPost
+          height={mullionHeight}
+          position={[rightMullionX, mullionY, 0]}
+          material={jambMaterial}
+          materialInt={jambIntMaterial}
+          beadMaterial={beadMaterial}
+          beadMaterialInt={beadIntMaterial}
+          centerSide="left"
+          beadLength={mullionBeadLen}
+          beadYOffset={jambThickness / 2}
+          extColor={cExt}
+        />
+
+        {/* ═══ LEFT FIX — upper (fixed) ═══ */}
+        <group position={[leftFixCenterX, 0, 0]}>
+          <Sash
+            width={leftFixSashW}
+            height={fixUpperH}
+            depth={sashDepth}
+            stileWidth={config.stileWidth}
+            topRail={config.upperTopRail}
+            bottomRail={config.upperMeetingRail}
+            zOffset={trackRearZ}
+            yOffset={yTopClosed}
+            color={cExt}
+            glassThickness={config.glassUnitThickness}
+            flipChamfer={false}
+            barPattern={leftFixBars}
+            customBars={leftFixCustomBars}
+            colorExt={cExt}
+            colorInt={cInt}
+            frosted={upperGlass === 'frosted'}
+            doubleGlazing={doubleGlazing}
+            spacerColor={spacerColor}
+          />
+        </group>
+
+        {/* ═══ LEFT FIX — lower (fixed) ═══ */}
+        <group position={[leftFixCenterX, 0, 0]}>
+          <Sash
+            width={leftFixSashW}
+            height={fixLowerH}
+            depth={sashDepth}
+            stileWidth={config.stileWidth}
+            topRail={config.lowerMeetingRail}
+            bottomRail={config.lowerBottomRail}
+            zOffset={trackFrontZ}
+            yOffset={yBottomClosed}
+            color={cExt}
+            profiledBottom={true}
+            glassThickness={config.glassUnitThickness}
+            flipChamfer={false}
+            barPattern={leftFixBars}
+            customBars={leftFixCustomBars}
+            colorExt={cExt}
+            colorInt={cInt}
+            frosted={lowerGlass === 'frosted'}
+            doubleGlazing={doubleGlazing}
+            spacerColor={spacerColor}
+          />
+        </group>
+
+        {/* ═══ RIGHT FIX — upper (fixed) ═══ */}
+        <group position={[rightFixCenterX, 0, 0]}>
+          <Sash
+            width={rightFixSashW}
+            height={fixUpperH}
+            depth={sashDepth}
+            stileWidth={config.stileWidth}
+            topRail={config.upperTopRail}
+            bottomRail={config.upperMeetingRail}
+            zOffset={trackRearZ}
+            yOffset={yTopClosed}
+            color={cExt}
+            glassThickness={config.glassUnitThickness}
+            flipChamfer={false}
+            barPattern={rightFixBars}
+            customBars={rightFixCustomBars}
+            colorExt={cExt}
+            colorInt={cInt}
+            frosted={upperGlass === 'frosted'}
+            doubleGlazing={doubleGlazing}
+            spacerColor={spacerColor}
+          />
+        </group>
+
+        {/* ═══ RIGHT FIX — lower (fixed) ═══ */}
+        <group position={[rightFixCenterX, 0, 0]}>
+          <Sash
+            width={rightFixSashW}
+            height={fixLowerH}
+            depth={sashDepth}
+            stileWidth={config.stileWidth}
+            topRail={config.lowerMeetingRail}
+            bottomRail={config.lowerBottomRail}
+            zOffset={trackFrontZ}
+            yOffset={yBottomClosed}
+            color={cExt}
+            profiledBottom={true}
+            glassThickness={config.glassUnitThickness}
+            flipChamfer={false}
+            barPattern={rightFixBars}
+            customBars={rightFixCustomBars}
+            colorExt={cExt}
+            colorInt={cInt}
+            frosted={lowerGlass === 'frosted'}
+            doubleGlazing={doubleGlazing}
+            spacerColor={spacerColor}
+          />
+        </group>
+
+        {/* ═══ CENTER — upper sash (FIXED, no opening) ═══ */}
+        <group position={[centerCenterX, 0, 0]}>
+          <Sash
+            width={centerSashW}
+            height={centerUpperH}
+            depth={sashDepth}
+            stileWidth={config.stileWidth}
+            topRail={config.upperTopRail}
+            bottomRail={config.upperMeetingRail}
+            zOffset={trackRearZ}
+            yOffset={yTopClosed}
+            color={cExt}
+            glassThickness={config.glassUnitThickness}
+            flipChamfer={false}
+            barPattern={upperBars}
+            customBars={upperCustomBars}
+            colorExt={cExt}
+            colorInt={cInt}
+            frosted={upperGlass === 'frosted'}
+            doubleGlazing={doubleGlazing}
+            spacerColor={spacerColor}
+          />
+        </group>
+
+        {/* ═══ CENTER — lower sash (OPENS) ═══ */}
+        <group position={[centerCenterX, 0, 0]}>
+          <Sash
+            width={centerSashW}
+            height={centerLowerH}
+            depth={sashDepth}
+            stileWidth={config.stileWidth}
+            topRail={config.lowerMeetingRail}
+            bottomRail={config.lowerBottomRail}
+            zOffset={trackFrontZ}
+            yOffset={yBottomClosed + mm(centerLowerLift)}
+            color={cExt}
+            profiledBottom={true}
+            glassThickness={config.glassUnitThickness}
+            flipChamfer={false}
+            barPattern={lowerBars}
+            customBars={lowerCustomBars}
+            colorExt={cExt}
+            colorInt={cInt}
+            frosted={lowerGlass === 'frosted'}
+            doubleGlazing={doubleGlazing}
+            spacerColor={spacerColor}
+          />
+        </group>
+
+        {/* ═══ IRONMONGERY — center section only ═══ */}
+
+        {/* Fitch Fasteners */}
+        {(() => {
+          const twoFasteners = centerSashW > 1200 || upperBars !== 'none';
+          const xPositions = twoFasteners
+            ? [centerCenterX - mm(centerSashW / 2 - 250), centerCenterX + mm(centerSashW / 2 - 250)]
+            : [centerCenterX];
+
+          const lowerSashTop = (yBottomClosed + mm(centerLowerLift)) + mm(centerLowerH) / 2;
+          const bodyY = lowerSashTop;
+          const bodyZ = trackFrontZ - mm(sashDepth / 2) + mm(85);
+
+          const upperSashBottom = yTopClosed - mm(centerUpperH) / 2;
+          const keepY = upperSashBottom + mm(43);
+          const keepZ = trackRearZ - mm(sashDepth / 2);
+
+          return xPositions.map((x, i) => (
+            <group key={`fitch-${i}`}>
+              <group position={[x, bodyY, bodyZ]} rotation={[Math.PI / 2, Math.PI, Math.PI]} scale={0.001}>
+                <FitchFastenerBody mat={ironmongeryMats} />
+              </group>
+              <group position={[x, keepY, keepZ]} rotation={[Math.PI / 2, Math.PI, Math.PI]} scale={0.001}>
+                <FitchFastenerKeep mat={ironmongeryMats} />
+              </group>
+            </group>
+          ));
+        })()}
+
+        {/* Sash Horns — center upper sash */}
+        {showHorns && (() => {
+          const upperSashBottom = yTopClosed - mm(centerUpperH) / 2;
+          const hornY = upperSashBottom - mm(80);
+          const hornZLeft  = trackRearZ + mm(sashDepth / 2) - mm(57);
+          const hornZRight = trackRearZ + mm(sashDepth / 2);
+          const leftX  = centerCenterX - mm(centerSashW / 2);
+          const rightX = centerCenterX + mm(centerSashW / 2);
+          const hornMat = new THREE.MeshStandardMaterial({ color: cExt, roughness: 0.46, metalness: 0.02 });
+          return [
+            <group key={`horn-left-${hornType}`}  position={[leftX,  hornY, hornZLeft]}  rotation={[0, 0, 0]}       scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
+            <group key={`horn-right-${hornType}`} position={[rightX, hornY, hornZRight]} rotation={[0, Math.PI, 0]} scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
+          ];
+        })()}
+
+        {/* Sash Stoppers — center upper sash */}
+        {(() => {
+          const upperSashBottom = yTopClosed - mm(centerUpperH) / 2;
+          const stopperY = upperSashBottom + mm(43) + mm(100);
+          const stopperZ = trackRearZ - mm(sashDepth / 2);
+          const leftX  = centerCenterX - mm(centerSashW / 2) + mm(config.stileWidth / 2);
+          const rightX = centerCenterX + mm(centerSashW / 2) - mm(config.stileWidth / 2);
+          const stopperMaterial = ironmongeryMats.main;
+          return [leftX, rightX].map((x, i) => (
+            <mesh key={`stopper-${i}`} position={[x, stopperY, stopperZ]} rotation={[Math.PI / 2, 0, 0]} castShadow receiveShadow>
+              <cylinderGeometry args={[mm(8), mm(8), mm(40), 32]} />
+              <primitive object={stopperMaterial} attach="material" />
+            </mesh>
+          ));
+        })()}
+
+        {/* Finger Lifts — center lower sash */}
+        {(() => {
+          const lowerSashBottom = (yBottomClosed + mm(centerLowerLift)) - mm(centerLowerH) / 2;
+          const liftY = lowerSashBottom + mm(45);
+          const liftZ = trackFrontZ - mm(sashDepth / 2) - mm(1);
+          const xLeft  = centerCenterX - mm(centerSashW / 2 - 200);
+          const xRight = centerCenterX + mm(centerSashW / 2 - 200);
+          return [xLeft, xRight].map((x, i) => (
+            <group key={`lift-${i}`} position={[x, liftY, liftZ]} rotation={[0, Math.PI, 0]} scale={0.022}>
+              <FingerLift mat={ironmongeryMats} />
+            </group>
+          ));
+        })()}
+
+        {/* Handle — center upper sash */}
+        {(() => {
+          const upperSashBottom = yTopClosed - mm(centerUpperH) / 2;
+          const handleY = upperSashBottom;
+          const handleZ = trackRearZ + mm(sashDepth / 2) - mm(28);
+          return (
+            <group position={[centerCenterX, handleY, handleZ]} rotation={[Math.PI / 2, 0, 0]}>
+              <HandleMesh mat={ironmongeryMats} />
+            </group>
+          );
+        })()}
+
+        {/* ═══ DIMENSION GUIDES ═══ */}
+        {showGuides && (
+          <group rotation={[0, Math.PI, 0]}>
+            <DimensionGuide
+              from={[-(w / 2 + mm(52)), jambOriginY + h / 2 + mm(52) + mm(80), 0]}
+              to={[  w / 2 + mm(52),  jambOriginY + h / 2 + mm(52) + mm(80), 0]}
+              label={`${Math.round(width + 104)} mm`}
+              offset={[0, 0.07, 0]}
+            />
+            <DimensionGuide
+              from={[w / 2 + mm(52) + mm(180), -h / 2, 0]}
+              to={[  w / 2 + mm(52) + mm(180), jambOriginY + h / 2 + mm(52), 0]}
+              label={`${Math.round(height + 87)} mm`}
+              offset={[0.09, 0, 0]}
+            />
+            <DimensionGuide
+              from={[-w / 2 - 0.22, 0, -bd / 2]}
+              to={[-w / 2 - 0.22, 0, bd / 2]}
+              label={`${Math.round(boxDepth)} mm`}
+              offset={[-0.1, 0, 0]}
+            />
+          </group>
+        )}
+
+      </group>
+    );
+  }
+  // ═══ END TRIPLE SASH ═══
 
   return (
     <group rotation={[0, Math.PI, 0]}>
