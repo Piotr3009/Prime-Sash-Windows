@@ -1676,7 +1676,9 @@ function TraditionalSill({ width, position, material, materialInt }) {
 function MullionPost({ height, position, material, materialInt, beadMaterial, beadMaterialInt, centerSide = 'right', beadLength = null, beadYOffset = 0, extColor = '#f0e6d3' }) {
   const mullionWidth = mm(50);
   const jambDepth = mm(130);
-  const jambHalf = jambDepth / 2;
+  const jambHalf = jambDepth / 2;       // 65mm
+  const extExtra = mm(20);              // +20mm to exterior
+  const extHalf = jambHalf + extExtra;  // 85mm exterior side
   const matInt = materialInt || material;
   const beadMatInt = beadMaterialInt || beadMaterial;
   const actualBeadLength = beadLength ?? height;
@@ -1687,16 +1689,16 @@ function MullionPost({ height, position, material, materialInt, beadMaterial, be
 
   return (
     <group position={position}>
-      {/* Front half (exterior) */}
-      <FramePiece size={[mullionWidth, height, jambHalf]} position={[0, 0, jambHalf / 2]} material={material} />
-      {/* Back half (interior) */}
+      {/* Front half (exterior) — 85mm deep */}
+      <FramePiece size={[mullionWidth, height, extHalf]} position={[0, 0, extHalf / 2]} material={material} />
+      {/* Back half (interior) — 65mm deep */}
       <FramePiece size={[mullionWidth, height, jambHalf]} position={[0, 0, -jambHalf / 2]} material={matInt} />
       {/* Parting bead on center-section side */}
       <group position={[beadX, beadYOffset, 0]} rotation={[0, 0, beadRotZ]}>
         <RoundedPartingBead length={actualBeadLength} orientation="vertical" material={beadMaterial} materialInt={beadMatInt} />
       </group>
       {/* External mullion board — 90mm wide (20mm overhang each side) */}
-      <mesh position={[0, 0, jambHalf + mm(17) / 2]} castShadow receiveShadow>
+      <mesh position={[0, 0, extHalf + mm(17) / 2]} castShadow receiveShadow>
         <boxGeometry args={[mm(90), height, mm(17)]} />
         <meshPhysicalMaterial color={extColor} roughness={0.5} metalness={0.0} clearcoat={0.2} clearcoatRoughness={0.12} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
       </mesh>
