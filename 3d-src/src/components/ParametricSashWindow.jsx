@@ -1973,93 +1973,42 @@ export default function ParametricSashWindow({
         />
 
         {/* ═══ STAFF BEADS — 3 frames: left fix, center, right fix ═══ */}
+        {(() => {
+          const mullionHalfW = mm(25); // half of 50mm mullion
+          const sbZ = -bd / 2 + mm(80) - mm(65) - mm(17);
+          const sbZBottom = sbZ - mm(17) + mm(34);
+          const sbYBottom = jambOriginY - h / 2 + jambEmbedIntoSill;
+          const sbYTop = jambOriginY + h / 2 + mm(52) - mm(80) - mm(17);
+          const sbHeight = h + mm(52) - jambEmbedIntoSill - mm(80);
+          const outerLeftX = -w / 2 - mm(52) + mm(80);
+          const outerRightX = w / 2 + mm(52) - mm(80);
+          const lmLeft = leftMullionX - mullionHalfW;   // left edge of left mullion
+          const lmRight = leftMullionX + mullionHalfW;  // right edge of left mullion
+          const rmLeft = rightMullionX - mullionHalfW;  // left edge of right mullion
+          const rmRight = rightMullionX + mullionHalfW; // right edge of right mullion
 
-        {/* Left fix frame — vertical beads */}
-        <StaffBead
-          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
-          side="left"
-          position={[-w / 2 - mm(52) + mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          color={cExt}
-          colorInt={cInt}
-        />
-        <StaffBead
-          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
-          side="right"
-          position={[leftMullionX, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          color={cExt}
-          colorInt={cInt}
-        />
-        {/* Left fix frame — horizontal beads */}
-        <StaffBeadHorizontal
-          width={leftMullionX - (-w / 2 - mm(52) + mm(80))}
-          position={[(-w / 2 - mm(52) + mm(80) + leftMullionX) / 2, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
-          flipZ={false}
-          color={cInt}
-        />
-        <StaffBeadHorizontal
-          width={leftMullionX - (-w / 2 - mm(52) + mm(80))}
-          position={[(-w / 2 - mm(52) + mm(80) + leftMullionX) / 2, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          flipZ={true}
-          color={cInt}
-        />
+          const DEBUG_COLOR = '#0044ff'; // DEBUG — blue to see positions
 
-        {/* Center frame — vertical beads on mullions */}
-        <StaffBead
-          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
-          side="left"
-          position={[leftMullionX, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          color={cExt}
-          colorInt={cInt}
-        />
-        <StaffBead
-          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
-          side="right"
-          position={[rightMullionX, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          color={cExt}
-          colorInt={cInt}
-        />
-        {/* Center frame — horizontal beads */}
-        <StaffBeadHorizontal
-          width={rightMullionX - leftMullionX}
-          position={[(leftMullionX + rightMullionX) / 2, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
-          flipZ={false}
-          color={cInt}
-        />
-        <StaffBeadHorizontal
-          width={rightMullionX - leftMullionX}
-          position={[(leftMullionX + rightMullionX) / 2, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          flipZ={true}
-          color={cInt}
-        />
+          return (<>
+            {/* Left fix frame */}
+            <StaffBead height={sbHeight} side="left" position={[outerLeftX, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            <StaffBead height={sbHeight} side="right" position={[lmLeft, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYTop, sbZ]} flipZ={true} color={DEBUG_COLOR} />
 
-        {/* Right fix frame — vertical beads */}
-        <StaffBead
-          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
-          side="left"
-          position={[rightMullionX, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          color={cExt}
-          colorInt={cInt}
-        />
-        <StaffBead
-          height={h + mm(52) - jambEmbedIntoSill - mm(80)}
-          side="right"
-          position={[w / 2 + mm(52) - mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          color={cExt}
-          colorInt={cInt}
-        />
-        {/* Right fix frame — horizontal beads */}
-        <StaffBeadHorizontal
-          width={(w / 2 + mm(52) - mm(80)) - rightMullionX}
-          position={[(rightMullionX + w / 2 + mm(52) - mm(80)) / 2, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
-          flipZ={false}
-          color={cInt}
-        />
-        <StaffBeadHorizontal
-          width={(w / 2 + mm(52) - mm(80)) - rightMullionX}
-          position={[(rightMullionX + w / 2 + mm(52) - mm(80)) / 2, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
-          flipZ={true}
-          color={cInt}
-        />
+            {/* Center frame */}
+            <StaffBead height={sbHeight} side="left" position={[lmRight, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            <StaffBead height={sbHeight} side="right" position={[rmLeft, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYTop, sbZ]} flipZ={true} color={DEBUG_COLOR} />
+
+            {/* Right fix frame */}
+            <StaffBead height={sbHeight} side="left" position={[rmRight, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            <StaffBead height={sbHeight} side="right" position={[outerRightX, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYTop, sbZ]} flipZ={true} color={DEBUG_COLOR} />
+          </>);
+        })()}
 
         {/* ═══ INTERNAL BOX ═══ */}
         <InternalBoxElement
