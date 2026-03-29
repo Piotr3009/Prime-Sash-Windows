@@ -2029,34 +2029,34 @@ export default function ParametricSashWindow({
 
           return (<>
             {/* Left fix frame */}
-            <group position={[outerLeftX, sbYBottom, sbZ]} rotation={[0, Math.PI / 2, 0]}>
+            <group position={[outerLeftX, sbYBottom, sbZBottom]} rotation={[0, Math.PI / 2, 0]}>
               <StaffBead height={sbHeight} side="left" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             </group>
-            <group position={[lmLeft, sbYBottom, sbZ]} rotation={[0, -Math.PI / 2, 0]}>
+            <group position={[lmLeft, sbYBottom, sbZBottom]} rotation={[0, -Math.PI / 2, 0]}>
               <StaffBead height={sbHeight} side="right" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             </group>
             <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
-            <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYTop, sbZ]} flipZ={false} color={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYTop, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
 
             {/* Center frame */}
-            <group position={[lmRight, sbYBottom, sbZ]} rotation={[0, Math.PI / 2, 0]}>
+            <group position={[lmRight, sbYBottom, sbZBottom]} rotation={[0, Math.PI / 2, 0]}>
               <StaffBead height={sbHeight} side="left" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             </group>
-            <group position={[rmLeft, sbYBottom, sbZ]} rotation={[0, -Math.PI / 2, 0]}>
+            <group position={[rmLeft, sbYBottom, sbZBottom]} rotation={[0, -Math.PI / 2, 0]}>
               <StaffBead height={sbHeight} side="right" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             </group>
             <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
-            <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYTop, sbZ]} flipZ={false} color={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYTop, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
 
             {/* Right fix frame */}
-            <group position={[rmRight, sbYBottom, sbZ]} rotation={[0, Math.PI / 2, 0]}>
+            <group position={[rmRight, sbYBottom, sbZBottom]} rotation={[0, Math.PI / 2, 0]}>
               <StaffBead height={sbHeight} side="left" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             </group>
-            <group position={[outerRightX, sbYBottom, sbZ]} rotation={[0, -Math.PI / 2, 0]}>
+            <group position={[outerRightX, sbYBottom, sbZBottom]} rotation={[0, -Math.PI / 2, 0]}>
               <StaffBead height={sbHeight} side="right" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             </group>
             <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
-            <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYTop, sbZ]} flipZ={false} color={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYTop, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
           </>);
         })()}
 
