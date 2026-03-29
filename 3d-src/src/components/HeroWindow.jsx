@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { ContactShadows, OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import ParametricSashWindow from './ParametricSashWindow';
 
-function HeroScene({ config }) {
+function HeroScene({ config, isMobile }) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[0, 0.5, 2.4]} fov={42} />
@@ -19,31 +19,38 @@ function HeroScene({ config }) {
         maxDistance={2.4}
         target={[0, 0.3, 0]}
       />
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={isMobile ? 0.7 : 0.5} />
       <directionalLight
         position={[3, 4, 2]}
         intensity={1.4}
         color="#fff5e6"
-        castShadow
-        shadow-mapSize={[1024, 1024]}
+        castShadow={!isMobile}
+        shadow-mapSize={isMobile ? [512, 512] : [1024, 1024]}
       />
       <directionalLight position={[-2, 3, -1]} intensity={0.35} color="#e0e8ff" />
-      <pointLight position={[0, 0.5, 2]} intensity={0.5} color="#fff0d0" distance={5} />
+      {!isMobile && <pointLight position={[0, 0.5, 2]} intensity={0.5} color="#fff0d0" distance={5} />}
       <group position={[0, 0.3, 0]} scale={1.08}>
         <ParametricSashWindow {...config} />
       </group>
-      <ContactShadows
-        position={[0, -0.44, 0]}
-        opacity={0.35}
-        scale={3}
-        blur={2.5}
-        far={2}
-      />
+      {!isMobile && (
+        <ContactShadows
+          position={[0, -0.44, 0]}
+          opacity={0.35}
+          scale={3}
+          blur={2.5}
+          far={2}
+        />
+      )}
     </>
   );
 }
 
 export default function HeroWindow() {
+  const isMobile = useMemo(() => {
+    return /iPad|iPhone|iPod|Android/i.test(navigator.userAgent) || 
+           (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
+  }, []);
+
   const [opening, setOpening] = useState(0);
   const [upperOpening, setUpperOpening] = useState(0);
   const [upperBars, setUpperBars] = useState('none');
@@ -223,7 +230,7 @@ export default function HeroWindow() {
 
   return (
     <div
-      style={{ width: '100%', height: '100%', cursor: 'grab' }}
+      style={{ width: '100%', height: '100%', cursor: 'grab', touchAction: 'none' }}
       onMouseEnter={() => {
         if (sequenceDone && !animRunning.current) {
           setSequenceDone(false);
@@ -232,12 +239,12 @@ export default function HeroWindow() {
       }}
     >
       <Canvas
-        shadows
-        dpr={[1, 2]}
-        gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
-        style={{ background: 'transparent' }}
+        shadows={!isMobile}
+        dpr={isMobile ? [1, 1] : [1, 2]}
+        gl={{ alpha: true, antialias: !isMobile, powerPreference: isMobile ? 'low-power' : 'high-performance' }}
+        style={{ background: 'transparent', touchAction: 'none' }}
       >
-        <HeroScene config={config} />
+        <HeroScene config={config} isMobile={isMobile} />
       </Canvas>
     </div>
   );

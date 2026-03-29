@@ -434,7 +434,7 @@ function MicrocementFloor() {
 
 
 
-function Scene({ config }) {
+function Scene({ config, isMobile }) {
   const [hovered, setHovered] = useState(false);
   const b = config.brightness ?? 1.0;
 
@@ -458,9 +458,9 @@ function Scene({ config }) {
       <directionalLight
         position={[4, 6, 5]}
         intensity={1.12 * b}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        castShadow={!isMobile}
+        shadow-mapSize-width={isMobile ? 512 : 2048}
+        shadow-mapSize-height={isMobile ? 512 : 2048}
         shadow-bias={-0.0001}
       />
 
@@ -503,7 +503,7 @@ function Scene({ config }) {
       <WallBackground />
       <MicrocementFloor />
 
-      <ContactShadows position={[0, -1.215, 0]} opacity={0.55} blur={2.5} far={3.5} scale={6} />
+      {!isMobile && <ContactShadows position={[0, -1.215, 0]} opacity={0.55} blur={2.5} far={3.5} scale={6} />}
 
       <OrbitControls
         makeDefault
@@ -526,6 +526,11 @@ function Scene({ config }) {
 }
 
 export default function App() {
+  const isMobile = useMemo(() => {
+    return /iPad|iPhone|iPod|Android/i.test(navigator.userAgent) || 
+           (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
+  }, []);
+
   const [extWidth, setExtWidth] = useState(1000);
   const [extHeight, setExtHeight] = useState(1500);
   const width = extWidth - 104;
@@ -704,8 +709,8 @@ export default function App() {
           color: 'rgba(255,255,255,0.5)'
         }} title="Drag to rotate">↻</div>
 
-        <Canvas shadows dpr={[1, 2]} gl={{ alpha: true }}>
-          <Scene config={config} />
+        <Canvas shadows={!isMobile} dpr={isMobile ? [1, 1] : [1, 2]} gl={{ alpha: true, antialias: !isMobile, powerPreference: isMobile ? 'low-power' : 'high-performance' }} style={{ touchAction: 'none' }}>
+          <Scene config={config} isMobile={isMobile} />
         </Canvas>
       </main>
     </div>

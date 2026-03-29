@@ -1,18 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import HeroWindow from './components/HeroWindow';
 import './styles.css';
 
 // Hero 3D on index page
 const heroContainer = document.getElementById('hero-3d');
 if (heroContainer) {
-  import('./components/HeroWindow.jsx').then(({ default: HeroWindow }) => {
+  try {
     ReactDOM.createRoot(heroContainer).render(
       <React.StrictMode>
         <HeroWindow />
       </React.StrictMode>,
     );
-  });
+  } catch (e) {
+    console.warn('Hero 3D failed to mount:', e);
+    heroContainer.style.display = 'none';
+    var fb = document.getElementById('hero-3d-fallback');
+    if (fb) fb.style.display = 'flex';
+  }
 }
 
 // Full configurator on online-estimate page
@@ -24,7 +30,6 @@ if (appContainer && !heroContainer) {
     </React.StrictMode>,
   );
 } else if (appContainer && heroContainer) {
-  // Both exist - mount both (unlikely but safe)
   ReactDOM.createRoot(appContainer).render(
     <React.StrictMode>
       <App />
