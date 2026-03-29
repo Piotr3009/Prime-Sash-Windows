@@ -2034,7 +2034,7 @@ export default function ParametricSashWindow({
               <StaffBead height={sbHeight} side="right" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             </group>
             <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
-            <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYTop, sbZ]} flipZ={true} color={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYTop, sbZ]} flipZ={false} color={DEBUG_COLOR} />
 
             {/* Center frame */}
             <group position={[lmRight, sbYBottom, sbZ]} rotation={[0, Math.PI / 2, 0]}>
@@ -2044,7 +2044,7 @@ export default function ParametricSashWindow({
               <StaffBead height={sbHeight} side="right" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             </group>
             <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
-            <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYTop, sbZ]} flipZ={true} color={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYTop, sbZ]} flipZ={false} color={DEBUG_COLOR} />
 
             {/* Right fix frame */}
             <group position={[rmRight, sbYBottom, sbZ]} rotation={[0, Math.PI / 2, 0]}>
@@ -2052,7 +2052,7 @@ export default function ParametricSashWindow({
             </group>
             <StaffBead height={sbHeight} side="right" position={[outerRightX, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
-            <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYTop, sbZ]} flipZ={true} color={DEBUG_COLOR} />
+            <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYTop, sbZ]} flipZ={false} color={DEBUG_COLOR} />
           </>);
         })()}
 
@@ -2365,6 +2365,9 @@ export default function ParametricSashWindow({
             />
           </group>
         )}
+
+        {/* ═══ AXES GIZMO ═══ */}
+        <AxesGizmo origin={[w / 2 + mm(200), -h / 2, 0]} size={120} />
 
       </group>
     );
