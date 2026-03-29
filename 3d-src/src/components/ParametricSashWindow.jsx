@@ -1677,7 +1677,7 @@ function MullionPost({ height, position, material, materialInt, beadMaterial, be
   const mullionWidth = mm(50);
   const jambDepth = mm(130);
   const jambHalf = jambDepth / 2;       // 65mm
-  const intExtra = mm(20);              // +20mm to interior
+  const intExtra = mm(17);              // +17mm to interior (matches external board)
   const intHalf = jambHalf + intExtra;  // 85mm interior side
   const matInt = materialInt || material;
   const beadMatInt = beadMaterialInt || beadMaterial;
@@ -2295,12 +2295,17 @@ export default function ParametricSashWindow({
           const hornY = upperSashBottom - mm(80);
           const hornZLeft  = trackRearZ + mm(sashDepth / 2) - mm(57);
           const hornZRight = trackRearZ + mm(sashDepth / 2);
-          const leftX  = centerCenterX - mm(centerSashW / 2);
-          const rightX = centerCenterX + mm(centerSashW / 2);
           const hornMat = new THREE.MeshStandardMaterial({ color: cExt, roughness: 0.46, metalness: 0.02 });
           return [
-            <group key={`horn-left-${hornType}`}  position={[leftX,  hornY, hornZLeft]}  rotation={[0, 0, 0]}       scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
-            <group key={`horn-right-${hornType}`} position={[rightX, hornY, hornZRight]} rotation={[0, Math.PI, 0]} scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
+            // Center horns
+            <group key={`horn-c-left-${hornType}`}  position={[centerCenterX - mm(centerSashW / 2),  hornY, hornZLeft]}  rotation={[0, 0, 0]}       scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
+            <group key={`horn-c-right-${hornType}`} position={[centerCenterX + mm(centerSashW / 2), hornY, hornZRight]} rotation={[0, Math.PI, 0]} scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
+            // Left fix horns
+            <group key={`horn-lf-left-${hornType}`}  position={[leftFixCenterX - mm(leftFixSashW / 2),  hornY, hornZLeft]}  rotation={[0, 0, 0]}       scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
+            <group key={`horn-lf-right-${hornType}`} position={[leftFixCenterX + mm(leftFixSashW / 2), hornY, hornZRight]} rotation={[0, Math.PI, 0]} scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
+            // Right fix horns
+            <group key={`horn-rf-left-${hornType}`}  position={[rightFixCenterX - mm(rightFixSashW / 2),  hornY, hornZLeft]}  rotation={[0, 0, 0]}       scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
+            <group key={`horn-rf-right-${hornType}`} position={[rightFixCenterX + mm(rightFixSashW / 2), hornY, hornZRight]} rotation={[0, Math.PI, 0]} scale={0.001}><HornMesh material={hornMat} depth={sashDepth} type={hornType} /></group>,
           ];
         })()}
 
