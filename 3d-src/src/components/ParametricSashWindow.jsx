@@ -1309,6 +1309,55 @@ function buildPulleyCordPoints({ center, radius, leftDropY, rightDropY, z, arcSt
   return points;
 }
 
+function buildTripleCordPath({
+  mullionCenter,  // [x, y] center of mullion pulley
+  jambCenter,     // [x, y] center of jamb pulley
+  radius,         // pulley wheel radius
+  sashY,          // Y where rope connects to sash (below mullion pulley)
+  weightY,        // Y where weight hangs (below jamb pulley)
+  z,              // Z coordinate
+  arcSteps = 12,
+}) {
+  const [mx, my] = mullionCenter;
+  const [jx, jy] = jambCenter;
+  const goingLeft = jx < mx;
+  const sashSide = goingLeft ? 1 : -1;    // rope from sash on opposite side of jamb
+  const jambSide = goingLeft ? -1 : 1;     // weight on opposite side of mullion
+  const points = [];
+
+  // 1. From sash up to mullion pulley (sash side)
+  points.push([mx + sashSide * radius, sashY, z]);
+  points.push([mx + sashSide * radius, my, z]);
+
+  // 2. Half arc over mullion pulley: from sash side → over top → jamb side
+  const mStart = goingLeft ? 0 : Math.PI;
+  const mEnd = goingLeft ? Math.PI : 0;
+  for (let i = 0; i <= arcSteps; i++) {
+    const t = i / arcSteps;
+    const angle = mStart + t * (mEnd - mStart);
+    points.push([mx + Math.cos(angle) * radius, my + Math.sin(angle) * radius, z]);
+  }
+
+  // 3. Horizontal from mullion pulley to jamb pulley (jamb side → mullion-facing side)
+  points.push([mx - sashSide * radius, my, z]);
+  points.push([jx - jambSide * radius, jy, z]);
+
+  // 4. Half arc over jamb pulley: from mullion-facing side → over top → weight side
+  const jStart = goingLeft ? 0 : Math.PI;
+  const jEnd = goingLeft ? Math.PI : 0;
+  for (let i = 0; i <= arcSteps; i++) {
+    const t = i / arcSteps;
+    const angle = jStart + t * (jEnd - jStart);
+    points.push([jx + Math.cos(angle) * radius, jy + Math.sin(angle) * radius, z]);
+  }
+
+  // 5. Down from jamb pulley to weight
+  points.push([jx + jambSide * radius, jy, z]);
+  points.push([jx + jambSide * radius, weightY, z]);
+
+  return points;
+}
+
 function WeightPreview({ position = [0, 0, 0], size = 45, height = 180 }) {
   return (
     <mesh position={position} castShadow receiveShadow>
@@ -2349,6 +2398,123 @@ export default function ParametricSashWindow({
               <HandleMesh mat={ironmongeryMats} />
             </group>
           );
+        })()}
+
+        {/* ═══ PULLEY SYSTEM — rope from center sash through mullion to weight in box ═══ */}
+        {(() => {
+          const pulleyR = mm(18.8);
+          const pulleyZ = -mm(pulleyCutoutZCenter);  // lower sash track Z
+          const pulleyGlobalY = jambOriginY + pulleyLocalY_calc;  // same height as standard
+
+          // Sash rope connection Y (top of lower sash = meeting rail, moves up with lift)
+          const sashRopeY = yBottomClosed + mm(centerLowerLift) + mm(centerLowerH) / 2;
+
+          // Weight Y (counterbalance — drops as sash rises)
+          const weightBaseY = meetingY;
+          const weightGlobalY = weightBaseY - mm(centerLowerLift) - mm(90); // center of weight
+
+          // Jamb X positions (centers of outer jambs)
+          const leftJambX = -w / 2 + jambThickness / 2;
+          const rightJambX = w / 2 - jambThickness / 2;
+
+          // Pulley spin based on travel
+          const pulleyRotation = -mm(centerLowerLift) / pulleyR;
+
+          // ─── LEFT SIDE: left mullion → left jamb ───
+          const leftCordPath = buildTripleCordPath({
+            mullionCenter: [leftMullionX, pulleyGlobalY],
+            jambCenter: [leftJambX, pulleyGlobalY],
+            radius: pulleyR,
+            sashY: sashRopeY,
+            weightY: weightGlobalY,
+            z: pulleyZ,
+          });
+
+          // ─── RIGHT SIDE: right mullion → right jamb ───
+          const rightCordPath = buildTripleCordPath({
+            mullionCenter: [rightMullionX, pulleyGlobalY],
+            jambCenter: [rightJambX, pulleyGlobalY],
+            radius: pulleyR,
+            sashY: sashRopeY,
+            weightY: weightGlobalY,
+            z: pulleyZ,
+          });
+
+          return (<>
+            {/* ─── LEFT SIDE ─── */}
+            {/* Left mullion pulley — center-facing side */}
+            <PulleyPlatePreview
+              position={[leftMullionX + mm(14), pulleyGlobalY, pulleyZ]}
+              width={25} height={128} thickness={3}
+              material={pulleyPlateMaterial}
+              rotation={[0, -Math.PI / 2, 0]}
+            />
+            <PulleyWheelPreview
+              position={[leftMullionX, pulleyGlobalY, pulleyZ]}
+              diameter={42} thickness={7}
+              material={pulleyPlateMaterial}
+              orientation={[Math.PI / 2, 0, 0]}
+              spin={pulleyRotation}
+            />
+            {/* Left jamb pulley */}
+            <PulleyPlatePreview
+              position={[leftJambX - mm(14), pulleyGlobalY, pulleyZ]}
+              width={25} height={128} thickness={3}
+              material={pulleyPlateMaterial}
+              rotation={[0, Math.PI / 2, 0]}
+            />
+            <PulleyWheelPreview
+              position={[leftJambX, pulleyGlobalY, pulleyZ]}
+              diameter={42} thickness={7}
+              material={pulleyPlateMaterial}
+              orientation={[Math.PI / 2, 0, 0]}
+              spin={pulleyRotation}
+            />
+            {/* Left cord */}
+            <CordPreview points={leftCordPath} />
+            {/* Left weight — inside box behind left fix */}
+            <WeightPreview
+              position={[leftJambX, weightGlobalY, pulleyZ]}
+              size={45} height={180}
+            />
+
+            {/* ─── RIGHT SIDE ─── */}
+            {/* Right mullion pulley — center-facing side */}
+            <PulleyPlatePreview
+              position={[rightMullionX - mm(14), pulleyGlobalY, pulleyZ]}
+              width={25} height={128} thickness={3}
+              material={pulleyPlateMaterial}
+              rotation={[0, Math.PI / 2, 0]}
+            />
+            <PulleyWheelPreview
+              position={[rightMullionX, pulleyGlobalY, pulleyZ]}
+              diameter={42} thickness={7}
+              material={pulleyPlateMaterial}
+              orientation={[Math.PI / 2, 0, 0]}
+              spin={pulleyRotation}
+            />
+            {/* Right jamb pulley */}
+            <PulleyPlatePreview
+              position={[rightJambX + mm(14), pulleyGlobalY, pulleyZ]}
+              width={25} height={128} thickness={3}
+              material={pulleyPlateMaterial}
+              rotation={[0, -Math.PI / 2, 0]}
+            />
+            <PulleyWheelPreview
+              position={[rightJambX, pulleyGlobalY, pulleyZ]}
+              diameter={42} thickness={7}
+              material={pulleyPlateMaterial}
+              orientation={[Math.PI / 2, 0, 0]}
+              spin={pulleyRotation}
+            />
+            {/* Right cord */}
+            <CordPreview points={rightCordPath} />
+            {/* Right weight — inside box behind right fix */}
+            <WeightPreview
+              position={[rightJambX, weightGlobalY, pulleyZ]}
+              size={45} height={180}
+            />
+          </>);
         })()}
 
         {/* ═══ DIMENSION GUIDES ═══ */}
