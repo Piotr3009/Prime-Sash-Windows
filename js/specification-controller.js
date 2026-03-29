@@ -712,6 +712,22 @@ class SpecificationController {
       window.currentConfig.lowerBars = effectiveLower;
       window.currentConfig.upperCustomBars = customData.upperCustomBars || [];
       window.currentConfig.lowerCustomBars = customData.lowerCustomBars || [];
+      
+      // Set customBars in format price calculator expects
+      if (upperBars === 'custom' || effectiveLower === 'custom') {
+        const upperList = customData.upperCustomBars || [];
+        const lowerList = customData.lowerCustomBars || [];
+        window.currentConfig.customBars = {
+          upper: {
+            horizontal: upperList.filter(b => b.type === 'horizontal' || b.type === 'h'),
+            vertical: upperList.filter(b => b.type === 'vertical' || b.type === 'v')
+          },
+          lower: {
+            horizontal: lowerList.filter(b => b.type === 'horizontal' || b.type === 'h'),
+            vertical: lowerList.filter(b => b.type === 'vertical' || b.type === 'v')
+          }
+        };
+      }
     }
 
     // ✅ UPDATE 3D visualizer
