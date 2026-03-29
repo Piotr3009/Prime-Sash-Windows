@@ -281,11 +281,37 @@ class EstimateManager {
                 await window.estimateSelectorManager.loadEstimates();
             }
 
+            // Przelicz sumę estimate
+            await this.recalculateEstimateTotal(targetEstimateId);
+
             return item;
         } catch (error) {
             console.error('Error adding window:', error);
             this.showToast('❌ Error adding window', 'error');
             throw error;
+        }
+    }
+
+    // Przelicz sumę estimate na podstawie wszystkich okien
+    async recalculateEstimateTotal(estimateId) {
+        try {
+            const { data: items, error } = await supabaseClient
+                .from('estimate_items')
+                .select('total_price')
+                .eq('estimate_id', estimateId);
+            
+            if (error) throw error;
+            
+            const total = (items || []).reduce((sum, item) => sum + (parseFloat(item.total_price) || 0), 0);
+            
+            await supabaseClient
+                .from('estimates')
+                .update({ total_price: total })
+                .eq('id', estimateId);
+            
+            console.log('Estimate total updated: £' + total.toFixed(2));
+        } catch (e) {
+            console.warn('Could not recalculate estimate total:', e.message);
         }
     }
 
