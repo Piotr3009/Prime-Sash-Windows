@@ -2029,7 +2029,7 @@ export default function ParametricSashWindow({
 
           return (<>
             {/* Left fix frame */}
-            <group position={[outerLeftX, sbYBottom, sbZ]} rotation={[0, Math.PI / 2, 0]}>
+            <group position={[outerLeftX, sbYBottom, sbZ]} rotation={[0, -Math.PI / 2, 0]}>
               <StaffBead height={sbHeight} side="left" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             </group>
             <group position={[lmLeft, sbYBottom, sbZ]} rotation={[0, -Math.PI / 2, 0]}>
