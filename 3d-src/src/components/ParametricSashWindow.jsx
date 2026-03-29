@@ -1687,6 +1687,45 @@ function MullionPost({ height, position, material, materialInt, beadMaterial, be
   const beadX = centerSide === 'right' ? mullionWidth / 2 : -mullionWidth / 2;
   const beadRotZ = centerSide === 'right' ? 0 : Math.PI;
 
+  // External board geometry with curved cutouts on both sides at bottom (water drainage)
+  const extBoardGeom = useMemo(() => {
+    const bw = mm(90);  // board width
+    const r = mm(20);   // curve radius (same as ExternalBoxElement)
+    const shape = new THREE.Shape();
+    // Start bottom-left, inset by radius
+    shape.moveTo(r, 0);
+    shape.lineTo(r, mm(60));
+    // Left curve (water drainage)
+    shape.absarc(0, mm(60), r, 0, Math.PI / 2, false);
+    // Up left side to top
+    shape.lineTo(0, height);
+    // Across top
+    shape.lineTo(bw, height);
+    // Down right side
+    shape.lineTo(bw, mm(80));
+    // Right curve (water drainage)
+    shape.absarc(bw, mm(60), r, Math.PI / 2, Math.PI, false);
+    // Down to bottom-right
+    shape.lineTo(bw - r, 0);
+    shape.closePath();
+
+    const g = new THREE.ExtrudeGeometry(shape, {
+      depth: mm(17),
+      bevelEnabled: false,
+      steps: 1,
+      curveSegments: 24,
+    });
+    g.translate(-bw / 2, -height / 2, 0);
+    g.computeVertexNormals();
+    return g;
+  }, [height]);
+
+  const extBoardMat = useMemo(() => new THREE.MeshPhysicalMaterial({
+    color: '#ff0000', // DEBUG — red to see curved cutouts
+    roughness: 0.5, metalness: 0.0, clearcoat: 0.2, clearcoatRoughness: 0.12,
+    polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+  }), [extColor]);
+
   return (
     <group position={position}>
       {/* Front half (exterior) — 65mm deep */}
@@ -1697,10 +1736,9 @@ function MullionPost({ height, position, material, materialInt, beadMaterial, be
       <group position={[beadX, beadYOffset, 0]} rotation={[0, 0, beadRotZ]}>
         <RoundedPartingBead length={actualBeadLength} orientation="vertical" material={beadMaterial} materialInt={beadMatInt} />
       </group>
-      {/* External mullion board — 90mm wide (20mm overhang each side) */}
-      <mesh position={[0, 0, jambHalf + mm(17) / 2]} castShadow receiveShadow>
-        <boxGeometry args={[mm(90), height, mm(17)]} />
-        <meshPhysicalMaterial color={extColor} roughness={0.5} metalness={0.0} clearcoat={0.2} clearcoatRoughness={0.12} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+      {/* External mullion board — 90mm wide, curved cutouts at bottom */}
+      <mesh geometry={extBoardGeom} position={[0, 0, jambHalf]} castShadow receiveShadow>
+        <primitive object={extBoardMat} attach="material" />
       </mesh>
     </group>
   );
@@ -1992,18 +2030,26 @@ export default function ParametricSashWindow({
           return (<>
             {/* Left fix frame */}
             <StaffBead height={sbHeight} side="left" position={[outerLeftX, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
-            <StaffBead height={sbHeight} side="right" position={[lmLeft, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            <group position={[lmLeft, sbYBottom, sbZ]} rotation={[0, Math.PI / 2, 0]}>
+              <StaffBead height={sbHeight} side="right" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            </group>
             <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
             <StaffBeadHorizontal width={lmLeft - outerLeftX} position={[(outerLeftX + lmLeft) / 2, sbYTop, sbZ]} flipZ={true} color={DEBUG_COLOR} />
 
             {/* Center frame */}
-            <StaffBead height={sbHeight} side="left" position={[lmRight, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
-            <StaffBead height={sbHeight} side="right" position={[rmLeft, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            <group position={[lmRight, sbYBottom, sbZ]} rotation={[0, -Math.PI / 2, 0]}>
+              <StaffBead height={sbHeight} side="left" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            </group>
+            <group position={[rmLeft, sbYBottom, sbZ]} rotation={[0, Math.PI / 2, 0]}>
+              <StaffBead height={sbHeight} side="right" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            </group>
             <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
             <StaffBeadHorizontal width={rmLeft - lmRight} position={[(lmRight + rmLeft) / 2, sbYTop, sbZ]} flipZ={true} color={DEBUG_COLOR} />
 
             {/* Right fix frame */}
-            <StaffBead height={sbHeight} side="left" position={[rmRight, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            <group position={[rmRight, sbYBottom, sbZ]} rotation={[0, -Math.PI / 2, 0]}>
+              <StaffBead height={sbHeight} side="left" position={[0, 0, 0]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
+            </group>
             <StaffBead height={sbHeight} side="right" position={[outerRightX, sbYBottom, sbZ]} color={DEBUG_COLOR} colorInt={DEBUG_COLOR} />
             <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYBottom, sbZBottom]} flipZ={false} color={DEBUG_COLOR} />
             <StaffBeadHorizontal width={outerRightX - rmRight} position={[(rmRight + outerRightX) / 2, sbYTop, sbZ]} flipZ={true} color={DEBUG_COLOR} />
