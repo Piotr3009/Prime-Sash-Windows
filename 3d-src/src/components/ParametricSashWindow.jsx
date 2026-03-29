@@ -2444,10 +2444,10 @@ export default function ParametricSashWindow({
             {/* ─── LEFT SIDE ─── */}
             {/* Left mullion pulley — center-facing side */}
             <PulleyPlatePreview
-              position={[leftMullionX - mm(14), pulleyGlobalY, pulleyZ]}
+              position={[leftMullionX + mm(14), pulleyGlobalY, pulleyZ]}
               width={25} height={128} thickness={3}
               material={pulleyPlateMaterial}
-              rotation={[0, Math.PI / 2, 0]}
+              rotation={[0, -Math.PI / 2, 0]}
             />
             <PulleyWheelPreview
               position={[leftMullionX, pulleyGlobalY, pulleyZ]}
@@ -2481,10 +2481,10 @@ export default function ParametricSashWindow({
             {/* ─── RIGHT SIDE ─── */}
             {/* Right mullion pulley — center-facing side */}
             <PulleyPlatePreview
-              position={[rightMullionX + mm(14), pulleyGlobalY, pulleyZ]}
+              position={[rightMullionX - mm(14), pulleyGlobalY, pulleyZ]}
               width={25} height={128} thickness={3}
               material={pulleyPlateMaterial}
-              rotation={[0, -Math.PI / 2, 0]}
+              rotation={[0, Math.PI / 2, 0]}
             />
             <PulleyWheelPreview
               position={[rightMullionX, pulleyGlobalY, pulleyZ]}
