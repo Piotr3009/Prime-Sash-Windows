@@ -727,6 +727,177 @@ export default function App() {
           color: 'rgba(255,255,255,0.5)'
         }} title="Drag to rotate">↻</div>
 
+        {/* ═══ DEV PANEL — triple sash testing ═══ */}
+        <div style={{
+          position: 'absolute', top: '12px', right: '12px', zIndex: 10,
+          background: 'rgba(10,22,40,0.85)', borderRadius: '12px', padding: '14px',
+          color: '#fff', fontSize: '12px', width: '220px',
+          display: 'flex', flexDirection: 'column', gap: '10px',
+          pointerEvents: 'auto', maxHeight: '90vh', overflowY: 'auto',
+          backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)'
+        }}>
+          <div style={{ fontSize: '13px', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '6px', marginBottom: '2px' }}>🔧 Dev Panel</div>
+
+          {/* Sash Type */}
+          <div>
+            <div style={{ marginBottom: '4px', opacity: 0.7 }}>Window Type</div>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              {['double', 'triple'].map(t => (
+                <button key={t} onClick={() => setSashType(t)} style={{
+                  flex: 1, padding: '6px', borderRadius: '6px', cursor: 'pointer',
+                  background: sashType === t ? '#c8a24e' : 'rgba(255,255,255,0.1)',
+                  color: sashType === t ? '#000' : '#fff',
+                  border: 'none', fontSize: '11px', fontWeight: sashType === t ? 'bold' : 'normal'
+                }}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Split Ratio — only shown for triple */}
+          {sashType === 'triple' && (
+            <div>
+              <div style={{ marginBottom: '4px', opacity: 0.7 }}>Split Ratio</div>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {['1/4-1/2-1/4', '1/3-1/3-1/3', '1/5-3/5-1/5'].map(r => (
+                  <button key={r} onClick={() => setSplitRatio(r)} style={{
+                    flex: 1, padding: '6px', borderRadius: '6px', cursor: 'pointer',
+                    background: splitRatio === r ? '#c8a24e' : 'rgba(255,255,255,0.1)',
+                    color: splitRatio === r ? '#000' : '#fff',
+                    border: 'none', fontSize: '10px', fontWeight: splitRatio === r ? 'bold' : 'normal'
+                  }}>{r}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Dimensions */}
+          <div>
+            <div style={{ marginBottom: '4px', opacity: 0.7 }}>External Width (mm)</div>
+            <input type="range" min={sashType === 'triple' ? 1400 : 400} max={sashType === 'triple' ? 3000 : 1800} step={10} value={extWidth}
+              onChange={e => setExtWidth(Number(e.target.value))}
+              style={{ width: '100%' }} />
+            <div style={{ textAlign: 'right', fontSize: '11px', opacity: 0.8 }}>{extWidth} mm</div>
+          </div>
+          <div>
+            <div style={{ marginBottom: '4px', opacity: 0.7 }}>External Height (mm)</div>
+            <input type="range" min={600} max={2400} step={10} value={extHeight}
+              onChange={e => setExtHeight(Number(e.target.value))}
+              style={{ width: '100%' }} />
+            <div style={{ textAlign: 'right', fontSize: '11px', opacity: 0.8 }}>{extHeight} mm</div>
+          </div>
+
+          {/* Opening — only lower sash in triple */}
+          <div>
+            <div style={{ marginBottom: '4px', opacity: 0.7 }}>Lower Sash Opening</div>
+            <input type="range" min={0} max={maxSashOpening} step={5} value={opening}
+              onChange={e => setOpening(Number(e.target.value))}
+              style={{ width: '100%' }} />
+            <div style={{ textAlign: 'right', fontSize: '11px', opacity: 0.8 }}>{opening} mm</div>
+          </div>
+
+          {sashType === 'double' && (
+            <div>
+              <div style={{ marginBottom: '4px', opacity: 0.7 }}>Upper Sash Opening</div>
+              <input type="range" min={0} max={maxSashOpening} step={5} value={upperOpening}
+                onChange={e => setUpperOpening(Number(e.target.value))}
+                style={{ width: '100%' }} />
+              <div style={{ textAlign: 'right', fontSize: '11px', opacity: 0.8 }}>{upperOpening} mm</div>
+            </div>
+          )}
+
+          {/* Center Bars */}
+          <div>
+            <div style={{ marginBottom: '4px', opacity: 0.7 }}>Center Upper Bars</div>
+            <select value={upperBars} onChange={e => setUpperBars(e.target.value)} style={{
+              width: '100%', padding: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)',
+              color: '#fff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '11px'
+            }}>
+              <option value="none">None</option>
+              <option value="horizontal-1">1 Horizontal</option>
+              <option value="horizontal-2">2 Horizontal</option>
+              <option value="horizontal-3">3 Horizontal</option>
+              <option value="vertical-1">1 Vertical</option>
+              <option value="grid-2x1">Grid 2×1</option>
+              <option value="grid-2x2">Grid 2×2</option>
+            </select>
+          </div>
+          <div>
+            <div style={{ marginBottom: '4px', opacity: 0.7 }}>Center Lower Bars</div>
+            <select value={lowerBars} onChange={e => setLowerBars(e.target.value)} style={{
+              width: '100%', padding: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)',
+              color: '#fff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '11px'
+            }}>
+              <option value="none">None</option>
+              <option value="horizontal-1">1 Horizontal</option>
+              <option value="horizontal-2">2 Horizontal</option>
+              <option value="horizontal-3">3 Horizontal</option>
+              <option value="vertical-1">1 Vertical</option>
+              <option value="grid-2x1">Grid 2×1</option>
+              <option value="grid-2x2">Grid 2×2</option>
+            </select>
+          </div>
+
+          {/* Fix Bars — only for triple */}
+          {sashType === 'triple' && (
+            <>
+              <div>
+                <div style={{ marginBottom: '4px', opacity: 0.7 }}>Fix Panels Bars (L+R)</div>
+                <select value={leftFixBars} onChange={e => { setLeftFixBars(e.target.value); setRightFixBars(e.target.value); }} style={{
+                  width: '100%', padding: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)',
+                  color: '#fff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '11px'
+                }}>
+                  <option value="none">None</option>
+                  <option value="horizontal-1">1 Horizontal</option>
+                  <option value="horizontal-2">2 Horizontal</option>
+                  <option value="horizontal-3">3 Horizontal</option>
+                  <option value="vertical-1">1 Vertical</option>
+                  <option value="grid-2x1">Grid 2×1</option>
+                  <option value="grid-2x2">Grid 2×2</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          {/* Ironmongery */}
+          <div>
+            <div style={{ marginBottom: '4px', opacity: 0.7 }}>Ironmongery</div>
+            <select value={ironmongery} onChange={e => setIronmongery(e.target.value)} style={{
+              width: '100%', padding: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)',
+              color: '#fff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '11px'
+            }}>
+              <option value="brass">Brass</option>
+              <option value="chrome">Chrome</option>
+              <option value="stainless">Stainless</option>
+              <option value="antique_brass">Antique Brass</option>
+            </select>
+          </div>
+
+          {/* Horns */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ opacity: 0.7 }}>Horns</span>
+            <button onClick={() => setShowHorns(!showHorns)} style={{
+              padding: '4px 10px', borderRadius: '6px', cursor: 'pointer',
+              background: showHorns ? '#c8a24e' : 'rgba(255,255,255,0.1)',
+              color: showHorns ? '#000' : '#fff',
+              border: 'none', fontSize: '11px'
+            }}>{showHorns ? 'ON' : 'OFF'}</button>
+          </div>
+
+          {/* Color quick pick */}
+          <div>
+            <div style={{ marginBottom: '4px', opacity: 0.7 }}>Wood Color</div>
+            <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
+              {['#F6F6F6', '#f0e6d3', '#C8B898', '#8B7355', '#4A3728', '#2C2C2C', '#1a3a2a', '#1e3050'].map(c => (
+                <div key={c} onClick={() => { setWoodColor(c); setWoodColorExt(c); setWoodColorInt(c); }} style={{
+                  width: '22px', height: '22px', borderRadius: '4px', cursor: 'pointer',
+                  background: c, border: woodColor === c ? '2px solid #c8a24e' : '1px solid rgba(255,255,255,0.3)'
+                }} />
+              ))}
+            </div>
+          </div>
+
+        </div>
+
         <Canvas shadows={!isMobile} dpr={isMobile ? [1, 1] : [1, 2]} gl={{ alpha: true, antialias: !isMobile, powerPreference: isMobile ? 'low-power' : 'high-performance' }} style={{ touchAction: 'none' }}>
           <Scene config={config} isMobile={isMobile} />
         </Canvas>
