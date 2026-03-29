@@ -1721,7 +1721,7 @@ function MullionPost({ height, position, material, materialInt, beadMaterial, be
   }, [height]);
 
   const extBoardMat = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: '#ff0000', // DEBUG — red to see curved cutouts
+    color: extColor,
     roughness: 0.5, metalness: 0.0, clearcoat: 0.2, clearcoatRoughness: 0.12,
     polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
   }), [extColor]);
@@ -2025,7 +2025,7 @@ export default function ParametricSashWindow({
           const rmLeft = rightMullionX - mullionHalfW;  // left edge of right mullion
           const rmRight = rightMullionX + mullionHalfW; // right edge of right mullion
 
-          const DEBUG_COLOR = '#0044ff'; // DEBUG — blue to see positions
+          const DEBUG_COLOR = cInt; // staff beads use interior color
 
           return (<>
             {/* Left fix frame */}
