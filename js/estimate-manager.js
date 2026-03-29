@@ -475,7 +475,7 @@ class EstimateManager {
 
     // Pobierz aktualną cenę
     getCurrentPrice() {
-        const priceText = document.getElementById('total-price')?.textContent || '0';
+        const priceText = document.getElementById('sidebar-total-price')?.textContent || '0';
         // Usuń £ i inne znaki nie-numeryczne (oprócz kropki)
         const cleanPrice = priceText.replace(/[^0-9.]/g, '');
         const totalPrice = parseFloat(cleanPrice) || 0;
