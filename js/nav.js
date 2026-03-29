@@ -4,22 +4,26 @@
 // ============================================================
 
 (function(){
+  // Detect subfolder — prepend ../ for pages in subdirectories
+  var pathParts = window.location.pathname.split('/').filter(Boolean);
+  var base = pathParts.length > 1 ? '../' : '';
+
   // ── ROW 1 (primary — bright) ──
   var row1 = [
-    { href: 'index.html',                page: 'index',                label: 'Home' },
-    { href: 'sash-windows-history.html',  page: 'sash-windows-history', label: 'Sash Windows History' },
-    { href: 'why-not-sash-windows.html',  page: 'why-not',              label: "Why You Shouldn\u2019t Buy" },
-    { href: 'faq-top-companies.html',     page: 'faq-top',              label: 'FAQ & Top Companies' },
-    { href: 'certifications.html',       page: 'cert',                 label: 'Certifications & Technology' },
-    { href: 'online-estimate.html',      page: 'online',               label: 'Online Estimate & 3D' }
+    { href: base + 'index.html',                page: 'index',                label: 'Home' },
+    { href: base + 'sash-windows-history.html',  page: 'sash-windows-history', label: 'Sash Windows History' },
+    { href: base + 'why-not-sash-windows.html',  page: 'why-not',              label: "Why You Shouldn\u2019t Buy" },
+    { href: base + 'faq-top-companies.html',     page: 'faq-top',              label: 'FAQ & Top Companies' },
+    { href: base + 'certifications.html',       page: 'cert',                 label: 'Certifications & Technology' },
+    { href: base + 'online-estimate.html',      page: 'online',               label: 'Online Estimate & 3D' }
   ];
 
   // ── ROW 2 (secondary — subtle) ──
   var row2 = [
-    { href: 'measurement-guide.html',    page: 'measure',   label: 'Measurement Guide' },
-    { href: 'gallery.html',              page: 'gallery',   label: 'Gallery' },
-    { href: 'contact.html',              page: 'contact',   label: 'Contact' },
-    { href: 'customer-dashboard.html',   page: 'customer',  label: 'My Account' }
+    { href: base + 'measurement-guide.html',    page: 'measure',   label: 'Measurement Guide' },
+    { href: base + 'gallery.html',              page: 'gallery',   label: 'Gallery' },
+    { href: base + 'contact.html',              page: 'contact',   label: 'Contact' },
+    { href: base + 'customer-dashboard.html',   page: 'customer',  label: 'My Account' }
   ];
 
   var allItems = row1.concat(row2);
@@ -36,7 +40,7 @@
     + '</svg>';
 
   var navHTML = '<nav id="if-nav">'
-    + '<a href="index.html" class="logo-wrap">'
+    + '<a href="' + base + 'index.html" class="logo-wrap">'
     +   '<div class="silver-line"></div>'
     +   '<span class="logo">Prime Sash</span>'
     +   '<span class="logo">Windows</span>'
@@ -46,7 +50,7 @@
     +   '<ul class="nav-row">' + buildRow(row1) + '</ul>'
     +   '<ul class="nav-row" id="nav-row-2">' + buildRow(row2) + '</ul>'
     + '</div>'
-    + '<a href="customer-dashboard.html" class="nav-user" id="nav-user-btn" title="My Account">' + userIcon + '</a>'
+    + '<a href="' + base + 'customer-dashboard.html" class="nav-user" id="nav-user-btn" title="My Account">' + userIcon + '</a>'
     + '<div class="hamburger" id="ham"><span></span><span></span><span></span></div>'
     + '</nav>';
 

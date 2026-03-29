@@ -1,5 +1,9 @@
 // Shared Footer Component
 (function() {
+  // Detect subfolder
+  var pathParts = window.location.pathname.split('/').filter(Boolean);
+  var base = pathParts.length > 1 ? '../' : '';
+
   const footerHTML = `
   <footer id="if-footer">
     <div class="ft-top-line"></div>
@@ -13,20 +17,20 @@
         <p class="ft-brand-text">Premium timber sash windows for London's period homes.<br/>Every window handcrafted. Every project — unique.</p>
       </div>
       <div class="ft-col"><h4>Navigation</h4><ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="sash-windows-history.html">Sash Windows History</a></li>
-        <li><a href="why-not-sash-windows.html">Why You Shouldn't Buy</a></li>
-        <li><a href="faq-top-companies.html">FAQ & Top Companies</a></li>
-        <li><a href="certifications.html">Certifications & Technology</a></li>
-        <li><a href="online-estimate.html">Online Estimate & 3D</a></li>
-        <li><a href="gallery.html">Gallery</a></li>
-        <li><a href="contact.html">Contact</a></li>
+        <li><a href="${base}index.html">Home</a></li>
+        <li><a href="${base}sash-windows-history.html">Sash Windows History</a></li>
+        <li><a href="${base}why-not-sash-windows.html">Why You Shouldn't Buy</a></li>
+        <li><a href="${base}faq-top-companies.html">FAQ & Top Companies</a></li>
+        <li><a href="${base}certifications.html">Certifications & Technology</a></li>
+        <li><a href="${base}online-estimate.html">Online Estimate & 3D</a></li>
+        <li><a href="${base}gallery.html">Gallery</a></li>
+        <li><a href="${base}contact.html">Contact</a></li>
       </ul></div>
       <div class="ft-col"><h4>Services</h4><ul>
-        <li><a href="online-estimate.html">Price Calculator</a></li>
-        <li><a href="measurement-guide.html">Measurement Guide</a></li>
-        <li><a href="contact.html">Book Survey</a></li>
-        <li><a href="gallery.html">Our Projects</a></li>
+        <li><a href="${base}online-estimate.html">Price Calculator</a></li>
+        <li><a href="${base}measurement-guide.html">Measurement Guide</a></li>
+        <li><a href="${base}contact.html">Book Survey</a></li>
+        <li><a href="${base}gallery.html">Our Projects</a></li>
       </ul></div>
       <div class="ft-col"><h4>Contact</h4><ul>
         <li><a href="tel:+447842510060">07842 510 060</a></li>
