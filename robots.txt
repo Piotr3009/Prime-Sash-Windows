@@ -3,6 +3,12 @@
 User-agent: *
 Allow: /
 
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: AdsBot-Google-Mobile
+Allow: /
+
 # Sitemap location
 Sitemap: https://www.primesashwindows.co.uk/sitemap.xml
 
