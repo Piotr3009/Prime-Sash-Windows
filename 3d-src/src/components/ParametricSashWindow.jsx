@@ -2403,7 +2403,7 @@ export default function ParametricSashWindow({
         {/* ═══ PULLEY SYSTEM — rope from center sash through mullion to weight in box ═══ */}
         {(() => {
           const pulleyR = mm(18.8);
-          const pulleyZ = mm(pulleyCutoutZCenter);  // lower sash track Z — exterior side
+          const pulleyZ = -mm(pulleyCutoutZCenter);  // lower sash track Z
           const pulleyGlobalY = jambOriginY + pulleyLocalY_calc;  // same height as standard
 
           // Sash rope connection Y (top of lower sash = meeting rail, moves up with lift)
@@ -2444,10 +2444,10 @@ export default function ParametricSashWindow({
             {/* ─── LEFT SIDE ─── */}
             {/* Left mullion pulley — center-facing side */}
             <PulleyPlatePreview
-              position={[leftMullionX + mm(14), pulleyGlobalY, pulleyZ]}
+              position={[leftMullionX - mm(14), pulleyGlobalY, pulleyZ]}
               width={25} height={128} thickness={3}
               material={pulleyPlateMaterial}
-              rotation={[0, -Math.PI / 2, 0]}
+              rotation={[0, Math.PI / 2, 0]}
             />
             <PulleyWheelPreview
               position={[leftMullionX, pulleyGlobalY, pulleyZ]}
@@ -2458,10 +2458,10 @@ export default function ParametricSashWindow({
             />
             {/* Left jamb pulley */}
             <PulleyPlatePreview
-              position={[leftJambX - mm(14), pulleyGlobalY, pulleyZ]}
+              position={[leftJambX + mm(14), pulleyGlobalY, pulleyZ]}
               width={25} height={128} thickness={3}
               material={pulleyPlateMaterial}
-              rotation={[0, Math.PI / 2, 0]}
+              rotation={[0, -Math.PI / 2, 0]}
             />
             <PulleyWheelPreview
               position={[leftJambX, pulleyGlobalY, pulleyZ]}
@@ -2481,10 +2481,10 @@ export default function ParametricSashWindow({
             {/* ─── RIGHT SIDE ─── */}
             {/* Right mullion pulley — center-facing side */}
             <PulleyPlatePreview
-              position={[rightMullionX - mm(14), pulleyGlobalY, pulleyZ]}
+              position={[rightMullionX + mm(14), pulleyGlobalY, pulleyZ]}
               width={25} height={128} thickness={3}
               material={pulleyPlateMaterial}
-              rotation={[0, Math.PI / 2, 0]}
+              rotation={[0, -Math.PI / 2, 0]}
             />
             <PulleyWheelPreview
               position={[rightMullionX, pulleyGlobalY, pulleyZ]}
@@ -2495,10 +2495,10 @@ export default function ParametricSashWindow({
             />
             {/* Right jamb pulley */}
             <PulleyPlatePreview
-              position={[rightJambX + mm(14), pulleyGlobalY, pulleyZ]}
+              position={[rightJambX - mm(14), pulleyGlobalY, pulleyZ]}
               width={25} height={128} thickness={3}
               material={pulleyPlateMaterial}
-              rotation={[0, -Math.PI / 2, 0]}
+              rotation={[0, Math.PI / 2, 0]}
             />
             <PulleyWheelPreview
               position={[rightJambX, pulleyGlobalY, pulleyZ]}
