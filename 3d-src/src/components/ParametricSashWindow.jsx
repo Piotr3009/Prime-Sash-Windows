@@ -2403,7 +2403,7 @@ export default function ParametricSashWindow({
         {/* ═══ PULLEY SYSTEM — rope from center sash through mullion to weight in box ═══ */}
         {(() => {
           const pulleyR = mm(18.8);
-          const pulleyZ = -mm(pulleyCutoutZCenter);  // lower sash track Z
+          const pulleyZ = mm(pulleyCutoutZCenter);  // lower sash track Z — exterior side
           const pulleyGlobalY = jambOriginY + pulleyLocalY_calc;  // same height as standard
 
           // Sash rope connection Y (top of lower sash = meeting rail, moves up with lift)
