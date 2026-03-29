@@ -1321,39 +1321,42 @@ function buildTripleCordPath({
   const [mx, my] = mullionCenter;
   const [jx, jy] = jambCenter;
   const goingLeft = jx < mx;
-  const sashSide = goingLeft ? 1 : -1;    // rope from sash on opposite side of jamb
-  const jambSide = goingLeft ? -1 : 1;     // weight on opposite side of mullion
   const points = [];
 
-  // 1. From sash up to mullion pulley (sash side)
-  points.push([mx + sashSide * radius, sashY, z]);
-  points.push([mx + sashSide * radius, my, z]);
+  // Sash side of mullion pulley (toward center sash)
+  const sashSideX = goingLeft ? mx + radius : mx - radius;
+  // Jamb side (toward weight)
+  const weightSideX = goingLeft ? jx - radius : jx + radius;
 
-  // 2. Half arc over mullion pulley: from sash side → over top → jamb side
-  const mStart = goingLeft ? 0 : Math.PI;
-  const mEnd = goingLeft ? Math.PI : 0;
+  // 1. From sash straight up to mullion pulley bottom
+  points.push([sashSideX, sashY, z]);
+  points.push([sashSideX, my, z]);
+
+  // 2. Quarter arc on mullion pulley: from sash side up to TOP
+  const mQuarterStart = goingLeft ? 0 : Math.PI;
+  const mQuarterEnd = Math.PI / 2; // top
   for (let i = 0; i <= arcSteps; i++) {
     const t = i / arcSteps;
-    const angle = mStart + t * (mEnd - mStart);
+    const angle = mQuarterStart + t * (mQuarterEnd - mQuarterStart);
     points.push([mx + Math.cos(angle) * radius, my + Math.sin(angle) * radius, z]);
   }
 
-  // 3. Horizontal from mullion pulley to jamb pulley (jamb side → mullion-facing side)
-  points.push([mx - sashSide * radius, my, z]);
-  points.push([jx - jambSide * radius, jy, z]);
+  // 3. Horizontal at TOP of pulleys from mullion to jamb
+  points.push([mx, my + radius, z]);
+  points.push([jx, jy + radius, z]);
 
-  // 4. Half arc over jamb pulley: from mullion-facing side → over top → weight side
-  const jStart = goingLeft ? 0 : Math.PI;
-  const jEnd = goingLeft ? Math.PI : 0;
+  // 4. Quarter arc on jamb pulley: from TOP down to weight side
+  const jQuarterStart = Math.PI / 2; // top
+  const jQuarterEnd = goingLeft ? Math.PI : 0;
   for (let i = 0; i <= arcSteps; i++) {
     const t = i / arcSteps;
-    const angle = jStart + t * (jEnd - jStart);
+    const angle = jQuarterStart + t * (jQuarterEnd - jQuarterStart);
     points.push([jx + Math.cos(angle) * radius, jy + Math.sin(angle) * radius, z]);
   }
 
   // 5. Down from jamb pulley to weight
-  points.push([jx + jambSide * radius, jy, z]);
-  points.push([jx + jambSide * radius, weightY, z]);
+  points.push([weightSideX, jy, z]);
+  points.push([weightSideX, weightY, z]);
 
   return points;
 }
