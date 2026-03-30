@@ -46,174 +46,82 @@ class SpecificationController {
   }
 
   setupSectionChangeListeners() {
-    // Sekcja 1: Dimensions
-    this.watchSection(['width', 'width-select', 'height', 'height-select', 'measurement-type'], 'apply-dimensions');
+    // Live auto-apply: each change triggers the corresponding apply method
+    const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
-    // Sekcja 2: Georgian Bars
-    this.watchSection(['upper-bars', 'lower-bars', 'same-bars-both-sashes'], 'apply-bars');
+    // Dimensions — debounced (slider/input changes fast)
+    const liveApplyDimensions = debounce(() => this.applyDimensions(), 300);
+    this.liveWatch(['width', 'width-select', 'height', 'height-select'], liveApplyDimensions);
+    this.liveWatchRadio('measurement-type', () => this.applyDimensions());
 
-    // Sekcja 3: Frame
-    this.watchSection(['frame-type'], 'apply-frame');
+    // Georgian Bars
+    this.liveWatch(['upper-bars', 'lower-bars'], () => this.applyBars());
+    this.liveWatchCheckbox('same-bars-both-sashes', () => this.applyBars());
 
-    // Sekcja 4: Horns
-    this.watchSection(['horn-type'], 'apply-horns');
+    // Fix Bars
+    this.liveWatch(['fix-upper-bars', 'fix-lower-bars'], () => this.applyFixBars());
+    this.liveWatchCheckbox('same-fix-bars', () => this.applyFixBars());
 
-    // Sekcja 5: Glass
-    this.watchSection(['glass-type', 'spacer-color'], 'apply-glass');
+    // Frame
+    this.liveWatchRadio('frame-type', () => this.applyFrame());
 
-    // Sekcja 6: Glass Spec
-    this.watchSection(['glass-spec', 'glass-finish', 'frosted-location'], 'apply-glass-spec');
+    // Glass
+    this.liveWatchRadio('glass-type', () => this.applyGlass());
+    this.liveWatchRadio('spacer-color', () => this.applyGlass());
 
-    // Sekcja 7: Opening
-    this.watchSection(['opening-type'], 'apply-opening');
+    // Glass Spec
+    this.liveWatchRadio('glass-spec', () => this.applyGlassSpec());
+    this.liveWatchRadio('glass-finish', () => this.applyGlassSpec());
 
-    // Sekcja 8: PAS 24
-    this.watchSection(['pas24'], 'apply-pas24');
+    // Opening
+    this.liveWatchRadio('opening-type', () => this.applyOpening());
 
-    // Sekcja 9: Color
-    this.watchSection(['color-type'], 'apply-color');
-    // Dodatkowe obserwowanie dla color options
-    this.watchColorSection();
+    // PAS 24
+    this.liveWatchRadio('pas24', () => this.applyPAS24());
 
-    // Sekcja 10: Details (Hardware)
-    this.watchSection([], 'apply-details');
+    // Color type radio
+    this.liveWatchRadio('color-type', () => this.applyColor());
   }
 
-  watchSection(fieldIds, buttonId) {
-    const button = document.getElementById(buttonId);
-    if (!button) return;
-
-    fieldIds.forEach(fieldId => {
-      // Dla radio buttons i checkboxów
-      const radios = document.getElementsByName(fieldId);
-      if (radios.length > 0) {
-        radios.forEach(radio => {
-          radio.addEventListener('change', () => {
-            // Invalidate this section and all subsequent ones
-            if (window.invalidateSection) {
-              window.invalidateSection(buttonId);
-            }
-          });
-        });
-      }
-
-      // Dla pojedynczych elementów
-      const element = document.getElementById(fieldId);
-      if (element) {
-        const eventType = element.type === 'checkbox' ? 'change' : 'input';
-        element.addEventListener(eventType, () => {
-          // Invalidate this section and all subsequent ones
-          if (window.invalidateSection) {
-            window.invalidateSection(buttonId);
-          }
-        });
-
-        // Dla selectów dodaj też change
-        if (element.tagName === 'SELECT') {
-          element.addEventListener('change', () => {
-            // Invalidate this section and all subsequent ones
-            if (window.invalidateSection) {
-              window.invalidateSection(buttonId);
-            }
-          });
-        }
+  liveWatch(ids, callback) {
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('change', callback);
+      if (el.tagName === 'INPUT' && el.type !== 'checkbox' && el.type !== 'radio') {
+        el.addEventListener('input', callback);
       }
     });
+  }
+
+  liveWatchRadio(name, callback) {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+      r.addEventListener('change', callback);
+    });
+  }
+
+  liveWatchCheckbox(id, callback) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', callback);
   }
 
   watchColorSection() {
-    const button = document.getElementById('apply-color');
-    if (!button) return;
-
-    // Single color options
+    // Single color options — live apply
     const singleColorOptions = document.querySelectorAll('#single-color-selector .color-option');
     singleColorOptions.forEach(option => {
-      option.addEventListener('click', () => {
-        // Invalidate color section and all subsequent ones
-        if (window.invalidateSection) {
-          window.invalidateSection('apply-color');
-        }
-      });
+      option.addEventListener('click', () => this.applyColor());
     });
 
-    // Dual color options
+    // Dual color options — live apply
     const dualColorOptions = document.querySelectorAll('.interior-color, .exterior-color');
     dualColorOptions.forEach(option => {
-      option.addEventListener('click', () => {
-        // Invalidate color section and all subsequent ones
-        if (window.invalidateSection) {
-          window.invalidateSection('apply-color');
-        }
-      });
+      option.addEventListener('click', () => this.applyColor());
     });
   }
 
   attachEventListeners() {
-    // Apply Dimensions
-    const applyDimensionsBtn = document.getElementById('apply-dimensions');
-    if (applyDimensionsBtn) {
-      applyDimensionsBtn.addEventListener('click', () => this.applyDimensions());
-    }
-
-    // Apply Bars
-    const applyBarsBtn = document.getElementById('apply-bars');
-    if (applyBarsBtn) {
-      applyBarsBtn.addEventListener('click', () => this.applyBars());
-    }
-
-    // Apply Fix Bars
-    const applyFixBarsBtn = document.getElementById('apply-fix-bars');
-    if (applyFixBarsBtn) {
-      applyFixBarsBtn.addEventListener('click', () => this.applyFixBars());
-    }
-
-    // Apply Frame
-    const applyFrameBtn = document.getElementById('apply-frame');
-    if (applyFrameBtn) {
-      applyFrameBtn.addEventListener('click', () => this.applyFrame());
-    }
-
-    // Apply Horns
-    const applyHornsBtn = document.getElementById('apply-horns');
-    if (applyHornsBtn) {
-      applyHornsBtn.addEventListener('click', () => this.applyHorns());
-    }
-
-    // Apply Color
-    const applyColorBtn = document.getElementById('apply-color');
-    if (applyColorBtn) {
-      applyColorBtn.addEventListener('click', () => this.applyColor());
-    }
-
-    // Apply Glass
-    const applyGlassBtn = document.getElementById('apply-glass');
-    if (applyGlassBtn) {
-      applyGlassBtn.addEventListener('click', () => this.applyGlass());
-    }
-
-    // Apply Opening
-    const applyOpeningBtn = document.getElementById('apply-opening');
-    if (applyOpeningBtn) {
-      applyOpeningBtn.addEventListener('click', () => this.applyOpening());
-    }
-
-    // Apply PAS 24
-    const applyPAS24Btn = document.getElementById('apply-pas24');
-    if (applyPAS24Btn) {
-      applyPAS24Btn.addEventListener('click', () => this.applyPAS24());
-    }
-
-    // Apply Details
-    const applyDetailsBtn = document.getElementById('apply-details');
-    if (applyDetailsBtn) {
-      applyDetailsBtn.addEventListener('click', () => this.applyDetails());
-    }
-
-    // Apply Glass Spec
-    const applyGlassSpecBtn = document.getElementById('apply-glass-spec');
-    if (applyGlassSpecBtn) {
-      applyGlassSpecBtn.addEventListener('click', () => this.applyGlassSpec());
-    }
+    // All apply methods are now triggered by live onChange handlers in setupSectionChangeListeners
+    // No more button click listeners needed
 
     // Frame type radios for warning box
     const frameRadios = document.querySelectorAll('input[name="frame-type"]');
@@ -1279,46 +1187,9 @@ class SpecificationController {
   }
 
   showAppliedFeedback(buttonId) {
-    const button = document.getElementById(buttonId);
-    if (!button) return;
-
-    const originalText = button.textContent;
-    button.textContent = '✓ Applied';
-    button.classList.add('applied');
-
-    // AUTO-SAVE przy każdym Apply
+    // Auto-save on every live change
     if (window.currentConfig) {
       localStorage.setItem('lastWindowConfig', JSON.stringify(window.currentConfig));
-      console.log('💾 Auto-saved after', buttonId);
-    }
-
-    // AUTO-SWITCH to next category after last Apply in each section
-    // dim-design: dimensions → bars → frame → horns → GLASS
-    // glass: glass → glass-spec → OPENING
-    // opening: opening → pas24 → COLOUR
-    // colour: color → HARDWARE
-    const nextCategory = {
-      'apply-horns': 'glass',
-      'apply-glass-spec': 'opening',
-      'apply-pas24': 'colour',
-      'apply-color': 'hardware',
-      'apply-details': 'finalise'
-    };
-
-    const next = nextCategory[buttonId];
-    if (next && typeof window.showCategory === 'function') {
-      setTimeout(() => {
-        window.showCategory(next);
-        // Highlight the next tab briefly
-        const nextBtn = document.querySelector(`.cat-btn[data-target="${next}"]`);
-        if (nextBtn) {
-          nextBtn.classList.add('next-step');
-          setTimeout(() => nextBtn.classList.remove('next-step'), 2000);
-        }
-        // Scroll to top of configurator
-        const configPanel = document.querySelector('.config-panel');
-        if (configPanel) configPanel.scrollTop = 0;
-      }, 600);
     }
   }
 }

@@ -514,7 +514,7 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
 
 .config-section {
   margin-bottom: 0 !important;
-  padding: 14px 14px 18px !important;
+  padding: 18px 14px 22px !important;
   border-left: none !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -526,17 +526,17 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
 .config-section::after {
   content: '';
   display: block;
-  margin: 18px auto 0;
+  margin: 22px auto 0;
   width: 100%;
-  height: 1px;
+  height: 2px;
   background: linear-gradient(to right,
-    transparent 0%, rgba(10,22,40,0.06) 10%, rgba(10,22,40,0.18) 30%,
-    rgba(10,22,40,0.28) 50%,
-    rgba(10,22,40,0.18) 70%, rgba(10,22,40,0.06) 90%, transparent 100%),
+    transparent 0%, rgba(10,22,40,0.08) 10%, rgba(10,22,40,0.22) 30%,
+    rgba(10,22,40,0.35) 50%,
+    rgba(10,22,40,0.22) 70%, rgba(10,22,40,0.08) 90%, transparent 100%),
     linear-gradient(105deg,
     transparent 0%, rgba(158,158,144,0.0) 20%, rgba(158,158,144,0.35) 45%,
     rgba(212,212,200,0.5) 50%, rgba(158,158,144,0.35) 55%, rgba(158,158,144,0.0) 80%, transparent 100%);
-  background-size: 100% 1px, 200% 1px;
+  background-size: 100% 2px, 200% 2px;
   animation: shimmer-line 5s linear infinite;
 }
 
