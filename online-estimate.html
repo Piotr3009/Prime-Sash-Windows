@@ -305,11 +305,13 @@
               <label for="sash-triple" class="radio-label">Triple Sash</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="sash-arched" name="sash-type" value="arched">
-              <label for="sash-arched" class="radio-label">Arched Head (Glazing Arch)</label>
+              <input type="radio" id="sash-arched" name="sash-type" value="arched-group">
+              <label for="sash-arched" class="radio-label">Arched Sash Windows</label>
             </div>
           </div>
         </div>
+
+        <!-- Triple options -->
         <div id="triple-options" style="display:none;">
           <div class="input-group">
             <label for="split-ratio">Panel Proportions:</label>
@@ -320,6 +322,49 @@
             </select>
           </div>
         </div>
+
+        <!-- Head Type — visible for double + triple -->
+        <div id="head-type-options">
+          <div class="input-group">
+            <label>Head Type:</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" id="head-flat" name="head-type" value="flat" checked>
+                <label for="head-flat" class="radio-label">Standard (Flat)</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="head-glazing-arch" name="head-type" value="arch">
+                <label for="head-glazing-arch" class="radio-label">Glazing Arch</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arched types — visible only for arched-group -->
+        <div id="arched-types" style="display:none;">
+          <div class="input-group">
+            <label>Arch Style:</label>
+            <div class="radio-group">
+              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
+                <input type="radio" id="arch-gothic" name="arch-style" value="gothic" disabled>
+                <label for="arch-gothic" class="radio-label">Gothic Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              </div>
+              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
+                <input type="radio" id="arch-segmental" name="arch-style" value="segmental" disabled>
+                <label for="arch-segmental" class="radio-label">Segmental Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              </div>
+              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
+                <input type="radio" id="arch-semicircular" name="arch-style" value="semicircular" disabled>
+                <label for="arch-semicircular" class="radio-label">Semicircular Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              </div>
+              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
+                <input type="radio" id="arch-elliptical" name="arch-style" value="elliptical" disabled>
+                <label for="arch-elliptical" class="radio-label">Elliptical Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <button class="btn btn-apply" id="apply-product-range">Apply</button>
       </div>
 
@@ -2048,8 +2093,22 @@
       sashTypeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
           var isTriple = radio.value === 'triple';
-          var isArched = radio.value === 'arched';
+          var isDouble = radio.value === 'double';
+          var isArchedGroup = radio.value === 'arched-group';
+          var headTypeOptions = document.getElementById('head-type-options');
+          var archedTypes = document.getElementById('arched-types');
+
           tripleOptions.style.display = isTriple ? 'block' : 'none';
+          headTypeOptions.style.display = (isDouble || isTriple) ? 'block' : 'none';
+          archedTypes.style.display = isArchedGroup ? 'block' : 'none';
+
+          // Reset head type to flat when switching
+          if (isDouble || isTriple) {
+            document.getElementById('head-flat').checked = true;
+          }
+
+          // Don't update dims/3D for arched-group (all coming soon)
+          if (isArchedGroup) return;
 
           // UI: Update dimension limits and defaults
           var widthSelect = document.getElementById('width-select');
@@ -2100,14 +2159,25 @@
             }
           }
 
-          // 3D live preview — arched sends sashType='double' + headType='arch'
+          // 3D live preview
+          var headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
           if (typeof window.update3D === 'function') {
             window.update3D({
-              sashType: isArched ? 'double' : radio.value,
-              headType: isArched ? 'arch' : 'flat',
+              sashType: radio.value,
+              headType: headType,
               extWidth: defaultW,
               extHeight: defaultH
             });
+          }
+        });
+      });
+
+      // Head type radio — live 3D update
+      var headTypeRadios = document.querySelectorAll('input[name="head-type"]');
+      headTypeRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          if (typeof window.update3D === 'function') {
+            window.update3D({ headType: radio.value });
           }
         });
       });

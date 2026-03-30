@@ -844,14 +844,10 @@ class SpecificationController {
   }
 
   applyProductRange() {
-    const sashTypeRaw = document.querySelector('input[name="sash-type"]:checked')?.value || 'double';
+    const sashType = document.querySelector('input[name="sash-type"]:checked')?.value || 'double';
     const splitRatio = document.getElementById('split-ratio')?.value || '1/4-1/2-1/4';
-    const isTriple = sashTypeRaw === 'triple';
-    const isArched = sashTypeRaw === 'arched';
-
-    // For 3D: arched is double + headType='arch'
-    const sashType3D = isArched ? 'double' : sashTypeRaw;
-    const headType = isArched ? 'arch' : 'flat';
+    const headType = document.querySelector('input[name="head-type"]:checked')?.value || 'flat';
+    const isTriple = sashType === 'triple';
 
     // Read current dimensions from inputs
     const frameWidth = parseInt(document.getElementById('width')?.value) || (isTriple ? 1500 : 1000);
@@ -859,7 +855,7 @@ class SpecificationController {
 
     // Update currentConfig
     if (window.currentConfig) {
-      window.currentConfig.sashType = sashTypeRaw; // keep 'arched' for pricing
+      window.currentConfig.sashType = sashType;
       window.currentConfig.splitRatio = splitRatio;
       window.currentConfig.headType = headType;
       window.currentConfig.actualFrameWidth = frameWidth;
@@ -869,7 +865,7 @@ class SpecificationController {
     // Update 3D
     if (typeof window.update3D === 'function') {
       window.update3D({
-        sashType: sashType3D,
+        sashType: sashType,
         headType: headType,
         splitRatio: splitRatio,
         extWidth: frameWidth,
@@ -883,7 +879,9 @@ class SpecificationController {
     const specSplitItem = document.getElementById('spec-split-ratio-item');
     const specSplitRatio = document.getElementById('spec-split-ratio');
     if (specWindowType) specWindowType.style.display = 'block';
-    if (specSashType) specSashType.textContent = isTriple ? 'Triple Sash' : isArched ? 'Arched Head Sash' : 'Double Hung Sash';
+    let typeLabel = isTriple ? 'Triple Sash' : 'Double Hung Sash';
+    if (headType === 'arch') typeLabel += ' — Glazing Arch';
+    if (specSashType) specSashType.textContent = typeLabel;
     if (specSplitItem) specSplitItem.style.display = isTriple ? '' : 'none';
     if (specSplitRatio) specSplitRatio.textContent = splitRatio;
 
