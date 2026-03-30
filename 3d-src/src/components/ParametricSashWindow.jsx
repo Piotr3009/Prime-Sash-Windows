@@ -46,13 +46,11 @@ function buildCoreLocalProfile(memberSize, memberDepth) {
 }
 
 function buildExtCoreProfile(memberSize, memberDepth) {
-  const mid = memberDepth / 2;
   return [
     [0, 0],
     [memberSize - EXT_BEAD_W, 0],
     [memberSize, EXT_BEAD_D],
-    [memberSize, mid],
-    [0, mid],
+    [0, EXT_BEAD_D],
   ];
 }
 
