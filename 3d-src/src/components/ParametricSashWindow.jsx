@@ -46,20 +46,22 @@ function buildCoreLocalProfile(memberSize, memberDepth) {
 }
 
 function buildExtCoreProfile(memberSize, memberDepth) {
+  const mid = memberDepth / 2;
   return [
     [0, 0],
     [memberSize - EXT_BEAD_W, 0],
     [memberSize, EXT_BEAD_D],
-    [0, EXT_BEAD_D],
+    [memberSize, mid],
+    [0, mid],
   ];
 }
 
 function buildIntCoreProfile(memberSize, memberDepth) {
-  // Start from EXT_BEAD_D (not mid) so interior color covers the full top/bottom flat face
-  // Ext bead remains visible on exterior edge, but top face is entirely interior color
+  const mid = memberDepth / 2;
+  const overlap = mm(1); // 1mm overlap past mid so interior color covers top/bottom face
   return [
-    [0, EXT_BEAD_D],
-    [memberSize, EXT_BEAD_D],
+    [0, mid - overlap],
+    [memberSize, mid - overlap],
     [memberSize, memberDepth - INT_BEAD_D],
     [memberSize - INT_BEAD_W, memberDepth - INT_BEAD_D],
     [memberSize - INT_BEAD_W, memberDepth],
