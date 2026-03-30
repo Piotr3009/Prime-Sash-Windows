@@ -2169,6 +2169,12 @@
               extHeight: defaultH
             });
           }
+
+          // Trigger spec + price update
+          if (window.specificationController) {
+            window.specificationController.applyProductRange();
+            window.specificationController.applyDimensions();
+          }
         });
       });
 
@@ -2179,6 +2185,9 @@
           if (typeof window.update3D === 'function') {
             window.update3D({ headType: radio.value });
           }
+          if (window.specificationController) {
+            window.specificationController.applyProductRange();
+          }
         });
       });
 
@@ -2188,6 +2197,9 @@
           // 3D live preview
           if (typeof window.update3D === 'function') {
             window.update3D({ splitRatio: splitRatioSel.value });
+          }
+          if (window.specificationController) {
+            window.specificationController.applyProductRange();
           }
         });
       }

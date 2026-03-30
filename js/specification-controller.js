@@ -107,6 +107,9 @@ class SpecificationController {
 
     // Color type radio
     this.liveWatchRadio('color-type', () => this.applyColor());
+
+    // Color swatches (single + dual)
+    this.watchColorSection();
   }
 
   liveWatch(ids, callback) {
@@ -858,6 +861,8 @@ class SpecificationController {
     }
 
     // Update spec
+    const specDetails = document.getElementById('spec-details');
+    if (specDetails) specDetails.style.display = 'block';
     const hornsItem = document.getElementById('spec-horns-item');
     const hornsVal = document.getElementById('spec-horns');
     if (hornsItem && hornsVal) {
