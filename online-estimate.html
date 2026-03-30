@@ -277,24 +277,36 @@
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
+              <input type="radio" id="type-sash" name="window-type" value="sash" checked>
+              <label for="type-sash" class="radio-label">Sash Windows</label>
+            </div>
+            <div class="radio-option" style="opacity:0.45; pointer-events:none;">
+              <input type="radio" id="type-casement" name="window-type" value="casement" disabled>
+              <label for="type-casement" class="radio-label">Casement Windows <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+            </div>
+            <div class="radio-option" style="opacity:0.45; pointer-events:none;">
+              <input type="radio" id="type-fix" name="window-type" value="fix-only" disabled>
+              <label for="type-fix" class="radio-label">Fix Frame Only <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section" data-category="product-range" id="sash-type-section">
+        <h3>Sash Type</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
               <input type="radio" id="sash-double" name="sash-type" value="double" checked>
-              <label for="sash-double" class="radio-label">Sash Window — Double Hung</label>
+              <label for="sash-double" class="radio-label">Double Hung</label>
             </div>
             <div class="radio-option">
               <input type="radio" id="sash-triple" name="sash-type" value="triple">
-              <label for="sash-triple" class="radio-label">Sash Window — Triple Sash</label>
+              <label for="sash-triple" class="radio-label">Triple Sash</label>
             </div>
             <div class="radio-option" style="opacity:0.45; pointer-events:none;">
               <input type="radio" id="sash-arched" name="sash-type" value="arched" disabled>
-              <label for="sash-arched" class="radio-label">Sash Window — Arched Head <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
-            </div>
-            <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-              <input type="radio" id="type-casement" name="sash-type" value="casement" disabled>
-              <label for="type-casement" class="radio-label">Casement Window <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
-            </div>
-            <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-              <input type="radio" id="type-fix" name="sash-type" value="fix-only" disabled>
-              <label for="type-fix" class="radio-label">Fix Frame Only <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              <label for="sash-arched" class="radio-label">Arched Head <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
             </div>
           </div>
         </div>
@@ -1704,12 +1716,15 @@
     catBtns.forEach(function(b) {
       b.classList.toggle('active', b.dataset.target === cat);
     });
-    // Product Range: show/hide window/door type based on radio
+    // Product Range: show/hide window/door type and sash type based on radios
     if (cat === 'product-range') {
       var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value !== 'doors';
+      var isSash = (document.querySelector('input[name="window-type"]:checked') || {}).value === 'sash';
       var wts = document.getElementById('window-type-section');
+      var sts = document.getElementById('sash-type-section');
       var dts = document.getElementById('door-type-section');
       if (wts) wts.style.display = isWindows ? 'block' : 'none';
+      if (sts) sts.style.display = (isWindows && isSash) ? 'block' : 'none';
       if (dts) dts.style.display = isWindows ? 'none' : 'block';
     }
     // Fix bars: only show for triple
@@ -1978,13 +1993,23 @@
     (function(){
       var rangeRadios = document.querySelectorAll('input[name="product-range"]');
       var windowTypeSection = document.getElementById('window-type-section');
+      var sashTypeSection = document.getElementById('sash-type-section');
       var doorTypeSection = document.getElementById('door-type-section');
 
       rangeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
           var isWindows = radio.value === 'windows';
           windowTypeSection.style.display = isWindows ? 'block' : 'none';
+          sashTypeSection.style.display = (isWindows && document.getElementById('type-sash').checked) ? 'block' : 'none';
           doorTypeSection.style.display = isWindows ? 'none' : 'block';
+        });
+      });
+
+      // Window type → show/hide sash type section
+      var windowTypeRadios = document.querySelectorAll('input[name="window-type"]');
+      windowTypeRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          sashTypeSection.style.display = radio.value === 'sash' ? 'block' : 'none';
         });
       });
     })();
@@ -2038,6 +2063,11 @@
             var currentW = parseInt(widthInput.value);
             if (currentW < minW) { widthInput.value = minW; widthSelect.value = String(minW); }
             if (currentW > maxW) { widthInput.value = maxW; widthSelect.value = String(maxW); }
+            // Set default dimensions when switching to triple
+            if (isTriple && (currentW < minW || currentW === 1000)) {
+              widthInput.value = 1500;
+              widthSelect.value = '1500';
+            }
           }
 
           // Filter height select options
@@ -2050,6 +2080,11 @@
             });
             var currentH = parseInt(heightInput.value);
             if (currentH < minH) { heightInput.value = minH; heightSelect.value = String(minH); }
+            // Set default height when switching to triple
+            if (isTriple && (currentH < minH || currentH === 1500)) {
+              heightInput.value = 1200;
+              heightSelect.value = '1200';
+            }
           }
 
           if (typeof window.update3D === 'function') {
