@@ -2314,16 +2314,13 @@ export default function ParametricSashWindow({
 
         {/* ═══ IRONMONGERY — center section only ═══ */}
 
-        {/* Fitch Fasteners */}
+        {/* Fitch Fasteners — single centered on center sash */}
         {(() => {
-          const twoFasteners = centerSashW > 1200 || upperBars !== 'none';
-          const xPositions = twoFasteners
-            ? [centerCenterX - mm(centerSashW / 2 - 250), centerCenterX + mm(centerSashW / 2 - 250)]
-            : [centerCenterX];
+          const xPositions = [centerCenterX];
 
           const lowerSashTop = (yBottomClosed + mm(centerLowerLift)) + mm(centerLowerH) / 2;
           const bodyY = lowerSashTop;
-          const bodyZ = trackFrontZ - mm(sashDepth / 2) + mm(85);
+          const bodyZ = trackFrontZ - mm(sashDepth / 2) + mm(65);
 
           const upperSashBottom = yTopClosed - mm(centerUpperH) / 2;
           const keepY = upperSashBottom + mm(43);
@@ -2389,18 +2386,6 @@ export default function ParametricSashWindow({
               <FingerLift mat={ironmongeryMats} />
             </group>
           ));
-        })()}
-
-        {/* Handle — center upper sash */}
-        {(() => {
-          const upperSashBottom = yTopClosed - mm(centerUpperH) / 2;
-          const handleY = upperSashBottom;
-          const handleZ = trackRearZ + mm(sashDepth / 2) - mm(28);
-          return (
-            <group position={[centerCenterX, handleY, handleZ]} rotation={[Math.PI / 2, 0, 0]}>
-              <HandleMesh mat={ironmongeryMats} />
-            </group>
-          );
         })()}
 
         {/* ═══ PULLEY SYSTEM — rope from center sash through mullion to weight in box ═══ */}
@@ -2750,7 +2735,7 @@ export default function ParametricSashWindow({
         // Body: na górnym railu dolnej sashki — interior face (uchwyt obrotowy)
         const lowerSashTop = (yBottomClosed + mm(lowerOpeningLift)) + mm(lowerSashHeight) / 2;
         const bodyY = lowerSashTop; // na górnej powierzchni meeting railu dolnej sashki
-        const bodyZ = trackFrontZ - mm(sashDepth / 2) + mm(85); // interior face dolnej sashki
+        const bodyZ = trackFrontZ - mm(sashDepth / 2) + mm(65); // interior face dolnej sashki
 
         // Keep: na dolnym railu górnej sashki — interior face (blaszka)
         const upperSashBottom = (yTopClosed - mm(upperOpeningDrop)) - mm(upperSashHeight) / 2;
