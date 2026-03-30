@@ -679,6 +679,7 @@ function ArchedGlassPane({ size, position, archRise = 0, frosted = false, double
       transmission={0.15} transparent opacity={0.96}
       thickness={0.028} ior={1.52}
       map={frostedTexture} roughnessMap={frostedTexture}
+      depthWrite={false}
     />
   ) : (
     <meshPhysicalMaterial
@@ -686,6 +687,7 @@ function ArchedGlassPane({ size, position, archRise = 0, frosted = false, double
       transmission={0.92} transparent opacity={0.38}
       thickness={0.028} ior={1.1} clearcoat={0.03}
       clearcoatRoughness={0.08} reflectivity={0.05}
+      depthWrite={false}
     />
   );
 
