@@ -58,10 +58,9 @@ function buildExtCoreProfile(memberSize, memberDepth) {
 
 function buildIntCoreProfile(memberSize, memberDepth) {
   const mid = memberDepth / 2;
-  const overlap = mm(1); // 1mm overlap past mid so interior color covers top/bottom face
   return [
-    [0, mid - overlap],
-    [memberSize, mid - overlap],
+    [0, mid - mid],
+    [memberSize, mid - mid],
     [memberSize, memberDepth - INT_BEAD_D],
     [memberSize - INT_BEAD_W, memberDepth - INT_BEAD_D],
     [memberSize - INT_BEAD_W, memberDepth],
