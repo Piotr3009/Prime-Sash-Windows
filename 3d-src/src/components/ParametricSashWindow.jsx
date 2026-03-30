@@ -649,11 +649,12 @@ function ArchedGlassPane({ size, position, archRise = 0, frosted = false, double
 
   const glassShape = useMemo(() => {
     const shape = new THREE.Shape();
+    // Bottom-left → bottom-right → right side up → arch curve → left side down
     shape.moveTo(-w / 2, -h / 2);
     shape.lineTo(w / 2, -h / 2);
-    shape.lineTo(w / 2, h / 2 - rise);
-    // Arch curve at top
-    shape.quadraticCurveTo(0, h / 2 + rise, -w / 2, h / 2 - rise);
+    shape.lineTo(w / 2, h / 2);
+    // Arch: edges at h/2, peak at h/2 + rise. Control point at 2×rise for quadratic bezier.
+    shape.quadraticCurveTo(0, h / 2 + 2 * rise, -w / 2, h / 2);
     shape.closePath();
     return shape;
   }, [w, h, rise]);
@@ -709,6 +710,49 @@ function ArchedGlassPane({ size, position, archRise = 0, frosted = false, double
       </mesh>
       <mesh geometry={glassGeom} castShadow={false} receiveShadow position={[0, 0, pane2Z]}>
         {glassMat}
+      </mesh>
+    </group>
+  );
+}
+
+function ArchedTopRail({ sashWidth, railHeight, sashDepth, archRise, extMaterial, intMaterial, position }) {
+  const halfW = mm(sashWidth) / 2;
+  const railH = mm(railHeight);
+  const rise = mm(archRise);
+  const mid = mm(sashDepth / 2);
+
+  const extGeom = useMemo(() => {
+    const shape = new THREE.Shape();
+    shape.moveTo(-halfW, 0);
+    shape.quadraticCurveTo(0, 2 * rise, halfW, 0);
+    shape.lineTo(halfW, railH);
+    shape.quadraticCurveTo(0, railH + 2 * rise, -halfW, railH);
+    shape.closePath();
+    const g = new THREE.ExtrudeGeometry(shape, { depth: mid, bevelEnabled: false, steps: 1, curveSegments: 32 });
+    g.translate(0, 0, -mid);
+    g.computeVertexNormals();
+    return g;
+  }, [halfW, railH, rise, mid]);
+
+  const intGeom = useMemo(() => {
+    const shape = new THREE.Shape();
+    shape.moveTo(-halfW, 0);
+    shape.quadraticCurveTo(0, 2 * rise, halfW, 0);
+    shape.lineTo(halfW, railH);
+    shape.quadraticCurveTo(0, railH + 2 * rise, -halfW, railH);
+    shape.closePath();
+    const g = new THREE.ExtrudeGeometry(shape, { depth: mid, bevelEnabled: false, steps: 1, curveSegments: 32 });
+    g.computeVertexNormals();
+    return g;
+  }, [halfW, railH, rise, mid]);
+
+  return (
+    <group position={position}>
+      <mesh geometry={extGeom} castShadow receiveShadow>
+        <primitive object={extMaterial} attach="material" />
+      </mesh>
+      <mesh geometry={intGeom} castShadow receiveShadow>
+        <primitive object={intMaterial} attach="material" />
       </mesh>
     </group>
   );
@@ -992,9 +1036,23 @@ function Sash({
       <InternalOvoloStileBead width={stileWidth} height={height - topRail - bottomRail + 18 * 2} depth={depth} openingSide="left" flip={flipChamfer} position={[w/2-stile/2, glassY, 0]} material={intCoreMaterial} />
 
       {/* top rail */}
-      <SashRailCore width={width} height={topRail} depth={depth} openingSide="bottom" flip={flipChamfer} position={[0, topRailY, 0]} material={extCoreMaterial} half="ext" />
-      <SashRailCore width={width} height={topRail} depth={depth} openingSide="bottom" flip={flipChamfer} position={[0, topRailY, 0]} material={intCoreMaterial} half="int" />
-      <InternalOvoloRailBead width={width - stileWidth * 2 + 18 * 2} height={topRail} depth={depth} openingSide="bottom" flip={flipChamfer} position={[0, topRailY, 0]} material={intCoreMaterial} />
+      {archRise > 0 ? (
+        <ArchedTopRail
+          sashWidth={width}
+          railHeight={topRail}
+          sashDepth={depth}
+          archRise={archRise}
+          extMaterial={extCoreMaterial}
+          intMaterial={intCoreMaterial}
+          position={[0, h / 2 - top, 0]}
+        />
+      ) : (
+        <>
+          <SashRailCore width={width} height={topRail} depth={depth} openingSide="bottom" flip={flipChamfer} position={[0, topRailY, 0]} material={extCoreMaterial} half="ext" />
+          <SashRailCore width={width} height={topRail} depth={depth} openingSide="bottom" flip={flipChamfer} position={[0, topRailY, 0]} material={intCoreMaterial} half="int" />
+          <InternalOvoloRailBead width={width - stileWidth * 2 + 18 * 2} height={topRail} depth={depth} openingSide="bottom" flip={flipChamfer} position={[0, topRailY, 0]} material={intCoreMaterial} />
+        </>
+      )}
 
       {/* bottom rail */}
       {profiledBottom ? (
@@ -2745,7 +2803,7 @@ export default function ParametricSashWindow({
         height={upperSashHeight}
         depth={sashDepth}
         stileWidth={config.stileWidth}
-        topRail={config.upperTopRail + archRiseMm}
+        topRail={config.upperTopRail}
         bottomRail={config.upperMeetingRail}
         zOffset={trackRearZ}
         yOffset={yTopClosed - mm(upperOpeningDrop)}
