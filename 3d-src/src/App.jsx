@@ -1,7 +1,7 @@
 import React from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { Bounds, ContactShadows, Html, OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import ParametricSashWindow from './components/ParametricSashWindow';
 
@@ -434,6 +434,72 @@ function MicrocementFloor() {
 
 
 
+function ScreenshotHelper() {
+  const { gl, scene, camera } = useThree();
+
+  useEffect(() => {
+    window.captureWindowScreenshots = async () => {
+      return new Promise((resolve) => {
+        const target = new THREE.Vector3(0, 0.18, 0);
+        const distance = 1.8;
+
+        // Save current camera state
+        const savedPos = camera.position.clone();
+        const savedTarget = target.clone();
+
+        const resize = (dataUrl, maxW, maxH) => {
+          return new Promise((res) => {
+            const img = new Image();
+            img.onload = () => {
+              const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+              const c = document.createElement('canvas');
+              c.width = Math.round(img.width * scale);
+              c.height = Math.round(img.height * scale);
+              c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+              res(c.toDataURL('image/jpeg', 0.75));
+            };
+            img.src = dataUrl;
+          });
+        };
+
+        const capture = (pos) => {
+          camera.position.copy(pos);
+          camera.lookAt(target);
+          camera.updateProjectionMatrix();
+          gl.render(scene, camera);
+          return gl.domElement.toDataURL('image/jpeg', 0.85);
+        };
+
+        // Front view (exterior)
+        const frontPos = new THREE.Vector3(0, 0.3, distance);
+        const frontRaw = capture(frontPos);
+
+        // Back view (interior)
+        const backPos = new THREE.Vector3(0, 0.3, -distance);
+        const backRaw = capture(backPos);
+
+        // Restore camera
+        camera.position.copy(savedPos);
+        camera.lookAt(savedTarget);
+        camera.updateProjectionMatrix();
+        gl.render(scene, camera);
+
+        // Resize to max 600px for storage efficiency
+        Promise.all([
+          resize(frontRaw, 600, 600),
+          resize(backRaw, 600, 600)
+        ]).then(([front, back]) => {
+          resolve({ front, back });
+        });
+      });
+    };
+
+    return () => { delete window.captureWindowScreenshots; };
+  }, [gl, scene, camera]);
+
+  return null;
+}
+
 function Scene({ config, isMobile }) {
   const [hovered, setHovered] = useState(false);
   const b = config.brightness ?? 1.0;
@@ -519,6 +585,8 @@ function Scene({ config, isMobile }) {
         autoRotate={config.autoRotate}
         autoRotateSpeed={0.45}
       />
+
+      <ScreenshotHelper />
 
 
     </>
@@ -730,7 +798,7 @@ export default function App() {
           color: 'rgba(255,255,255,0.5)'
         }} title="Drag to rotate">↻</div>
 
-        <Canvas shadows={!isMobile} dpr={isMobile ? [1, 1] : [1, 2]} gl={{ alpha: true, antialias: !isMobile, powerPreference: isMobile ? 'low-power' : 'high-performance' }} style={{ touchAction: 'none' }}>
+        <Canvas shadows={!isMobile} dpr={isMobile ? [1, 1] : [1, 2]} gl={{ alpha: true, antialias: !isMobile, powerPreference: isMobile ? 'low-power' : 'high-performance', preserveDrawingBuffer: true }} style={{ touchAction: 'none' }}>
           <Scene config={config} isMobile={isMobile} />
         </Canvas>
 

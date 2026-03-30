@@ -812,7 +812,7 @@ class ConfiguratorCore {
     this.updateAll();
   }
 
-  addToEstimate() {
+  async addToEstimate() {
     const validation = this.modules.form.validate();
     if (!validation.isValid) {
       alert('Please complete:\n' + validation.errors.join('\n'));
@@ -821,6 +821,17 @@ class ConfiguratorCore {
     
     const config = this.state.get();
     const priceData = this.modules.price.calculate(config);
+    
+    // Capture 3D screenshots before saving
+    if (typeof window.captureWindowScreenshots === 'function') {
+      try {
+        const screenshots = await window.captureWindowScreenshots();
+        config.screenshots = screenshots;
+        console.log('📸 Screenshots captured (front + back)');
+      } catch(e) {
+        console.warn('Screenshot capture failed:', e);
+      }
+    }
     
     const estimate = this.modules.storage.addToEstimates(config, priceData.unitPrice);
     

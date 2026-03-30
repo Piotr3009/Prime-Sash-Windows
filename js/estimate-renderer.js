@@ -140,6 +140,8 @@ class EstimateRenderer {
         const itemsHTML = estimate.estimate_items?.map(item => {
             const p = R.parseItem(item);
             const svg = R.generateWindowSVG(item);
+            const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
+            const screenshots = item.screenshots || spec.screenshots || spec.fullConfig?.screenshots || null;
 
             return `
             <div style="background:var(--cream2);border:1px solid rgba(158,158,144,.15);margin-bottom:1.5rem;padding:0;border-radius:2px;overflow:hidden;">
@@ -155,8 +157,17 @@ class EstimateRenderer {
                 </div>
 
                 <div style="display:grid;grid-template-columns:220px 1fr;gap:0;">
-                    <div style="padding:1.5rem;display:flex;align-items:center;justify-content:center;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);">
-                        ${svg}
+                    <div style="padding:1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);gap:8px;">
+                        ${screenshots?.front ? `
+                            <div style="text-align:center;">
+                                <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">Exterior</div>
+                                <img src="${screenshots.front}" style="max-width:200px;max-height:180px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">Interior</div>
+                                <img src="${screenshots.back}" style="max-width:200px;max-height:180px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
+                            </div>
+                        ` : svg}
                     </div>
                     <div style="padding:1.5rem;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
