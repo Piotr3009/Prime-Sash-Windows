@@ -657,6 +657,18 @@ class SpecificationController {
     document.getElementById('spec-height').textContent = `${frameHeight}mm`;
     document.getElementById('spec-measurement').textContent = measurementType === 'brick-to-brick' ? 'Structural Opening' : 'Frame Dimensions';
 
+    // Update window type spec
+    const sashTypeVal = document.querySelector('input[name="sash-type"]:checked')?.value || 'double';
+    const splitRatioVal = document.getElementById('split-ratio')?.value || '1/4-1/2-1/4';
+    const specWindowType = document.getElementById('spec-window-type');
+    const specSashType = document.getElementById('spec-sash-type');
+    const specSplitItem = document.getElementById('spec-split-ratio-item');
+    const specSplitRatio = document.getElementById('spec-split-ratio');
+    if (specWindowType) specWindowType.style.display = 'block';
+    if (specSashType) specSashType.textContent = sashTypeVal === 'triple' ? 'Triple Sash (Fixed Side Panels)' : 'Double Hung Sash';
+    if (specSplitItem) specSplitItem.style.display = sashTypeVal === 'triple' ? '' : 'none';
+    if (specSplitRatio) specSplitRatio.textContent = splitRatioVal;
+
     // Remove old actual size element (nie potrzebujemy już dodatkowego)
     const oldActual = document.querySelector('.spec-item.actual-size');
     if (oldActual) oldActual.remove();
@@ -768,6 +780,14 @@ class SpecificationController {
     };
 
     const effectiveLower = sameFixBars ? fixUpperBars : fixLowerBars;
+
+    // Update spec panel
+    const specFixBars = document.getElementById('spec-fix-bars');
+    if (specFixBars) {
+      specFixBars.style.display = 'block';
+      document.getElementById('spec-fix-upper-bars').textContent = barNames[fixUpperBars] || fixUpperBars;
+      document.getElementById('spec-fix-lower-bars').textContent = barNames[effectiveLower] || effectiveLower;
+    }
 
     // Update currentConfig
     if (window.currentConfig) {
