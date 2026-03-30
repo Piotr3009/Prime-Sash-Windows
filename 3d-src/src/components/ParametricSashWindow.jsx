@@ -57,10 +57,11 @@ function buildExtCoreProfile(memberSize, memberDepth) {
 }
 
 function buildIntCoreProfile(memberSize, memberDepth) {
-  const mid = memberDepth / 2;
+  // Start from EXT_BEAD_D (not mid) so interior color covers the full top/bottom flat face
+  // Ext bead remains visible on exterior edge, but top face is entirely interior color
   return [
-    [0, mid],
-    [memberSize, mid],
+    [0, EXT_BEAD_D],
+    [memberSize, EXT_BEAD_D],
     [memberSize, memberDepth - INT_BEAD_D],
     [memberSize - INT_BEAD_W, memberDepth - INT_BEAD_D],
     [memberSize - INT_BEAD_W, memberDepth],
