@@ -1821,10 +1821,10 @@ export default function ParametricSashWindow({
   ironmongery = 'brass',
   sashType = 'double',
   splitRatio = '1/4-1/2-1/4',
-  leftFixBars = 'none',
-  rightFixBars = 'none',
-  leftFixCustomBars = [],
-  rightFixCustomBars = [],
+  fixUpperBars = 'none',
+  fixLowerBars = 'none',
+  fixUpperCustomBars = [],
+  fixLowerCustomBars = [],
 }) {
   const cExt = woodColorExt || woodColor;
   const cInt = woodColorInt || woodColor;
@@ -2179,8 +2179,8 @@ export default function ParametricSashWindow({
             color={cExt}
             glassThickness={config.glassUnitThickness}
             flipChamfer={false}
-            barPattern={leftFixBars}
-            customBars={leftFixCustomBars}
+            barPattern={fixUpperBars}
+            customBars={fixUpperCustomBars}
             colorExt={cExt}
             colorInt={cInt}
             frosted={upperGlass === 'frosted'}
@@ -2204,8 +2204,8 @@ export default function ParametricSashWindow({
             profiledBottom={true}
             glassThickness={config.glassUnitThickness}
             flipChamfer={false}
-            barPattern={leftFixBars}
-            customBars={leftFixCustomBars}
+            barPattern={fixLowerBars}
+            customBars={fixLowerCustomBars}
             colorExt={cExt}
             colorInt={cInt}
             frosted={lowerGlass === 'frosted'}
@@ -2228,8 +2228,8 @@ export default function ParametricSashWindow({
             color={cExt}
             glassThickness={config.glassUnitThickness}
             flipChamfer={false}
-            barPattern={rightFixBars}
-            customBars={rightFixCustomBars}
+            barPattern={fixUpperBars}
+            customBars={fixUpperCustomBars}
             colorExt={cExt}
             colorInt={cInt}
             frosted={upperGlass === 'frosted'}
@@ -2253,8 +2253,8 @@ export default function ParametricSashWindow({
             profiledBottom={true}
             glassThickness={config.glassUnitThickness}
             flipChamfer={false}
-            barPattern={rightFixBars}
-            customBars={rightFixCustomBars}
+            barPattern={fixLowerBars}
+            customBars={fixLowerCustomBars}
             colorExt={cExt}
             colorInt={cInt}
             frosted={lowerGlass === 'frosted'}

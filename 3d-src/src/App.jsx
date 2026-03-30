@@ -567,10 +567,10 @@ export default function App() {
   const [lowerCustomBars, setLowerCustomBars] = useState([]);
   const [sashType, setSashType] = useState('double');
   const [splitRatio, setSplitRatio] = useState('1/4-1/2-1/4');
-  const [leftFixBars, setLeftFixBars] = useState('none');
-  const [rightFixBars, setRightFixBars] = useState('none');
-  const [leftFixCustomBars, setLeftFixCustomBars] = useState([]);
-  const [rightFixCustomBars, setRightFixCustomBars] = useState([]);
+  const [fixUpperBars, setFixUpperBars] = useState('none');
+  const [fixLowerBars, setFixLowerBars] = useState('none');
+  const [fixUpperCustomBars, setFixUpperCustomBars] = useState([]);
+  const [fixLowerCustomBars, setFixLowerCustomBars] = useState([]);
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
 
@@ -608,10 +608,10 @@ export default function App() {
       if (cfg.hornType     !== undefined) setHornType(cfg.hornType);
       if (cfg.sashType     !== undefined) setSashType(cfg.sashType);
       if (cfg.splitRatio   !== undefined) setSplitRatio(cfg.splitRatio);
-      if (cfg.leftFixBars  !== undefined) setLeftFixBars(cfg.leftFixBars);
-      if (cfg.rightFixBars !== undefined) setRightFixBars(cfg.rightFixBars);
-      if (cfg.leftFixCustomBars  !== undefined) setLeftFixCustomBars(cfg.leftFixCustomBars);
-      if (cfg.rightFixCustomBars !== undefined) setRightFixCustomBars(cfg.rightFixCustomBars);
+      if (cfg.fixUpperBars !== undefined) setFixUpperBars(cfg.fixUpperBars);
+      if (cfg.fixLowerBars !== undefined) setFixLowerBars(cfg.fixLowerBars);
+      if (cfg.fixUpperCustomBars !== undefined) setFixUpperCustomBars(cfg.fixUpperCustomBars);
+      if (cfg.fixLowerCustomBars !== undefined) setFixLowerCustomBars(cfg.fixLowerCustomBars);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -644,12 +644,12 @@ export default function App() {
       woodColorInt: sameColor ? woodColor : woodColorInt,
       sashType,
       splitRatio,
-      leftFixBars,
-      rightFixBars,
-      leftFixCustomBars,
-      rightFixCustomBars,
+      fixUpperBars,
+      fixLowerBars,
+      fixUpperCustomBars,
+      fixLowerCustomBars,
     }),
-    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, leftFixBars, rightFixBars, leftFixCustomBars, rightFixCustomBars],
+    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars],
   );
 
   return (
@@ -820,6 +820,20 @@ export default function App() {
               <option value="9x9">9 Panes (2V+2H)</option>
               <option value="custom">Custom</option>
             </select>
+            {upperBars === 'custom' && (
+              <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                <button onClick={() => setUpperCustomBars(prev => [...prev, {type:'v', mm:100}])} style={{ flex:1, padding:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>+ V bar</button>
+                <button onClick={() => setUpperCustomBars(prev => [...prev, {type:'h', mm:100}])} style={{ flex:1, padding:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>+ H bar</button>
+                {upperCustomBars.length > 0 && <button onClick={() => setUpperCustomBars(prev => prev.slice(0,-1))} style={{ padding:'4px 8px', borderRadius:'4px', background:'rgba(255,80,80,0.3)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>✕</button>}
+              </div>
+            )}
+            {upperBars === 'custom' && upperCustomBars.map((b, i) => (
+              <div key={i} style={{ display:'flex', gap:'4px', alignItems:'center', marginTop:'3px' }}>
+                <span style={{ fontSize:'10px', opacity:0.7, width:'20px' }}>{b.type.toUpperCase()}</span>
+                <input type="range" min={50} max={500} step={5} value={b.mm} onChange={e => { const v = [...upperCustomBars]; v[i] = {...b, mm: Number(e.target.value)}; setUpperCustomBars(v); }} style={{ flex:1 }} />
+                <span style={{ fontSize:'10px', opacity:0.7, width:'40px' }}>{b.mm}mm</span>
+              </div>
+            ))}
           </div>
           <div>
             <div style={{ marginBottom: '4px', opacity: 0.7 }}>Center Lower Bars</div>
@@ -835,14 +849,28 @@ export default function App() {
               <option value="9x9">9 Panes (2V+2H)</option>
               <option value="custom">Custom</option>
             </select>
+            {lowerBars === 'custom' && (
+              <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                <button onClick={() => setLowerCustomBars(prev => [...prev, {type:'v', mm:100}])} style={{ flex:1, padding:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>+ V bar</button>
+                <button onClick={() => setLowerCustomBars(prev => [...prev, {type:'h', mm:100}])} style={{ flex:1, padding:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>+ H bar</button>
+                {lowerCustomBars.length > 0 && <button onClick={() => setLowerCustomBars(prev => prev.slice(0,-1))} style={{ padding:'4px 8px', borderRadius:'4px', background:'rgba(255,80,80,0.3)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>✕</button>}
+              </div>
+            )}
+            {lowerBars === 'custom' && lowerCustomBars.map((b, i) => (
+              <div key={i} style={{ display:'flex', gap:'4px', alignItems:'center', marginTop:'3px' }}>
+                <span style={{ fontSize:'10px', opacity:0.7, width:'20px' }}>{b.type.toUpperCase()}</span>
+                <input type="range" min={50} max={500} step={5} value={b.mm} onChange={e => { const v = [...lowerCustomBars]; v[i] = {...b, mm: Number(e.target.value)}; setLowerCustomBars(v); }} style={{ flex:1 }} />
+                <span style={{ fontSize:'10px', opacity:0.7, width:'40px' }}>{b.mm}mm</span>
+              </div>
+            ))}
           </div>
 
           {/* Fix Bars — only for triple */}
           {sashType === 'triple' && (
             <>
               <div>
-                <div style={{ marginBottom: '4px', opacity: 0.7 }}>Fix Panels Bars (L+R)</div>
-                <select value={leftFixBars} onChange={e => { setLeftFixBars(e.target.value); setRightFixBars(e.target.value); }} style={{
+                <div style={{ marginBottom: '4px', opacity: 0.7 }}>Fix Upper Bars (L+R)</div>
+                <select value={fixUpperBars} onChange={e => setFixUpperBars(e.target.value)} style={{
                   width: '100%', padding: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)',
                   color: '#fff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '11px'
                 }}>
@@ -854,6 +882,49 @@ export default function App() {
                   <option value="9x9">9 Panes (2V+2H)</option>
                   <option value="custom">Custom</option>
                 </select>
+                {fixUpperBars === 'custom' && (
+                  <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                    <button onClick={() => setFixUpperCustomBars(prev => [...prev, {type:'v', mm:100}])} style={{ flex:1, padding:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>+ V bar</button>
+                    <button onClick={() => setFixUpperCustomBars(prev => [...prev, {type:'h', mm:100}])} style={{ flex:1, padding:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>+ H bar</button>
+                    {fixUpperCustomBars.length > 0 && <button onClick={() => setFixUpperCustomBars(prev => prev.slice(0,-1))} style={{ padding:'4px 8px', borderRadius:'4px', background:'rgba(255,80,80,0.3)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>✕</button>}
+                  </div>
+                )}
+                {fixUpperBars === 'custom' && fixUpperCustomBars.map((b, i) => (
+                  <div key={i} style={{ display:'flex', gap:'4px', alignItems:'center', marginTop:'3px' }}>
+                    <span style={{ fontSize:'10px', opacity:0.7, width:'20px' }}>{b.type.toUpperCase()}</span>
+                    <input type="range" min={50} max={500} step={5} value={b.mm} onChange={e => { const v = [...fixUpperCustomBars]; v[i] = {...b, mm: Number(e.target.value)}; setFixUpperCustomBars(v); }} style={{ flex:1 }} />
+                    <span style={{ fontSize:'10px', opacity:0.7, width:'40px' }}>{b.mm}mm</span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div style={{ marginBottom: '4px', opacity: 0.7 }}>Fix Lower Bars (L+R)</div>
+                <select value={fixLowerBars} onChange={e => setFixLowerBars(e.target.value)} style={{
+                  width: '100%', padding: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)',
+                  color: '#fff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '11px'
+                }}>
+                  <option value="none">None</option>
+                  <option value="2x2">2 Panes (1V)</option>
+                  <option value="3x3">3 Panes (2V)</option>
+                  <option value="4x4">4 Panes (1V+1H)</option>
+                  <option value="6x6">6 Panes (2V+1H)</option>
+                  <option value="9x9">9 Panes (2V+2H)</option>
+                  <option value="custom">Custom</option>
+                </select>
+                {fixLowerBars === 'custom' && (
+                  <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                    <button onClick={() => setFixLowerCustomBars(prev => [...prev, {type:'v', mm:100}])} style={{ flex:1, padding:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>+ V bar</button>
+                    <button onClick={() => setFixLowerCustomBars(prev => [...prev, {type:'h', mm:100}])} style={{ flex:1, padding:'4px', borderRadius:'4px', background:'rgba(255,255,255,0.15)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>+ H bar</button>
+                    {fixLowerCustomBars.length > 0 && <button onClick={() => setFixLowerCustomBars(prev => prev.slice(0,-1))} style={{ padding:'4px 8px', borderRadius:'4px', background:'rgba(255,80,80,0.3)', color:'#fff', border:'none', fontSize:'10px', cursor:'pointer' }}>✕</button>}
+                  </div>
+                )}
+                {fixLowerBars === 'custom' && fixLowerCustomBars.map((b, i) => (
+                  <div key={i} style={{ display:'flex', gap:'4px', alignItems:'center', marginTop:'3px' }}>
+                    <span style={{ fontSize:'10px', opacity:0.7, width:'20px' }}>{b.type.toUpperCase()}</span>
+                    <input type="range" min={50} max={500} step={5} value={b.mm} onChange={e => { const v = [...fixLowerCustomBars]; v[i] = {...b, mm: Number(e.target.value)}; setFixLowerCustomBars(v); }} style={{ flex:1 }} />
+                    <span style={{ fontSize:'10px', opacity:0.7, width:'40px' }}>{b.mm}mm</span>
+                  </div>
+                ))}
               </div>
             </>
           )}
