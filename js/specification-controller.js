@@ -18,6 +18,25 @@ class SpecificationController {
     this.setupSectionChangeListeners();
     this.setupFrostedOptions();
     this.setupGlobalAutoSave();
+    // Populate spec panel with defaults after short delay (wait for other scripts)
+    setTimeout(() => this.populateInitialSpec(), 500);
+  }
+
+  populateInitialSpec() {
+    try {
+      this.applyProductRange();
+      this.applyDimensions();
+      this.applyBars();
+      this.applyFrame();
+      this.applyHorns();
+      this.applyGlass();
+      this.applyGlassSpec();
+      this.applyOpening();
+      this.applyPAS24();
+      this.applyColor();
+    } catch(e) {
+      console.log('Initial spec population partial:', e);
+    }
   }
   
   setupGlobalAutoSave() {
@@ -48,6 +67,10 @@ class SpecificationController {
   setupSectionChangeListeners() {
     // Live auto-apply: each change triggers the corresponding apply method
     const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+    // Product Range — sash type + head type
+    this.liveWatchRadio('sash-type', () => this.applyProductRange());
+    this.liveWatchRadio('head-type', () => this.applyProductRange());
 
     // Dimensions — debounced (slider/input changes fast)
     const liveApplyDimensions = debounce(() => this.applyDimensions(), 300);
@@ -600,12 +623,15 @@ class SpecificationController {
     // Update window type spec
     const sashTypeVal = document.querySelector('input[name="sash-type"]:checked')?.value || 'double';
     const splitRatioVal = document.getElementById('split-ratio')?.value || '1/4-1/2-1/4';
+    const headTypeVal = document.querySelector('input[name="head-type"]:checked')?.value || 'flat';
     const specWindowType = document.getElementById('spec-window-type');
     const specSashType = document.getElementById('spec-sash-type');
     const specSplitItem = document.getElementById('spec-split-ratio-item');
     const specSplitRatio = document.getElementById('spec-split-ratio');
     if (specWindowType) specWindowType.style.display = 'block';
-    if (specSashType) specSashType.textContent = sashTypeVal === 'triple' ? 'Triple Sash (Fixed Side Panels)' : 'Double Hung Sash';
+    let typeLabel = sashTypeVal === 'triple' ? 'Triple Sash' : 'Double Hung Sash';
+    if (headTypeVal === 'arch') typeLabel += ' — Glazing Arch';
+    if (specSashType) specSashType.textContent = typeLabel;
     if (specSplitItem) specSplitItem.style.display = sashTypeVal === 'triple' ? '' : 'none';
     if (specSplitRatio) specSplitRatio.textContent = splitRatioVal;
 
@@ -619,6 +645,7 @@ class SpecificationController {
       window.currentConfig.actualFrameHeight = frameHeight;
       window.currentConfig.sashType = document.querySelector('input[name="sash-type"]:checked')?.value || 'double';
       window.currentConfig.splitRatio = document.getElementById('split-ratio')?.value || '1/4-1/2-1/4';
+      window.currentConfig.headType = document.querySelector('input[name="head-type"]:checked')?.value || 'flat';
       
       // Trigger price recalculation
       if (window.configuratorCore && window.configuratorCore.isInitialized) {
