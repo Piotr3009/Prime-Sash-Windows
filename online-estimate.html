@@ -2098,13 +2098,21 @@
               bottomOption.dispatchEvent(new Event('change', { bubbles: true }));
             }
           }
+
+          // 3D live preview
+          if (typeof window.update3D === 'function') {
+            window.update3D({ sashType: radio.value, extWidth: defaultW, extHeight: defaultH });
+          }
         });
       });
 
       var splitRatioSel = document.getElementById('split-ratio');
       if (splitRatioSel) {
         splitRatioSel.addEventListener('change', function() {
-          // UI only — logic handled by applyProductRange
+          // 3D live preview
+          if (typeof window.update3D === 'function') {
+            window.update3D({ splitRatio: splitRatioSel.value });
+          }
         });
       }
 
