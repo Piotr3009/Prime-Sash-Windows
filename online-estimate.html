@@ -304,9 +304,9 @@
               <input type="radio" id="sash-triple" name="sash-type" value="triple">
               <label for="sash-triple" class="radio-label">Triple Sash</label>
             </div>
-            <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-              <input type="radio" id="sash-arched" name="sash-type" value="arched" disabled>
-              <label for="sash-arched" class="radio-label">Arched Head <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+            <div class="radio-option">
+              <input type="radio" id="sash-arched" name="sash-type" value="arched">
+              <label for="sash-arched" class="radio-label">Arched Head (Glazing Arch)</label>
             </div>
           </div>
         </div>
@@ -2048,6 +2048,7 @@
       sashTypeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
           var isTriple = radio.value === 'triple';
+          var isArched = radio.value === 'arched';
           tripleOptions.style.display = isTriple ? 'block' : 'none';
 
           // UI: Update dimension limits and defaults
@@ -2099,9 +2100,14 @@
             }
           }
 
-          // 3D live preview
+          // 3D live preview — arched sends sashType='double' + headType='arch'
           if (typeof window.update3D === 'function') {
-            window.update3D({ sashType: radio.value, extWidth: defaultW, extHeight: defaultH });
+            window.update3D({
+              sashType: isArched ? 'double' : radio.value,
+              headType: isArched ? 'arch' : 'flat',
+              extWidth: defaultW,
+              extHeight: defaultH
+            });
           }
         });
       });

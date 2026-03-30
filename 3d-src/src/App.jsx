@@ -567,6 +567,7 @@ export default function App() {
   const [lowerCustomBars, setLowerCustomBars] = useState([]);
   const [sashType, setSashType] = useState('double');
   const [splitRatio, setSplitRatio] = useState('1/4-1/2-1/4');
+  const [headType, setHeadType] = useState('flat');
   const [fixUpperBars, setFixUpperBars] = useState('none');
   const [fixLowerBars, setFixLowerBars] = useState('none');
   const [fixUpperCustomBars, setFixUpperCustomBars] = useState([]);
@@ -608,6 +609,7 @@ export default function App() {
       if (cfg.hornType     !== undefined) setHornType(cfg.hornType);
       if (cfg.sashType     !== undefined) setSashType(cfg.sashType);
       if (cfg.splitRatio   !== undefined) setSplitRatio(cfg.splitRatio);
+      if (cfg.headType     !== undefined) setHeadType(cfg.headType);
       if (cfg.fixUpperBars !== undefined) setFixUpperBars(cfg.fixUpperBars);
       if (cfg.fixLowerBars !== undefined) setFixLowerBars(cfg.fixLowerBars);
       if (cfg.fixUpperCustomBars !== undefined) setFixUpperCustomBars(cfg.fixUpperCustomBars);
@@ -644,12 +646,13 @@ export default function App() {
       woodColorInt: sameColor ? woodColor : woodColorInt,
       sashType,
       splitRatio,
+      headType,
       fixUpperBars,
       fixLowerBars,
       fixUpperCustomBars,
       fixLowerCustomBars,
     }),
-    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars],
+    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars],
   );
 
   return (

@@ -96,6 +96,13 @@ class PriceCalculator {
     // 4. SUMA PRZED RABATEM (bez dopłaty za kolor)
     let subtotal = basePrice + barsPrice + fixBarsPrice + additionalPrice;
 
+    // ARCHED HEAD SURCHARGE: +10% on subtotal
+    if (configuration.sashType === 'arched') {
+      const archedSurcharge = subtotal * 0.10;
+      console.log('Arched head surcharge: 10% × £' + subtotal.toFixed(2) + ' = £' + archedSurcharge.toFixed(2));
+      subtotal += archedSurcharge;
+    }
+
     // KOLOR: liczone od czystego subtotal (single white = baza)
     if (configuration.colorType === 'dual') {
       // Dual color: +15% od subtotal single white

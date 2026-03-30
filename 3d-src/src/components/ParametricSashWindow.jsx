@@ -642,6 +642,78 @@ function LowerBottomRail({ width, height, depth, yCenter, stileWidth, coreMateri
   );
 }
 
+function ArchedGlassPane({ size, position, archRise = 0, frosted = false, doubleGlazing = false, spacerColor = 'silver' }) {
+  const [w, h, d] = size;
+  const rise = archRise;
+  const frostedTexture = useMemo(() => frosted ? createFrostedTexture() : null, [frosted]);
+
+  const glassShape = useMemo(() => {
+    const shape = new THREE.Shape();
+    shape.moveTo(-w / 2, -h / 2);
+    shape.lineTo(w / 2, -h / 2);
+    shape.lineTo(w / 2, h / 2 - rise);
+    // Arch curve at top
+    shape.quadraticCurveTo(0, h / 2 + rise, -w / 2, h / 2 - rise);
+    shape.closePath();
+    return shape;
+  }, [w, h, rise]);
+
+  const glassGeom = useMemo(() => {
+    const thickness = doubleGlazing ? mm(4) : d;
+    const g = new THREE.ExtrudeGeometry(glassShape, {
+      depth: thickness,
+      bevelEnabled: false,
+      steps: 1,
+      curveSegments: 32,
+    });
+    g.translate(0, 0, -thickness / 2);
+    g.computeVertexNormals();
+    return g;
+  }, [glassShape, d, doubleGlazing]);
+
+  const glassMat = frosted ? (
+    <meshPhysicalMaterial
+      color="#c8dce8" roughness={1.0} metalness={0}
+      transmission={0.15} transparent opacity={0.96}
+      thickness={0.028} ior={1.52}
+      map={frostedTexture} roughnessMap={frostedTexture}
+    />
+  ) : (
+    <meshPhysicalMaterial
+      color="#cfe3f5" roughness={0.12} metalness={0}
+      transmission={0.92} transparent opacity={0.38}
+      thickness={0.028} ior={1.1} clearcoat={0.03}
+      clearcoatRoughness={0.08} reflectivity={0.05}
+    />
+  );
+
+  if (!doubleGlazing) {
+    return (
+      <group position={position}>
+        <mesh geometry={glassGeom} castShadow={false} receiveShadow>
+          {glassMat}
+        </mesh>
+      </group>
+    );
+  }
+
+  const gapThickness = mm(16);
+  const paneThickness = mm(4);
+  const pane1Z = gapThickness / 2 + paneThickness / 2;
+  const pane2Z = -(gapThickness / 2 + paneThickness / 2);
+
+  return (
+    <group position={position}>
+      <mesh geometry={glassGeom} castShadow={false} receiveShadow position={[0, 0, pane1Z]}>
+        {glassMat}
+      </mesh>
+      <mesh geometry={glassGeom} castShadow={false} receiveShadow position={[0, 0, pane2Z]}>
+        {glassMat}
+      </mesh>
+    </group>
+  );
+}
+
 const BAR_PATTERNS = {
   'none':   { h: 0, v: 0 },
   '2x2':   { h: 0, v: 1 },
@@ -854,6 +926,7 @@ function Sash({
   frosted = false,
   doubleGlazing = false,
   spacerColor = 'silver',
+  archRise = 0,
 }) {
   const colorE = colorExt || color;
   const colorI = colorInt || color;
@@ -934,7 +1007,11 @@ function Sash({
         </>
       )}
 
-      <GlassPane size={[clearWidth, clearHeight, glassD]} position={[0, glassY, glassCenterZ]} frosted={frosted} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
+      {archRise > 0 ? (
+        <ArchedGlassPane size={[clearWidth, clearHeight, glassD]} position={[0, glassY, glassCenterZ]} archRise={mm(archRise)} frosted={frosted} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
+      ) : (
+        <GlassPane size={[clearWidth, clearHeight, glassD]} position={[0, glassY, glassCenterZ]} frosted={frosted} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
+      )}
       <group position={[0, glassY, glassCenterZ]}>
         <GlazingBars clearWidth={clearWidth} clearHeight={clearHeight} glassDepth={glassD} barPattern={barPattern} customBars={customBars} material={extCoreMaterial} materialInt={intCoreMaterial} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
       </group>
@@ -1825,6 +1902,7 @@ export default function ParametricSashWindow({
   fixLowerBars = 'none',
   fixUpperCustomBars = [],
   fixLowerCustomBars = [],
+  headType = 'flat',
 }) {
   const cExt = woodColorExt || woodColor;
   const cInt = woodColorInt || woodColor;
@@ -1952,6 +2030,9 @@ export default function ParametricSashWindow({
   const weightStartY = meetingY_inJamb - pulleyLocalY_calc;
   // linka do sashki: od pulley (y=0 w lokalnych) do meeting railu
   const sashDropY = meetingY_inJamb - pulleyLocalY_calc;
+
+  // Arch rise calculation: rise = clamp(width * 0.07, 50, 80) mm
+  const archRiseMm = headType === 'arch' ? Math.min(80, Math.max(50, Math.round(width * 0.07))) : 0;
 
   // ═══════════════════════════════════════════════════════════════
   // TRIPLE SASH — early return when sashType === 'triple'
@@ -2664,7 +2745,7 @@ export default function ParametricSashWindow({
         height={upperSashHeight}
         depth={sashDepth}
         stileWidth={config.stileWidth}
-        topRail={config.upperTopRail}
+        topRail={config.upperTopRail + archRiseMm}
         bottomRail={config.upperMeetingRail}
         zOffset={trackRearZ}
         yOffset={yTopClosed - mm(upperOpeningDrop)}
@@ -2678,6 +2759,7 @@ export default function ParametricSashWindow({
         frosted={upperGlass === 'frosted'}
         doubleGlazing={doubleGlazing}
         spacerColor={spacerColor}
+        archRise={archRiseMm}
       />
 
       <Sash
