@@ -1957,6 +1957,25 @@
           if (typeof window.update3D === 'function') {
             window.update3D({ sashType: radio.value });
           }
+
+          // Triple: hide "both" opening, force "bottom" if "both" was selected
+          var bothOption = document.getElementById('both-open');
+          var bottomOption = document.getElementById('bottom-open');
+          if (bothOption) {
+            bothOption.closest('.radio-option').style.display = isTriple ? 'none' : '';
+            if (isTriple && bothOption.checked) {
+              bottomOption.checked = true;
+              bottomOption.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }
+
+          // Update currentConfig and trigger price recalculation
+          if (window.currentConfig) {
+            window.currentConfig.sashType = radio.value;
+            if (window.configuratorCore && window.configuratorCore.isInitialized) {
+              window.configuratorCore.updateAll();
+            }
+          }
         });
       });
 
@@ -1965,6 +1984,9 @@
         splitRatioSel.addEventListener('change', function() {
           if (typeof window.update3D === 'function') {
             window.update3D({ splitRatio: splitRatioSel.value });
+          }
+          if (window.currentConfig) {
+            window.currentConfig.splitRatio = splitRatioSel.value;
           }
         });
       }
@@ -1986,19 +2008,30 @@
       }
 
       function fixLiveUpdate() {
-        if (typeof window.update3D !== 'function') return;
         var same = fixSameChk.checked;
         var uBars = fixUpperSel.value;
         var lBars = same ? uBars : fixLowerSel.value;
         var uCustom = uBars === 'custom' ? fixUpperCustom.map(function(b){return {type:b.type, mm:b.mm};}) : [];
         var lCustom = (same && uBars === 'custom') ? uCustom
           : (lBars === 'custom' ? fixLowerCustom.map(function(b){return {type:b.type, mm:b.mm};}) : []);
-        window.update3D({
-          fixUpperBars: uBars,
-          fixLowerBars: lBars,
-          fixUpperCustomBars: uCustom,
-          fixLowerCustomBars: lCustom
-        });
+        if (typeof window.update3D === 'function') {
+          window.update3D({
+            fixUpperBars: uBars,
+            fixLowerBars: lBars,
+            fixUpperCustomBars: uCustom,
+            fixLowerCustomBars: lCustom
+          });
+        }
+        // Update pricing
+        if (window.currentConfig) {
+          window.currentConfig.fixUpperBars = uBars;
+          window.currentConfig.fixLowerBars = lBars;
+          window.currentConfig.fixUpperCustomBars = uCustom;
+          window.currentConfig.fixLowerCustomBars = lCustom;
+          if (window.configuratorCore && window.configuratorCore.isInitialized) {
+            window.configuratorCore.updateAll();
+          }
+        }
       }
 
       function fixRenderList(bars, container, setter) {
