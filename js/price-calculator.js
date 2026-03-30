@@ -259,8 +259,8 @@ class PriceCalculator {
       }
     }
     
-    // Opening type
-    if (configuration.openingType && options.openingTypes[configuration.openingType]) {
+    // Opening type — skip for triple (bottom-only is the only option, no discount)
+    if (configuration.sashType !== 'triple' && configuration.openingType && options.openingTypes[configuration.openingType]) {
       const openingPrice = options.openingTypes[configuration.openingType];
       additionalPrice += openingPrice;
       console.log('Opening (' + configuration.openingType + '): £' + openingPrice);
