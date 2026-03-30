@@ -517,7 +517,7 @@ function Scene({ config, isMobile }) {
         minPolarAngle={0}
         maxPolarAngle={Math.PI}
         autoRotate={config.autoRotate}
-        autoRotateSpeed={0.9}
+        autoRotateSpeed={0.45}
       />
 
 
@@ -538,7 +538,7 @@ export default function App() {
   const [opening, setOpening] = useState(0);
   const [upperOpening, setUpperOpening] = useState(0);
   const [openingType, setOpeningType] = useState('both');
-  const [autoRotate, setAutoRotate] = useState(true);
+  const [autoRotate, setAutoRotate] = useState(false);
   const [showGuides, setShowGuides] = useState(true);
   const [showHorns, setShowHorns] = useState(true);
   const [brightness, setBrightness] = useState(1.0);
