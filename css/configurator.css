@@ -1736,17 +1736,14 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(10,22,40,0.6);
+  background: rgba(10,22,40,0.85);
   z-index: 10000;
   display: none;
   overflow-y: auto;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 20px;
 }
 
 .ironmongery-overlay.active {
-  display: flex;
+  display: block;
   animation: fadeIn 0.3s ease;
 }
 
@@ -1756,14 +1753,13 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
 }
 
 .ironmongery-gallery {
-  max-width: 900px;
   width: 100%;
-  margin: 0 auto;
-  padding: 30px 24px;
+  height: 100%;
+  margin: 0;
+  padding: 30px 40px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.25);
-  max-height: calc(100vh - 80px);
+  border-radius: 0;
+  box-shadow: none;
   overflow-y: auto;
 }
 
