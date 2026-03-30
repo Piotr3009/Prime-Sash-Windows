@@ -2014,35 +2014,13 @@
         });
       });
 
-      // Apply Product Range button — confirm and switch to Dimensions
+      // Apply Product Range button — delegate to specification-controller.js
       var applyRangeBtn = document.getElementById('apply-product-range');
       if (applyRangeBtn) {
         applyRangeBtn.addEventListener('click', function() {
-          var sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
-          var splitRatio = (document.getElementById('split-ratio') || {}).value || '1/4-1/2-1/4';
-          var isTriple = sashType === 'triple';
-
-          // Update currentConfig
-          if (window.currentConfig) {
-            window.currentConfig.sashType = sashType;
-            window.currentConfig.splitRatio = splitRatio;
+          if (window.specificationController && window.specificationController.applyProductRange) {
+            window.specificationController.applyProductRange();
           }
-
-          // Update spec panel
-          var specWindowType = document.getElementById('spec-window-type');
-          var specSashType = document.getElementById('spec-sash-type');
-          var specSplitItem = document.getElementById('spec-split-ratio-item');
-          var specSplitRatio = document.getElementById('spec-split-ratio');
-          if (specWindowType) specWindowType.style.display = 'block';
-          if (specSashType) specSashType.textContent = isTriple ? 'Triple Sash' : 'Double Hung Sash';
-          if (specSplitItem) specSplitItem.style.display = isTriple ? '' : 'none';
-          if (specSplitRatio) specSplitRatio.textContent = splitRatio;
-
-          // Recalculate price
-          if (window.configuratorCore && window.configuratorCore.isInitialized) {
-            window.configuratorCore.updateAll();
-          }
-
           // Switch to Dimensions/Design
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
@@ -2071,9 +2049,8 @@
         radio.addEventListener('change', function() {
           var isTriple = radio.value === 'triple';
           tripleOptions.style.display = isTriple ? 'block' : 'none';
-          // fix bars section visibility handled by showCategory when dim-design is active
 
-          // Update dimension limits
+          // UI: Update dimension limits and defaults
           var widthSelect = document.getElementById('width-select');
           var widthInput = document.getElementById('width');
           var heightSelect = document.getElementById('height-select');
@@ -2086,14 +2063,12 @@
           var defaultW = isTriple ? 1500 : 1000;
           var defaultH = isTriple ? 1200 : 1500;
 
-          // Update input min/max
           if (widthInput) { widthInput.min = minW; widthInput.max = maxW; }
           if (heightInput) { heightInput.min = minH; heightInput.max = maxH; }
 
-          // Filter width select options
+          // Filter width options
           if (widthSelect) {
-            var opts = widthSelect.querySelectorAll('option');
-            opts.forEach(function(opt) {
+            widthSelect.querySelectorAll('option').forEach(function(opt) {
               if (opt.value === 'custom' || opt.value === '0') return;
               var v = parseInt(opt.value);
               opt.style.display = (v >= minW && v <= maxW) ? '' : 'none';
@@ -2102,10 +2077,9 @@
             widthSelect.value = String(defaultW);
           }
 
-          // Filter height select options
+          // Filter height options
           if (heightSelect) {
-            var opts = heightSelect.querySelectorAll('option');
-            opts.forEach(function(opt) {
+            heightSelect.querySelectorAll('option').forEach(function(opt) {
               if (opt.value === 'custom' || opt.value === '0') return;
               var v = parseInt(opt.value);
               opt.style.display = (v >= minH && v <= maxH) ? '' : 'none';
@@ -2114,12 +2088,7 @@
             heightSelect.value = String(defaultH);
           }
 
-          // Update 3D immediately
-          if (typeof window.update3D === 'function') {
-            window.update3D({ sashType: radio.value, extWidth: defaultW, extHeight: defaultH });
-          }
-
-          // Triple: hide "both" opening, force "bottom" if "both" was selected
+          // UI: hide "both" opening for triple
           var bothOption = document.getElementById('both-open');
           var bottomOption = document.getElementById('bottom-open');
           if (bothOption) {
@@ -2129,26 +2098,13 @@
               bottomOption.dispatchEvent(new Event('change', { bubbles: true }));
             }
           }
-
-          // Update currentConfig and trigger price recalculation
-          if (window.currentConfig) {
-            window.currentConfig.sashType = radio.value;
-            if (window.configuratorCore && window.configuratorCore.isInitialized) {
-              window.configuratorCore.updateAll();
-            }
-          }
         });
       });
 
       var splitRatioSel = document.getElementById('split-ratio');
       if (splitRatioSel) {
         splitRatioSel.addEventListener('change', function() {
-          if (typeof window.update3D === 'function') {
-            window.update3D({ splitRatio: splitRatioSel.value });
-          }
-          if (window.currentConfig) {
-            window.currentConfig.splitRatio = splitRatioSel.value;
-          }
+          // UI only — logic handled by applyProductRange
         });
       }
 
@@ -2182,16 +2138,6 @@
             fixUpperCustomBars: uCustom,
             fixLowerCustomBars: lCustom
           });
-        }
-        // Update pricing
-        if (window.currentConfig) {
-          window.currentConfig.fixUpperBars = uBars;
-          window.currentConfig.fixLowerBars = lBars;
-          window.currentConfig.fixUpperCustomBars = uCustom;
-          window.currentConfig.fixLowerCustomBars = lCustom;
-          if (window.configuratorCore && window.configuratorCore.isInitialized) {
-            window.configuratorCore.updateAll();
-          }
         }
       }
 
