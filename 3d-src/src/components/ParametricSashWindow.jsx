@@ -59,8 +59,8 @@ function buildExtCoreProfile(memberSize, memberDepth) {
 function buildIntCoreProfile(memberSize, memberDepth) {
   const mid = memberDepth / 2;
   return [
-    [0, mid - mid],
-    [memberSize, mid - mid],
+    [0, mid],
+    [memberSize, mid],
     [memberSize, memberDepth - INT_BEAD_D],
     [memberSize - INT_BEAD_W, memberDepth - INT_BEAD_D],
     [memberSize - INT_BEAD_W, memberDepth],
