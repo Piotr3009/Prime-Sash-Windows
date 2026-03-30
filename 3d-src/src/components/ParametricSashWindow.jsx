@@ -2167,6 +2167,11 @@ export default function ParametricSashWindow({
     const centerSashW   = centerMm - config.sideGap * 2;
     const rightFixSashW = rightFixMm - config.sideGap * 2;
 
+    // Arch rise per section — based on each section's width, not full window
+    const archRiseLeft   = headType === 'arch' ? Math.min(80, Math.max(50, Math.round(leftFixSashW * 0.07))) : 0;
+    const archRiseCenter = headType === 'arch' ? Math.min(80, Math.max(50, Math.round(centerSashW * 0.07))) : 0;
+    const archRiseRight  = headType === 'arch' ? Math.min(80, Math.max(50, Math.round(rightFixSashW * 0.07))) : 0;
+
     // Center section sash heights — same as double
     const centerUpperH = upperSashHeight;
     const centerLowerH = lowerSashHeight;
@@ -2371,7 +2376,7 @@ export default function ParametricSashWindow({
             frosted={upperGlass === 'frosted'}
             doubleGlazing={doubleGlazing}
             spacerColor={spacerColor}
-            archRise={archRiseMm}
+            archRise={archRiseLeft}
           />
         </group>
 
@@ -2421,7 +2426,7 @@ export default function ParametricSashWindow({
             frosted={upperGlass === 'frosted'}
             doubleGlazing={doubleGlazing}
             spacerColor={spacerColor}
-            archRise={archRiseMm}
+            archRise={archRiseRight}
           />
         </group>
 
@@ -2471,7 +2476,7 @@ export default function ParametricSashWindow({
             frosted={upperGlass === 'frosted'}
             doubleGlazing={doubleGlazing}
             spacerColor={spacerColor}
-            archRise={archRiseMm}
+            archRise={archRiseCenter}
           />
         </group>
 
