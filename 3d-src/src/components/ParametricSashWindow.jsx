@@ -2371,6 +2371,7 @@ export default function ParametricSashWindow({
             frosted={upperGlass === 'frosted'}
             doubleGlazing={doubleGlazing}
             spacerColor={spacerColor}
+            archRise={archRiseMm}
           />
         </group>
 
@@ -2420,6 +2421,7 @@ export default function ParametricSashWindow({
             frosted={upperGlass === 'frosted'}
             doubleGlazing={doubleGlazing}
             spacerColor={spacerColor}
+            archRise={archRiseMm}
           />
         </group>
 
@@ -2469,6 +2471,7 @@ export default function ParametricSashWindow({
             frosted={upperGlass === 'frosted'}
             doubleGlazing={doubleGlazing}
             spacerColor={spacerColor}
+            archRise={archRiseMm}
           />
         </group>
 
