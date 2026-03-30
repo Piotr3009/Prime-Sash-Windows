@@ -2014,42 +2014,18 @@
         });
       });
 
-      // Apply Product Range button
+      // Apply Product Range button — confirm and switch to Dimensions
       var applyRangeBtn = document.getElementById('apply-product-range');
       if (applyRangeBtn) {
         applyRangeBtn.addEventListener('click', function() {
           var sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
           var splitRatio = (document.getElementById('split-ratio') || {}).value || '1/4-1/2-1/4';
           var isTriple = sashType === 'triple';
-          var w = isTriple ? 1500 : 1000;
-          var h = isTriple ? 1200 : 1500;
-
-          // Set dimensions
-          var widthInput = document.getElementById('width');
-          var widthSelect = document.getElementById('width-select');
-          var heightInput = document.getElementById('height');
-          var heightSelect = document.getElementById('height-select');
-          if (widthInput) widthInput.value = w;
-          if (widthSelect) widthSelect.value = String(w);
-          if (heightInput) heightInput.value = h;
-          if (heightSelect) heightSelect.value = String(h);
 
           // Update currentConfig
           if (window.currentConfig) {
             window.currentConfig.sashType = sashType;
             window.currentConfig.splitRatio = splitRatio;
-            window.currentConfig.actualFrameWidth = w;
-            window.currentConfig.actualFrameHeight = h;
-          }
-
-          // Update 3D
-          if (typeof window.update3D === 'function') {
-            window.update3D({
-              sashType: sashType,
-              splitRatio: splitRatio,
-              extWidth: w,
-              extHeight: h
-            });
           }
 
           // Update spec panel
@@ -2107,6 +2083,8 @@
           var maxW = isTriple ? 3000 : 1500;
           var minH = isTriple ? 1200 : 800;
           var maxH = 2500;
+          var defaultW = isTriple ? 1500 : 1000;
+          var defaultH = isTriple ? 1200 : 1500;
 
           // Update input min/max
           if (widthInput) { widthInput.min = minW; widthInput.max = maxW; }
@@ -2120,15 +2098,8 @@
               var v = parseInt(opt.value);
               opt.style.display = (v >= minW && v <= maxW) ? '' : 'none';
             });
-            // If current value out of range, reset
-            var currentW = parseInt(widthInput.value);
-            if (currentW < minW) { widthInput.value = minW; widthSelect.value = String(minW); }
-            if (currentW > maxW) { widthInput.value = maxW; widthSelect.value = String(maxW); }
-            // Set default dimensions when switching to triple
-            if (isTriple) {
-              widthInput.value = 1500;
-              widthSelect.value = '1500';
-            }
+            widthInput.value = defaultW;
+            widthSelect.value = String(defaultW);
           }
 
           // Filter height select options
@@ -2139,17 +2110,13 @@
               var v = parseInt(opt.value);
               opt.style.display = (v >= minH && v <= maxH) ? '' : 'none';
             });
-            var currentH = parseInt(heightInput.value);
-            if (currentH < minH) { heightInput.value = minH; heightSelect.value = String(minH); }
-            // Set default height when switching to triple
-            if (isTriple) {
-              heightInput.value = 1200;
-              heightSelect.value = '1200';
-            }
+            heightInput.value = defaultH;
+            heightSelect.value = String(defaultH);
           }
 
+          // Update 3D immediately
           if (typeof window.update3D === 'function') {
-            window.update3D({ sashType: radio.value });
+            window.update3D({ sashType: radio.value, extWidth: defaultW, extHeight: defaultH });
           }
 
           // Triple: hide "both" opening, force "bottom" if "both" was selected
