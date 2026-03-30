@@ -818,6 +818,7 @@ export default function App() {
               <option value="4x4">4 Panes (1V+1H)</option>
               <option value="6x6">6 Panes (2V+1H)</option>
               <option value="9x9">9 Panes (2V+2H)</option>
+              <option value="custom">Custom</option>
             </select>
           </div>
           <div>
@@ -832,6 +833,7 @@ export default function App() {
               <option value="4x4">4 Panes (1V+1H)</option>
               <option value="6x6">6 Panes (2V+1H)</option>
               <option value="9x9">9 Panes (2V+2H)</option>
+              <option value="custom">Custom</option>
             </select>
           </div>
 
@@ -850,6 +852,7 @@ export default function App() {
                   <option value="4x4">4 Panes (1V+1H)</option>
                   <option value="6x6">6 Panes (2V+1H)</option>
                   <option value="9x9">9 Panes (2V+2H)</option>
+                  <option value="custom">Custom</option>
                 </select>
               </div>
             </>
