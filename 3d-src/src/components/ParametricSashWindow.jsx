@@ -649,12 +649,13 @@ function ArchedGlassPane({ size, position, archRise = 0, frosted = false, double
 
   const glassShape = useMemo(() => {
     const shape = new THREE.Shape();
-    // Bottom-left → bottom-right → right side up → arch curve → left side down
+    // Bottom flat
     shape.moveTo(-w / 2, -h / 2);
     shape.lineTo(w / 2, -h / 2);
-    shape.lineTo(w / 2, h / 2);
-    // Arch: edges at h/2, peak at h/2 + rise. Control point at 2×rise for quadratic bezier.
-    shape.quadraticCurveTo(0, h / 2 + 2 * rise, -w / 2, h / 2);
+    // Right edge up to h/2 - rise (edges are lower)
+    shape.lineTo(w / 2, h / 2 - rise);
+    // Arch top: edges at h/2 - rise, center peak at h/2
+    shape.quadraticCurveTo(0, h / 2 + rise, -w / 2, h / 2 - rise);
     shape.closePath();
     return shape;
   }, [w, h, rise]);
@@ -721,12 +722,18 @@ function ArchedTopRail({ sashWidth, railHeight, sashDepth, archRise, extMaterial
   const rise = mm(archRise);
   const mid = mm(sashDepth / 2);
 
+  // Top = flat straight line at railH
+  // Bottom = arch curve: center at 0, edges at -rise
   const extGeom = useMemo(() => {
     const shape = new THREE.Shape();
-    shape.moveTo(-halfW, 0);
-    shape.quadraticCurveTo(0, 2 * rise, halfW, 0);
+    // Start bottom-left (edge drops by rise)
+    shape.moveTo(-halfW, -rise);
+    // Bottom arch: edges at -rise, center at 0
+    shape.quadraticCurveTo(0, rise, halfW, -rise);
+    // Right edge up to top
     shape.lineTo(halfW, railH);
-    shape.quadraticCurveTo(0, railH + 2 * rise, -halfW, railH);
+    // Top = flat straight
+    shape.lineTo(-halfW, railH);
     shape.closePath();
     const g = new THREE.ExtrudeGeometry(shape, { depth: mid, bevelEnabled: false, steps: 1, curveSegments: 32 });
     g.translate(0, 0, -mid);
@@ -736,10 +743,10 @@ function ArchedTopRail({ sashWidth, railHeight, sashDepth, archRise, extMaterial
 
   const intGeom = useMemo(() => {
     const shape = new THREE.Shape();
-    shape.moveTo(-halfW, 0);
-    shape.quadraticCurveTo(0, 2 * rise, halfW, 0);
+    shape.moveTo(-halfW, -rise);
+    shape.quadraticCurveTo(0, rise, halfW, -rise);
     shape.lineTo(halfW, railH);
-    shape.quadraticCurveTo(0, railH + 2 * rise, -halfW, railH);
+    shape.lineTo(-halfW, railH);
     shape.closePath();
     const g = new THREE.ExtrudeGeometry(shape, { depth: mid, bevelEnabled: false, steps: 1, curveSegments: 32 });
     g.computeVertexNormals();
