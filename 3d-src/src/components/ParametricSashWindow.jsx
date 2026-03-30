@@ -1112,7 +1112,7 @@ function Sash({
       )}
 
       {archRise > 0 ? (
-        <ArchedGlassPane size={[clearWidth, clearHeight, glassD]} position={[0, glassY, glassCenterZ]} archRise={mm(archRise)} frosted={frosted} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
+        <ArchedGlassPane size={[clearWidth, clearHeight, glassD]} position={[0, glassY, glassCenterZ]} archRise={mm(archRise) * (clearWidth / w)} frosted={frosted} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
       ) : (
         <GlassPane size={[clearWidth, clearHeight, glassD]} position={[0, glassY, glassCenterZ]} frosted={frosted} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
       )}
