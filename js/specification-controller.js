@@ -98,6 +98,7 @@ class SpecificationController {
     // Glass Spec
     this.liveWatchRadio('glass-spec', () => this.applyGlassSpec());
     this.liveWatchRadio('glass-finish', () => this.applyGlassSpec());
+    this.liveWatchRadio('frosted-location', () => this.applyGlassSpec());
 
     // Opening
     this.liveWatchRadio('opening-type', () => this.applyOpening());
@@ -446,17 +447,17 @@ class SpecificationController {
         document.querySelectorAll('#single-color-selector .color-option').forEach(o => o.classList.remove('selected'));
         const customBtn = document.querySelector('#single-color-selector .custom-color-btn');
         if (customBtn) customBtn.classList.add('selected');
-        if (window.currentConfig) { window.currentConfig.colorSingle = 'custom'; window.currentConfig.colorSingleName = 'Custom Color'; }
+        if (window.currentConfig) { window.currentConfig.colorSingle = 'custom'; }
       } else if (target === 'interior') {
         document.querySelectorAll('.interior-color').forEach(o => o.classList.remove('selected'));
         const customBtn = document.querySelector('.interior-color.custom-color-btn');
         if (customBtn) customBtn.classList.add('selected');
-        if (window.currentConfig) { window.currentConfig.colorInterior = 'custom'; window.currentConfig.colorInteriorName = 'Custom Color'; }
+        if (window.currentConfig) { window.currentConfig.colorInterior = 'custom'; }
       } else if (target === 'exterior') {
         document.querySelectorAll('.exterior-color').forEach(o => o.classList.remove('selected'));
         const customBtn = document.querySelector('.exterior-color.custom-color-btn');
         if (customBtn) customBtn.classList.add('selected');
-        if (window.currentConfig) { window.currentConfig.colorExterior = 'custom'; window.currentConfig.colorExteriorName = 'Custom Color'; }
+        if (window.currentConfig) { window.currentConfig.colorExterior = 'custom'; }
       }
     };
 
@@ -494,10 +495,11 @@ class SpecificationController {
             window.currentConfig.colorType = 'dual';
           }
         }
-        // Trigger price recalculation
+        // Trigger price recalculation + spec update
         if (window.configuratorCore && window.configuratorCore.isInitialized) {
           window.configuratorCore.updateAll();
         }
+        this.applyColor();
       });
     });
 
@@ -526,9 +528,12 @@ class SpecificationController {
             document.getElementById('dual-preview-exterior').textContent = 'RAL ' + key + ' (' + hex + ')';
             if (window.currentConfig) { window.currentConfig.colorExteriorName = 'RAL ' + key; window.currentConfig.colorType = 'dual'; }
           }
-          // Trigger price recalculation
+          // Trigger price recalculation + spec update
           if (window.configuratorCore && window.configuratorCore.isInitialized) {
             window.configuratorCore.updateAll();
+          }
+          if (window.specificationController) {
+            window.specificationController.applyColor();
           }
         } else {
           err.textContent = 'Unknown RAL';

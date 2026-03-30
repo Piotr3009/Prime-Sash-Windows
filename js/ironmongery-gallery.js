@@ -693,10 +693,10 @@ class IronmongeryGallery {
     }
 
     // Wywołaj applyDetails (specyfikacja)
-    if (window.SpecificationController) {
+    if (window.specificationController) {
       console.log('📋 Before applyDetails, currentConfig is:', window.currentConfig);
       console.log('📋 Calling applyDetails with:', window.currentConfig.ironmongery);
-      window.SpecificationController.applyDetails();
+      window.specificationController.applyDetails();
     }
     
     // ✅ AUTO-UPDATE 3D ironmongery finish from selected products
