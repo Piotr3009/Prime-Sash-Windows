@@ -161,6 +161,12 @@ class SpecificationController {
       applyBarsBtn.addEventListener('click', () => this.applyBars());
     }
 
+    // Apply Fix Bars
+    const applyFixBarsBtn = document.getElementById('apply-fix-bars');
+    if (applyFixBarsBtn) {
+      applyFixBarsBtn.addEventListener('click', () => this.applyFixBars());
+    }
+
     // Apply Frame
     const applyFrameBtn = document.getElementById('apply-frame');
     if (applyFrameBtn) {
@@ -671,9 +677,13 @@ class SpecificationController {
 
     // Update 3D visualizer
     if (typeof window.update3D === 'function') {
+      const sashType = document.querySelector('input[name="sash-type"]:checked')?.value || 'double';
+      const splitRatio = document.getElementById('split-ratio')?.value || '1/4-1/2-1/4';
       window.update3D({
         extWidth: frameWidth,
-        extHeight: frameHeight
+        extHeight: frameHeight,
+        sashType: sashType,
+        splitRatio: splitRatio
       });
     }
   }
@@ -742,6 +752,44 @@ class SpecificationController {
     }
 
     this.showAppliedFeedback('apply-bars');
+  }
+
+  applyFixBars() {
+    const fixUpperBars = document.getElementById('fix-upper-bars')?.value || 'none';
+    const fixLowerBars = document.getElementById('fix-lower-bars')?.value || 'none';
+    const sameFixBars = document.getElementById('same-fix-bars')?.checked;
+    const customData = typeof window.getFixCustomBars === 'function' ? window.getFixCustomBars() : {};
+
+    const barNames = {
+      'none': 'No Bars', '2x2': '2x2 Pattern', '3x3': '3x3 Pattern',
+      '4x4': '4x4 Pattern', '6x6': '6x6 Pattern', '9x9': '9x9 Pattern', 'custom': 'Custom Design'
+    };
+
+    const effectiveLower = sameFixBars ? fixUpperBars : fixLowerBars;
+
+    // Update currentConfig
+    if (window.currentConfig) {
+      window.currentConfig.fixUpperBars = fixUpperBars;
+      window.currentConfig.fixLowerBars = effectiveLower;
+      window.currentConfig.fixUpperCustomBars = customData.fixUpperCustomBars || [];
+      window.currentConfig.fixLowerCustomBars = customData.fixLowerCustomBars || [];
+
+      if (window.configuratorCore && window.configuratorCore.isInitialized) {
+        window.configuratorCore.updateAll();
+      }
+    }
+
+    // Update 3D
+    if (typeof window.update3D === 'function') {
+      window.update3D({
+        fixUpperBars: fixUpperBars,
+        fixLowerBars: effectiveLower,
+        fixUpperCustomBars: customData.fixUpperCustomBars || [],
+        fixLowerCustomBars: customData.fixLowerCustomBars || []
+      });
+    }
+
+    this.showAppliedFeedback('apply-fix-bars');
   }
 
   applyFrame() {

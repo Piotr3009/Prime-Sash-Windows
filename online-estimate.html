@@ -255,6 +255,32 @@
 
     <div class="configurator-options">
       <div class="config-section" data-category="dim-design">
+        <h3>Window Type</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="sash-double" name="sash-type" value="double" checked>
+              <label for="sash-double" class="radio-label">Double Hung Sash</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="sash-triple" name="sash-type" value="triple">
+              <label for="sash-triple" class="radio-label">Triple Sash (Fixed Side Panels)</label>
+            </div>
+          </div>
+        </div>
+        <div id="triple-options" style="display:none;">
+          <div class="input-group">
+            <label for="split-ratio">Panel Proportions:</label>
+            <select id="split-ratio" class="detail-select">
+              <option value="1/4-1/2-1/4">1/4 – 1/2 – 1/4 (Classic)</option>
+              <option value="1/3-1/3-1/3">1/3 – 1/3 – 1/3 (Equal)</option>
+              <option value="1/5-3/5-1/5">1/5 – 3/5 – 1/5 (Wide Centre)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section" data-category="dim-design">
         <h3>Step 1: Window Dimensions</h3>
         <!-- HIDDEN DISPLAY ELEMENTS FIX -->
         <div style="display:none">
@@ -659,6 +685,68 @@
         </div>
         
         <button class="btn btn-apply" id="apply-bars">Apply Georgian Bars</button>
+      </div>
+
+      <!-- Fix Panel Bars — only visible for triple sash -->
+      <div class="config-section" data-category="dim-design" id="fix-bars-section" style="display:none;">
+        <h3>Step 2b: Fix Panel Bars</h3>
+        <div class="bars-inline-row">
+          <div class="bars-group">
+            <h4>Fix Upper Bars:</h4>
+            <div class="input-group">
+              <select id="fix-upper-bars" class="detail-select" data-detail-type="bars">
+                <option value="none">No Bars</option>
+                <option value="2x2">2x2 Pattern</option>
+                <option value="3x3">3x3 Pattern</option>
+                <option value="4x4">4x4 Pattern</option>
+                <option value="6x6">6x6 Pattern</option>
+                <option value="9x9">9x9 Pattern</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="bars-group">
+            <h4>Fix Lower Bars:</h4>
+            <div class="input-group">
+              <select id="fix-lower-bars" class="detail-select" data-detail-type="bars">
+                <option value="none">No Bars</option>
+                <option value="2x2">2x2 Pattern</option>
+                <option value="3x3">3x3 Pattern</option>
+                <option value="4x4">4x4 Pattern</option>
+                <option value="6x6">6x6 Pattern</option>
+                <option value="9x9">9x9 Pattern</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-group same-pattern">
+            <label for="same-fix-bars">Use same pattern</label>
+            <input type="checkbox" id="same-fix-bars" checked>
+          </div>
+        </div>
+
+        <!-- Custom bars panel: Fix Upper -->
+        <div id="fix-upper-custom-panel" style="display:none; margin-top:12px;">
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button type="button" class="btn-custom-bar" id="fix-upper-add-v">+ Vertical</button>
+            <button type="button" class="btn-custom-bar" id="fix-upper-add-h">+ Horizontal</button>
+          </div>
+          <div id="fix-upper-custom-list"></div>
+        </div>
+
+        <!-- Custom bars panel: Fix Lower -->
+        <div id="fix-lower-custom-panel" style="display:none; margin-top:12px;">
+          <h4 style="margin-bottom:6px;">Fix lower custom:</h4>
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button type="button" class="btn-custom-bar" id="fix-lower-add-v">+ Vertical</button>
+            <button type="button" class="btn-custom-bar" id="fix-lower-add-h">+ Horizontal</button>
+          </div>
+          <div id="fix-lower-custom-list"></div>
+        </div>
+        
+        <button class="btn btn-apply" id="apply-fix-bars">Apply Fix Panel Bars</button>
       </div>
       
       <div class="config-section" data-category="dim-design">
@@ -1650,6 +1738,206 @@
       };
 
       togglePanels();
+    })();
+  </script>
+  <script>
+    // ── Sash Type Toggle + Fix Bars Manager ──
+    (function(){
+      var fixUpperCustom = [];
+      var fixLowerCustom = [];
+      var MAX_PER_TYPE = 2;
+
+      // ── SASH TYPE TOGGLE ──
+      var sashTypeRadios = document.querySelectorAll('input[name="sash-type"]');
+      var tripleOptions = document.getElementById('triple-options');
+      var fixBarsSection = document.getElementById('fix-bars-section');
+
+      function getSashType() {
+        var checked = document.querySelector('input[name="sash-type"]:checked');
+        return checked ? checked.value : 'double';
+      }
+
+      sashTypeRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          var isTriple = radio.value === 'triple';
+          tripleOptions.style.display = isTriple ? 'block' : 'none';
+          fixBarsSection.style.display = isTriple ? 'block' : 'none';
+          if (typeof window.update3D === 'function') {
+            window.update3D({ sashType: radio.value });
+          }
+        });
+      });
+
+      var splitRatioSel = document.getElementById('split-ratio');
+      if (splitRatioSel) {
+        splitRatioSel.addEventListener('change', function() {
+          if (typeof window.update3D === 'function') {
+            window.update3D({ splitRatio: splitRatioSel.value });
+          }
+        });
+      }
+
+      // ── FIX BARS ──
+      var fixUpperSel = document.getElementById('fix-upper-bars');
+      var fixLowerSel = document.getElementById('fix-lower-bars');
+      var fixSameChk  = document.getElementById('same-fix-bars');
+      var fixLowerGrp = fixLowerSel ? fixLowerSel.closest('.bars-group') : null;
+      var fixUpperPanel = document.getElementById('fix-upper-custom-panel');
+      var fixLowerPanel = document.getElementById('fix-lower-custom-panel');
+
+      function getWidth()  { return parseInt(document.getElementById('width').value) || 1000; }
+      function getHeight() { return parseInt(document.getElementById('height').value) || 1500; }
+
+      function fromLabel(type, idx) {
+        if (type === 'v') return idx === 0 ? 'from right' : 'from left';
+        return idx === 0 ? 'from bottom' : 'from top';
+      }
+
+      function fixLiveUpdate() {
+        if (typeof window.update3D !== 'function') return;
+        var same = fixSameChk.checked;
+        var uBars = fixUpperSel.value;
+        var lBars = same ? uBars : fixLowerSel.value;
+        var uCustom = uBars === 'custom' ? fixUpperCustom.map(function(b){return {type:b.type, mm:b.mm};}) : [];
+        var lCustom = (same && uBars === 'custom') ? uCustom
+          : (lBars === 'custom' ? fixLowerCustom.map(function(b){return {type:b.type, mm:b.mm};}) : []);
+        window.update3D({
+          fixUpperBars: uBars,
+          fixLowerBars: lBars,
+          fixUpperCustomBars: uCustom,
+          fixLowerCustomBars: lCustom
+        });
+      }
+
+      function fixRenderList(bars, container, setter) {
+        container.innerHTML = '';
+        bars.forEach(function(bar, i) {
+          var sameType = bars.slice(0, i).filter(function(b){ return b.type === bar.type; });
+          var idx = sameType.length;
+          var label = (bar.type === 'v' ? 'Vertical' : 'Horizontal') + ' — ' + fromLabel(bar.type, idx);
+          var maxVal = bar.type === 'v' ? getWidth() - 10 : Math.floor(getHeight() / 2) - 10;
+
+          var row = document.createElement('div');
+          row.className = 'custom-bar-row';
+          row.innerHTML =
+            '<div class="custom-bar-header">' +
+              '<span>' + label + '</span>' +
+              '<button type="button" class="btn-remove-bar" data-idx="' + i + '">✕</button>' +
+            '</div>' +
+            '<div class="custom-bar-controls">' +
+              '<input type="range" min="10" max="' + maxVal + '" step="1" value="' + bar.mm + '" data-idx="' + i + '" class="bar-range">' +
+              '<input type="number" min="10" max="' + maxVal + '" value="' + bar.mm + '" data-idx="' + i + '" class="bar-number">' +
+              '<span>mm</span>' +
+            '</div>';
+          container.appendChild(row);
+
+          row.querySelector('.btn-remove-bar').addEventListener('click', function() {
+            bars.splice(i, 1);
+            setter(bars);
+            fixRenderList(bars, container, setter);
+            fixUpdateAddBtns();
+            fixLiveUpdate();
+          });
+          row.querySelector('.bar-range').addEventListener('input', function() {
+            bar.mm = Number(this.value);
+            row.querySelector('.bar-number').value = bar.mm;
+            fixLiveUpdate();
+          });
+          row.querySelector('.bar-number').addEventListener('input', function() {
+            bar.mm = Number(this.value);
+            row.querySelector('.bar-range').value = bar.mm;
+            fixLiveUpdate();
+          });
+        });
+      }
+
+      function fixUpdateAddBtns() {
+        var uvCount = fixUpperCustom.filter(function(b){ return b.type==='v'; }).length;
+        var uhCount = fixUpperCustom.filter(function(b){ return b.type==='h'; }).length;
+        var uv = document.getElementById('fix-upper-add-v');
+        var uh = document.getElementById('fix-upper-add-h');
+        if (uv) uv.disabled = uvCount >= MAX_PER_TYPE;
+        if (uh) uh.disabled = uhCount >= MAX_PER_TYPE;
+
+        var lvCount = fixLowerCustom.filter(function(b){ return b.type==='v'; }).length;
+        var lhCount = fixLowerCustom.filter(function(b){ return b.type==='h'; }).length;
+        var lv = document.getElementById('fix-lower-add-v');
+        var lh = document.getElementById('fix-lower-add-h');
+        if (lv) lv.disabled = lvCount >= MAX_PER_TYPE;
+        if (lh) lh.disabled = lhCount >= MAX_PER_TYPE;
+      }
+
+      function fixTogglePanels() {
+        var same = fixSameChk.checked;
+        if (fixUpperPanel) fixUpperPanel.style.display = fixUpperSel.value === 'custom' ? 'block' : 'none';
+        if (fixLowerGrp) fixLowerGrp.style.display = same ? 'none' : '';
+        if (fixLowerPanel) fixLowerPanel.style.display = (!same && fixLowerSel.value === 'custom') ? 'block' : 'none';
+        if (same) fixLowerSel.value = fixUpperSel.value;
+      }
+
+      if (fixUpperSel) {
+        fixUpperSel.addEventListener('change', function() {
+          if (fixSameChk.checked) fixLowerSel.value = fixUpperSel.value;
+          if (fixUpperSel.value !== 'custom') fixUpperCustom.length = 0;
+          fixTogglePanels();
+          fixLiveUpdate();
+        });
+      }
+      if (fixLowerSel) {
+        fixLowerSel.addEventListener('change', function() {
+          if (fixLowerSel.value !== 'custom') fixLowerCustom.length = 0;
+          fixTogglePanels();
+          fixLiveUpdate();
+        });
+      }
+      if (fixSameChk) {
+        fixSameChk.addEventListener('change', function() {
+          fixTogglePanels();
+          fixLiveUpdate();
+        });
+      }
+
+      var fuav = document.getElementById('fix-upper-add-v');
+      var fuah = document.getElementById('fix-upper-add-h');
+      var flav = document.getElementById('fix-lower-add-v');
+      var flah = document.getElementById('fix-lower-add-h');
+
+      if (fuav) fuav.addEventListener('click', function() {
+        fixUpperCustom.push({type:'v', mm:100});
+        fixRenderList(fixUpperCustom, document.getElementById('fix-upper-custom-list'), function(b){fixUpperCustom=b;});
+        fixUpdateAddBtns();
+        fixLiveUpdate();
+      });
+      if (fuah) fuah.addEventListener('click', function() {
+        fixUpperCustom.push({type:'h', mm:100});
+        fixRenderList(fixUpperCustom, document.getElementById('fix-upper-custom-list'), function(b){fixUpperCustom=b;});
+        fixUpdateAddBtns();
+        fixLiveUpdate();
+      });
+      if (flav) flav.addEventListener('click', function() {
+        fixLowerCustom.push({type:'v', mm:100});
+        fixRenderList(fixLowerCustom, document.getElementById('fix-lower-custom-list'), function(b){fixLowerCustom=b;});
+        fixUpdateAddBtns();
+        fixLiveUpdate();
+      });
+      if (flah) flah.addEventListener('click', function() {
+        fixLowerCustom.push({type:'h', mm:100});
+        fixRenderList(fixLowerCustom, document.getElementById('fix-lower-custom-list'), function(b){fixLowerCustom=b;});
+        fixUpdateAddBtns();
+        fixLiveUpdate();
+      });
+
+      // Expose for applyFixBars
+      window.getFixCustomBars = function() {
+        var same = fixSameChk.checked;
+        return {
+          fixUpperCustomBars: fixUpperSel.value === 'custom' ? fixUpperCustom.map(function(b){return {type:b.type, mm:b.mm};}) : [],
+          fixLowerCustomBars: (same && fixUpperSel.value === 'custom') ? fixUpperCustom.map(function(b){return {type:b.type, mm:b.mm};})
+            : (fixLowerSel.value === 'custom' ? fixLowerCustom.map(function(b){return {type:b.type, mm:b.mm};}) : [])
+        };
+      };
+
+      fixTogglePanels();
     })();
   </script>
 </body>
