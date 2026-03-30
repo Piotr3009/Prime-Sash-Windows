@@ -441,7 +441,7 @@ function ScreenshotHelper() {
     window.captureWindowScreenshots = async () => {
       return new Promise((resolve) => {
         const target = new THREE.Vector3(0, 0.18, 0);
-        const distance = 3.2;
+        const distance = 2.6;
 
         // Save current camera state
         const savedPos = camera.position.clone();
@@ -463,19 +463,28 @@ function ScreenshotHelper() {
         };
 
         const capture = (pos) => {
+          // Set grey background for clean screenshot
+          const oldBg = scene.background;
+          scene.background = new THREE.Color(0xe8e8e8);
+          
           camera.position.copy(pos);
           camera.lookAt(target);
           camera.updateProjectionMatrix();
           gl.render(scene, camera);
-          return gl.domElement.toDataURL('image/jpeg', 0.85);
+          const dataUrl = gl.domElement.toDataURL('image/jpeg', 0.85);
+          
+          // Restore original background
+          scene.background = oldBg;
+          return dataUrl;
         };
 
-        // Front view (exterior) — straight on
-        const frontPos = new THREE.Vector3(0, 0.18, distance);
+        // Front view (exterior) — slight 8° angle for depth
+        const angleRad = 8 * Math.PI / 180;
+        const frontPos = new THREE.Vector3(Math.sin(angleRad) * distance, 0.22, Math.cos(angleRad) * distance);
         const frontRaw = capture(frontPos);
 
-        // Back view (interior) — straight on
-        const backPos = new THREE.Vector3(0, 0.18, -distance);
+        // Back view (interior) — mirrored angle
+        const backPos = new THREE.Vector3(-Math.sin(angleRad) * distance, 0.22, -Math.cos(angleRad) * distance);
         const backRaw = capture(backPos);
 
         // Restore camera
