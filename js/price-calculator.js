@@ -55,9 +55,19 @@ class PriceCalculator {
     
     console.log('PriceCalculator: Frame dimensions:', frameWidth, 'x', frameHeight, '=', sqm, 'm²');
     
-    // 1. CENA BAZOWA z degresywnym mnożnikiem
-    const sizeMultiplier = this.getSizeMultiplier(sqm);
-    const basePrice = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
+    // 1. CENA BAZOWA
+    let basePrice;
+    let sizeMultiplier;
+    if (configuration.sashType === 'triple') {
+      // Triple: flat £950/sqm, no size degression
+      sizeMultiplier = 1.0;
+      basePrice = 950 * sqm;
+      console.log('Triple sash: flat £950/sqm × ' + sqm.toFixed(2) + ' = £' + basePrice.toFixed(2));
+    } else {
+      // Double: £800/sqm with degressive multiplier
+      sizeMultiplier = this.getSizeMultiplier(sqm);
+      basePrice = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
+    }
     
     // 2. CENA ZA SZPROSY (bars) — center sash
     const barsPrice = this.calculateBarsPrice(
@@ -85,14 +95,6 @@ class PriceCalculator {
     
     // 4. SUMA PRZED RABATEM (bez dopłaty za kolor)
     let subtotal = basePrice + barsPrice + fixBarsPrice + additionalPrice;
-
-    // TRIPLE SASH SURCHARGE: +20% on subtotal
-    if (configuration.sashType === 'triple') {
-      const tripleSurchargeRate = this.pricing.additionalOptions?.windowType?.triple || 0.20;
-      const tripleSurcharge = subtotal * tripleSurchargeRate;
-      console.log('Triple sash surcharge: ' + (tripleSurchargeRate * 100) + '% × £' + subtotal.toFixed(2) + ' = £' + tripleSurcharge.toFixed(2));
-      subtotal += tripleSurcharge;
-    }
 
     // KOLOR: liczone od czystego subtotal (single white = baza)
     if (configuration.colorType === 'dual') {
