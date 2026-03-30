@@ -59,18 +59,40 @@ class PriceCalculator {
     const sizeMultiplier = this.getSizeMultiplier(sqm);
     const basePrice = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
     
-    // 2. CENA ZA SZPROSY (bars)
+    // 2. CENA ZA SZPROSY (bars) — center sash
     const barsPrice = this.calculateBarsPrice(
       configuration.upperBars || 'none',
       configuration.lowerBars || 'none',
       configuration.customBars
     );
+
+    // 2b. FIX PANEL BARS (triple only) — ×2 because left and right fix have same bars
+    let fixBarsPrice = 0;
+    if (configuration.sashType === 'triple') {
+      const fixBarsOnce = this.calculateBarsPrice(
+        configuration.fixUpperBars || 'none',
+        configuration.fixLowerBars || 'none',
+        configuration.fixCustomBars
+      );
+      fixBarsPrice = fixBarsOnce * 2; // left fix + right fix
+      if (fixBarsPrice > 0) {
+        console.log('Fix bars (×2 panels): £' + fixBarsPrice.toFixed(2));
+      }
+    }
     
     // 3. DODATKOWE OPCJE (przekazujemy sqm i basePrice)
     const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
     
     // 4. SUMA PRZED RABATEM (bez dopłaty za kolor)
-    let subtotal = basePrice + barsPrice + additionalPrice;
+    let subtotal = basePrice + barsPrice + fixBarsPrice + additionalPrice;
+
+    // TRIPLE SASH SURCHARGE: +20% on subtotal
+    if (configuration.sashType === 'triple') {
+      const tripleSurchargeRate = this.pricing.additionalOptions?.windowType?.triple || 0.20;
+      const tripleSurcharge = subtotal * tripleSurchargeRate;
+      console.log('Triple sash surcharge: ' + (tripleSurchargeRate * 100) + '% × £' + subtotal.toFixed(2) + ' = £' + tripleSurcharge.toFixed(2));
+      subtotal += tripleSurcharge;
+    }
 
     // KOLOR: liczone od czystego subtotal (single white = baza)
     if (configuration.colorType === 'dual') {
@@ -104,6 +126,8 @@ class PriceCalculator {
       sizeMultiplier: sizeMultiplier,
       basePrice: basePrice.toFixed(2),
       barsPrice: barsPrice,
+      fixBarsPrice: fixBarsPrice,
+      sashType: configuration.sashType || 'double',
       additionalOptions: additionalPrice,
       subtotal: subtotal.toFixed(2),
       quantity: quantity,

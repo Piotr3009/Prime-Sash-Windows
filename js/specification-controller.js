@@ -665,6 +665,8 @@ class SpecificationController {
     if (window.currentConfig) {
       window.currentConfig.actualFrameWidth = frameWidth;
       window.currentConfig.actualFrameHeight = frameHeight;
+      window.currentConfig.sashType = document.querySelector('input[name="sash-type"]:checked')?.value || 'double';
+      window.currentConfig.splitRatio = document.getElementById('split-ratio')?.value || '1/4-1/2-1/4';
       
       // Trigger price recalculation
       if (window.configuratorCore && window.configuratorCore.isInitialized) {

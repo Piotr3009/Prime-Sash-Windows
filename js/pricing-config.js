@@ -94,6 +94,12 @@ const pricingConfig = {
       'custom': 0.10,     // Custom Color - +10%
       'other': 0.05       // Inne kolory - +5%
     },
+
+    // Window type surcharge
+    windowType: {
+      'double': 0,        // standard, no surcharge
+      'triple': 0.20      // +20% surcharge
+    },
     
     // Security
     pas24: {
