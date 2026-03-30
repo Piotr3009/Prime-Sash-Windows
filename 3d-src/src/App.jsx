@@ -813,12 +813,11 @@ export default function App() {
               color: '#fff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '11px'
             }}>
               <option value="none">None</option>
-              <option value="horizontal-1">1 Horizontal</option>
-              <option value="horizontal-2">2 Horizontal</option>
-              <option value="horizontal-3">3 Horizontal</option>
-              <option value="vertical-1">1 Vertical</option>
-              <option value="grid-2x1">Grid 2×1</option>
-              <option value="grid-2x2">Grid 2×2</option>
+              <option value="2x2">2 Panes (1V)</option>
+              <option value="3x3">3 Panes (2V)</option>
+              <option value="4x4">4 Panes (1V+1H)</option>
+              <option value="6x6">6 Panes (2V+1H)</option>
+              <option value="9x9">9 Panes (2V+2H)</option>
             </select>
           </div>
           <div>
@@ -828,12 +827,11 @@ export default function App() {
               color: '#fff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '11px'
             }}>
               <option value="none">None</option>
-              <option value="horizontal-1">1 Horizontal</option>
-              <option value="horizontal-2">2 Horizontal</option>
-              <option value="horizontal-3">3 Horizontal</option>
-              <option value="vertical-1">1 Vertical</option>
-              <option value="grid-2x1">Grid 2×1</option>
-              <option value="grid-2x2">Grid 2×2</option>
+              <option value="2x2">2 Panes (1V)</option>
+              <option value="3x3">3 Panes (2V)</option>
+              <option value="4x4">4 Panes (1V+1H)</option>
+              <option value="6x6">6 Panes (2V+1H)</option>
+              <option value="9x9">9 Panes (2V+2H)</option>
             </select>
           </div>
 
@@ -847,12 +845,11 @@ export default function App() {
                   color: '#fff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '11px'
                 }}>
                   <option value="none">None</option>
-                  <option value="horizontal-1">1 Horizontal</option>
-                  <option value="horizontal-2">2 Horizontal</option>
-                  <option value="horizontal-3">3 Horizontal</option>
-                  <option value="vertical-1">1 Vertical</option>
-                  <option value="grid-2x1">Grid 2×1</option>
-                  <option value="grid-2x2">Grid 2×2</option>
+                  <option value="2x2">2 Panes (1V)</option>
+                  <option value="3x3">3 Panes (2V)</option>
+                  <option value="4x4">4 Panes (1V+1H)</option>
+                  <option value="6x6">6 Panes (2V+1H)</option>
+                  <option value="9x9">9 Panes (2V+2H)</option>
                 </select>
               </div>
             </>
