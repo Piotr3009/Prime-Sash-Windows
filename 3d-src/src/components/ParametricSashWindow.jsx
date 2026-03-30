@@ -703,8 +703,26 @@ function ArchedGlassPane({ size, position, archRise = 0, frosted = false, double
 
   const gapThickness = mm(16);
   const paneThickness = mm(4);
+  const spacerWidth = mm(1);
+  const spacerColorHex = spacerColor === 'silver' ? '#a0a4a8' : spacerColor === 'white' ? '#f8f8f8' : '#1a1a1a';
   const pane1Z = gapThickness / 2 + paneThickness / 2;
   const pane2Z = -(gapThickness / 2 + paneThickness / 2);
+
+  // Top arch spacer
+  const topSpacerGeom = useMemo(() => {
+    const shape = new THREE.Shape();
+    // Outer arch (top edge)
+    shape.moveTo(-w / 2, h / 2 - rise);
+    shape.quadraticCurveTo(0, h / 2 + rise, w / 2, h / 2 - rise);
+    // Inner arch (offset down by spacerWidth)
+    shape.lineTo(w / 2, h / 2 - rise - spacerWidth);
+    shape.quadraticCurveTo(0, h / 2 + rise - spacerWidth * 2, -w / 2, h / 2 - rise - spacerWidth);
+    shape.closePath();
+    const g = new THREE.ExtrudeGeometry(shape, { depth: gapThickness, bevelEnabled: false, steps: 1, curveSegments: 32 });
+    g.translate(0, 0, -gapThickness / 2);
+    g.computeVertexNormals();
+    return g;
+  }, [w, h, rise, spacerWidth, gapThickness]);
 
   return (
     <group position={position}>
@@ -713,6 +731,25 @@ function ArchedGlassPane({ size, position, archRise = 0, frosted = false, double
       </mesh>
       <mesh geometry={glassGeom} castShadow={false} receiveShadow position={[0, 0, pane2Z]}>
         {glassMat}
+      </mesh>
+      {/* Spacery — dół */}
+      <mesh position={[0, -h / 2 + spacerWidth / 2, 0]}>
+        <boxGeometry args={[w, spacerWidth, gapThickness]} />
+        <meshStandardMaterial color={spacerColorHex} metalness={0.6} roughness={0.4} />
+      </mesh>
+      {/* Lewo */}
+      <mesh position={[-w / 2 + spacerWidth / 2, (h / 2 - rise - (-h / 2)) / 2 + (-h / 2), 0]}>
+        <boxGeometry args={[spacerWidth, h - rise - spacerWidth, gapThickness]} />
+        <meshStandardMaterial color={spacerColorHex} metalness={0.6} roughness={0.4} />
+      </mesh>
+      {/* Prawo */}
+      <mesh position={[w / 2 - spacerWidth / 2, (h / 2 - rise - (-h / 2)) / 2 + (-h / 2), 0]}>
+        <boxGeometry args={[spacerWidth, h - rise - spacerWidth, gapThickness]} />
+        <meshStandardMaterial color={spacerColorHex} metalness={0.6} roughness={0.4} />
+      </mesh>
+      {/* Góra — arch spacer */}
+      <mesh geometry={topSpacerGeom}>
+        <meshStandardMaterial color={spacerColorHex} metalness={0.6} roughness={0.4} />
       </mesh>
     </group>
   );
