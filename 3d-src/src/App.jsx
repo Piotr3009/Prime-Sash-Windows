@@ -441,7 +441,7 @@ function ScreenshotHelper() {
     window.captureWindowScreenshots = async () => {
       return new Promise((resolve) => {
         const target = new THREE.Vector3(0, 0.18, 0);
-        const distance = 1.8;
+        const distance = 3.2;
 
         // Save current camera state
         const savedPos = camera.position.clone();
@@ -470,12 +470,12 @@ function ScreenshotHelper() {
           return gl.domElement.toDataURL('image/jpeg', 0.85);
         };
 
-        // Front view (exterior)
-        const frontPos = new THREE.Vector3(0, 0.3, distance);
+        // Front view (exterior) — straight on
+        const frontPos = new THREE.Vector3(0, 0.18, distance);
         const frontRaw = capture(frontPos);
 
-        // Back view (interior)
-        const backPos = new THREE.Vector3(0, 0.3, -distance);
+        // Back view (interior) — straight on
+        const backPos = new THREE.Vector3(0, 0.18, -distance);
         const backRaw = capture(backPos);
 
         // Restore camera
