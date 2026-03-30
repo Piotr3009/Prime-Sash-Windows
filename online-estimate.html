@@ -320,6 +320,7 @@
             </select>
           </div>
         </div>
+        <button class="btn btn-apply" id="apply-product-range">Apply</button>
       </div>
 
       <div class="config-section" data-category="product-range" id="door-type-section" style="display:none;">
@@ -2034,7 +2035,7 @@
         radio.addEventListener('change', function() {
           var isTriple = radio.value === 'triple';
           tripleOptions.style.display = isTriple ? 'block' : 'none';
-          fixBarsSection.style.display = isTriple ? 'block' : 'none';
+          // fix bars section visibility handled by showCategory when dim-design is active
 
           // Update dimension limits
           var widthSelect = document.getElementById('width-select');
