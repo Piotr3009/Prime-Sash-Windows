@@ -2013,6 +2013,66 @@
           sashTypeSection.style.display = radio.value === 'sash' ? 'block' : 'none';
         });
       });
+
+      // Apply Product Range button
+      var applyRangeBtn = document.getElementById('apply-product-range');
+      if (applyRangeBtn) {
+        applyRangeBtn.addEventListener('click', function() {
+          var sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
+          var splitRatio = (document.getElementById('split-ratio') || {}).value || '1/4-1/2-1/4';
+          var isTriple = sashType === 'triple';
+          var w = isTriple ? 1500 : 1000;
+          var h = isTriple ? 1200 : 1500;
+
+          // Set dimensions
+          var widthInput = document.getElementById('width');
+          var widthSelect = document.getElementById('width-select');
+          var heightInput = document.getElementById('height');
+          var heightSelect = document.getElementById('height-select');
+          if (widthInput) widthInput.value = w;
+          if (widthSelect) widthSelect.value = String(w);
+          if (heightInput) heightInput.value = h;
+          if (heightSelect) heightSelect.value = String(h);
+
+          // Update currentConfig
+          if (window.currentConfig) {
+            window.currentConfig.sashType = sashType;
+            window.currentConfig.splitRatio = splitRatio;
+            window.currentConfig.actualFrameWidth = w;
+            window.currentConfig.actualFrameHeight = h;
+          }
+
+          // Update 3D
+          if (typeof window.update3D === 'function') {
+            window.update3D({
+              sashType: sashType,
+              splitRatio: splitRatio,
+              extWidth: w,
+              extHeight: h
+            });
+          }
+
+          // Update spec panel
+          var specWindowType = document.getElementById('spec-window-type');
+          var specSashType = document.getElementById('spec-sash-type');
+          var specSplitItem = document.getElementById('spec-split-ratio-item');
+          var specSplitRatio = document.getElementById('spec-split-ratio');
+          if (specWindowType) specWindowType.style.display = 'block';
+          if (specSashType) specSashType.textContent = isTriple ? 'Triple Sash' : 'Double Hung Sash';
+          if (specSplitItem) specSplitItem.style.display = isTriple ? '' : 'none';
+          if (specSplitRatio) specSplitRatio.textContent = splitRatio;
+
+          // Recalculate price
+          if (window.configuratorCore && window.configuratorCore.isInitialized) {
+            window.configuratorCore.updateAll();
+          }
+
+          // Switch to Dimensions/Design
+          if (typeof window.showCategory === 'function') {
+            window.showCategory('dim-design');
+          }
+        });
+      }
     })();
 
     // ── Sash Type Toggle + Fix Bars Manager ──
@@ -2065,7 +2125,7 @@
             if (currentW < minW) { widthInput.value = minW; widthSelect.value = String(minW); }
             if (currentW > maxW) { widthInput.value = maxW; widthSelect.value = String(maxW); }
             // Set default dimensions when switching to triple
-            if (isTriple && (currentW < minW || currentW === 1000)) {
+            if (isTriple) {
               widthInput.value = 1500;
               widthSelect.value = '1500';
             }
@@ -2082,7 +2142,7 @@
             var currentH = parseInt(heightInput.value);
             if (currentH < minH) { heightInput.value = minH; heightSelect.value = String(minH); }
             // Set default height when switching to triple
-            if (isTriple && (currentH < minH || currentH === 1500)) {
+            if (isTriple) {
               heightInput.value = 1200;
               heightSelect.value = '1200';
             }
