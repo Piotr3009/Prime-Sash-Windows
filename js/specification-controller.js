@@ -65,6 +65,9 @@ class SpecificationController {
     // Frame
     this.liveWatchRadio('frame-type', () => this.applyFrame());
 
+    // Horns
+    this.liveWatchRadio('horn-type', () => this.applyHorns());
+
     // Glass
     this.liveWatchRadio('glass-type', () => this.applyGlass());
     this.liveWatchRadio('spacer-color', () => this.applyGlass());
