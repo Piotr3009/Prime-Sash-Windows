@@ -795,10 +795,10 @@ function ArchedTopRail({ sashWidth, railHeight, sashDepth, archRise, extMaterial
   return (
     <group position={position}>
       <mesh geometry={extGeom} castShadow receiveShadow>
-        <primitive object={extMaterial} attach="material" />
+        <primitive object={intMaterial} attach="material" />
       </mesh>
       <mesh geometry={intGeom} castShadow receiveShadow>
-        <primitive object={intMaterial} attach="material" />
+        <primitive object={extMaterial} attach="material" />
       </mesh>
     </group>
   );
