@@ -1,142 +1,124 @@
 /**
  * CasementFrame.jsx
- * Outer fixed frame for casement windows.
+ * Casement window frame — each member as ExtrudeGeometry.
  * 
- * Sides + Top: L-shape, 57mm face, 93mm depth (57ext + 36int), 21mm rebate
- * Bottom rail: L-shape with SLOPE, 68mm face, 93mm depth (62ext + 31int)
- *   Ext block = trapezoid: 36mm at exterior → 47mm at junction, 62mm deep
+ * Profile (cross-section from exterior):
+ *   EXT block: 36mm face × 62mm depth (street side, bigger depth)
+ *   INT block: 57mm face × 31mm depth (room side, smaller depth)
+ *   Rebate: 21mm step (57-36), where sash sits
+ *   Total depth: 62+31 = 93mm
+ *
+ * Bottom rail: 68mm face (vs 57mm sides/top), with slope on ext block
+ *   Ext: trapezoid 36mm→47mm, 62mm deep
+ *   Int: 47mm × 31mm
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 
 const mm = (v) => v / 1000;
 
-// Side/Top frame constants (mm)
-const FRAME_FACE = 57;
-const FRAME_DEPTH = 93;
-const EXT_DEPTH = 57;
-const INT_DEPTH = 36;
-const REBATE_STEP = 21;
+// ═══ Frame constants (mm) ═══
+const FRAME_FACE = 57;        // standard face width (interior = biggest visible face)
+const EXT_FACE = 36;          // exterior face width (smaller)
+const EXT_DEPTH = 62;         // exterior block depth
+const INT_DEPTH = 31;         // interior block depth
+const FRAME_DEPTH = 93;       // total = 62 + 31
+const REBATE_STEP = 21;       // 57 - 36
 const MULLION_W = 50;
 
-// Bottom rail constants (mm)
+// Bottom rail (special)
 const BOTTOM_FACE = 68;
-const BOTTOM_EXT_DEPTH = 62;
-const BOTTOM_INT_DEPTH = 31;
-const BOTTOM_EXT_OUTER = 36;
-const BOTTOM_INNER_FACE = BOTTOM_FACE - REBATE_STEP; // 47mm
+const BOTTOM_EXT_OUTER = 36;                    // slope: 36mm at exterior edge
+const BOTTOM_INNER_FACE = BOTTOM_FACE - REBATE_STEP; // 47mm at junction
 
-// Debug colors
-const FACE_COLORS = {
-  1: '#e74c3c', 2: '#2980b9', 3: '#27ae60', 4: '#f39c12',
-  5: '#9b59b6', 6: '#e67e22', 7: '#1abc9c', 8: '#c0392b',
-};
-
-// ═══ Standard L-shape member (top rail, stiles, mullions, transoms) ═══
-function FrameMemberL({ length, position, rotation, extMat, intMat, debugColors = false }) {
-  const fW = mm(FRAME_FACE);
-  const extD = mm(EXT_DEPTH);
-  const intD = mm(INT_DEPTH);
-  const rebate = mm(REBATE_STEP);
-  const len = mm(length);
-  const intFaceW = fW - rebate;
-
-  const extFaceMats = useMemo(() => {
-    if (!debugColors) return null;
-    return [
-      new THREE.MeshStandardMaterial({ color: '#888' }),
-      new THREE.MeshStandardMaterial({ color: '#888' }),
-      new THREE.MeshStandardMaterial({ color: FACE_COLORS[3] }),
-      new THREE.MeshStandardMaterial({ color: FACE_COLORS[2] }),
-      new THREE.MeshStandardMaterial({ color: FACE_COLORS[1] }),
-      new THREE.MeshStandardMaterial({ color: FACE_COLORS[5] }),
-    ];
-  }, [debugColors]);
-
-  const intFaceMats = useMemo(() => {
-    if (!debugColors) return null;
-    return [
-      new THREE.MeshStandardMaterial({ color: '#888' }),
-      new THREE.MeshStandardMaterial({ color: '#888' }),
-      new THREE.MeshStandardMaterial({ color: FACE_COLORS[7] }),
-      new THREE.MeshStandardMaterial({ color: FACE_COLORS[4] }),
-      new THREE.MeshStandardMaterial({ color: FACE_COLORS[5] }),
-      new THREE.MeshStandardMaterial({ color: FACE_COLORS[6] }),
-    ];
-  }, [debugColors]);
-
-  return (
-    <group position={position} rotation={rotation}>
-      <mesh castShadow receiveShadow material={debugColors ? extFaceMats : undefined}>
-        <boxGeometry args={[len, fW, extD]} />
-        {!debugColors && <primitive object={extMat} attach="material" />}
-      </mesh>
-      <mesh castShadow receiveShadow
-        position={[0, -rebate / 2, -(extD / 2 + intD / 2)]}
-        material={debugColors ? intFaceMats : undefined}
-      >
-        <boxGeometry args={[len, intFaceW, intD]} />
-        {!debugColors && <primitive object={intMat || extMat} attach="material" />}
-      </mesh>
-      {debugColors && (
-        <mesh position={[0, -fW / 2 + intFaceW / 2, -(extD / 2)]}>
-          <boxGeometry args={[len, rebate, mm(2)]} />
-          <meshStandardMaterial color={FACE_COLORS[8]} />
-        </mesh>
-      )}
-    </group>
-  );
-}
-
-// ═══ Bottom rail with slope (ExtrudeGeometry) ═══
+// ═══ Bottom rail — ExtrudeGeometry with slope ═══
 function BottomRailL({ width, extMat, intMat, debugColors = false }) {
   const railLen = mm(width);
 
-  // L-shape cross-section with slope on ext part
-  // Shape XY: X = depth (ext→int), Y = height (bottom→top)
-  // Origin at exterior-bottom corner
+  // Shape XY: X = depth (0=ext front → 93=int back), Y = height (0=bottom → 68=top)
   const shape = useMemo(() => {
     const s = new THREE.Shape();
     s.moveTo(0, 0);
-    s.lineTo(0, mm(BOTTOM_EXT_OUTER));
-    s.lineTo(mm(BOTTOM_EXT_DEPTH), mm(BOTTOM_INNER_FACE));
-    s.lineTo(mm(BOTTOM_EXT_DEPTH), mm(BOTTOM_FACE));
-    s.lineTo(mm(BOTTOM_EXT_DEPTH + BOTTOM_INT_DEPTH), mm(BOTTOM_FACE));
-    s.lineTo(mm(BOTTOM_EXT_DEPTH + BOTTOM_INT_DEPTH), 0);
+    s.lineTo(0, mm(BOTTOM_EXT_OUTER));                              // ext top (36mm)
+    s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));                 // slope → junction (47mm)
+    s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_FACE));                       // rebate step up (68mm)
+    s.lineTo(mm(EXT_DEPTH + INT_DEPTH), mm(BOTTOM_FACE));           // room face top
+    s.lineTo(mm(EXT_DEPTH + INT_DEPTH), 0);                         // room face bottom
     s.closePath();
     return s;
   }, []);
 
-  const extSettings = useMemo(() => ({
-    depth: railLen,
-    bevelEnabled: false,
-  }), [railLen]);
-
-  // After rotation [0, -π/2, 0]:
-  //   shape X (depth) → world -Z (ext at +Z, int at -Z)
-  //   shape Y (height) → world +Y (bottom at 0, top at 68mm)
-  //   extrude Z (length) → world +X
-  // Align ext front face with side stile ext front face
-  const extFrontZ = mm(EXT_DEPTH) / 2;
+  const settings = useMemo(() => ({ depth: railLen, bevelEnabled: false }), [railLen]);
 
   const debugMat = useMemo(() => {
     if (!debugColors) return null;
     return new THREE.MeshStandardMaterial({ color: '#e74c3c', opacity: 0.85, transparent: true });
   }, [debugColors]);
 
+  // Rotation [0, -PI/2, 0]: shapeX→+worldZ, shapeY→worldY, extrudeZ→-worldX
+  // Position: shift so ext front aligns, and center length along X
   return (
     <mesh
-      castShadow
-      receiveShadow
+      castShadow receiveShadow
       rotation={[0, -Math.PI / 2, 0]}
-      position={[-railLen / 2, 0, extFrontZ]}
+      position={[-railLen / 2, 0, mm(EXT_DEPTH) / 2]}
     >
-      <extrudeGeometry args={[shape, extSettings]} />
+      <extrudeGeometry args={[shape, settings]} />
       {debugColors
         ? <primitive object={debugMat} attach="material" />
         : <primitive object={extMat} attach="material" />
       }
     </mesh>
+  );
+}
+
+// ═══ Side stile — ExtrudeGeometry, L-shape (no slope) ═══
+function SideStile({ stileHeight, side = 'right', extMat, intMat, debugColors = false }) {
+  const len = mm(stileHeight);
+
+  // L-profile: X=depth (0=ext front, 93=int back), Y=face (0=outer edge, 57=inner edge)
+  const shape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0, 0);
+    s.lineTo(0, mm(EXT_FACE));                         // ext face (36mm)
+    s.lineTo(mm(EXT_DEPTH), mm(EXT_FACE));              // junction
+    s.lineTo(mm(EXT_DEPTH), mm(FRAME_FACE));            // rebate step (57mm)
+    s.lineTo(mm(EXT_DEPTH + INT_DEPTH), mm(FRAME_FACE));// int face
+    s.lineTo(mm(EXT_DEPTH + INT_DEPTH), 0);             // int outer
+    s.closePath();
+    return s;
+  }, []);
+
+  const settings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
+
+  const debugMat = useMemo(() => {
+    if (!debugColors) return null;
+    return new THREE.MeshStandardMaterial({
+      color: side === 'right' ? '#2980b9' : '#27ae60',
+      opacity: 0.85, transparent: true,
+    });
+  }, [debugColors, side]);
+
+  // Inner mesh: rotation [0, -PI/2, 0] → length along -X, face along +Y, depth along +Z
+  // Outer group rotation turns horizontal to vertical:
+  //   Right stile [0, 0, PI/2]: face → -X (toward center), length → -Y (downward)
+  //   Left stile  [0, 0, -PI/2]: face → +X (toward center), length → +Y (upward)
+  const groupRotZ = side === 'right' ? Math.PI / 2 : -Math.PI / 2;
+
+  return (
+    <group rotation={[0, 0, groupRotZ]}>
+      <mesh
+        castShadow receiveShadow
+        rotation={[0, -Math.PI / 2, 0]}
+        position={[-len / 2, 0, mm(EXT_DEPTH) / 2]}
+      >
+        <extrudeGeometry args={[shape, settings]} />
+        {debugColors
+          ? <primitive object={debugMat} attach="material" />
+          : <primitive object={extMat} attach="material" />
+        }
+      </mesh>
+    </group>
   );
 }
 
@@ -160,9 +142,10 @@ export default function CasementFrame({
   const halfDepth = mm(FRAME_DEPTH) / 2;
   const zCenter = -halfDepth;
 
-  // Stiles: between top rail (57mm) and bottom rail (68mm)
+  // Stile height: between top rail and bottom rail
   const stileLength = height - FRAME_FACE - BOTTOM_FACE;
-  // Stile center Y offset (top smaller, bottom bigger)
+
+  // Stile center Y (offset because top=57mm, bottom=68mm)
   const stileCenterY = (mm(FRAME_FACE) - mm(BOTTOM_FACE)) / 2;
 
   return (
@@ -177,70 +160,31 @@ export default function CasementFrame({
         />
       </group>
 
-      {/* Top rail — standard L-shape */}
-      <FrameMemberL
-        length={width}
-        position={[0, H / 2 - fW / 2, 0]}
-        rotation={[0, 0, Math.PI]}
-        extMat={extMat}
-        intMat={intMat}
-        debugColors={debugColors}
-      />
+      {/* Right stile */}
+      <group position={[W / 2, stileCenterY, 0]}>
+        <SideStile
+          stileHeight={stileLength}
+          side="right"
+          extMat={extMat}
+          intMat={intMat}
+          debugColors={debugColors}
+        />
+      </group>
 
       {/* Left stile */}
-      <FrameMemberL
-        length={stileLength}
-        position={[-W / 2 + fW / 2, stileCenterY, 0]}
-        rotation={[0, 0, -Math.PI / 2]}
-        extMat={extMat}
-        intMat={intMat}
-        debugColors={debugColors}
-      />
+      <group position={[-W / 2, stileCenterY, 0]}>
+        <SideStile
+          stileHeight={stileLength}
+          side="left"
+          extMat={extMat}
+          intMat={intMat}
+          debugColors={debugColors}
+        />
+      </group>
 
-      {/* Right stile */}
-      <FrameMemberL
-        length={stileLength}
-        position={[W / 2 - fW / 2, stileCenterY, 0]}
-        rotation={[0, 0, Math.PI / 2]}
-        extMat={extMat}
-        intMat={intMat}
-        debugColors={debugColors}
-      />
-
-      {/* Mullions */}
-      {mullions.map((xPos, i) => {
-        const x = -W / 2 + mm(xPos);
-        return (
-          <FrameMemberL
-            key={`mull-${i}`}
-            length={stileLength}
-            position={[x, stileCenterY, 0]}
-            rotation={[0, 0, Math.PI / 2]}
-            extMat={extMat}
-            intMat={intMat}
-            debugColors={debugColors}
-          />
-        );
-      })}
-
-      {/* Transoms */}
-      {transoms.map((yPos, i) => {
-        const y = -H / 2 + mm(yPos);
-        const innerW = width - FRAME_FACE * 2;
-        return (
-          <FrameMemberL
-            key={`transom-${i}`}
-            length={innerW}
-            position={[0, y, 0]}
-            rotation={[0, 0, 0]}
-            extMat={extMat}
-            intMat={intMat}
-            debugColors={debugColors}
-          />
-        );
-      })}
+      {/* Top rail — TODO: next step, confirm profile with Piotr */}
     </group>
   );
 }
 
-export { FRAME_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_DEPTH, BOTTOM_INT_DEPTH, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, mm };
+export { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, mm };

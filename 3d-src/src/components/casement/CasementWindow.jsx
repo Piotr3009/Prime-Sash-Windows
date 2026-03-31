@@ -28,7 +28,7 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
-import CasementFrame, { FRAME_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_DEPTH, BOTTOM_INT_DEPTH, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, mm } from './CasementFrame';
+import CasementFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, mm } from './CasementFrame';
 import CasementPanel, { SASH_RAIL } from './CasementPanel';
 
 // ─── Layout definitions ───
