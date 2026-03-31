@@ -27,7 +27,8 @@
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import CasementFrame, { FRAME_FACE, FRAME_DEPTH, MULLION_W, mm } from './CasementFrame';
+import { Html } from '@react-three/drei';
+import CasementFrame, { FRAME_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, mm } from './CasementFrame';
 import CasementPanel, { SASH_RAIL } from './CasementPanel';
 
 // ─── Layout definitions ───
@@ -227,21 +228,74 @@ export default function CasementWindow({
         />
       */}
 
-      {/* Dimension guides */}
+      {/* ═══ DEBUG: Axes ═══ */}
+      <axesHelper args={[0.5]} />
+
+      {/* ═══ DEBUG: Full dimensioning ═══ */}
       {showGuides && (
         <group>
-          {/* Width dimension line below window */}
-          <DimensionLine
-            start={[-W / 2, -H / 2 - mm(40), 0]}
-            end={[W / 2, -H / 2 - mm(40), 0]}
-            label={`${width}mm`}
+          {/* A — Overall Height (right side) */}
+          <DimLine
+            from={[W/2 + mm(50), -H/2, 0]}
+            to={[W/2 + mm(50), H/2, 0]}
+            label={`A: ${height}mm`}
+            color="#e74c3c"
           />
-          {/* Height dimension line right of window */}
-          <DimensionLine
-            start={[W / 2 + mm(30), -H / 2, 0]}
-            end={[W / 2 + mm(30), H / 2, 0]}
-            label={`${height}mm`}
-            vertical
+
+          {/* B — Overall Width (below) */}
+          <DimLine
+            from={[-W/2, -H/2 - mm(50), 0]}
+            to={[W/2, -H/2 - mm(50), 0]}
+            label={`B: ${width}mm`}
+            color="#2980b9"
+          />
+
+          {/* C — Frame Face Width (top member, left edge detail) */}
+          <DimLine
+            from={[-W/2, H/2, mm(10)]}
+            to={[-W/2 + mm(FRAME_FACE), H/2, mm(10)]}
+            label={`C: ${FRAME_FACE}mm`}
+            color="#27ae60"
+          />
+
+          {/* D — Frame Depth total (top-left corner, along Z) */}
+          <DimLine
+            from={[-W/2, H/2 + mm(30), mm(FRAME_DEPTH/2)]}
+            to={[-W/2, H/2 + mm(30), -mm(FRAME_DEPTH/2)]}
+            label={`D: ${FRAME_DEPTH}mm`}
+            color="#f39c12"
+          />
+
+          {/* E — Ext Depth (exterior portion along Z) */}
+          <DimLine
+            from={[-W/2 - mm(30), H/2, mm(FRAME_DEPTH/2)]}
+            to={[-W/2 - mm(30), H/2, mm(FRAME_DEPTH/2) - mm(EXT_DEPTH)]}
+            label={`E: ${EXT_DEPTH}mm (ext)`}
+            color="#9b59b6"
+          />
+
+          {/* F — Int Depth (interior portion along Z) */}
+          <DimLine
+            from={[-W/2 - mm(30), H/2, mm(FRAME_DEPTH/2) - mm(EXT_DEPTH)]}
+            to={[-W/2 - mm(30), H/2, -mm(FRAME_DEPTH/2)]}
+            label={`F: ${INT_DEPTH}mm (int)`}
+            color="#e67e22"
+          />
+
+          {/* G — Rebate Step (width of rebate ledge) */}
+          <DimLine
+            from={[-W/2 + mm(FRAME_FACE) - mm(REBATE_STEP), H/2 + mm(15), -mm(EXT_DEPTH)]}
+            to={[-W/2 + mm(FRAME_FACE), H/2 + mm(15), -mm(EXT_DEPTH)]}
+            label={`G: ${REBATE_STEP}mm`}
+            color="#1abc9c"
+          />
+
+          {/* H — Inner Opening Width */}
+          <DimLine
+            from={[-W/2 + mm(FRAME_FACE), -H/2 - mm(30), 0]}
+            to={[W/2 - mm(FRAME_FACE), -H/2 - mm(30), 0]}
+            label={`H: ${width - FRAME_FACE*2}mm`}
+            color="#c0392b"
           />
         </group>
       )}
@@ -249,25 +303,63 @@ export default function CasementWindow({
   );
 }
 
-// Simple dimension line helper
-function DimensionLine({ start, end, label, vertical = false }) {
-  const points = [new THREE.Vector3(...start), new THREE.Vector3(...end)];
-  const midX = (start[0] + end[0]) / 2;
-  const midY = (start[1] + end[1]) / 2;
+// ─── Dimension line with 3D label ───
+function DimLine({ from, to, label, color = '#888' }) {
+  const midX = (from[0] + to[0]) / 2;
+  const midY = (from[1] + to[1]) / 2;
+  const midZ = (from[2] + to[2]) / 2;
+
+  const positions = new Float32Array([...from, ...to]);
+
+  // Tick marks at ends
+  const dx = to[0] - from[0];
+  const dy = to[1] - from[1];
+  const dz = to[2] - from[2];
+  const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+  const tick = 0.008;
 
   return (
     <group>
+      {/* Main line */}
       <line>
         <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={2}
-            array={new Float32Array([...start, ...end])}
-            itemSize={3}
-          />
+          <bufferAttribute attach="attributes-position" count={2} array={positions} itemSize={3} />
         </bufferGeometry>
-        <lineBasicMaterial color="#888" />
+        <lineBasicMaterial color={color} linewidth={2} />
       </line>
+
+      {/* Start tick */}
+      <mesh position={from}>
+        <sphereGeometry args={[tick, 6, 6]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+
+      {/* End tick */}
+      <mesh position={to}>
+        <sphereGeometry args={[tick, 6, 6]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+
+      {/* Label */}
+      <Html
+        position={[midX, midY + 0.012, midZ]}
+        center
+        style={{
+          background: 'rgba(255,255,255,0.9)',
+          padding: '2px 6px',
+          fontSize: '11px',
+          fontFamily: 'monospace',
+          fontWeight: 'bold',
+          color: color,
+          borderRadius: '3px',
+          border: `1px solid ${color}`,
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
+      >
+        {label}
+      </Html>
     </group>
   );
 }
