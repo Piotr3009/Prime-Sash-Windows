@@ -146,6 +146,25 @@ function getLayout(code, innerW, innerH, height) {
       };
     }
 
+    // ─── 032: Transom full width + mullion ONLY below transom ───
+    case '032': {
+      const topH = innerH * 0.3;
+      const bottomH = innerH - MULLION_W - topH;
+      const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
+      const bottomPanelW = (innerW - mullW) / 2;
+      const mullX = FRAME_FACE + bottomPanelW + mullW / 2;
+      const mullEndY = transomY - MULLION_W / 2;
+      return {
+        transoms: [transomY],
+        mullions: [{ x: mullX, startY: 0, endY: mullEndY, touchesBottom: true, touchesTop: false }],
+        panels: [
+          { x: 0, y: (topH + MULLION_W) / 2, w: innerW, h: topH, hinge: 'top' },
+          { x: -(bottomPanelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: bottomPanelW, h: bottomH, hinge: 'left' },
+          { x:  (bottomPanelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: bottomPanelW, h: bottomH, hinge: 'right' },
+        ],
+      };
+    }
+
     // ─── TRIPLE ───
     case '130': {
       const panelW = (innerW - mullW * 2) / 3;
@@ -157,6 +176,48 @@ function getLayout(code, innerW, innerH, height) {
           { x: -(panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'left' },
           { x: 0,                 y: 0, w: panelW, h: innerH, hinge: 'fixed' },
           { x:  (panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'right' },
+        ],
+      };
+    }
+
+    // ─── 131: Triple + transom ONLY in center ───
+    case '131': {
+      const panelW = (innerW - mullW * 2) / 3;
+      const m1 = FRAME_FACE + panelW + mullW / 2;
+      const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+      const topH = innerH * 0.3;
+      const bottomH = innerH - MULLION_W - topH;
+      const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
+      return {
+        mullions: [m1, m2],
+        transoms: [{ y: transomY, width: panelW }],
+        panels: [
+          { x: -(panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'left' },
+          { x: 0, y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: 0, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+          { x:  (panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'right' },
+        ],
+      };
+    }
+
+    // ─── 132: Triple + transom full width ───
+    case '132': {
+      const panelW = (innerW - mullW * 2) / 3;
+      const m1 = FRAME_FACE + panelW + mullW / 2;
+      const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+      const topH = innerH * 0.3;
+      const bottomH = innerH - MULLION_W - topH;
+      const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
+      return {
+        mullions: [m1, m2],
+        transoms: [transomY],
+        panels: [
+          { x: -(panelW + mullW), y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: 0,                 y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x:  (panelW + mullW), y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'left' },
+          { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+          { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'right' },
         ],
       };
     }
