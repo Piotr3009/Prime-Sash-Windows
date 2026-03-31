@@ -153,33 +153,34 @@ export default function CasementFrame({
   const W = mm(width);
   const H = mm(height);
 
-  // Stile runs from top of bottom rail to bottom of top rail
-  const stileLen = height - FRAME_FACE - BOTTOM_FACE;
+  // Stiles run full height from bottom to top rail
+  const stileLen = height - FRAME_FACE; // only top rail subtracted, stiles go into bottom rail area
 
-  // Right stile: outer edge at X = W/2, inner at W/2 - FRAME_FACE
-  // Position so shape X=0 (inner) starts at W/2 - FRAME_FACE
+  // Bottom rail: spans between stiles (no overlap)
+  const bottomRailWidth = width - FRAME_FACE * 2;
+
+  // Right stile: outer edge at X = W/2
   const rightStileX = W / 2 - mm(FRAME_FACE);
   
-  // Left stile: outer edge at X = -W/2, inner at -W/2 + FRAME_FACE
-  // Position so shape X=0 (outer) starts at -W/2
+  // Left stile: outer edge at X = -W/2
   const leftStileX = -W / 2;
 
-  // Stile bottom Y: top of bottom rail
-  const stileBottomY = -H / 2 + mm(BOTTOM_FACE);
+  // Stile bottom Y: bottom of frame
+  const stileBottomY = -H / 2;
 
   return (
     <group>
-      {/* Bottom rail — positioned at bottom of frame */}
+      {/* Bottom rail — between stiles */}
       <group position={[0, -H / 2, 0]}>
-        <BottomRail width={width} mat={material} debugColors={debugColors} />
+        <BottomRail width={bottomRailWidth} mat={material} debugColors={debugColors} />
       </group>
 
-      {/* Right stile */}
+      {/* Right stile — full height */}
       <group position={[rightStileX, stileBottomY, 0]}>
         <RightStile stileHeight={stileLen} mat={material} debugColors={debugColors} />
       </group>
 
-      {/* Left stile */}
+      {/* Left stile — full height */}
       <group position={[leftStileX, stileBottomY, 0]}>
         <LeftStile stileHeight={stileLen} mat={material} debugColors={debugColors} />
       </group>
