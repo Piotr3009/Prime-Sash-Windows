@@ -245,6 +245,47 @@ function Mullion({ frameHeight, mat, debugColors }) {
   );
 }
 
+// ═══ Transom — horizontal divider, rebate top and bottom ═══
+// Same profile as mullion but horizontal, runs between stiles
+// EXT: 26mm face (centered), 62mm depth
+// INT: 68mm face, 31mm depth
+function Transom({ transomWidth, mat, debugColors }) {
+  const len = mm(transomWidth);
+
+  // Shape XY: X=depth (0=ext, 93=int), Y=face (0=bottom, 68=top)
+  // L-shape: EXT centered 26mm + INT full 68mm
+  const shape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0, mm(REBATE_STEP));                          // ext bottom-rebate (21mm)
+    s.lineTo(0, mm(MULLION_W - REBATE_STEP));              // ext top-rebate (47mm)
+    s.lineTo(mm(EXT_DEPTH), mm(MULLION_W - REBATE_STEP));  // junction top
+    s.lineTo(mm(EXT_DEPTH), mm(MULLION_W));                // int top (68mm)
+    s.lineTo(mm(FRAME_DEPTH), mm(MULLION_W));              // int back top
+    s.lineTo(mm(FRAME_DEPTH), 0);                          // int back bottom
+    s.lineTo(mm(EXT_DEPTH), 0);                            // junction bottom
+    s.lineTo(mm(EXT_DEPTH), mm(REBATE_STEP));              // junction rebate
+    s.closePath();
+    return s;
+  }, []);
+
+  const settings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
+
+  const debugMat = useMemo(() => debugColors
+    ? new THREE.MeshStandardMaterial({ color: '#e91e9b', opacity: 0.85, transparent: true })
+    : null, [debugColors]);
+
+  // rotation [0, PI/2, 0]: shapeX→-worldZ, shapeY→worldY, extrudeZ→worldX
+  return (
+    <mesh castShadow receiveShadow
+      rotation={[0, Math.PI / 2, 0]}
+      position={[-len / 2, 0, halfD]}
+    >
+      <extrudeGeometry args={[shape, settings]} />
+      {debugColors ? <primitive object={debugMat} attach="material" /> : <primitive object={mat} attach="material" />}
+    </mesh>
+  );
+}
+
 // ═══ Main CasementFrame ═══
 export default function CasementFrame({
   width = 800,
@@ -283,10 +324,22 @@ export default function CasementFrame({
       {/* Mullions — vertical dividers */}
       {mullions.map((xPosMm, i) => {
         // xPosMm = mm from left edge of frame to center of mullion
-        const x = -W / 2 + mm(xPosMm) - mm(FRAME_FACE) / 2;
+        const x = -W / 2 + mm(xPosMm) - mm(MULLION_W) / 2;
         return (
           <group key={`mull-${i}`} position={[x, -H / 2, 0]}>
             <Mullion frameHeight={height} mat={material} debugColors={debugColors} />
+          </group>
+        );
+      })}
+
+      {/* Transoms — horizontal dividers */}
+      {transoms.map((yPosMm, i) => {
+        // yPosMm = mm from bottom of frame to center of transom
+        const y = -H / 2 + mm(yPosMm) - mm(MULLION_W) / 2;
+        const transomLen = width - FRAME_FACE * 2;
+        return (
+          <group key={`transom-${i}`} position={[0, y, 0]}>
+            <Transom transomWidth={transomLen} mat={material} debugColors={debugColors} />
           </group>
         );
       })}

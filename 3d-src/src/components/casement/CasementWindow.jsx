@@ -217,26 +217,18 @@ export default function CasementWindow({
 
       {/* Panels — TODO: add back step by step */}
 
-      {/* ═══ Orientation markers ═══ */}
-      <mesh position={[0, 0, halfD + mm(5)]}>
-        <planeGeometry args={[W * 0.6, mm(40)]} />
-        <meshBasicMaterial color="#2980b9" opacity={0.7} transparent side={THREE.DoubleSide} />
-      </mesh>
-      <Html position={[0, 0, halfD + mm(8)]} center style={{
-        fontSize: '18px', fontWeight: 'bold', color: '#2980b9', fontFamily: 'monospace',
-        background: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '4px',
+      {/* ═══ Orientation markers — on the sides ═══ */}
+      <Html position={[W/2 + mm(80), 0, halfD]} center style={{
+        fontSize: '14px', fontWeight: 'bold', color: '#2980b9', fontFamily: 'monospace',
+        background: 'rgba(255,255,255,0.9)', padding: '3px 8px', borderRadius: '4px',
         border: '2px solid #2980b9', pointerEvents: 'none',
-      }}>EXTERIOR (+Z, ulica)</Html>
+      }}>EXT (+Z)</Html>
 
-      <mesh position={[0, 0, -halfD - mm(5)]}>
-        <planeGeometry args={[W * 0.6, mm(40)]} />
-        <meshBasicMaterial color="#e74c3c" opacity={0.7} transparent side={THREE.DoubleSide} />
-      </mesh>
-      <Html position={[0, 0, -halfD - mm(8)]} center style={{
-        fontSize: '18px', fontWeight: 'bold', color: '#e74c3c', fontFamily: 'monospace',
-        background: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '4px',
+      <Html position={[W/2 + mm(80), 0, -halfD]} center style={{
+        fontSize: '14px', fontWeight: 'bold', color: '#e74c3c', fontFamily: 'monospace',
+        background: 'rgba(255,255,255,0.9)', padding: '3px 8px', borderRadius: '4px',
         border: '2px solid #e74c3c', pointerEvents: 'none',
-      }}>INTERIOR (-Z, pokoj)</Html>
+      }}>INT (-Z)</Html>
 
       {/* ═══ Dimensions ═══ */}
       {showGuides && (() => {
