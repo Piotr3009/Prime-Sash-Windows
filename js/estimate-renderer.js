@@ -114,9 +114,23 @@ class EstimateRenderer {
         // BARS (center sash)
         const upperBars = fc.upperBars || item.upper_bars || 'none';
         const lowerBars = fc.lowerBars || item.lower_bars || upperBars;
+
+        const formatBars = (pattern, customList) => {
+            if (pattern === 'none') return 'None';
+            if (pattern === 'custom' && customList && customList.length > 0) {
+                const h = customList.filter(b => b.type === 'h' || b.type === 'horizontal').length;
+                const v = customList.filter(b => b.type === 'v' || b.type === 'vertical').length;
+                const positions = customList.map(b => `${b.mm}mm ${b.type === 'h' || b.type === 'horizontal' ? 'H' : 'V'}`).join(', ');
+                return `Custom (${h}H + ${v}V): ${positions}`;
+            }
+            return pattern;
+        };
+
         let barsText = 'None';
         if (upperBars !== 'none') {
-            barsText = `Upper: ${upperBars}, Lower: ${lowerBars}`;
+            const upperText = formatBars(upperBars, fc.upperCustomBars);
+            const lowerText = formatBars(lowerBars, fc.lowerCustomBars);
+            barsText = `Upper: ${upperText}, Lower: ${lowerText}`;
         }
 
         // FIX BARS (triple only)
@@ -124,7 +138,9 @@ class EstimateRenderer {
         const fixLowerBars = fc.fixLowerBars || fixUpperBars;
         let fixBarsText = '';
         if (sashType === 'triple' && fixUpperBars !== 'none') {
-            fixBarsText = `Upper: ${fixUpperBars}, Lower: ${fixLowerBars}`;
+            const fixUpperText = formatBars(fixUpperBars, fc.fixUpperCustomBars);
+            const fixLowerText = formatBars(fixLowerBars, fc.fixLowerCustomBars);
+            fixBarsText = `Upper: ${fixUpperText}, Lower: ${fixLowerText}`;
         }
 
         // HORNS
@@ -138,7 +154,7 @@ class EstimateRenderer {
         // IRONMONGERY
         let ironList = [];
         let ironSource = fc.ironmongery || item.ironmongery;
-        if (ironSource) {
+        if (ironSource && ironSource !== 'none' && ironSource !== 'null') {
             try {
                 const ironData = typeof ironSource === 'string' ? JSON.parse(ironSource) : ironSource;
                 const entries = ironData.products ? Object.values(ironData.products) : Object.values(ironData);
@@ -339,6 +355,39 @@ class EstimateRenderer {
     }
 
     // ─── SVG Window Drawing ───
+    static drawSVGBars(pattern, customList, glassX, glassW, topY, height, scale, light) {
+        let svg = '';
+        const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
+
+        if (pattern === 'custom' && customList && customList.length > 0) {
+            customList.forEach(bar => {
+                const pos = Math.round(bar.mm * scale);
+                if (bar.type === 'h' || bar.type === 'horizontal') {
+                    const y = topY + pos;
+                    if (y > topY && y < topY + height) {
+                        svg += `<line x1="${glassX}" y1="${y}" x2="${glassX + glassW}" y2="${y}" stroke="${light}" stroke-width="1"/>`;
+                    }
+                } else {
+                    const x = glassX + pos;
+                    if (x > glassX && x < glassX + glassW) {
+                        svg += `<line x1="${x}" y1="${topY}" x2="${x}" y2="${topY + height}" stroke="${light}" stroke-width="1"/>`;
+                    }
+                }
+            });
+        } else {
+            const p = patternDefs[pattern] || {h:0,v:0};
+            for (let i = 1; i <= p.v; i++) {
+                const x = glassX + glassW * i / (p.v + 1);
+                svg += `<line x1="${x}" y1="${topY}" x2="${x}" y2="${topY + height}" stroke="${light}" stroke-width="1"/>`;
+            }
+            for (let i = 1; i <= p.h; i++) {
+                const y = topY + height * i / (p.h + 1);
+                svg += `<line x1="${glassX}" y1="${y}" x2="${glassX + glassW}" y2="${y}" stroke="${light}" stroke-width="1"/>`;
+            }
+        }
+        return svg;
+    }
+
     static generateWindowSVG(item) {
         const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
         const fc = spec.fullConfig || spec || {};
@@ -446,41 +495,24 @@ class EstimateRenderer {
             const centerX = mull1X + sMull + sCenter / 2;
             svg += `<text x="${centerX}" y="${oy + meetingY + (actualH - meetingY)/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
 
-            // Bars on panels (upper + lower)
-            const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
-            const upperBars = patternDefs[upperBarsPattern] || {h:0,v:0};
-            const lowerBars = patternDefs[lowerBarsPattern] || upperBars;
-            const fixUpperBars = patternDefs[fixUpperBarsPattern] || {h:0,v:0};
-            const fixLowerBars = patternDefs[fixLowerBarsPattern] || fixUpperBars;
-
+            // Bars on panels (upper + lower) using helper
+            const R = EstimateRenderer;
             sections.forEach((sec, i) => {
-                const uBars = i === 1 ? upperBars : fixUpperBars;
-                const lBars = i === 1 ? lowerBars : fixLowerBars;
                 const glassX = sec.x + 2;
                 const glassW = sec.w - 4;
-
-                // Upper bars
                 const uT = oy + frameW + 1 + (headType === 'arch' ? archRise : 0);
                 const uH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
-                for (let j = 1; j <= uBars.v; j++) {
-                    const bx = glassX + glassW * j / (uBars.v + 1);
-                    svg += `<line x1="${bx}" y1="${uT}" x2="${bx}" y2="${oy + meetingY - 1}" stroke="${light}" stroke-width="1"/>`;
-                }
-                for (let j = 1; j <= uBars.h; j++) {
-                    const by = uT + uH * j / (uBars.h + 1);
-                    svg += `<line x1="${glassX}" y1="${by}" x2="${glassX + glassW}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
-                }
-
-                // Lower bars
                 const lT = oy + meetingY + 1;
                 const lH = actualH - meetingY - frameW - 1;
-                for (let j = 1; j <= lBars.v; j++) {
-                    const bx = glassX + glassW * j / (lBars.v + 1);
-                    svg += `<line x1="${bx}" y1="${lT}" x2="${bx}" y2="${lT + lH}" stroke="${light}" stroke-width="1"/>`;
-                }
-                for (let j = 1; j <= lBars.h; j++) {
-                    const by = lT + lH * j / (lBars.h + 1);
-                    svg += `<line x1="${glassX}" y1="${by}" x2="${glassX + glassW}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+
+                if (i === 1) {
+                    // Center panel — uses main bars
+                    svg += R.drawSVGBars(upperBarsPattern, fc.upperCustomBars, glassX, glassW, uT, uH, scale, light);
+                    svg += R.drawSVGBars(lowerBarsPattern, fc.lowerCustomBars, glassX, glassW, lT, lH, scale, light);
+                } else {
+                    // Fix panels — uses fix bars
+                    svg += R.drawSVGBars(fixUpperBarsPattern, fc.fixUpperCustomBars, glassX, glassW, uT, uH, scale, light);
+                    svg += R.drawSVGBars(fixLowerBarsPattern, fc.fixLowerCustomBars, glassX, glassW, lT, lH, scale, light);
                 }
             });
 
@@ -565,29 +597,12 @@ class EstimateRenderer {
             }
             svg += `<rect x="${glassX}" y="${lowerT}" width="${glassW}" height="${lowerH}" fill="rgba(200,220,240,.08)" stroke="${light}" stroke-width="0.5"/>`;
 
-            // Bars
-            const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
-            const upperBars = patternDefs[upperBarsPattern] || {h:0,v:0};
-            const lowerBars = patternDefs[lowerBarsPattern] || patternDefs[upperBarsPattern] || {h:0,v:0};
+            // Bars using helper
+            const R2 = EstimateRenderer;
             const bUpperT = upperT + (headType === 'arch' ? archRise : 0);
             const bUpperH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
-
-            for (let i = 1; i <= upperBars.v; i++) {
-                const x = glassX + glassW * i / (upperBars.v + 1);
-                svg += `<line x1="${x}" y1="${bUpperT}" x2="${x}" y2="${oy + meetingY - 1}" stroke="${light}" stroke-width="1.2"/>`;
-            }
-            for (let i = 1; i <= upperBars.h; i++) {
-                const y = bUpperT + bUpperH * i / (upperBars.h + 1);
-                svg += `<line x1="${glassX}" y1="${y}" x2="${glassX + glassW}" y2="${y}" stroke="${light}" stroke-width="1.2"/>`;
-            }
-            for (let i = 1; i <= lowerBars.v; i++) {
-                const x = glassX + glassW * i / (lowerBars.v + 1);
-                svg += `<line x1="${x}" y1="${lowerT}" x2="${x}" y2="${lowerT + lowerH}" stroke="${light}" stroke-width="1.2"/>`;
-            }
-            for (let i = 1; i <= lowerBars.h; i++) {
-                const y = lowerT + lowerH * i / (lowerBars.h + 1);
-                svg += `<line x1="${glassX}" y1="${y}" x2="${glassX + glassW}" y2="${y}" stroke="${light}" stroke-width="1.2"/>`;
-            }
+            svg += R2.drawSVGBars(upperBarsPattern, fc.upperCustomBars, glassX, glassW, bUpperT, bUpperH, scale, light);
+            svg += R2.drawSVGBars(lowerBarsPattern, fc.lowerCustomBars, glassX, glassW, lowerT, lowerH, scale, light);
 
             // Opening arrows
             const arrowX = ox + drawW + 14;
