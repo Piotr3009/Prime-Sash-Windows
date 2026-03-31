@@ -80,6 +80,12 @@ class EstimateRenderer {
             glassFinishText = frostedLocation === 'both' ? 'Frosted (Both Sashes)' : 'Frosted (Bottom Only)';
         }
 
+        // HARDWARE FINISH
+        const hardwareFinishLabels = {
+            'chrome': 'Polished Chrome', 'satin': 'Satin Chrome', 'brass': 'Polished Brass',
+            'antique-brass': 'Antique Brass', 'black': 'Matt Black', 'white': 'White'
+        };
+
         // SPACER
         const spacerColor = fc.spacerColor || item.spacer_color || 'silver';
         const spacerLabels = { 'silver': 'Silver (Stainless Steel)', 'white': 'White', 'black': 'Black' };
@@ -110,7 +116,7 @@ class EstimateRenderer {
         const lowerBars = fc.lowerBars || item.lower_bars || upperBars;
         let barsText = 'None';
         if (upperBars !== 'none') {
-            barsText = upperBars === lowerBars ? `${upperBars} Pattern` : `Upper: ${upperBars}, Lower: ${lowerBars}`;
+            barsText = `Upper: ${upperBars}, Lower: ${lowerBars}`;
         }
 
         // FIX BARS (triple only)
@@ -118,7 +124,7 @@ class EstimateRenderer {
         const fixLowerBars = fc.fixLowerBars || fixUpperBars;
         let fixBarsText = '';
         if (sashType === 'triple' && fixUpperBars !== 'none') {
-            fixBarsText = fixUpperBars === fixLowerBars ? `${fixUpperBars} Pattern` : `Upper: ${fixUpperBars}, Lower: ${fixLowerBars}`;
+            fixBarsText = `Upper: ${fixUpperBars}, Lower: ${fixLowerBars}`;
         }
 
         // HORNS
@@ -152,6 +158,9 @@ class EstimateRenderer {
         if (!hardwareFinish && ironList.length > 0) {
             const colors = [...new Set(ironList.map(p => p.color).filter(Boolean))];
             hardwareFinish = colors.length > 0 ? colors.join(' / ') : null;
+        }
+        if (hardwareFinish) {
+            hardwareFinish = hardwareFinishLabels[hardwareFinish] || hardwareFinish.charAt(0).toUpperCase() + hardwareFinish.slice(1);
         }
 
         // QUANTITY
@@ -240,7 +249,7 @@ class EstimateRenderer {
                             ${R.specRow('Glass', p.glassText)}
                             ${R.specRow('Glass Spec', p.glassSpecText)}
                             ${R.specRow('Spacer Bar', p.spacerText)}
-                            ${p.showFrosted ? R.specRow('Glass Finish', p.glassFinishText) : ''}
+                            ${R.specRow('Glass Finish', p.glassFinishText)}
                             ${R.specRow('Colour', p.colorDisplay)}
                             ${R.specRow('Georgian Bars', p.barsText)}
                             ${p.fixBarsText ? R.specRow('Fix Panel Bars', p.fixBarsText) : ''}
@@ -437,23 +446,40 @@ class EstimateRenderer {
             const centerX = mull1X + sMull + sCenter / 2;
             svg += `<text x="${centerX}" y="${oy + meetingY + (actualH - meetingY)/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
 
-            // Bars on panels
+            // Bars on panels (upper + lower)
             const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
             const upperBars = patternDefs[upperBarsPattern] || {h:0,v:0};
-            const fixBars = patternDefs[fixUpperBarsPattern] || {h:0,v:0};
+            const lowerBars = patternDefs[lowerBarsPattern] || upperBars;
+            const fixUpperBars = patternDefs[fixUpperBarsPattern] || {h:0,v:0};
+            const fixLowerBars = patternDefs[fixLowerBarsPattern] || fixUpperBars;
 
             sections.forEach((sec, i) => {
-                const bars = i === 1 ? upperBars : fixBars;
+                const uBars = i === 1 ? upperBars : fixUpperBars;
+                const lBars = i === 1 ? lowerBars : fixLowerBars;
                 const glassX = sec.x + 2;
                 const glassW = sec.w - 4;
-                const upperT = oy + frameW + 1 + (headType === 'arch' ? archRise : 0);
-                const upperH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
-                for (let j = 1; j <= bars.v; j++) {
-                    const bx = glassX + glassW * j / (bars.v + 1);
-                    svg += `<line x1="${bx}" y1="${upperT}" x2="${bx}" y2="${oy + meetingY - 1}" stroke="${light}" stroke-width="1"/>`;
+
+                // Upper bars
+                const uT = oy + frameW + 1 + (headType === 'arch' ? archRise : 0);
+                const uH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
+                for (let j = 1; j <= uBars.v; j++) {
+                    const bx = glassX + glassW * j / (uBars.v + 1);
+                    svg += `<line x1="${bx}" y1="${uT}" x2="${bx}" y2="${oy + meetingY - 1}" stroke="${light}" stroke-width="1"/>`;
                 }
-                for (let j = 1; j <= bars.h; j++) {
-                    const by = upperT + upperH * j / (bars.h + 1);
+                for (let j = 1; j <= uBars.h; j++) {
+                    const by = uT + uH * j / (uBars.h + 1);
+                    svg += `<line x1="${glassX}" y1="${by}" x2="${glassX + glassW}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+                }
+
+                // Lower bars
+                const lT = oy + meetingY + 1;
+                const lH = actualH - meetingY - frameW - 1;
+                for (let j = 1; j <= lBars.v; j++) {
+                    const bx = glassX + glassW * j / (lBars.v + 1);
+                    svg += `<line x1="${bx}" y1="${lT}" x2="${bx}" y2="${lT + lH}" stroke="${light}" stroke-width="1"/>`;
+                }
+                for (let j = 1; j <= lBars.h; j++) {
+                    const by = lT + lH * j / (lBars.h + 1);
                     svg += `<line x1="${glassX}" y1="${by}" x2="${glassX + glassW}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
                 }
             });
