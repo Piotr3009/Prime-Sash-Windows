@@ -280,9 +280,9 @@
               <input type="radio" id="type-sash" name="window-type" value="sash" checked>
               <label for="type-sash" class="radio-label">Sash Windows</label>
             </div>
-            <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-              <input type="radio" id="type-casement" name="window-type" value="casement" disabled>
-              <label for="type-casement" class="radio-label">Casement Windows <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+            <div class="radio-option">
+              <input type="radio" id="type-casement" name="window-type" value="casement">
+              <label for="type-casement" class="radio-label">Casement Windows</label>
             </div>
             <div class="radio-option" style="opacity:0.45; pointer-events:none;">
               <input type="radio" id="type-fix" name="window-type" value="fix-only" disabled>
@@ -366,6 +366,81 @@
         </div>
 
         <button class="btn btn-apply" id="apply-product-range">Apply</button>
+      </div>
+
+      <!-- ═══ CASEMENT LAYOUT ═══ -->
+      <div class="config-section" data-category="product-range" id="casement-layout-section" style="display:none;">
+        <h3>Casement Layout</h3>
+        <div class="input-group">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="040L" checked>
+              <div class="layout-thumb" title="Single - Left Hung">
+                <svg viewBox="0 0 60 80" width="50" height="66"><rect x="2" y="2" width="56" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="2" y1="2" x2="58" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="78" x2="58" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="30" y="90" text-anchor="middle" font-size="8" fill="#666">040L</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="040R">
+              <div class="layout-thumb" title="Single - Right Hung">
+                <svg viewBox="0 0 60 80" width="50" height="66"><rect x="2" y="2" width="56" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="2" y1="2" x2="58" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="78" x2="58" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="30" y="90" text-anchor="middle" font-size="8" fill="#666">040R</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="010T">
+              <div class="layout-thumb" title="Single - Top Hung">
+                <svg viewBox="0 0 60 80" width="50" height="66"><rect x="2" y="2" width="56" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="2" y1="2" x2="30" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="58" y1="2" x2="30" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="30" y="90" text-anchor="middle" font-size="8" fill="#666">010T</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="120">
+              <div class="layout-thumb" title="Double - Both Opening">
+                <svg viewBox="0 0 80 80" width="66" height="66"><rect x="2" y="2" width="76" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="40" y1="2" x2="40" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="2" x2="40" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="78" x2="40" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="40" y1="2" x2="78" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="40" y1="78" x2="78" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="40" y="90" text-anchor="middle" font-size="8" fill="#666">120</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="051L">
+              <div class="layout-thumb" title="Left Opening + Right Fixed">
+                <svg viewBox="0 0 80 80" width="66" height="66"><rect x="2" y="2" width="76" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="40" y1="2" x2="40" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="2" x2="40" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="78" x2="40" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="40" y="90" text-anchor="middle" font-size="8" fill="#666">051L</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="051R">
+              <div class="layout-thumb" title="Left Fixed + Right Opening">
+                <svg viewBox="0 0 80 80" width="66" height="66"><rect x="2" y="2" width="76" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="40" y1="2" x2="40" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="40" y1="2" x2="78" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="40" y1="78" x2="78" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="40" y="90" text-anchor="middle" font-size="8" fill="#666">051R</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="180L">
+              <div class="layout-thumb" title="Left Opening + Right Fixed (Wide)">
+                <svg viewBox="0 0 80 80" width="66" height="66"><rect x="2" y="2" width="76" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="32" y1="2" x2="32" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="2" x2="32" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="78" x2="32" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="40" y="90" text-anchor="middle" font-size="8" fill="#666">180L</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="180R">
+              <div class="layout-thumb" title="Left Fixed + Right Opening (Wide)">
+                <svg viewBox="0 0 80 80" width="66" height="66"><rect x="2" y="2" width="76" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="48" y1="2" x2="48" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="48" y1="2" x2="78" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="48" y1="78" x2="78" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="40" y="90" text-anchor="middle" font-size="8" fill="#666">180R</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="021">
+              <div class="layout-thumb" title="Fanlight + Side Hung">
+                <svg viewBox="0 0 60 80" width="50" height="66"><rect x="2" y="2" width="56" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="2" y1="26" x2="58" y2="26" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="2" x2="30" y2="26" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="58" y1="2" x2="30" y2="26" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="26" x2="58" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="78" x2="58" y2="26" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="30" y="90" text-anchor="middle" font-size="8" fill="#666">021</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="031">
+              <div class="layout-thumb" title="Split Fanlight + Side Hung">
+                <svg viewBox="0 0 60 80" width="50" height="66"><rect x="2" y="2" width="56" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="2" y1="26" x2="58" y2="26" stroke="#0a1628" stroke-width="1.5"/><line x1="30" y1="2" x2="30" y2="26" stroke="#0a1628" stroke-width="1"/><line x1="2" y1="2" x2="16" y2="26" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="30" y1="2" x2="16" y2="26" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="30" y1="2" x2="44" y2="26" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="58" y1="2" x2="44" y2="26" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="26" x2="58" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="78" x2="58" y2="26" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="30" y="90" text-anchor="middle" font-size="8" fill="#666">031</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="130">
+              <div class="layout-thumb" title="Triple">
+                <svg viewBox="0 0 90 80" width="75" height="66"><rect x="2" y="2" width="86" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="30" y1="2" x2="30" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="60" y1="2" x2="60" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="2" x2="30" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="2" y1="78" x2="30" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="60" y1="2" x2="88" y2="78" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><line x1="60" y1="78" x2="88" y2="2" stroke="#c8a24e" stroke-width="0.8" opacity="0.6"/><text x="45" y="90" text-anchor="middle" font-size="8" fill="#666">130</text></svg>
+              </div>
+            </label>
+          </div>
+        </div>
       </div>
 
       <div class="config-section" data-category="product-range" id="door-type-section" style="display:none;">
@@ -2040,22 +2115,45 @@
       var rangeRadios = document.querySelectorAll('input[name="product-range"]');
       var windowTypeSection = document.getElementById('window-type-section');
       var sashTypeSection = document.getElementById('sash-type-section');
+      var casementLayoutSection = document.getElementById('casement-layout-section');
       var doorTypeSection = document.getElementById('door-type-section');
 
+      function updateSections() {
+        var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
+        var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
+        windowTypeSection.style.display = isWindows ? 'block' : 'none';
+        sashTypeSection.style.display = (isWindows && windowType === 'sash') ? 'block' : 'none';
+        casementLayoutSection.style.display = (isWindows && windowType === 'casement') ? 'block' : 'none';
+        doorTypeSection.style.display = isWindows ? 'none' : 'block';
+      }
+
       rangeRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-          var isWindows = radio.value === 'windows';
-          windowTypeSection.style.display = isWindows ? 'block' : 'none';
-          sashTypeSection.style.display = (isWindows && document.getElementById('type-sash').checked) ? 'block' : 'none';
-          doorTypeSection.style.display = isWindows ? 'none' : 'block';
-        });
+        radio.addEventListener('change', updateSections);
       });
 
-      // Window type → show/hide sash type section
+      // Window type → show/hide sash or casement sections + update 3D
       var windowTypeRadios = document.querySelectorAll('input[name="window-type"]');
       windowTypeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
-          sashTypeSection.style.display = radio.value === 'sash' ? 'block' : 'none';
+          updateSections();
+          if (window.update3D) {
+            if (radio.value === 'casement') {
+              var layout = (document.querySelector('input[name="casement-layout"]:checked') || {}).value || '040L';
+              window.update3D({ windowCategory: 'casement', casementLayout: layout });
+            } else {
+              window.update3D({ windowCategory: 'sash' });
+            }
+          }
+        });
+      });
+
+      // Casement layout change → update 3D
+      var layoutRadios = document.querySelectorAll('input[name="casement-layout"]');
+      layoutRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          if (window.update3D) {
+            window.update3D({ casementLayout: radio.value });
+          }
         });
       });
 

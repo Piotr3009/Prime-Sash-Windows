@@ -2291,6 +2291,29 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   .bar-pattern-buttons { justify-content: center; }
 }
 
+/* ═══ Casement Layout Selector ═══ */
+.layout-option {
+  cursor: pointer;
+  display: block;
+}
+.layout-option input { display: none; }
+.layout-thumb {
+  border: 2px solid rgba(158,158,144,.2);
+  border-radius: 3px;
+  padding: 6px;
+  text-align: center;
+  transition: all .2s;
+  background: rgba(255,255,255,.5);
+}
+.layout-option input:checked + .layout-thumb {
+  border-color: var(--navy, #0a1628);
+  background: rgba(10,22,40,.04);
+  box-shadow: 0 0 0 1px var(--navy, #0a1628);
+}
+.layout-thumb:hover {
+  border-color: var(--gold, #c8a24e);
+}
+
 @media (max-width: 680px) {
   .window-container {
     width: 200px;
