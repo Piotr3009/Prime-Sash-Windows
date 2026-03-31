@@ -54,10 +54,16 @@ function getLayout(code, innerW, innerH, height) {
       return {
         panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'top' }],
       };
-    case '040D':
+    case '040D': {
+      const panelW = (innerW - mullW) / 2;
       return {
-        panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'fixed' }],
+        mullions: [FRAME_FACE + panelW + mullW / 2],
+        panels: [
+          { x: -(panelW + mullW) / 2, y: 0, w: panelW, h: innerH, hinge: 'left' },
+          { x:  (panelW + mullW) / 2, y: 0, w: panelW, h: innerH, hinge: 'right' },
+        ],
       };
+    }
 
     // ─── DOUBLE SIDE-BY-SIDE ───
     case '120': {
