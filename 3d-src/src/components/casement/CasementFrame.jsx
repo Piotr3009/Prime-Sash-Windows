@@ -315,10 +315,10 @@ export default function CasementFrame({
     color: '#1a1a1a', roughness: 0.9, metalness: 0.0,
   }), []);
   const gMat = gasketMat || defaultGasketMat;
-  const gW = mm(GASKET_W);
-  const gT = mm(GASKET_T);
-  // Gasket Z center: on rebate face, extending toward exterior
-  const gZ = halfD - mm(EXT_DEPTH) + gW / 2;
+  const gW = mm(GASKET_W);  // 19mm - covers rebate face
+  const gT = mm(GASKET_T);  // 5mm - projects toward opening
+  // Gasket Z: sits on rebate face (junction), projects toward exterior
+  const gZ = halfD - mm(EXT_DEPTH) + gT / 2;
 
   // Parse mullion/transom objects
   const mullObjs = mullions.map(m => typeof m === 'number'
@@ -462,66 +462,66 @@ export default function CasementFrame({
       })}
 
       {/* ═══ Gasket strips on rebate surfaces ═══ */}
-      {/* Bottom rail gasket — top of rebate step, facing up */}
-      <mesh position={[0, -H / 2 + mm(BOTTOM_INNER_FACE) + gT / 2, gZ]}>
-        <boxGeometry args={[W, gT, gW]} />
+      {/* Bottom rail gasket — on rebate step face, 19mm covering 21mm step */}
+      <mesh position={[0, -H / 2 + mm(BOTTOM_INNER_FACE) + gW / 2, gZ]}>
+        <boxGeometry args={[W, gW, gT]} />
         <primitive object={gMat} attach="material" />
       </mesh>
 
-      {/* Top rail gasket — bottom of rebate step, facing down */}
-      <mesh position={[0, H / 2 - mm(FRAME_FACE) + mm(REBATE_STEP) - gT / 2, gZ]}>
-        <boxGeometry args={[W, gT, gW]} />
+      {/* Top rail gasket — on rebate step face */}
+      <mesh position={[0, H / 2 - mm(FRAME_FACE) + mm(REBATE_STEP) - gW / 2, gZ]}>
+        <boxGeometry args={[W, gW, gT]} />
         <primitive object={gMat} attach="material" />
       </mesh>
 
-      {/* Left stile gasket — right face of rebate, facing right */}
-      <mesh position={[-W / 2 + mm(EXT_FACE) + gT / 2, 0, gZ]}>
-        <boxGeometry args={[gT, H, gW]} />
+      {/* Left stile gasket — 19mm along X covering rebate, 5mm along Z */}
+      <mesh position={[-W / 2 + mm(EXT_FACE) + gW / 2, 0, gZ]}>
+        <boxGeometry args={[gW, H, gT]} />
         <primitive object={gMat} attach="material" />
       </mesh>
 
-      {/* Right stile gasket — left face of rebate, facing left */}
-      <mesh position={[W / 2 - mm(EXT_FACE) - gT / 2, 0, gZ]}>
-        <boxGeometry args={[gT, H, gW]} />
+      {/* Right stile gasket — mirror */}
+      <mesh position={[W / 2 - mm(EXT_FACE) - gW / 2, 0, gZ]}>
+        <boxGeometry args={[gW, H, gT]} />
         <primitive object={gMat} attach="material" />
       </mesh>
 
-      {/* Mullion gaskets — both sides */}
+      {/* Mullion gaskets — both rebate faces */}
       {mullObjs.map((mObj, i) => {
         const mullCenterX = -W / 2 + mm(mObj.x);
         const mullY = -H / 2 + mm(mObj.startY);
         const mullH = mm(mObj.endY - mObj.startY);
         return (
           <group key={`mull-gasket-${i}`}>
-            {/* Left side gasket */}
-            <mesh position={[mullCenterX - mm(MULLION_EXT_FACE) / 2 - gT / 2, mullY + mullH / 2, gZ]}>
-              <boxGeometry args={[gT, mullH, gW]} />
+            {/* Left rebate gasket */}
+            <mesh position={[mullCenterX - mm(MULLION_W) / 2 + gW / 2, mullY + mullH / 2, gZ]}>
+              <boxGeometry args={[gW, mullH, gT]} />
               <primitive object={gMat} attach="material" />
             </mesh>
-            {/* Right side gasket */}
-            <mesh position={[mullCenterX + mm(MULLION_EXT_FACE) / 2 + gT / 2, mullY + mullH / 2, gZ]}>
-              <boxGeometry args={[gT, mullH, gW]} />
+            {/* Right rebate gasket */}
+            <mesh position={[mullCenterX + mm(MULLION_W) / 2 - gW / 2, mullY + mullH / 2, gZ]}>
+              <boxGeometry args={[gW, mullH, gT]} />
               <primitive object={gMat} attach="material" />
             </mesh>
           </group>
         );
       })}
 
-      {/* Transom gaskets — top and bottom */}
+      {/* Transom gaskets — top and bottom rebate faces */}
       {transObjs.map((tObj, i) => {
         const tY = -H / 2 + mm(tObj.y);
         const tCenterX = mm(tObj.offsetX);
         const tLen = mm(tObj.width);
         return (
           <group key={`trans-gasket-${i}`}>
-            {/* Top side gasket */}
-            <mesh position={[tCenterX, tY + mm(MULLION_EXT_FACE) / 2 + gT / 2, gZ]}>
-              <boxGeometry args={[tLen, gT, gW]} />
+            {/* Bottom rebate gasket */}
+            <mesh position={[tCenterX, tY - mm(MULLION_W) / 2 + gW / 2, gZ]}>
+              <boxGeometry args={[tLen, gW, gT]} />
               <primitive object={gMat} attach="material" />
             </mesh>
-            {/* Bottom side gasket */}
-            <mesh position={[tCenterX, tY - mm(MULLION_EXT_FACE) / 2 - gT / 2, gZ]}>
-              <boxGeometry args={[tLen, gT, gW]} />
+            {/* Top rebate gasket */}
+            <mesh position={[tCenterX, tY + mm(MULLION_W) / 2 - gW / 2, gZ]}>
+              <boxGeometry args={[tLen, gW, gT]} />
               <primitive object={gMat} attach="material" />
             </mesh>
           </group>
