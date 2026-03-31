@@ -25,9 +25,19 @@ const REBATE_STEP = 12;      // rebate ledge width (where sash seats)
 const MULLION_W = 50;        // mullion width
 
 // Single L-shape frame member: 2 boxes
-function FrameMemberL({ length, position, rotation, extMat, intMat }) {
-  // Exterior part: full face width × extDepth
-  // Interior part: (face - rebateStep) × intDepth, offset toward interior
+// Face colors matching numbered circles
+const FACE_COLORS = {
+  1: '#e74c3c', // Ext front
+  2: '#2980b9', // Ext bottom
+  3: '#27ae60', // Ext inner top
+  4: '#f39c12', // Int bottom
+  5: '#9b59b6', // Junction
+  6: '#e67e22', // Int back (room)
+  7: '#1abc9c', // Int inner top
+  8: '#c0392b', // Rebate step
+};
+
+function FrameMemberL({ length, position, rotation, extMat, intMat, debugColors = false }) {
   const fW = mm(FRAME_FACE);
   const extD = mm(EXT_DEPTH);
   const intD = mm(INT_DEPTH);
@@ -35,20 +45,58 @@ function FrameMemberL({ length, position, rotation, extMat, intMat }) {
   const len = mm(length);
   const intFaceW = fW - rebate;
 
+  // Per-face materials for ext block: [+x, -x, +y, -y, +z, -z]
+  // +z=front(F1), -z=junction(F5), +y=innerTop(F3), -y=bottom(F2), ±x=endcaps
+  const extFaceMats = useMemo(() => {
+    if (!debugColors) return null;
+    return [
+      new THREE.MeshStandardMaterial({ color: '#888' }),      // +x endcap
+      new THREE.MeshStandardMaterial({ color: '#888' }),      // -x endcap
+      new THREE.MeshStandardMaterial({ color: FACE_COLORS[3] }), // +y inner top
+      new THREE.MeshStandardMaterial({ color: FACE_COLORS[2] }), // -y bottom
+      new THREE.MeshStandardMaterial({ color: FACE_COLORS[1] }), // +z ext front
+      new THREE.MeshStandardMaterial({ color: FACE_COLORS[5] }), // -z junction
+    ];
+  }, [debugColors]);
+
+  // Per-face materials for int block: [+x, -x, +y, -y, +z, -z]
+  // +z=junction(F5), -z=room(F6), +y=innerTop(F7), -y=bottom(F4), ±x=endcaps
+  const intFaceMats = useMemo(() => {
+    if (!debugColors) return null;
+    return [
+      new THREE.MeshStandardMaterial({ color: '#888' }),      // +x endcap
+      new THREE.MeshStandardMaterial({ color: '#888' }),      // -x endcap
+      new THREE.MeshStandardMaterial({ color: FACE_COLORS[7] }), // +y inner top
+      new THREE.MeshStandardMaterial({ color: FACE_COLORS[4] }), // -y bottom
+      new THREE.MeshStandardMaterial({ color: FACE_COLORS[5] }), // +z junction
+      new THREE.MeshStandardMaterial({ color: FACE_COLORS[6] }), // -z room
+    ];
+  }, [debugColors]);
+
   return (
     <group position={position} rotation={rotation}>
       {/* Exterior block */}
-      <mesh castShadow receiveShadow>
+      <mesh castShadow receiveShadow
+        material={debugColors ? extFaceMats : undefined}
+      >
         <boxGeometry args={[len, fW, extD]} />
-        <primitive object={extMat} attach="material" />
+        {!debugColors && <primitive object={extMat} attach="material" />}
       </mesh>
       {/* Interior block — shifted toward interior and narrower */}
       <mesh castShadow receiveShadow
         position={[0, -rebate / 2, -(extD / 2 + intD / 2)]}
+        material={debugColors ? intFaceMats : undefined}
       >
         <boxGeometry args={[len, intFaceW, intD]} />
-        <primitive object={intMat || extMat} attach="material" />
+        {!debugColors && <primitive object={intMat || extMat} attach="material" />}
       </mesh>
+      {/* Rebate step — small horizontal surface between ext and int */}
+      {debugColors && (
+        <mesh position={[0, -fW / 2 + intFaceW / 2, -(extD / 2)]}>
+          <boxGeometry args={[len, rebate, mm(2)]} />
+          <meshStandardMaterial color={FACE_COLORS[8]} />
+        </mesh>
+      )}
     </group>
   );
 }
@@ -60,6 +108,7 @@ export default function CasementFrame({
   materialInt,
   mullions = [],
   transoms = [],
+  debugColors = false,
 }) {
   const extMat = material;
   const intMat = materialInt || material;
@@ -81,6 +130,7 @@ export default function CasementFrame({
         rotation={[0, 0, 0]}
         extMat={extMat}
         intMat={intMat}
+        debugColors={debugColors}
       />
       {/* Top rail */}
       <FrameMemberL
@@ -89,6 +139,7 @@ export default function CasementFrame({
         rotation={[0, 0, Math.PI]}
         extMat={extMat}
         intMat={intMat}
+        debugColors={debugColors}
       />
       {/* Left stile */}
       <FrameMemberL
@@ -97,6 +148,7 @@ export default function CasementFrame({
         rotation={[0, 0, -Math.PI / 2]}
         extMat={extMat}
         intMat={intMat}
+        debugColors={debugColors}
       />
       {/* Right stile */}
       <FrameMemberL
@@ -105,6 +157,7 @@ export default function CasementFrame({
         rotation={[0, 0, Math.PI / 2]}
         extMat={extMat}
         intMat={intMat}
+        debugColors={debugColors}
       />
 
       {/* Mullions */}
@@ -119,6 +172,7 @@ export default function CasementFrame({
             rotation={[0, 0, Math.PI / 2]}
             extMat={extMat}
             intMat={intMat}
+            debugColors={debugColors}
           />
         );
       })}
@@ -135,6 +189,7 @@ export default function CasementFrame({
             rotation={[0, 0, 0]}
             extMat={extMat}
             intMat={intMat}
+            debugColors={debugColors}
           />
         );
       })}

@@ -211,6 +211,7 @@ export default function CasementWindow({
         materialInt={intMaterial}
         mullions={layoutDef.mullions || []}
         transoms={layoutDef.transoms || []}
+        debugColors={true}
       />
 
       {/* Panels — TODO: add back step by step
@@ -413,15 +414,21 @@ export default function CasementWindow({
                 whiteSpace: 'pre',
               }}
             >
-{`BOTTOM RAIL FACES:
-① Ext front (+Z)
-② Ext bottom (-Y) 
-③ Ext top/inner (+Y)
-④ Int bottom (-Y)
-⑤ Junction (ext↔int)
-⑥ Int back/room (-Z)
-⑦ Int top/inner (+Y)
-⑧ Rebate step`}
+{`FACE  COLOR    SURFACE          SIZE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ①   Red      Ext front (+Z)   ${FRAME_FACE}×${EXT_DEPTH}mm
+ ②   Blue     Ext bottom (-Y)  ${width}×${EXT_DEPTH}mm
+ ③   Green    Ext inner (+Y)   ${width}×${EXT_DEPTH}mm
+ ④   Yellow   Int bottom (-Y)  ${width}×${INT_DEPTH}mm
+ ⑤   Purple   Junction         ${FRAME_FACE}×${FRAME_FACE}mm
+ ⑥   Orange   Int back (-Z)    ${FRAME_FACE-REBATE_STEP}×${INT_DEPTH}mm
+ ⑦   Teal     Int inner (+Y)   ${width}×${INT_DEPTH}mm
+ ⑧   DkRed    Rebate step      ${width}×${REBATE_STEP}mm
+
+PROFILE: L-shape 93mm total
+  Ext: ${FRAME_FACE}w × ${EXT_DEPTH}d
+  Int: ${FRAME_FACE-REBATE_STEP}w × ${INT_DEPTH}d
+  Rebate: ${REBATE_STEP}mm step`}
             </Html>
           </group>
         );
