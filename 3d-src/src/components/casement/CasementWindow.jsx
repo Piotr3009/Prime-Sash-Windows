@@ -330,17 +330,12 @@ export default function CasementWindow({
 
       {/* ─── Panels (leaves) ─── */}
       {layoutDef.panels && layoutDef.panels.map((p, i) => {
-        // Leaf sits ON gasket, flush with exterior
-        // leafZ = frame ext face - half leaf depth
-        // = halfD - mm(57)/2... but must account for gasket lifting it
-        // Rebate face Z = halfD - mm(EXT_DEPTH) 
-        // Gasket top = rebate + mm(GASKET_T)
-        // Leaf INT face on gasket → leaf center = gasket top + mm(57)/2
+        // Leaf sits in rebate: extends 21mm into frame rebate on each side, minus 4mm gap
+        const leafGap = 4;
+        const leafW = p.w + REBATE_STEP * 2 - leafGap * 2;
+        const leafH = p.h + REBATE_STEP * 2 - leafGap * 2;
+        // Leaf Z: sits ON gasket, flush with exterior
         const leafZ = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
-        // 4mm gap between leaf and frame on each side
-        const leafGap = 4; // mm per side
-        const leafW = p.w - leafGap * 2;
-        const leafH = p.h - leafGap * 2;
         // Opening center Y offset (bottom rail taller than top rail)
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
         return (
