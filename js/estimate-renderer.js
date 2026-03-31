@@ -114,32 +114,39 @@ class EstimateRenderer {
         // BARS (center sash)
         const upperBars = fc.upperBars || item.upper_bars || 'none';
         const lowerBars = fc.lowerBars || item.lower_bars || upperBars;
+        const upperCustomList = fc.upperCustomBars || [];
+        const lowerCustomList = (fc.lowerCustomBars && fc.lowerCustomBars.length > 0) ? fc.lowerCustomBars : upperCustomList;
 
         const formatBars = (pattern, customList) => {
             if (pattern === 'none') return 'None';
-            if (pattern === 'custom' && customList && customList.length > 0) {
-                const h = customList.filter(b => b.type === 'h' || b.type === 'horizontal').length;
-                const v = customList.filter(b => b.type === 'v' || b.type === 'vertical').length;
-                const positions = customList.map(b => `${b.mm}mm ${b.type === 'h' || b.type === 'horizontal' ? 'H' : 'V'}`).join(', ');
-                return `Custom (${h}H + ${v}V): ${positions}`;
+            if (pattern === 'custom') {
+                if (customList && customList.length > 0) {
+                    const h = customList.filter(b => b.type === 'h' || b.type === 'horizontal').length;
+                    const v = customList.filter(b => b.type === 'v' || b.type === 'vertical').length;
+                    const positions = customList.map(b => `${b.mm}mm ${b.type === 'h' || b.type === 'horizontal' ? 'H' : 'V'}`).join(', ');
+                    return `Custom (${h}H + ${v}V): ${positions}`;
+                }
+                return 'Custom';
             }
             return pattern;
         };
 
         let barsText = 'None';
         if (upperBars !== 'none') {
-            const upperText = formatBars(upperBars, fc.upperCustomBars);
-            const lowerText = formatBars(lowerBars, fc.lowerCustomBars);
+            const upperText = formatBars(upperBars, upperCustomList);
+            const lowerText = formatBars(lowerBars, lowerCustomList);
             barsText = `Upper: ${upperText}, Lower: ${lowerText}`;
         }
 
         // FIX BARS (triple only)
         const fixUpperBars = fc.fixUpperBars || 'none';
         const fixLowerBars = fc.fixLowerBars || fixUpperBars;
+        const fixUpperCustomList = fc.fixUpperCustomBars || [];
+        const fixLowerCustomList = (fc.fixLowerCustomBars && fc.fixLowerCustomBars.length > 0) ? fc.fixLowerCustomBars : fixUpperCustomList;
         let fixBarsText = '';
         if (sashType === 'triple' && fixUpperBars !== 'none') {
-            const fixUpperText = formatBars(fixUpperBars, fc.fixUpperCustomBars);
-            const fixLowerText = formatBars(fixLowerBars, fc.fixLowerCustomBars);
+            const fixUpperText = formatBars(fixUpperBars, fixUpperCustomList);
+            const fixLowerText = formatBars(fixLowerBars, fixLowerCustomList);
             fixBarsText = `Upper: ${fixUpperText}, Lower: ${fixLowerText}`;
         }
 
@@ -497,6 +504,11 @@ class EstimateRenderer {
 
             // Bars on panels (upper + lower) using helper
             const R = EstimateRenderer;
+            const upperCustomList = fc.upperCustomBars || [];
+            const lowerCustomList = (fc.lowerCustomBars && fc.lowerCustomBars.length > 0) ? fc.lowerCustomBars : upperCustomList;
+            const fixUpperCustomList = fc.fixUpperCustomBars || [];
+            const fixLowerCustomList = (fc.fixLowerCustomBars && fc.fixLowerCustomBars.length > 0) ? fc.fixLowerCustomBars : fixUpperCustomList;
+
             sections.forEach((sec, i) => {
                 const glassX = sec.x + 2;
                 const glassW = sec.w - 4;
@@ -506,13 +518,11 @@ class EstimateRenderer {
                 const lH = actualH - meetingY - frameW - 1;
 
                 if (i === 1) {
-                    // Center panel — uses main bars
-                    svg += R.drawSVGBars(upperBarsPattern, fc.upperCustomBars, glassX, glassW, uT, uH, scale, light);
-                    svg += R.drawSVGBars(lowerBarsPattern, fc.lowerCustomBars, glassX, glassW, lT, lH, scale, light);
+                    svg += R.drawSVGBars(upperBarsPattern, upperCustomList, glassX, glassW, uT, uH, scale, light);
+                    svg += R.drawSVGBars(lowerBarsPattern, lowerCustomList, glassX, glassW, lT, lH, scale, light);
                 } else {
-                    // Fix panels — uses fix bars
-                    svg += R.drawSVGBars(fixUpperBarsPattern, fc.fixUpperCustomBars, glassX, glassW, uT, uH, scale, light);
-                    svg += R.drawSVGBars(fixLowerBarsPattern, fc.fixLowerCustomBars, glassX, glassW, lT, lH, scale, light);
+                    svg += R.drawSVGBars(fixUpperBarsPattern, fixUpperCustomList, glassX, glassW, uT, uH, scale, light);
+                    svg += R.drawSVGBars(fixLowerBarsPattern, fixLowerCustomList, glassX, glassW, lT, lH, scale, light);
                 }
             });
 
@@ -599,10 +609,12 @@ class EstimateRenderer {
 
             // Bars using helper
             const R2 = EstimateRenderer;
+            const upperCustomList = fc.upperCustomBars || [];
+            const lowerCustomList = (fc.lowerCustomBars && fc.lowerCustomBars.length > 0) ? fc.lowerCustomBars : upperCustomList;
             const bUpperT = upperT + (headType === 'arch' ? archRise : 0);
             const bUpperH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
-            svg += R2.drawSVGBars(upperBarsPattern, fc.upperCustomBars, glassX, glassW, bUpperT, bUpperH, scale, light);
-            svg += R2.drawSVGBars(lowerBarsPattern, fc.lowerCustomBars, glassX, glassW, lowerT, lowerH, scale, light);
+            svg += R2.drawSVGBars(upperBarsPattern, upperCustomList, glassX, glassW, bUpperT, bUpperH, scale, light);
+            svg += R2.drawSVGBars(lowerBarsPattern, lowerCustomList, glassX, glassW, lowerT, lowerH, scale, light);
 
             // Opening arrows
             const arrowX = ox + drawW + 14;
