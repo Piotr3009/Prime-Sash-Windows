@@ -136,6 +136,42 @@ function Stile({ stileHeight, side, mat, debugColors }) {
   );
 }
 
+// ═══ Top Rail — between stiles, L-shape no slope ═══
+function TopRail({ railWidth, mat, debugColors }) {
+  const len = mm(railWidth);
+
+  // Shape XY: X=depth (0=ext front, 93=int back), Y=face (0=inner/opening, 57=outer/top)
+  // L-shape: EXT 36mm face (Y: 21→57) × 62mm depth, INT 57mm face (Y: 0→57) × 31mm depth
+  const shape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0, mm(REBATE_STEP));                 // ext, rebate level
+    s.lineTo(0, mm(FRAME_FACE));                  // ext, outer (top)
+    s.lineTo(mm(FRAME_DEPTH), mm(FRAME_FACE));    // int, outer (top)
+    s.lineTo(mm(FRAME_DEPTH), 0);                 // int, inner (opening)
+    s.lineTo(mm(EXT_DEPTH), 0);                   // junction, inner
+    s.lineTo(mm(EXT_DEPTH), mm(REBATE_STEP));     // junction, rebate
+    s.closePath();
+    return s;
+  }, []);
+
+  const settings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
+
+  const debugMat = useMemo(() => debugColors
+    ? new THREE.MeshStandardMaterial({ color: '#9b59b6', opacity: 0.85, transparent: true })
+    : null, [debugColors]);
+
+  // rotation [0, PI/2, 0]: shapeX → -worldZ, shapeY → worldY, extrudeZ → worldX
+  return (
+    <mesh castShadow receiveShadow
+      rotation={[0, Math.PI / 2, 0]}
+      position={[-len / 2, 0, halfD]}
+    >
+      <extrudeGeometry args={[shape, settings]} />
+      {debugColors ? <primitive object={debugMat} attach="material" /> : <primitive object={mat} attach="material" />}
+    </mesh>
+  );
+}
+
 // ═══ Main CasementFrame ═══
 export default function CasementFrame({
   width = 800,
@@ -169,7 +205,10 @@ export default function CasementFrame({
         <Stile stileHeight={stileLen} side="right" mat={material} debugColors={debugColors} />
       </group>
 
-      {/* Top rail — TODO: next step */}
+      {/* Top rail — between stiles, at top of frame */}
+      <group position={[0, H / 2 - mm(FRAME_FACE), 0]}>
+        <TopRail railWidth={width - FRAME_FACE * 2} mat={material} debugColors={debugColors} />
+      </group>
     </group>
   );
 }
