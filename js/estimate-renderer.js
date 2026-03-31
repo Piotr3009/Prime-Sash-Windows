@@ -785,11 +785,14 @@ class EstimateRenderer {
     // ─── SVG to PNG helper for PDF export ───
     static svgToImage(svgString, maxW = 200, maxH = 200) {
         return new Promise((resolve) => {
-            // Parse SVG to get viewBox dimensions
+            // Parse SVG to get dimensions
             const parser = new DOMParser();
             const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
             const svgEl = svgDoc.querySelector('svg');
             if (!svgEl) { resolve(null); return; }
+
+            // Ensure SVG has explicit width/height and xmlns
+            if (!svgEl.getAttribute('xmlns')) svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
             const vb = svgEl.getAttribute('viewBox');
             let svgW = parseFloat(svgEl.getAttribute('width')) || 300;
@@ -800,12 +803,22 @@ class EstimateRenderer {
                 svgH = parseFloat(parts[3]) || svgH;
             }
 
-            const scale = Math.min(maxW / svgW, maxH / svgH, 2);
+            // Replace Jost font with sans-serif for standalone rendering
+            let cleanSvg = new XMLSerializer().serializeToString(svgEl);
+            cleanSvg = cleanSvg.replace(/Jost,\s*/g, '');
+
+            // Set explicit pixel dimensions for canvas
+            const scale = 3; // high res
             const cW = Math.round(svgW * scale);
             const cH = Math.round(svgH * scale);
 
-            const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
+            // Inject width/height in px for the image
+            cleanSvg = cleanSvg.replace(/<svg([^>]*)>/, (m, attrs) => {
+                let a = attrs.replace(/width="[^"]*"/g, '').replace(/height="[^"]*"/g, '');
+                return `<svg${a} width="${cW}" height="${cH}">`;
+            });
+
+            const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(cleanSvg);
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
@@ -815,11 +828,10 @@ class EstimateRenderer {
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, cW, cH);
                 ctx.drawImage(img, 0, 0, cW, cH);
-                URL.revokeObjectURL(url);
                 resolve({ data: canvas.toDataURL('image/png'), w: cW, h: cH, origW: svgW, origH: svgH });
             };
-            img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
-            img.src = url;
+            img.onerror = (e) => { console.warn('SVG image load failed:', e); resolve(null); };
+            img.src = dataUrl;
         });
     }
 
@@ -904,10 +916,12 @@ class EstimateRenderer {
                         const pdfH = svgImg.origH * ratio;
                         doc.addImage(svgImg.data, 'PNG', 14, imgBottomY, pdfW, pdfH);
                         imgBottomY = imgBottomY + pdfH + 2;
+                    } else {
+                        R.generateWindowPDF(doc, p, 14, imgBottomY);
+                        imgBottomY += 58;
                     }
                 } catch(e) {
                     console.warn('PDF SVG render failed:', e);
-                    // Fallback to old jsPDF drawing
                     R.generateWindowPDF(doc, p, 14, imgBottomY);
                     imgBottomY += 58;
                 }
