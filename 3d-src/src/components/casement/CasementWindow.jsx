@@ -329,37 +329,41 @@ export default function CasementWindow({
             */}
 
             {(() => {
-              // Bottom rail geometry in world coords
-              // Frame group offset: zCenter = -halfD
-              const zC = -halfD; // frame group Z offset
-              
-              // Ext block center
-              const extCY = -H/2 + fW/2;
-              const extCZ = zC;
-              
-              // Int block center  
-              const intFaceW = fW - reb; // 53mm
-              const intCY = extCY - reb/2;
-              const intCZ = zC - extD/2 - intD/2;
-              
-              // Face positions (center of each face, at X=0 for bottom rail)
+              // Frame group Z offset
+              const zC = -halfD; // -0.0465
+
+              // ─── BOTTOM RAIL actual world positions ───
+              // Ext block center: [0, -H/2+fW/2, zC], size [W, fW, extD]
+              const extFrontZ = zC + extD/2;     // -0.0285 (exterior face)
+              const extBackZ  = zC - extD/2;     // -0.0645 (junction)
+              const extTopY   = -H/2 + fW;       // inner edge
+              const extBotY   = -H/2;            // outer edge
+
+              // Int block center: [0, -H/2+fW/2-reb/2, zC-extD/2-intD/2]
+              const intCZ     = zC - extD/2 - intD/2;  // -0.093
+              const intBackZ  = intCZ - intD/2;         // -0.1215 (room face)
+              const intFrontZ = intCZ + intD/2;         // -0.0645 (junction)
+              const intFW     = fW - reb;               // 0.053
+              const intTopY   = -H/2 + intFW;           // top of int block
+              const intBotY   = -H/2;
+
               const faces = [
-                // F1: Ext front face (+Z)
-                { n: 1, pos: [0, extCY, extCZ + extD/2 + 0.002], desc: 'Ext front', bg: '#e74c3c' },
-                // F2: Ext bottom face (-Y)
-                { n: 2, pos: [0, -H/2 - 0.002, extCZ], desc: 'Ext bottom', bg: '#2980b9' },
-                // F3: Ext top face (+Y, inner edge of ext block)
-                { n: 3, pos: [0, -H/2 + fW + 0.002, extCZ], desc: 'Ext top (inner)', bg: '#27ae60' },
-                // F4: Int bottom face (-Y)
-                { n: 4, pos: [0, -H/2 + fW/2 - intFaceW/2 - 0.002, intCZ], desc: 'Int bottom', bg: '#f39c12' },
-                // F5: Ext back face / junction (-Z side of ext block)
-                { n: 5, pos: [0, extCY, extCZ - extD/2 - 0.002], desc: 'Junction (ext back)', bg: '#9b59b6' },
-                // F6: Int back face (-Z, room side)
-                { n: 6, pos: [0, intCY, intCZ - intD/2 - 0.002], desc: 'Int back (room)', bg: '#e67e22' },
-                // F7: Int top face (+Y, inner edge of int block)
-                { n: 7, pos: [0, intCY + intFaceW/2 + 0.002, intCZ], desc: 'Int top (inner)', bg: '#1abc9c' },
-                // F8: Rebate step horizontal (between ext and int, at junction Z)
-                { n: 8, pos: [0, -H/2 + fW - reb/2, extCZ - extD/2], desc: 'Rebate step', bg: '#c0392b' },
+                // F1: Ext front face — BOTTOM RAIL, exterior side
+                { n: 1, pos: [-W*0.2, -H/2 + fW/2, extFrontZ + 0.005], desc: 'Ext front', bg: '#e74c3c' },
+                // F2: Ext bottom face — BOTTOM RAIL, underneath
+                { n: 2, pos: [W*0.2, extBotY - 0.008, zC], desc: 'Ext bottom', bg: '#2980b9' },
+                // F3: Ext inner top — BOTTOM RAIL, facing opening
+                { n: 3, pos: [0, extTopY + 0.008, zC], desc: 'Ext inner top', bg: '#27ae60' },
+                // F4: Int bottom — BOTTOM RAIL, underneath int block
+                { n: 4, pos: [-W*0.15, intBotY - 0.008, intCZ], desc: 'Int bottom', bg: '#f39c12' },
+                // F5: Junction face — LEFT STILE, where ext meets int
+                { n: 5, pos: [-W/2 + fW/2, H*0.1, extBackZ - 0.005], desc: 'Junction', bg: '#9b59b6' },
+                // F6: Int back (room side) — RIGHT STILE
+                { n: 6, pos: [W/2 - fW/2, -H*0.1, intBackZ - 0.005], desc: 'Int back (room)', bg: '#e67e22' },
+                // F7: Int inner top — TOP RAIL, facing opening
+                { n: 7, pos: [0, H/2 - fW + intFW - 0.001, intCZ], desc: 'Int inner top', bg: '#1abc9c' },
+                // F8: Rebate step — LEFT STILE, horizontal step between ext/int
+                { n: 8, pos: [-W/2 + fW - reb/2, -H*0.2, extBackZ], desc: 'Rebate step', bg: '#c0392b' },
               ];
 
               return faces.map(f => (
@@ -370,17 +374,17 @@ export default function CasementWindow({
                   style={{
                     background: f.bg,
                     color: '#fff',
-                    width: '22px',
-                    height: '22px',
+                    width: '36px',
+                    height: '36px',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '11px',
+                    fontSize: '18px',
                     fontWeight: 'bold',
                     fontFamily: 'monospace',
-                    border: '2px solid #fff',
-                    boxShadow: '0 1px 4px rgba(0,0,0,.4)',
+                    border: '3px solid #fff',
+                    boxShadow: '0 2px 8px rgba(0,0,0,.5)',
                     pointerEvents: 'none',
                     userSelect: 'none',
                     cursor: 'default',
@@ -394,16 +398,16 @@ export default function CasementWindow({
 
             {/* Face legend */}
             <Html
-              position={[W/2 + mm(100), 0, 0]}
+              position={[W/2 + mm(120), 0, 0]}
               style={{
                 background: 'rgba(255,255,255,0.95)',
-                padding: '8px 12px',
-                fontSize: '10px',
+                padding: '12px 16px',
+                fontSize: '14px',
                 fontFamily: 'monospace',
-                lineHeight: '1.6',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                boxShadow: '0 2px 8px rgba(0,0,0,.15)',
+                lineHeight: '1.8',
+                borderRadius: '6px',
+                border: '2px solid #333',
+                boxShadow: '0 4px 12px rgba(0,0,0,.2)',
                 pointerEvents: 'none',
                 userSelect: 'none',
                 whiteSpace: 'pre',
