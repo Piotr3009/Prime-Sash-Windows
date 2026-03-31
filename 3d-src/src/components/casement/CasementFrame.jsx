@@ -181,35 +181,40 @@ function Stile({ frameHeight, side, mat, debugColors }) {
 function Mullion({ startY = 0, endY = 1200, touchesBottom = true, touchesTop = true, mat, debugColors }) {
   const hMm = endY - startY;
   const h = mm(hMm);
+  // When meeting transom (not rail), extend REBATE_STEP into transom's rebate
+  const extendBottom = (!touchesBottom) ? mm(REBATE_STEP) : 0;
+  const extendTop = (!touchesTop) ? mm(REBATE_STEP) : 0;
 
   const extShape = useMemo(() => {
     const s = new THREE.Shape();
     if (touchesBottom) {
+      // Slope matching bottom rail
       s.moveTo(0, mm(BOTTOM_EXT_OUTER));
       s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));
     } else {
-      s.moveTo(0, 0);
-      s.lineTo(mm(EXT_DEPTH), 0);
+      // Flat, but extend into transom rebate
+      s.moveTo(0, -extendBottom);
+      s.lineTo(mm(EXT_DEPTH), -extendBottom);
     }
     if (touchesTop) {
-      const topCut = touchesBottom
-        ? mm(hMm - FRAME_FACE + REBATE_STEP)
-        : mm(hMm - FRAME_FACE + REBATE_STEP);
+      // Flat cut matching top rail
+      const topCut = mm(hMm - FRAME_FACE + REBATE_STEP);
       s.lineTo(mm(EXT_DEPTH), topCut);
       s.lineTo(0, topCut);
     } else {
-      s.lineTo(mm(EXT_DEPTH), h);
-      s.lineTo(0, h);
+      // Flat, but extend into transom rebate
+      s.lineTo(mm(EXT_DEPTH), h + extendTop);
+      s.lineTo(0, h + extendTop);
     }
     s.closePath();
     return s;
-  }, [hMm, touchesBottom, touchesTop]);
+  }, [hMm, touchesBottom, touchesTop, extendBottom, extendTop]);
 
   const extSettings = useMemo(() => ({ depth: mm(MULLION_EXT_FACE), bevelEnabled: false }), []);
 
-  // INT block
-  const intStartY = touchesBottom ? mm(BOTTOM_FACE) : 0;
-  const intEndY = touchesTop ? mm(hMm - FRAME_FACE) : h;
+  // INT block — also extend into transom rebate
+  const intStartY = touchesBottom ? mm(BOTTOM_FACE) : -extendBottom;
+  const intEndY = touchesTop ? mm(hMm - FRAME_FACE) : h + extendTop;
   const intH = Math.max(intEndY - intStartY, 0.001);
 
   const extX = mm(REBATE_STEP);
