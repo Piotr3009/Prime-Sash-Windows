@@ -1,12 +1,14 @@
 /**
  * CasementPanel.jsx
- * Opening sash/leaf for casement window.
- * Profile matches sash windows:
- *   - Chamfer 9×15mm on glazing EXT side
- *   - Ovolo R11 (18×14mm zone) on glazing INT side
- *   - Outer edge: flat (faces frame rebate)
+ * Casement leaf/sash — closed only (opening added later).
+ * 
+ * Profile (cross-section of any member):
+ *   - Outer edge (toward frame): FLAT
+ *   - Glazing edge (toward glass): chamfer 9×15 on EXT, ovolo R11(18×14) on INT
+ *   - Both decorations on glazing side ONLY (identical to sash windows)
+ * 
  * Dims: 64mm face × 57mm depth
- * Bottom rail: slope matching frame's bottom rail
+ * Construction: Rails full width, stiles between rails.
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
@@ -14,164 +16,173 @@ import CasementGlazing from './CasementGlazing';
 
 const mm = (v) => v / 1000;
 
-// Leaf constants
-const SASH_RAIL = 64;    // face width (mm)
-const SASH_DEPTH = 57;   // depth (mm)
+const SASH_RAIL = 64;
+const SASH_DEPTH = 57;
 const MAX_ANGLE = 70;
 
-// Bead constants (identical to sash)
-const EXT_BEAD_W = 9;
-const EXT_BEAD_D = 15;
-const INT_BEAD_W = 18;
-const INT_BEAD_D = 14;
-const INT_BEAD_R = 11;
-const OVOLO_SAMPLES = 16;
+// Bead constants (from sash windows)
+const EBW = mm(9);   // ext chamfer face width
+const EBD = mm(15);  // ext chamfer depth
+const IBW = mm(18);  // int ovolo face width
+const IBD = mm(14);  // int ovolo depth
+const IBR = mm(11);  // int ovolo radius
+const OVOLO_N = 16;  // arc segments
 
-// ─── Build leaf member profile ───
-// u = face direction (0=outer edge, SASH_RAIL=glazing edge)
-// v = depth direction (0=EXT/street, SASH_DEPTH=INT/room)
-// Returns Shape in mm
-function buildLeafShape() {
-  const f = mm(SASH_RAIL);
-  const d = mm(SASH_DEPTH);
-  const ebw = mm(EXT_BEAD_W);
-  const ebd = mm(EXT_BEAD_D);
-  const ibd = mm(INT_BEAD_D);
-  const ibr = mm(INT_BEAD_R);
+const F = mm(SASH_RAIL);  // face
+const D = mm(SASH_DEPTH); // depth
+const halfD = D / 2;
 
-  // Ovolo arc center
-  const arcCU = f - mm(INT_BEAD_R); // face - R
-  const arcCV = d - mm(INT_BEAD_R); // depth - R
-  // Short straight from core step to arc start: 3mm = INT_BEAD_D - INT_BEAD_R
-  const straightEnd = d - ibd + (ibd - ibr); // = d - ibr
+// ─── Shape builders ───
+// All shapes: chamfer on EXT side of glazing, ovolo on INT side of glazing
 
-  const s = new THREE.Shape();
-  // 1. Outer-ext corner
-  s.moveTo(0, 0);
-  // 2. Ext face to chamfer start
-  s.lineTo(f - ebw, 0);
-  // 3. Chamfer (glazing ext)
-  s.lineTo(f, ebd);
-  // 4. Down glazing edge to ovolo zone
-  s.lineTo(f, straightEnd);
-  // 5. Ovolo arc: from (f, straightEnd) to (arcCU, d)
-  //    Center: (arcCU, arcCV) = (f-R, d-R), R = ibr
-  //    Start angle: 0 (pointing right = +u), End angle: PI/2 (pointing down = +v)
-  for (let i = 1; i <= OVOLO_SAMPLES; i++) {
-    const t = i / OVOLO_SAMPLES;
-    const angle = t * Math.PI / 2;
-    const pu = arcCU + Math.cos(angle) * ibr;
-    const pv = arcCV + Math.sin(angle) * ibr;
-    s.lineTo(pu, pv);
+// Ovolo arc points from startPt to endPt around center
+function ovoloArc(cx, cy, r, startAngle, endAngle, n) {
+  const pts = [];
+  for (let i = 1; i <= n; i++) {
+    const t = i / n;
+    const a = startAngle + t * (endAngle - startAngle);
+    pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
   }
-  // 6. Flat on INT face to outer edge
-  s.lineTo(0, d);
+  return pts;
+}
+
+function shapeFromPts(pts) {
+  const s = new THREE.Shape();
+  s.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) s.lineTo(pts[i][0], pts[i][1]);
   s.closePath();
   return s;
 }
 
-// ─── Mirror shape for opposite side ───
-function buildLeafShapeMirrored() {
-  const f = mm(SASH_RAIL);
-  const d = mm(SASH_DEPTH);
-  const ebw = mm(EXT_BEAD_W);
-  const ebd = mm(EXT_BEAD_D);
-  const ibd = mm(INT_BEAD_D);
-  const ibr = mm(INT_BEAD_R);
+// ── Stile shapes ──
+// Shape XY: X=face(0=outer, F=glazing), Y=depth(0=EXT, D=INT)
+// Extrude along Z → height, rotation [-PI/2,0,0]: X→worldX, Y→-worldZ, Z→worldY
 
-  const arcCU = mm(INT_BEAD_R); // mirrored: R from left
-  const arcCV = d - mm(INT_BEAD_R);
-  const straightEnd = d - ibd + (ibd - ibr);
-
-  const s = new THREE.Shape();
-  s.moveTo(f, 0);
-  s.lineTo(ebw, 0);
-  s.lineTo(0, ebd);
-  s.lineTo(0, straightEnd);
-  for (let i = 1; i <= OVOLO_SAMPLES; i++) {
-    const t = i / OVOLO_SAMPLES;
-    const angle = Math.PI / 2 + t * Math.PI / 2;
-    const pu = arcCU + Math.cos(angle) * ibr;
-    const pv = arcCV + Math.sin(angle) * ibr;
-    s.lineTo(pu, pv);
-  }
-  s.lineTo(f, d);
-  s.closePath();
-  return s;
+function buildLeftStileShape() {
+  // Glazing at X=F (right side)
+  const pts = [
+    [0, 0],            // outer-EXT
+    [F - EBW, 0],      // EXT face before chamfer
+    [F, EBD],           // chamfer end (glazing-EXT)
+    [F, D - IBR],       // glazing edge to arc start
+  ];
+  // Ovolo arc: center (F-IBR, D-IBR), from angle 0 to PI/2
+  pts.push(...ovoloArc(F - IBR, D - IBR, IBR, 0, Math.PI / 2, OVOLO_N));
+  pts.push([0, D]);    // INT face to outer
+  return shapeFromPts(pts);
 }
 
-// ═══ SashFrame with profiled members ═══
-function SashFrame({ width, height, extMat, intMat }) {
+function buildRightStileShape() {
+  // Glazing at X=0 (left side) — mirror of left
+  const pts = [
+    [F, 0],             // outer-EXT
+    [EBW, 0],           // EXT face before chamfer
+    [0, EBD],           // chamfer (glazing-EXT)
+    [0, D - IBR],       // glazing edge to arc start
+  ];
+  // Ovolo arc: center (IBR, D-IBR), from PI to PI/2
+  pts.push(...ovoloArc(IBR, D - IBR, IBR, Math.PI, Math.PI / 2, OVOLO_N));
+  pts.push([F, D]);     // INT face to outer
+  return shapeFromPts(pts);
+}
+
+// ── Rail shapes ──
+// Shape XY: X=depth(0=EXT, D=INT), Y=face(0=outer, F=glazing)
+// Extrude along Z → width, rotation [0,PI/2,0]: X→-worldZ, Y→worldY, Z→worldX
+
+function buildBottomRailShape() {
+  // Glazing at Y=F (top)
+  const pts = [
+    [0, 0],             // EXT-outer
+    [0, F - EBW],       // EXT face before chamfer
+    [EBD, F],           // chamfer (EXT-glazing)
+    [D - IBR, F],       // glazing to arc start
+  ];
+  // Ovolo arc: center (D-IBR, F-IBR), from PI/2 to 0
+  pts.push(...ovoloArc(D - IBR, F - IBR, IBR, Math.PI / 2, 0, OVOLO_N));
+  pts.push([D, 0]);     // INT-outer
+  return shapeFromPts(pts);
+}
+
+function buildTopRailShape() {
+  // Glazing at Y=0 (bottom) — mirror of bottom rail (flip Y)
+  const pts = [
+    [0, F],              // EXT-outer
+    [0, EBW],            // EXT face before chamfer
+    [EBD, 0],            // chamfer (EXT-glazing)
+    [D - IBR, 0],        // glazing to arc start
+  ];
+  // Ovolo arc: center (D-IBR, IBR), from -PI/2 to 0 (=3PI/2 to 2PI)
+  pts.push(...ovoloArc(D - IBR, IBR, IBR, -Math.PI / 2, 0, OVOLO_N));
+  pts.push([D, F]);      // INT-outer
+  return shapeFromPts(pts);
+}
+
+// ═══ SashFrame ═══
+function SashFrame({ width, height, mat }) {
   const W = mm(width);
   const H = mm(height);
-  const f = mm(SASH_RAIL);
-  const d = mm(SASH_DEPTH);
-  const halfD = d / 2;
 
-  // Stile height (between rails)
-  const stileH = H - f * 2;
-
-  // Glass opening
+  // Rails full width, stiles between
+  const stileH = H - F * 2;
   const glassW = width - SASH_RAIL * 2;
   const glassH = height - SASH_RAIL * 2;
 
-  // Shapes for stiles: left glazing=right(+X), right glazing=left(-X)
-  const leftStileShape = useMemo(() => buildLeafShape(), []);
-  const rightStileShape = useMemo(() => buildLeafShapeMirrored(), []);
-  // Rails: bottom glazing=up(+Y), top glazing=down(-Y)
-  const bottomRailShape = useMemo(() => buildLeafShape(), []);
-  const topRailShape = useMemo(() => buildLeafShapeMirrored(), []);
+  const lStile = useMemo(() => buildLeftStileShape(), []);
+  const rStile = useMemo(() => buildRightStileShape(), []);
+  const bRail = useMemo(() => buildBottomRailShape(), []);
+  const tRail = useMemo(() => buildTopRailShape(), []);
+
+  const stileSettings = useMemo(() => ({ depth: stileH, bevelEnabled: false }), [stileH]);
+  const railSettings = useMemo(() => ({ depth: W, bevelEnabled: false }), [W]);
 
   return (
     <group>
       {/* ─── Left stile ─── */}
-      {/* Shape XY: X=face(outer→glazing), Y=depth(ext→int) */}
-      {/* Rotation [-PI/2, 0, 0]: X→X, Y→-Z, extrudeZ→+Y */}
-      {/* Position: outer edge at -W/2, bottom at -stileH/2, ext at +halfD */}
+      {/* rotation [-PI/2,0,0]: X→X, Y→-Z, Z→+Y */}
+      {/* X=0 (outer) at -W/2, Y=0 (EXT) at +halfD */}
       <mesh castShadow receiveShadow
         rotation={[-Math.PI / 2, 0, 0]}
         position={[-W / 2, -stileH / 2, halfD]}
       >
-        <extrudeGeometry args={[leftStileShape, { depth: stileH, bevelEnabled: false }]} />
-        <primitive object={extMat} attach="material" />
+        <extrudeGeometry args={[lStile, stileSettings]} />
+        <primitive object={mat} attach="material" />
       </mesh>
 
       {/* ─── Right stile ─── */}
+      {/* X=F (outer) at +W/2, so start at W/2-F */}
       <mesh castShadow receiveShadow
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[W / 2 - f, -stileH / 2, halfD]}
+        position={[W / 2 - F, -stileH / 2, halfD]}
       >
-        <extrudeGeometry args={[rightStileShape, { depth: stileH, bevelEnabled: false }]} />
-        <primitive object={extMat} attach="material" />
+        <extrudeGeometry args={[rStile, stileSettings]} />
+        <primitive object={mat} attach="material" />
       </mesh>
 
       {/* ─── Bottom rail ─── */}
-      {/* Shape XY: X=face(outer→glazing), Y=depth(ext→int) */}
-      {/* Rotation [0, PI/2, 0]: X→-Z, Y→Y, extrudeZ→+X */}
+      {/* rotation [0,PI/2,0]: X→-Z, Y→Y, Z→+X */}
+      {/* X=0 (EXT) at +halfD, Y=0 (outer) at -H/2 */}
       <mesh castShadow receiveShadow
         rotation={[0, Math.PI / 2, 0]}
         position={[-W / 2, -H / 2, halfD]}
       >
-        <extrudeGeometry args={[bottomRailShape, { depth: W, bevelEnabled: false }]} />
-        <primitive object={extMat} attach="material" />
+        <extrudeGeometry args={[bRail, railSettings]} />
+        <primitive object={mat} attach="material" />
       </mesh>
 
       {/* ─── Top rail ─── */}
+      {/* Y=F (outer) at H/2, so start at H/2-F */}
       <mesh castShadow receiveShadow
         rotation={[0, Math.PI / 2, 0]}
-        position={[-W / 2, H / 2 - f, halfD]}
+        position={[-W / 2, H / 2 - F, halfD]}
       >
-        <extrudeGeometry args={[topRailShape, { depth: W, bevelEnabled: false }]} />
-        <primitive object={extMat} attach="material" />
+        <extrudeGeometry args={[tRail, railSettings]} />
+        <primitive object={mat} attach="material" />
       </mesh>
 
       {/* ─── Glazing ─── */}
       {glassW > 0 && glassH > 0 && (
-        <CasementGlazing
-          width={glassW}
-          height={glassH}
-          position={[0, 0, 0]}
-        />
+        <CasementGlazing width={glassW} height={glassH} position={[0, 0, 0]} />
       )}
     </group>
   );
@@ -182,54 +193,17 @@ export default function CasementPanel({
   width = 600,
   height = 900,
   hingeType = 'left',
-  opening = 0.3,
+  opening = 0,
   material,
   materialInt,
-  glassType = 'double',
-  spacerColor = 'silver',
   position = [0, 0, 0],
 }) {
-  const extMat = material;
-  const intMat = materialInt || material;
+  const mat = material;
 
-  const W = mm(width);
-  const H = mm(height);
-  const halfW = W / 2;
-  const halfH = H / 2;
-
-  const angle = (opening * MAX_ANGLE * Math.PI) / 180;
-
-  let pivotPosition, pivotRotation, sashOffset;
-
-  if (hingeType === 'left') {
-    pivotPosition = [position[0] - halfW, position[1], position[2]];
-    pivotRotation = [0, angle, 0];
-    sashOffset = [halfW, 0, 0];
-  } else if (hingeType === 'right') {
-    pivotPosition = [position[0] + halfW, position[1], position[2]];
-    pivotRotation = [0, -angle, 0];
-    sashOffset = [-halfW, 0, 0];
-  } else if (hingeType === 'top') {
-    pivotPosition = [position[0], position[1] + halfH, position[2]];
-    pivotRotation = [angle, 0, 0];
-    sashOffset = [0, -halfH, 0];
-  } else {
-    // Fixed
-    pivotPosition = position;
-    pivotRotation = [0, 0, 0];
-    sashOffset = [0, 0, 0];
-  }
-
+  // For now: always closed (opening later)
   return (
-    <group position={pivotPosition} rotation={pivotRotation}>
-      <group position={sashOffset}>
-        <SashFrame
-          width={width}
-          height={height}
-          extMat={extMat}
-          intMat={intMat}
-        />
-      </group>
+    <group position={position}>
+      <SashFrame width={width} height={height} mat={mat} />
     </group>
   );
 }

@@ -340,7 +340,7 @@ export default function CasementWindow({
             width={p.w}
             height={p.h}
             hingeType={p.hinge}
-            opening={0.15}
+            opening={0}
             material={extMaterial}
             materialInt={intMaterial}
             position={[mm(p.x), mm(p.y) + openingCenterY, leafZ]}
