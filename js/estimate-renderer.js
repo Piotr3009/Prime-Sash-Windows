@@ -157,16 +157,18 @@ class EstimateRenderer {
                     <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${item.quantity} · £${R.formatPrice(item.total_price)} + VAT</span>
                 </div>
 
-                <div style="display:grid;grid-template-columns:${screenshots?.interior ? '180px 180px 1fr' : '220px 1fr'};gap:0;">
-                    <div style="padding:1rem;display:flex;align-items:center;justify-content:center;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);">
-                        ${svg}
+                <div style="display:grid;grid-template-columns:280px 1fr;gap:0;">
+                    <div style="padding:1rem;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);gap:10px;">
+                        ${screenshots?.interior ? `
+                        <div style="text-align:center;">
+                            <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">Interior View</div>
+                            <img src="${screenshots.interior}" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
+                        </div>
+                        ` : ''}
+                        <div style="text-align:center;">
+                            ${svg}
+                        </div>
                     </div>
-                    ${screenshots?.interior ? `
-                    <div style="padding:1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);">
-                        <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">Interior View</div>
-                        <img src="${screenshots.interior}" style="width:160px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
-                    </div>
-                    ` : ''}
                     <div style="padding:1.5rem;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
                             ${fc.sashType && fc.sashType !== 'double' ? R.specRow('Window Type', fc.sashType === 'triple' ? 'Triple Sash' : 'Double Hung') : ''}
@@ -272,80 +274,281 @@ class EstimateRenderer {
 
     // ─── SVG Window Drawing ───
     static generateWindowSVG(item) {
-        const maxW = 180, maxH = 180;
+        const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
+        const fc = spec.fullConfig || spec || {};
+        const sashType = fc.sashType || 'double';
+        const headType = fc.headType || 'flat';
+        const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
+
         const w = item.width || 1000;
         const h = item.height || 1500;
-        const ratio = Math.min(maxW / w, maxH / h);
-        const sw = Math.round(w * ratio);
-        const sh = Math.round(h * ratio);
-        const ox = Math.round((maxW - sw) / 2) + 12;
-        const oy = Math.round((maxH - sh) / 2);
-        const meetingY = Math.round(sh * 0.45);
-        const stroke = 'rgba(10,22,40,.6)';
-        const light = 'rgba(10,22,40,.2)';
-        const frame = 6;
+        const stroke = 'rgba(10,22,40,.7)';
+        const light = 'rgba(10,22,40,.25)';
+        const dimColor = 'rgba(10,22,40,.45)';
+        const dimFont = 'font-family="Jost,sans-serif" font-size="7" fill="' + dimColor + '"';
 
-        const patternDefs = {
-            'none': {h:0,v:0}, '2x2': {h:0,v:1}, '3x3': {h:0,v:2},
-            '4x4': {h:1,v:1}, '6x6': {h:1,v:2}, '9x9': {h:2,v:2},
-            '2-vertical': {h:0,v:2}, '1-vertical': {h:0,v:1}, 'custom': {h:0,v:0}
-        };
-        const upperDiv = patternDefs[item.upper_bars] || {h:0,v:0};
-        const lowerDiv = patternDefs[item.lower_bars] || patternDefs[item.upper_bars] || {h:0,v:0};
+        // Box frame dimensions in mm
+        const boxLeft = 80, boxRight = 80, mullionW = 50;
+        const beadGap = 12; // visual gap for beading
 
-        let bars = '';
-        const innerL = ox + frame;
-        const innerR = ox + sw - frame;
-        const innerW = innerR - innerL;
+        if (sashType === 'triple') {
+            // Parse split ratio
+            let leftR = 0.25, centerR = 0.5, rightR = 0.25;
+            if (splitRatio === '1/3-1/3-1/3') { leftR = 1/3; centerR = 1/3; rightR = 1/3; }
+            else if (splitRatio === '1/5-3/5-1/5') { leftR = 0.2; centerR = 0.6; rightR = 0.2; }
 
-        const upperT = oy + frame;
-        const upperB = oy + meetingY;
-        const upperH = upperB - upperT;
-        for (let i = 1; i <= upperDiv.v; i++) {
-            const x = innerL + innerW * i / (upperDiv.v + 1);
-            bars += `<line x1="${x}" y1="${upperT}" x2="${x}" y2="${upperB}" stroke="${light}" stroke-width="1.5"/>`;
+            const innerTotalMm = w - boxLeft - boxRight - mullionW * 2;
+            const leftMm = Math.round(innerTotalMm * leftR);
+            const centerMm = Math.round(innerTotalMm * centerR);
+            const rightMm = innerTotalMm - leftMm - centerMm;
+
+            // SVG sizing
+            const svgW = 260, svgH = 220;
+            const drawW = 220, drawH = 140;
+            const ox = (svgW - drawW) / 2;
+            const oy = 10;
+            const scale = drawW / w;
+            const sh = Math.round(h * scale);
+            const actualH = Math.min(sh, drawH);
+            const frameW = 2;
+
+            // Scaled positions
+            const sBoxL = Math.round(boxLeft * scale);
+            const sBoxR = Math.round(boxRight * scale);
+            const sMull = Math.round(mullionW * scale);
+            const sLeft = Math.round(leftMm * scale);
+            const sCenter = Math.round(centerMm * scale);
+            const sRight = drawW - sBoxL - sLeft - sMull - sCenter - sMull - sBoxR;
+            const meetingY = Math.round(actualH * 0.47);
+
+            // Arch rise
+            const archRise = headType === 'arch' ? Math.round(Math.min(12, actualH * 0.06)) : 0;
+
+            let svg = '';
+
+            // Outer frame
+            svg += `<rect x="${ox}" y="${oy}" width="${drawW}" height="${actualH}" fill="none" stroke="${stroke}" stroke-width="${frameW}" rx="1"/>`;
+
+            // Meeting rail full width
+            svg += `<line x1="${ox}" y1="${oy + meetingY}" x2="${ox + drawW}" y2="${oy + meetingY}" stroke="${stroke}" stroke-width="2"/>`;
+
+            // Mullions
+            const mull1X = ox + sBoxL + sLeft;
+            const mull2X = mull1X + sMull + sCenter;
+            svg += `<rect x="${mull1X}" y="${oy}" width="${sMull}" height="${actualH}" fill="rgba(10,22,40,.08)" stroke="${stroke}" stroke-width="1"/>`;
+            svg += `<rect x="${mull2X}" y="${oy}" width="${sMull}" height="${actualH}" fill="rgba(10,22,40,.08)" stroke="${stroke}" stroke-width="1"/>`;
+
+            // Glass panels (3 upper + 3 lower)
+            const sections = [
+                { x: ox + sBoxL, w: sLeft, label: 'FIX' },
+                { x: mull1X + sMull, w: sCenter, label: '' },
+                { x: mull2X + sMull, w: sRight, label: 'FIX' }
+            ];
+
+            sections.forEach((sec, i) => {
+                const glassX = sec.x + 2;
+                const glassW = sec.w - 4;
+                const upperT = oy + frameW + 1;
+                const upperH = meetingY - frameW - 2;
+                const lowerT = oy + meetingY + 1;
+                const lowerH = actualH - meetingY - frameW - 1;
+
+                // Upper glass
+                if (headType === 'arch' && archRise > 0) {
+                    const peakY = upperT;
+                    const edgeY = upperT + archRise;
+                    svg += `<path d="M${glassX},${edgeY} Q${glassX + glassW/2},${peakY - archRise} ${glassX + glassW},${edgeY} L${glassX + glassW},${oy + meetingY - 1} L${glassX},${oy + meetingY - 1} Z" fill="rgba(200,220,240,.15)" stroke="${light}" stroke-width="0.5"/>`;
+                } else {
+                    svg += `<rect x="${glassX}" y="${upperT}" width="${glassW}" height="${upperH}" fill="rgba(200,220,240,.15)" stroke="${light}" stroke-width="0.5"/>`;
+                }
+
+                // Lower glass
+                svg += `<rect x="${glassX}" y="${lowerT}" width="${glassW}" height="${lowerH}" fill="rgba(200,220,240,.1)" stroke="${light}" stroke-width="0.5"/>`;
+
+                // FIX labels
+                if (sec.label) {
+                    svg += `<text x="${glassX + glassW/2}" y="${oy + actualH/2 + 2}" ${dimFont} font-size="6" text-anchor="middle" opacity="0.4">${sec.label}</text>`;
+                }
+            });
+
+            // Opening arrow on center lower
+            const centerX = mull1X + sMull + sCenter / 2;
+            svg += `<text x="${centerX}" y="${oy + meetingY + (actualH - meetingY)/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
+
+            // Bars on panels
+            const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
+            const upperBars = patternDefs[item.upper_bars] || {h:0,v:0};
+            const fixBars = patternDefs[fc.fixUpperBars] || {h:0,v:0};
+
+            sections.forEach((sec, i) => {
+                const bars = i === 1 ? upperBars : fixBars;
+                const glassX = sec.x + 2;
+                const glassW = sec.w - 4;
+                const upperT = oy + frameW + 1 + (headType === 'arch' ? archRise : 0);
+                const upperH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
+                for (let j = 1; j <= bars.v; j++) {
+                    const bx = glassX + glassW * j / (bars.v + 1);
+                    svg += `<line x1="${bx}" y1="${upperT}" x2="${bx}" y2="${oy + meetingY - 1}" stroke="${light}" stroke-width="1"/>`;
+                }
+                for (let j = 1; j <= bars.h; j++) {
+                    const by = upperT + upperH * j / (bars.h + 1);
+                    svg += `<line x1="${glassX}" y1="${by}" x2="${glassX + glassW}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+                }
+            });
+
+            // ═══ DIMENSION LINES ═══
+            const dimY = oy + actualH + 8;
+            const dimY2 = dimY + 14;
+            const tickH = 4;
+
+            // Overall width dimension
+            svg += `<line x1="${ox}" y1="${dimY}" x2="${ox + drawW}" y2="${dimY}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${ox}" y1="${dimY - tickH}" x2="${ox}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${ox + drawW}" y1="${dimY - tickH}" x2="${ox + drawW}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<text x="${ox + drawW/2}" y="${dimY - 3}" ${dimFont} text-anchor="middle">${w}mm</text>`;
+
+            // Detailed dims below
+            const dims = [
+                { w: sBoxL, label: boxLeft },
+                { w: sLeft, label: leftMm },
+                { w: sMull, label: mullionW },
+                { w: sCenter, label: centerMm },
+                { w: sMull, label: mullionW },
+                { w: sRight, label: rightMm },
+                { w: sBoxR, label: boxRight }
+            ];
+            let cx = ox;
+            dims.forEach(d => {
+                svg += `<line x1="${cx}" y1="${dimY2 - tickH/2}" x2="${cx}" y2="${dimY2 + tickH/2}" stroke="${dimColor}" stroke-width="0.4"/>`;
+                svg += `<line x1="${cx}" y1="${dimY2}" x2="${cx + d.w}" y2="${dimY2}" stroke="${dimColor}" stroke-width="0.4"/>`;
+                if (d.w > 8) {
+                    svg += `<text x="${cx + d.w/2}" y="${dimY2 + 9}" ${dimFont} font-size="5.5" text-anchor="middle">${d.label}</text>`;
+                }
+                cx += d.w;
+            });
+            svg += `<line x1="${cx}" y1="${dimY2 - tickH/2}" x2="${cx}" y2="${dimY2 + tickH/2}" stroke="${dimColor}" stroke-width="0.4"/>`;
+
+            // Height dimension (right side)
+            const hDimX = ox + drawW + 10;
+            svg += `<line x1="${hDimX}" y1="${oy}" x2="${hDimX}" y2="${oy + actualH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${hDimX - tickH}" y1="${oy}" x2="${hDimX + tickH}" y2="${oy}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${hDimX - tickH}" y1="${oy + actualH}" x2="${hDimX + tickH}" y2="${oy + actualH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<text x="${hDimX + 3}" y="${oy + actualH/2 + 2}" ${dimFont} transform="rotate(90,${hDimX + 3},${oy + actualH/2})">${h}mm</text>`;
+
+            return `<svg width="${svgW}" height="${dimY2 + 18}" viewBox="0 0 ${svgW} ${dimY2 + 18}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
+
+        } else {
+            // ═══ DOUBLE / ARCHED DOUBLE ═══
+            const svgW = 220, drawH = 160;
+            const innerMm = w - boxLeft - boxRight;
+            const scale = 160 / w;
+            const drawW = Math.round(w * scale);
+            const sh = Math.min(Math.round(h * scale), drawH);
+            const ox = (svgW - drawW) / 2;
+            const oy = 10;
+            const sBoxL = Math.round(boxLeft * scale);
+            const sBoxR = Math.round(boxRight * scale);
+            const meetingY = Math.round(sh * 0.47);
+            const frameW = 2;
+
+            const archRise = headType === 'arch' ? Math.round(Math.min(15, sh * 0.06)) : 0;
+
+            let svg = '';
+
+            // Outer frame
+            svg += `<rect x="${ox}" y="${oy}" width="${drawW}" height="${sh}" fill="none" stroke="${stroke}" stroke-width="${frameW}" rx="1"/>`;
+
+            // Meeting rail
+            svg += `<line x1="${ox}" y1="${oy + meetingY}" x2="${ox + drawW}" y2="${oy + meetingY}" stroke="${stroke}" stroke-width="2.5"/>`;
+
+            // Glass
+            const glassX = ox + sBoxL + 1;
+            const glassW = drawW - sBoxL - sBoxR - 2;
+            const upperT = oy + frameW + 1;
+            const lowerT = oy + meetingY + 1;
+            const lowerH = sh - meetingY - frameW - 1;
+
+            if (headType === 'arch' && archRise > 0) {
+                const edgeY = upperT + archRise;
+                svg += `<path d="M${glassX},${edgeY} Q${glassX + glassW/2},${upperT - archRise} ${glassX + glassW},${edgeY} L${glassX + glassW},${oy + meetingY - 1} L${glassX},${oy + meetingY - 1} Z" fill="rgba(200,220,240,.12)" stroke="${light}" stroke-width="0.5"/>`;
+            } else {
+                const upperH = meetingY - frameW - 2;
+                svg += `<rect x="${glassX}" y="${upperT}" width="${glassW}" height="${upperH}" fill="rgba(200,220,240,.12)" stroke="${light}" stroke-width="0.5"/>`;
+            }
+            svg += `<rect x="${glassX}" y="${lowerT}" width="${glassW}" height="${lowerH}" fill="rgba(200,220,240,.08)" stroke="${light}" stroke-width="0.5"/>`;
+
+            // Bars
+            const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
+            const upperBars = patternDefs[item.upper_bars] || {h:0,v:0};
+            const lowerBars = patternDefs[item.lower_bars] || patternDefs[item.upper_bars] || {h:0,v:0};
+            const bUpperT = upperT + (headType === 'arch' ? archRise : 0);
+            const bUpperH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
+
+            for (let i = 1; i <= upperBars.v; i++) {
+                const x = glassX + glassW * i / (upperBars.v + 1);
+                svg += `<line x1="${x}" y1="${bUpperT}" x2="${x}" y2="${oy + meetingY - 1}" stroke="${light}" stroke-width="1.2"/>`;
+            }
+            for (let i = 1; i <= upperBars.h; i++) {
+                const y = bUpperT + bUpperH * i / (upperBars.h + 1);
+                svg += `<line x1="${glassX}" y1="${y}" x2="${glassX + glassW}" y2="${y}" stroke="${light}" stroke-width="1.2"/>`;
+            }
+            for (let i = 1; i <= lowerBars.v; i++) {
+                const x = glassX + glassW * i / (lowerBars.v + 1);
+                svg += `<line x1="${x}" y1="${lowerT}" x2="${x}" y2="${lowerT + lowerH}" stroke="${light}" stroke-width="1.2"/>`;
+            }
+            for (let i = 1; i <= lowerBars.h; i++) {
+                const y = lowerT + lowerH * i / (lowerBars.h + 1);
+                svg += `<line x1="${glassX}" y1="${y}" x2="${glassX + glassW}" y2="${y}" stroke="${light}" stroke-width="1.2"/>`;
+            }
+
+            // Opening arrows
+            const arrowX = ox + drawW + 14;
+            if (item.opening_type === 'both') {
+                svg += `<text x="${arrowX}" y="${oy + meetingY/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↑</text>`;
+                svg += `<text x="${arrowX}" y="${oy + meetingY + lowerH/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
+            } else if (item.opening_type === 'bottom') {
+                svg += `<text x="${arrowX}" y="${oy + meetingY + lowerH/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
+            } else if (item.opening_type === 'fixed') {
+                svg += `<text x="${arrowX}" y="${oy + sh/2 + 3}" font-family="Jost,sans-serif" font-size="7" fill="rgba(10,22,40,.3)" text-anchor="middle">FIX</text>`;
+            }
+
+            // ═══ DIMENSION LINES ═══
+            const dimY = oy + sh + 8;
+            const dimY2 = dimY + 14;
+            const tickH = 4;
+
+            // Overall width
+            svg += `<line x1="${ox}" y1="${dimY}" x2="${ox + drawW}" y2="${dimY}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${ox}" y1="${dimY - tickH}" x2="${ox}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${ox + drawW}" y1="${dimY - tickH}" x2="${ox + drawW}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<text x="${ox + drawW/2}" y="${dimY - 3}" ${dimFont} text-anchor="middle">${w}mm</text>`;
+
+            // Detailed dims: box | opening | box
+            const dims = [
+                { w: sBoxL, label: boxLeft },
+                { w: drawW - sBoxL - sBoxR, label: innerMm },
+                { w: sBoxR, label: boxRight }
+            ];
+            let cx = ox;
+            dims.forEach(d => {
+                svg += `<line x1="${cx}" y1="${dimY2 - tickH/2}" x2="${cx}" y2="${dimY2 + tickH/2}" stroke="${dimColor}" stroke-width="0.4"/>`;
+                svg += `<line x1="${cx}" y1="${dimY2}" x2="${cx + d.w}" y2="${dimY2}" stroke="${dimColor}" stroke-width="0.4"/>`;
+                if (d.w > 10) {
+                    svg += `<text x="${cx + d.w/2}" y="${dimY2 + 9}" ${dimFont} font-size="5.5" text-anchor="middle">${d.label}</text>`;
+                }
+                cx += d.w;
+            });
+            svg += `<line x1="${cx}" y1="${dimY2 - tickH/2}" x2="${cx}" y2="${dimY2 + tickH/2}" stroke="${dimColor}" stroke-width="0.4"/>`;
+
+            // Height
+            const hDimX = ox + drawW + 24;
+            svg += `<line x1="${hDimX}" y1="${oy}" x2="${hDimX}" y2="${oy + sh}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${hDimX - tickH}" y1="${oy}" x2="${hDimX + tickH}" y2="${oy}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${hDimX - tickH}" y1="${oy + sh}" x2="${hDimX + tickH}" y2="${oy + sh}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<text x="${hDimX + 3}" y="${oy + sh/2 + 2}" ${dimFont} transform="rotate(90,${hDimX + 3},${oy + sh/2})">${h}mm</text>`;
+
+            return `<svg width="${svgW}" height="${dimY2 + 18}" viewBox="0 0 ${svgW} ${dimY2 + 18}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
         }
-        for (let i = 1; i <= upperDiv.h; i++) {
-            const y = upperT + upperH * i / (upperDiv.h + 1);
-            bars += `<line x1="${innerL}" y1="${y}" x2="${innerR}" y2="${y}" stroke="${light}" stroke-width="1.5"/>`;
-        }
-
-        const lowerT = oy + meetingY;
-        const lowerB = oy + sh - frame;
-        const lowerH = lowerB - lowerT;
-        for (let i = 1; i <= lowerDiv.v; i++) {
-            const x = innerL + innerW * i / (lowerDiv.v + 1);
-            bars += `<line x1="${x}" y1="${lowerT}" x2="${x}" y2="${lowerB}" stroke="${light}" stroke-width="1.5"/>`;
-        }
-        for (let i = 1; i <= lowerDiv.h; i++) {
-            const y = lowerT + lowerH * i / (lowerDiv.h + 1);
-            bars += `<line x1="${innerL}" y1="${y}" x2="${innerR}" y2="${y}" stroke="${light}" stroke-width="1.5"/>`;
-        }
-
-        let arrows = '';
-        const arrowX = ox + sw + 12;
-        if (item.opening_type === 'both') {
-            arrows += `<text x="${arrowX}" y="${oy + meetingY/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↑</text>`;
-            arrows += `<text x="${arrowX}" y="${oy + meetingY + (sh - meetingY)/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
-        } else if (item.opening_type === 'bottom') {
-            arrows += `<text x="${arrowX}" y="${oy + meetingY + (sh - meetingY)/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
-        } else if (item.opening_type === 'fixed') {
-            arrows += `<text x="${arrowX}" y="${oy + sh/2 + 3}" font-family="Jost,sans-serif" font-size="7" fill="rgba(10,22,40,.3)" text-anchor="middle">FIX</text>`;
-        }
-
-        const dimW = `<text x="${ox + sw/2}" y="${oy + sh + 14}" font-family="Jost,sans-serif" font-size="8" fill="rgba(10,22,40,.4)" text-anchor="middle">${w}mm</text>`;
-        const dimH = `<text x="${ox - 10}" y="${oy + sh/2}" font-family="Jost,sans-serif" font-size="8" fill="rgba(10,22,40,.4)" text-anchor="middle" transform="rotate(-90,${ox - 10},${oy + sh/2})">${h}mm</text>`;
-
-        return `<svg width="${maxW + 30}" height="${maxH + 20}" viewBox="0 0 ${maxW + 30} ${maxH + 20}" xmlns="http://www.w3.org/2000/svg">
-            <rect x="${ox}" y="${oy}" width="${sw}" height="${sh}" fill="none" stroke="${stroke}" stroke-width="2" rx="1"/>
-            <rect x="${innerL}" y="${upperT}" width="${innerW}" height="${upperH}" fill="rgba(200,220,240,.12)" stroke="${light}" stroke-width="0.5"/>
-            <rect x="${innerL}" y="${lowerT}" width="${innerW}" height="${lowerH}" fill="rgba(200,220,240,.08)" stroke="${light}" stroke-width="0.5"/>
-            <line x1="${ox}" y1="${oy + meetingY}" x2="${ox + sw}" y2="${oy + meetingY}" stroke="${stroke}" stroke-width="2.5"/>
-            ${bars}
-            ${arrows}
-            ${dimW}
-            ${dimH}
-        </svg>`;
     }
 
     // ─── PDF Window Drawing ───
