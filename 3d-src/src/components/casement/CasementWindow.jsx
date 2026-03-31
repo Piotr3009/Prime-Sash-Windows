@@ -28,7 +28,7 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
-import CasementFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, mm } from './CasementFrame';
+import CasementFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, GASKET_T, mm } from './CasementFrame';
 import CasementPanel, { SASH_RAIL } from './CasementPanel';
 
 // ─── Layout definitions ───
@@ -330,15 +330,24 @@ export default function CasementWindow({
 
       {/* ─── Panels (leaves) ─── */}
       {layoutDef.panels && layoutDef.panels.map((p, i) => {
-        // Panel Z: leaf sits in rebate zone
-        const leafZ = halfD - mm(EXT_DEPTH) + mm(57) / 2;
+        // Leaf sits ON gasket, flush with exterior
+        // leafZ = frame ext face - half leaf depth
+        // = halfD - mm(57)/2... but must account for gasket lifting it
+        // Rebate face Z = halfD - mm(EXT_DEPTH) 
+        // Gasket top = rebate + mm(GASKET_T)
+        // Leaf INT face on gasket → leaf center = gasket top + mm(57)/2
+        const leafZ = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
+        // 4mm gap between leaf and frame on each side
+        const leafGap = 4; // mm per side
+        const leafW = p.w - leafGap * 2;
+        const leafH = p.h - leafGap * 2;
         // Opening center Y offset (bottom rail taller than top rail)
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
         return (
           <CasementPanel
             key={`panel-${i}`}
-            width={p.w}
-            height={p.h}
+            width={leafW}
+            height={leafH}
             hingeType={p.hinge}
             opening={0}
             material={extMaterial}
