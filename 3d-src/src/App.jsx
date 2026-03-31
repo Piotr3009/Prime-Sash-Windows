@@ -501,12 +501,8 @@ function ScreenshotHelper() {
           return dataUrl;
         };
 
-        // Front view (exterior) — slight 8° angle for depth
+        // Interior view only — slight 8° angle for depth
         const angleRad = 8 * Math.PI / 180;
-        const frontPos = new THREE.Vector3(Math.sin(angleRad) * distance, 0.22, Math.cos(angleRad) * distance);
-        const frontRaw = capture(frontPos);
-
-        // Back view (interior) — mirrored angle
         const backPos = new THREE.Vector3(-Math.sin(angleRad) * distance, 0.22, -Math.cos(angleRad) * distance);
         const backRaw = capture(backPos);
 
@@ -517,11 +513,8 @@ function ScreenshotHelper() {
         gl.render(scene, camera);
 
         // Resize to max 600px for storage efficiency
-        Promise.all([
-          resize(frontRaw, 600, 600),
-          resize(backRaw, 600, 600)
-        ]).then(([front, back]) => {
-          resolve({ front, back });
+        resize(backRaw, 600, 600).then((interior) => {
+          resolve({ interior });
         });
       });
     };

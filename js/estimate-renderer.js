@@ -141,7 +141,8 @@ class EstimateRenderer {
             const p = R.parseItem(item);
             const svg = R.generateWindowSVG(item);
             const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
-            const screenshots = item.screenshots || spec.screenshots || spec.fullConfig?.screenshots || null;
+            const fc = spec.fullConfig || spec || {};
+            const screenshots = item.screenshots || spec.screenshots || fc.screenshots || null;
 
             return `
             <div style="background:var(--cream2);border:1px solid rgba(158,158,144,.15);margin-bottom:1.5rem;padding:0;border-radius:2px;overflow:hidden;">
@@ -156,33 +157,34 @@ class EstimateRenderer {
                     <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${item.quantity} · £${R.formatPrice(item.total_price)} + VAT</span>
                 </div>
 
-                <div style="display:grid;grid-template-columns:220px 1fr;gap:0;">
-                    <div style="padding:1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);gap:8px;">
-                        ${screenshots?.front ? `
-                            <div style="text-align:center;">
-                                <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">Exterior</div>
-                                <img src="${screenshots.front}" style="max-width:200px;max-height:180px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">Interior</div>
-                                <img src="${screenshots.back}" style="max-width:200px;max-height:180px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
-                            </div>
-                        ` : svg}
+                <div style="display:grid;grid-template-columns:${screenshots?.interior ? '180px 180px 1fr' : '220px 1fr'};gap:0;">
+                    <div style="padding:1rem;display:flex;align-items:center;justify-content:center;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);">
+                        ${svg}
                     </div>
+                    ${screenshots?.interior ? `
+                    <div style="padding:1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);">
+                        <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">Interior View</div>
+                        <img src="${screenshots.interior}" style="width:160px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
+                    </div>
+                    ` : ''}
                     <div style="padding:1.5rem;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
+                            ${fc.sashType && fc.sashType !== 'double' ? R.specRow('Window Type', fc.sashType === 'triple' ? 'Triple Sash' : 'Double Hung') : ''}
+                            ${fc.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
+                            ${fc.splitRatio && fc.sashType === 'triple' ? R.specRow('Split Ratio', fc.splitRatio) : ''}
                             ${item.original_width && item.original_height && (item.original_width !== item.width || item.original_height !== item.height) 
-                                ? R.specRow('Window Size (Frame)', `${item.width}mm × ${item.height}mm`) + R.specRow('Structural Opening (Brick-to-Brick)', `${item.original_width}mm × ${item.original_height}mm`)
+                                ? R.specRow('Window Size (Frame)', `${item.width}mm × ${item.height}mm`) + R.specRow('Structural Opening', `${item.original_width}mm × ${item.original_height}mm`)
                                 : R.specRow('Dimensions', `${item.width}mm × ${item.height}mm`)}
                             ${R.specRow('Frame', `${item.frame_type || 'standard'} (164mm)`)}
                             ${R.specRow('Opening', p.openingText)}
                             ${R.specRow('Glass', `${item.glass_type || 'double'}${item.glass_type === 'double' ? ' (4/16/4, U:1.4)' : item.glass_type === 'triple' ? ' (Triple)' : ''}`)}
-                            ${item.glass_spec ? R.specRow('Glass Spec', item.glass_spec) : ''}
+                            ${item.glass_spec ? R.specRow('Glass Spec', item.glass_spec === 'toughened' ? 'Toughened' : 'Laminated') : ''}
                             ${R.specRow('Spacer Bar', p.spacerText)}
                             ${p.glassFinish !== 'clear' ? R.specRow('Glass Finish', p.glassFinish) : ''}
-                            ${p.showFrosted ? R.specRow('Frosted', item.frosted_location) : ''}
+                            ${p.showFrosted ? R.specRow('Frosted', item.frosted_location === 'both' ? 'Both Sashes' : 'Bottom Only') : ''}
                             ${R.specRow('Colour', p.colorDisplay)}
                             ${item.upper_bars && item.upper_bars !== 'none' ? R.specRow('Georgian Bars', `Upper: ${item.upper_bars}, Lower: ${item.lower_bars || item.upper_bars}`) : R.specRow('Georgian Bars', 'None')}
+                            ${fc.fixUpperBars && fc.fixUpperBars !== 'none' ? R.specRow('Fix Panel Bars', `Upper: ${fc.fixUpperBars}, Lower: ${fc.fixLowerBars || fc.fixUpperBars}`) : ''}
                             ${R.specRow('PAS24', item.pas24 ? 'Yes ✓' : 'No')}
                             ${p.horns !== 'none' ? R.specRow('Horns', p.hornsText) : R.specRow('Horns', 'None')}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
