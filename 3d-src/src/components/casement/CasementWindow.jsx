@@ -54,6 +54,10 @@ function getLayout(code, innerW, innerH) {
       return {
         panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'top' }],
       };
+    case '040D':
+      return {
+        panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'fixed' }],
+      };
 
     // ─── DOUBLE SIDE-BY-SIDE ───
     case '120': {
