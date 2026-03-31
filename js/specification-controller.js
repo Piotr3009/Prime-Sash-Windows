@@ -272,6 +272,7 @@ class SpecificationController {
 
         const name = option.dataset.name;
         const color = option.dataset.color;
+        const ral = option.dataset.ral || '';
         const hex = colorHexMap[color] || option.style.backgroundColor;
         document.getElementById('single-preview-name').textContent = name;
         document.getElementById('single-preview-ral').textContent = hex || color;
@@ -279,6 +280,7 @@ class SpecificationController {
         if (window.currentConfig) {
           window.currentConfig.colorSingle = color;
           window.currentConfig.colorSingleName = name;
+          window.currentConfig.colorSingleRal = ral;
           window.currentConfig.colorType = 'single';
         }
 
@@ -309,6 +311,7 @@ class SpecificationController {
         if (window.currentConfig) {
           window.currentConfig.colorInterior = color;
           window.currentConfig.colorInteriorName = name;
+          window.currentConfig.colorInteriorRal = ral;
           window.currentConfig.colorType = 'dual';
         }
 
@@ -338,6 +341,7 @@ class SpecificationController {
         if (window.currentConfig) {
           window.currentConfig.colorExterior = color;
           window.currentConfig.colorExteriorName = name;
+          window.currentConfig.colorExteriorRal = ral;
           window.currentConfig.colorType = 'dual';
         }
 
@@ -479,6 +483,7 @@ class SpecificationController {
           document.getElementById('single-preview-ral').textContent = hex;
           if (window.currentConfig) {
             window.currentConfig.colorSingleName = text;
+            window.currentConfig.colorSingleRal = 'F&B ' + text;
             window.currentConfig.colorType = 'single';
             window.currentConfig.colorSingle = 'custom';
           }
@@ -486,12 +491,14 @@ class SpecificationController {
           document.getElementById('dual-preview-interior').textContent = text + ' (' + hex + ')';
           if (window.currentConfig) {
             window.currentConfig.colorInteriorName = text;
+            window.currentConfig.colorInteriorRal = 'F&B ' + text;
             window.currentConfig.colorType = 'dual';
           }
         } else if (target === 'exterior') {
           document.getElementById('dual-preview-exterior').textContent = text + ' (' + hex + ')';
           if (window.currentConfig) {
             window.currentConfig.colorExteriorName = text;
+            window.currentConfig.colorExteriorRal = 'F&B ' + text;
             window.currentConfig.colorType = 'dual';
           }
         }
@@ -520,13 +527,13 @@ class SpecificationController {
           if (target === 'single') {
             document.getElementById('single-preview-name').textContent = 'RAL ' + key;
             document.getElementById('single-preview-ral').textContent = hex;
-            if (window.currentConfig) { window.currentConfig.colorSingleName = 'RAL ' + key; window.currentConfig.colorSingle = 'custom'; window.currentConfig.colorType = 'single'; }
+            if (window.currentConfig) { window.currentConfig.colorSingleName = 'RAL ' + key; window.currentConfig.colorSingleRal = 'RAL ' + key; window.currentConfig.colorSingle = 'custom'; window.currentConfig.colorType = 'single'; }
           } else if (target === 'interior') {
             document.getElementById('dual-preview-interior').textContent = 'RAL ' + key + ' (' + hex + ')';
-            if (window.currentConfig) { window.currentConfig.colorInteriorName = 'RAL ' + key; window.currentConfig.colorType = 'dual'; }
+            if (window.currentConfig) { window.currentConfig.colorInteriorName = 'RAL ' + key; window.currentConfig.colorInteriorRal = 'RAL ' + key; window.currentConfig.colorType = 'dual'; }
           } else if (target === 'exterior') {
             document.getElementById('dual-preview-exterior').textContent = 'RAL ' + key + ' (' + hex + ')';
-            if (window.currentConfig) { window.currentConfig.colorExteriorName = 'RAL ' + key; window.currentConfig.colorType = 'dual'; }
+            if (window.currentConfig) { window.currentConfig.colorExteriorName = 'RAL ' + key; window.currentConfig.colorExteriorRal = 'RAL ' + key; window.currentConfig.colorType = 'dual'; }
           }
           // Trigger price recalculation + spec update
           if (window.configuratorCore && window.configuratorCore.isInitialized) {
@@ -903,8 +910,12 @@ class SpecificationController {
         // ✅ AKTUALIZUJ window.currentConfig
         if (window.currentConfig) {
           window.currentConfig.colorType = 'single';
-          window.currentConfig.colorSingle = selectedColor.dataset.color; // data-color value
-          window.currentConfig.colorSingleName = name; // display name
+          window.currentConfig.colorSingle = selectedColor.dataset.color;
+          window.currentConfig.colorSingleName = name;
+          // Preserve existing RAL if custom swatch, otherwise use swatch RAL
+          if (selectedColor.dataset.color !== 'custom') {
+            window.currentConfig.colorSingleRal = ral;
+          }
           window.currentConfig.colorInterior = null;
           window.currentConfig.colorExterior = null;
           window.currentConfig.customExteriorColor = null;
@@ -938,10 +949,17 @@ class SpecificationController {
         if (window.currentConfig) {
           window.currentConfig.colorType = 'dual';
           window.currentConfig.colorSingle = null;
-          window.currentConfig.colorInterior = selectedInterior.dataset.color; // data-color value
-          window.currentConfig.colorInteriorName = intName; // display name
-          window.currentConfig.colorExterior = selectedExterior.dataset.color; // data-color value  
-          window.currentConfig.colorExteriorName = extName; // display name
+          window.currentConfig.colorInterior = selectedInterior.dataset.color;
+          window.currentConfig.colorInteriorName = intName;
+          // Preserve existing RAL if custom, otherwise use swatch RAL
+          if (selectedInterior.dataset.color !== 'custom') {
+            window.currentConfig.colorInteriorRal = intRal;
+          }
+          window.currentConfig.colorExterior = selectedExterior.dataset.color;
+          window.currentConfig.colorExteriorName = extName;
+          if (selectedExterior.dataset.color !== 'custom') {
+            window.currentConfig.colorExteriorRal = extRal;
+          }
           window.currentConfig.customExteriorColor = extName === 'Custom' ? extName : null;
         }
       }

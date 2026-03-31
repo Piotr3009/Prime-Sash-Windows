@@ -88,13 +88,21 @@ class EstimateRenderer {
         // COLOR
         const colorType = fc.colorType || item.color_type || 'single';
         let colorDisplay = '';
+        const formatColor = (name, ral) => {
+            if (!name || name === 'white') return 'Pure White (RAL 9016)';
+            if (name === 'Pure White') return 'Pure White (RAL 9016)';
+            if (ral && ral.startsWith('F&B')) return `${name} (Farrow & Ball)`;
+            if (ral && ral.startsWith('RAL') && !name.startsWith('RAL')) return `${name} (${ral})`;
+            if (name.startsWith('RAL')) return name;
+            if (ral) return `${name} (${ral})`;
+            return name;
+        };
         if (colorType === 'single') {
-            const name = fc.colorSingleName || item.color_single || 'Pure White';
-            colorDisplay = (name === 'white' || name === 'Pure White') ? 'Pure White' : name;
+            colorDisplay = formatColor(fc.colorSingleName || item.color_single, fc.colorSingleRal);
         } else {
-            const extName = fc.colorExteriorName || item.color_exterior || '—';
-            const intName = fc.colorInteriorName || item.color_interior || '—';
-            colorDisplay = `Ext: ${extName} / Int: ${intName}`;
+            const extDisplay = formatColor(fc.colorExteriorName || item.color_exterior, fc.colorExteriorRal);
+            const intDisplay = formatColor(fc.colorInteriorName || item.color_interior, fc.colorInteriorRal);
+            colorDisplay = `Ext: ${extDisplay} / Int: ${intDisplay}`;
         }
 
         // BARS (center sash)
