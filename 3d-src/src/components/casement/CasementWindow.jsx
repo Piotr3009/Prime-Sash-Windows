@@ -212,8 +212,7 @@ export default function CasementWindow({
         transoms={layoutDef.transoms || []}
       />
 
-      {/* Panels */}
-      {layoutDef.panels.map((panel, i) => (
+      {/* Panels — TODO: add back step by step
         <CasementPanel
           key={i}
           width={panel.w}
@@ -226,7 +225,7 @@ export default function CasementWindow({
           spacerColor={spacerColor}
           position={[mm(panel.x), mm(panel.y), -mm(FRAME_DEPTH) / 2]}
         />
-      ))}
+      */}
 
       {/* Dimension guides */}
       {showGuides && (
