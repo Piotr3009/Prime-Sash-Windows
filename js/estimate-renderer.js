@@ -782,6 +782,47 @@ class EstimateRenderer {
         return { ...p, ironText };
     }
 
+    // ─── SVG to PNG helper for PDF export ───
+    static svgToImage(svgString, maxW = 200, maxH = 200) {
+        return new Promise((resolve) => {
+            // Parse SVG to get viewBox dimensions
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
+            const svgEl = svgDoc.querySelector('svg');
+            if (!svgEl) { resolve(null); return; }
+
+            const vb = svgEl.getAttribute('viewBox');
+            let svgW = parseFloat(svgEl.getAttribute('width')) || 300;
+            let svgH = parseFloat(svgEl.getAttribute('height')) || 300;
+            if (vb) {
+                const parts = vb.split(/[\s,]+/);
+                svgW = parseFloat(parts[2]) || svgW;
+                svgH = parseFloat(parts[3]) || svgH;
+            }
+
+            const scale = Math.min(maxW / svgW, maxH / svgH, 2);
+            const cW = Math.round(svgW * scale);
+            const cH = Math.round(svgH * scale);
+
+            const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = cW;
+                canvas.height = cH;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, cW, cH);
+                ctx.drawImage(img, 0, 0, cW, cH);
+                URL.revokeObjectURL(url);
+                resolve({ data: canvas.toDataURL('image/png'), w: cW, h: cH, origW: svgW, origH: svgH });
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+            img.src = url;
+        });
+    }
+
     // ─── Download PDF ───
     static async downloadEstimatePDF(estimate) {
         const R = EstimateRenderer;
@@ -823,23 +864,56 @@ class EstimateRenderer {
             yPos += 12;
 
             // Per-window
-            estimate.estimate_items?.forEach((item) => {
+            for (const item of (estimate.estimate_items || [])) {
                 const p = R.parseItemForExport(item);
 
-                if (yPos > 200) { doc.addPage(); yPos = 20; }
+                if (yPos > 160) { doc.addPage(); yPos = 20; }
 
                 doc.setFontSize(11);
                 doc.setTextColor(10, 22, 40);
                 const typeLabel = p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
                 const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
                 doc.text(`Window ${item.window_number} — ${typeLabel}${headLabel} (Qty: ${p.quantity})`, 14, yPos);
-                yPos += 3;
+                yPos += 5;
 
                 const drawStartY = yPos;
-                R.generateWindowPDF(doc, p, 14, yPos);
+                let imgBottomY = yPos;
 
+                // 3D Screenshot (if available)
+                const screenshots = p.fc.screenshots || p.spec.screenshots || item.screenshots || null;
+                if (screenshots?.interior) {
+                    try {
+                        const imgW = 55;
+                        const imgH = 42;
+                        doc.addImage(screenshots.interior, 'JPEG', 14, yPos, imgW, imgH);
+                        imgBottomY = yPos + imgH + 2;
+                    } catch(e) {
+                        console.warn('PDF screenshot failed:', e);
+                    }
+                }
+
+                // SVG Technical Drawing → PNG
+                try {
+                    const svgString = R.generateWindowSVG(item);
+                    const svgImg = await R.svgToImage(svgString, 400, 400);
+                    if (svgImg) {
+                        const maxPdfW = 55;
+                        const maxPdfH = 50;
+                        const ratio = Math.min(maxPdfW / svgImg.origW, maxPdfH / svgImg.origH);
+                        const pdfW = svgImg.origW * ratio;
+                        const pdfH = svgImg.origH * ratio;
+                        doc.addImage(svgImg.data, 'PNG', 14, imgBottomY, pdfW, pdfH);
+                        imgBottomY = imgBottomY + pdfH + 2;
+                    }
+                } catch(e) {
+                    console.warn('PDF SVG render failed:', e);
+                    // Fallback to old jsPDF drawing
+                    R.generateWindowPDF(doc, p, 14, imgBottomY);
+                    imgBottomY += 58;
+                }
+
+                // Spec table on the right
                 const rows = [];
-                // Dimensions
                 if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
                     rows.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
                     rows.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
@@ -875,7 +949,7 @@ class EstimateRenderer {
                 );
 
                 doc.autoTable({
-                    startY: yPos,
+                    startY: drawStartY,
                     body: rows,
                     theme: 'plain',
                     styles: { fontSize: 8, cellPadding: 1.5 },
@@ -887,14 +961,13 @@ class EstimateRenderer {
                 });
 
                 const tableEndY = doc.lastAutoTable.finalY;
-                const drawEndY = drawStartY + 63;
-                yPos = Math.max(tableEndY, drawEndY) + 5;
+                yPos = Math.max(tableEndY, imgBottomY) + 5;
 
                 doc.setDrawColor(200, 200, 200);
                 doc.setLineWidth(0.2);
                 doc.line(14, yPos, 196, yPos);
                 yPos += 5;
-            });
+            }
 
             // Totals
             if (yPos > 250) { doc.addPage(); yPos = 20; }
