@@ -303,7 +303,7 @@ export default function CasementWindow({
 
   // Inner dimensions (after subtracting outer frame)
   const innerW = width - FRAME_FACE * 2;
-  const innerH = height - FRAME_FACE * 2;
+  const innerH = height - FRAME_FACE - BOTTOM_FACE;
 
   // Get layout definition
   const layoutDef = useMemo(
