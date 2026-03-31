@@ -841,178 +841,69 @@ class EstimateRenderer {
         try {
             const jsPDF = (window.jspdf && window.jspdf.jsPDF) || (window.jsPDF) || (typeof jspdf !== 'undefined' && jspdf.jsPDF);
             if (!jsPDF) throw new Error('jsPDF library not loaded. Please refresh the page.');
-            const doc = new jsPDF();
+            if (!window.html2canvas) throw new Error('html2canvas library not loaded. Please refresh the page.');
 
-            doc.setFontSize(20);
-            doc.setTextColor(10, 22, 40);
-            doc.text('Prime Sash Windows', 105, 20, { align: 'center' });
+            // Build print-only HTML (no buttons, white background, fixed width)
+            const printHTML = R.renderEstimatePrintHTML(estimate);
 
-            doc.setFontSize(9);
-            doc.setTextColor(120, 120, 120);
-            doc.text('A trading name of Skylon Joinery LTD', 105, 27, { align: 'center' });
+            // Create offscreen container
+            const container = document.createElement('div');
+            container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;padding:40px 50px;font-family:Jost,sans-serif;color:#0a1628;';
+            container.innerHTML = printHTML;
+            document.body.appendChild(container);
 
-            doc.setFontSize(14);
-            doc.setTextColor(10, 22, 40);
-            doc.text(`Estimate: ${estimate.estimate_number || ''}`, 105, 38, { align: 'center' });
-
-            let yPos = 50;
-            doc.setFontSize(10);
-            doc.setTextColor(60, 60, 60);
-
-            // Customer info if available
-            const customer = estimate.customers;
-            if (customer) {
-                doc.text(`Customer: ${customer.full_name || ''} ${customer.customer_code ? '(' + customer.customer_code + ')' : ''}`, 14, yPos);
-                yPos += 6;
-                if (customer.email) { doc.text(`Email: ${customer.email}`, 14, yPos); yPos += 6; }
-                if (customer.phone) { doc.text(`Phone: ${customer.phone}`, 14, yPos); yPos += 6; }
+            // Wait for images to load
+            const images = container.querySelectorAll('img');
+            if (images.length > 0) {
+                await Promise.all([...images].map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(res => { img.onload = res; img.onerror = res; });
+                }));
             }
 
-            if (estimate.project_name) { doc.text(`Project: ${estimate.project_name}`, 14, yPos); yPos += 6; }
-            if (estimate.delivery_address) { doc.text(`Address: ${estimate.delivery_address}`, 14, yPos); yPos += 6; }
-            doc.text(`Date: ${new Date(estimate.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}`, 14, yPos);
-            yPos += 6;
-            doc.text(`Status: ${R.getStatusConfig(estimate.status).label}`, 14, yPos);
-            yPos += 12;
+            // Render to canvas
+            const canvas = await window.html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            });
 
-            // Per-window
-            for (const item of (estimate.estimate_items || [])) {
-                const p = R.parseItemForExport(item);
+            document.body.removeChild(container);
 
-                if (yPos > 160) { doc.addPage(); yPos = 20; }
+            // Split canvas into A4 pages
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageW = 210;
+            const pageH = 297;
+            const margin = 5;
+            const usableW = pageW - margin * 2;
+            const usableH = pageH - margin * 2;
 
-                doc.setFontSize(11);
-                doc.setTextColor(10, 22, 40);
-                const typeLabel = p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
-                const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
-                doc.text(`Window ${item.window_number} — ${typeLabel}${headLabel} (Qty: ${p.quantity})`, 14, yPos);
-                yPos += 5;
+            const imgW = canvas.width;
+            const imgH = canvas.height;
+            const ratio = usableW / imgW;
+            const scaledH = imgH * ratio;
+            const pageContentH = usableH;
+            const totalPages = Math.ceil(scaledH / pageContentH);
 
-                const drawStartY = yPos;
-                let imgBottomY = yPos;
+            for (let i = 0; i < totalPages; i++) {
+                if (i > 0) doc.addPage();
 
-                // 3D Screenshot (if available)
-                const screenshots = p.fc.screenshots || p.spec.screenshots || item.screenshots || null;
-                if (screenshots?.interior) {
-                    try {
-                        const imgW = 55;
-                        const imgH = 42;
-                        doc.addImage(screenshots.interior, 'JPEG', 14, yPos, imgW, imgH);
-                        imgBottomY = yPos + imgH + 2;
-                    } catch(e) {
-                        console.warn('PDF screenshot failed:', e);
-                    }
-                }
+                // Crop section of canvas for this page
+                const srcY = Math.round(i * pageContentH / ratio);
+                const srcH = Math.min(Math.round(pageContentH / ratio), imgH - srcY);
+                if (srcH <= 0) break;
 
-                // SVG Technical Drawing → PNG
-                try {
-                    const svgString = R.generateWindowSVG(item);
-                    const svgImg = await R.svgToImage(svgString, 400, 400);
-                    if (svgImg) {
-                        const maxPdfW = 55;
-                        const maxPdfH = 50;
-                        const ratio = Math.min(maxPdfW / svgImg.origW, maxPdfH / svgImg.origH);
-                        const pdfW = svgImg.origW * ratio;
-                        const pdfH = svgImg.origH * ratio;
-                        doc.addImage(svgImg.data, 'PNG', 14, imgBottomY, pdfW, pdfH);
-                        imgBottomY = imgBottomY + pdfH + 2;
-                    } else {
-                        R.generateWindowPDF(doc, p, 14, imgBottomY);
-                        imgBottomY += 58;
-                    }
-                } catch(e) {
-                    console.warn('PDF SVG render failed:', e);
-                    R.generateWindowPDF(doc, p, 14, imgBottomY);
-                    imgBottomY += 58;
-                }
+                const pageCanvas = document.createElement('canvas');
+                pageCanvas.width = imgW;
+                pageCanvas.height = srcH;
+                pageCanvas.getContext('2d').drawImage(canvas, 0, srcY, imgW, srcH, 0, 0, imgW, srcH);
 
-                // Spec table on the right
-                const rows = [];
-                if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
-                    rows.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
-                    rows.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
-                } else {
-                    rows.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
-                }
-                if (p.sashType === 'triple') {
-                    rows.push(['Split Ratio', p.splitRatio]);
-                }
-                rows.push(
-                    ['Frame', p.frameText],
-                    ['Opening', p.openingText],
-                    ['Glass', p.glassText],
-                    ['Glass Spec', p.glassSpecText],
-                    ['Glass Finish', p.glassFinishText],
-                    ['Spacer Bar', p.spacerText],
-                    ['Colour', p.colorDisplay],
-                    ['Georgian Bars', p.barsText]
-                );
-                if (p.sashType === 'triple' && p.fixBarsText) {
-                    rows.push(['Fix Panel Bars', p.fixBarsText]);
-                }
-                rows.push(
-                    ['PAS24', p.pas24 ? 'Yes' : 'No'],
-                    ['Horns', p.hornsText]
-                );
-                if (p.hardwareFinish) {
-                    rows.push(['Hardware Finish', p.hardwareFinish]);
-                }
-                rows.push(
-                    ['Ironmongery', p.ironText],
-                    ['Price', `£${R.formatPrice(item.total_price)} + VAT`]
-                );
-
-                doc.autoTable({
-                    startY: drawStartY,
-                    body: rows,
-                    theme: 'plain',
-                    styles: { fontSize: 8, cellPadding: 1.5 },
-                    columnStyles: {
-                        0: { fontStyle: 'bold', cellWidth: 30, textColor: [100, 100, 100] },
-                        1: { cellWidth: 90 }
-                    },
-                    margin: { left: 72 }
-                });
-
-                const tableEndY = doc.lastAutoTable.finalY;
-                yPos = Math.max(tableEndY, imgBottomY) + 5;
-
-                doc.setDrawColor(200, 200, 200);
-                doc.setLineWidth(0.2);
-                doc.line(14, yPos, 196, yPos);
-                yPos += 5;
+                const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.92);
+                const drawH = srcH * ratio;
+                doc.addImage(pageImgData, 'JPEG', margin, margin, usableW, drawH);
             }
-
-            // Totals
-            if (yPos > 250) { doc.addPage(); yPos = 20; }
-
-            doc.setDrawColor(10, 22, 40);
-            doc.line(14, yPos, 196, yPos);
-            yPos += 8;
-
-            doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
-            doc.text('Subtotal (excl. VAT):', 140, yPos, { align: 'right' });
-            doc.setTextColor(10, 22, 40);
-            doc.text(`£${R.formatPrice(estimate.total_price)}`, 196, yPos, { align: 'right' });
-            yPos += 6;
-
-            doc.setTextColor(100, 100, 100);
-            doc.text('VAT (20%):', 140, yPos, { align: 'right' });
-            doc.setTextColor(10, 22, 40);
-            doc.text(`£${R.formatPrice(estimate.total_price * 0.2)}`, 196, yPos, { align: 'right' });
-            yPos += 8;
-
-            doc.setFontSize(13);
-            doc.setTextColor(10, 22, 40);
-            doc.text('Total (incl. VAT):', 140, yPos, { align: 'right' });
-            doc.text(`£${R.formatPrice(estimate.total_price * 1.2)}`, 196, yPos, { align: 'right' });
-
-            doc.setFontSize(8);
-            doc.setTextColor(140, 140, 140);
-            doc.text('Prime Sash Windows | A trading name of Skylon Joinery LTD', 105, 282, { align: 'center' });
-            doc.text('info@skylonjoinery.co.uk | 07842 510 060 | 01992 450 848', 105, 287, { align: 'center' });
-            doc.text('Unit 3, Leaside Industrial Park, Sedge Green, Nazeing, EN9 2BF', 105, 292, { align: 'center' });
 
             doc.save(`Estimate_${estimate.estimate_number || estimate.id.substring(0, 8)}.pdf`);
 
@@ -1020,6 +911,126 @@ class EstimateRenderer {
             console.error('Error downloading PDF:', error);
             alert('Failed to download PDF: ' + error.message);
         }
+    }
+
+    // ─── Print-only HTML (no buttons, clean layout) ───
+    static renderEstimatePrintHTML(estimate) {
+        const R = EstimateRenderer;
+        const customer = estimate.customers || {};
+
+        const customerBlock = customer.full_name ? `
+            <div style="margin-bottom:15px;">
+                <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;">Customer</div>
+                <div style="font-size:14px;"><strong>${customer.full_name}</strong>${customer.company_name ? ` · ${customer.company_name}` : ''}${customer.customer_code ? ` · ${customer.customer_code}` : ''}</div>
+                <div style="font-size:12px;color:#666;">${customer.email || ''}${customer.phone ? ` · ${customer.phone}` : ''}</div>
+            </div>
+        ` : '';
+
+        const itemsHTML = (estimate.estimate_items || []).map(item => {
+            const p = R.parseItem(item);
+            const svg = R.generateWindowSVG(item);
+            const screenshots = p.fc.screenshots || p.spec.screenshots || item.screenshots || null;
+
+            // Build spec rows
+            const specs = [];
+            if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
+            if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
+            if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
+            if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
+                specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
+                specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
+            } else {
+                specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+            }
+            specs.push(['Frame', p.frameText]);
+            specs.push(['Opening', p.openingText]);
+            specs.push(['Glass', p.glassText]);
+            specs.push(['Glass Spec', p.glassSpecText]);
+            specs.push(['Glass Finish', p.glassFinishText]);
+            specs.push(['Spacer Bar', p.spacerText]);
+            specs.push(['Colour', p.colorDisplay]);
+            specs.push(['Georgian Bars', p.barsText]);
+            if (p.fixBarsText) specs.push(['Fix Panel Bars', p.fixBarsText]);
+            specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
+            specs.push(['Horns', p.hornsText]);
+            if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+
+            const ironText = p.ironList.length > 0 
+                ? p.ironList.map(pr => `${pr.qty > 1 ? pr.qty + 'x ' : ''}${pr.name}`).join(', ')
+                : '-';
+
+            const specRowsHTML = specs.map(([label, value]) => `
+                <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f0f0f0;">
+                    <span style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${label}</span>
+                    <span style="font-size:12px;color:#0a1628;text-align:right;max-width:60%;">${value}</span>
+                </div>
+            `).join('');
+
+            const typeLabel = p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+            const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
+
+            return `
+                <div style="margin-bottom:25px;border:1px solid #ddd;border-radius:3px;overflow:hidden;page-break-inside:avoid;">
+                    <div style="background:#0a1628;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#fff;">Window ${item.window_number} — ${typeLabel}${headLabel}</span>
+                        <span style="font-size:11px;color:rgba(255,255,255,.5);">Qty: ${p.quantity} · £${R.formatPrice(item.total_price)} + VAT</span>
+                    </div>
+                    <div style="display:flex;gap:0;">
+                        <div style="width:280px;min-width:280px;padding:15px;display:flex;flex-direction:column;align-items:center;gap:10px;background:#f8f8f6;border-right:1px solid #eee;">
+                            ${screenshots?.interior ? `<img src="${screenshots.interior}" style="width:250px;border:1px solid #ddd;border-radius:2px;" />` : ''}
+                            <div>${svg}</div>
+                        </div>
+                        <div style="flex:1;padding:15px 20px;">
+                            ${specRowsHTML}
+                            <div style="margin-top:10px;padding-top:8px;border-top:1px solid #ddd;">
+                                <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Ironmongery</div>
+                                <div style="font-size:12px;color:#0a1628;">${ironText}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div style="text-align:center;margin-bottom:30px;padding-bottom:20px;border-bottom:2px solid #0a1628;">
+                <div style="font-size:28px;font-weight:700;color:#0a1628;letter-spacing:2px;">Prime Sash Windows</div>
+                <div style="font-size:11px;color:#999;margin-top:3px;">A trading name of Skylon Joinery LTD</div>
+                <div style="font-size:18px;font-weight:600;color:#0a1628;margin-top:15px;">Estimate: ${estimate.estimate_number || ''}</div>
+            </div>
+
+            ${customerBlock}
+
+            <div style="margin-bottom:20px;font-size:12px;color:#555;line-height:1.8;">
+                ${estimate.project_name ? `<div><strong>Project:</strong> ${estimate.project_name}</div>` : ''}
+                ${estimate.delivery_address ? `<div><strong>Address:</strong> ${estimate.delivery_address}</div>` : ''}
+                <div><strong>Date:</strong> ${new Date(estimate.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}</div>
+                <div><strong>Status:</strong> ${R.getStatusConfig(estimate.status).label}</div>
+            </div>
+
+            ${itemsHTML}
+
+            <div style="border-top:2px solid #0a1628;padding-top:15px;margin-top:20px;text-align:right;">
+                <div style="font-size:12px;color:#888;margin-bottom:3px;">
+                    <span style="text-transform:uppercase;letter-spacing:1px;">Subtotal (excl. VAT):</span>
+                    <span style="color:#0a1628;margin-left:20px;font-size:14px;">£${R.formatPrice(estimate.total_price)}</span>
+                </div>
+                <div style="font-size:12px;color:#888;margin-bottom:8px;">
+                    <span style="text-transform:uppercase;letter-spacing:1px;">VAT (20%):</span>
+                    <span style="color:#0a1628;margin-left:20px;font-size:14px;">£${R.formatPrice(estimate.total_price * 0.2)}</span>
+                </div>
+                <div style="font-size:14px;padding-top:8px;border-top:1px solid #ccc;">
+                    <span style="text-transform:uppercase;letter-spacing:2px;color:#888;">Total (incl. VAT):</span>
+                    <span style="font-size:26px;font-weight:700;color:#0a1628;margin-left:20px;">£${R.formatPrice(estimate.total_price * 1.2)}</span>
+                </div>
+            </div>
+
+            <div style="text-align:center;margin-top:30px;padding-top:15px;border-top:1px solid #eee;font-size:10px;color:#aaa;">
+                Prime Sash Windows | A trading name of Skylon Joinery LTD<br>
+                info@skylonjoinery.co.uk | 07842 510 060 | 01992 450 848<br>
+                Unit 3, Leaside Industrial Park, Sedge Green, Nazeing, EN9 2BF
+            </div>
+        `;
     }
 
     // ─── Download Excel ───
