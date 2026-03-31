@@ -90,6 +90,42 @@ function getLayout(code, innerW, innerH, height) {
         ],
       };
     }
+
+    // ─── 052L: Mullion full + transom LEFT only (lufcik lewy) ───
+    case '052L': {
+      const panelW = (innerW - mullW) / 2;
+      const mullX = FRAME_FACE + panelW + mullW / 2;
+      const topH = innerH * 0.3;
+      const bottomH = innerH - MULLION_W - topH;
+      const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
+      return {
+        mullions: [mullX],
+        transoms: [{ y: transomY, width: panelW, offsetX: -(panelW + mullW) / 2 }],
+        panels: [
+          { x: -(panelW + mullW) / 2, y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: -(panelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'left' },
+          { x:  (panelW + mullW) / 2, y: 0, w: panelW, h: innerH, hinge: 'right' },
+        ],
+      };
+    }
+
+    // ─── 052R: Mullion full + transom RIGHT only (lufcik prawy) ───
+    case '052R': {
+      const panelW = (innerW - mullW) / 2;
+      const mullX = FRAME_FACE + panelW + mullW / 2;
+      const topH = innerH * 0.3;
+      const bottomH = innerH - MULLION_W - topH;
+      const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
+      return {
+        mullions: [mullX],
+        transoms: [{ y: transomY, width: panelW, offsetX: (panelW + mullW) / 2 }],
+        panels: [
+          { x: -(panelW + mullW) / 2, y: 0, w: panelW, h: innerH, hinge: 'left' },
+          { x:  (panelW + mullW) / 2, y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x:  (panelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'right' },
+        ],
+      };
+    }
     case '180L': {
       const openW = innerW * 0.4;
       const fixedW = innerW - mullW - openW;
