@@ -311,6 +311,114 @@ export default function CasementWindow({
               label={`H: ${width - FRAME_FACE * 2}mm (inner opening)`}
               color="#c0392b"
             />
+
+            {/* ═══ FACE NUMBERS — Bottom rail cross-section ═══ */}
+            {/* 
+              L-shape profile of bottom rail (looking from left end):
+              
+              Exterior (+Z)          Interior (-Z)
+                ┌──────────┐
+                │    EXT   │  ←── F1 front
+                │  BLOCK   │
+              F3│ (65×36)  │F5   ┌────────┐
+                │          │     │  INT   │
+                └──┬───────┘F7/F8│ BLOCK  │
+              F4   │  rebate     │(53×57) │
+                   └─────────────┘
+                        F2 bottom    F6 back
+            */}
+
+            {(() => {
+              // Bottom rail geometry in world coords
+              // Frame group offset: zCenter = -halfD
+              const zC = -halfD; // frame group Z offset
+              
+              // Ext block center
+              const extCY = -H/2 + fW/2;
+              const extCZ = zC;
+              
+              // Int block center  
+              const intFaceW = fW - reb; // 53mm
+              const intCY = extCY - reb/2;
+              const intCZ = zC - extD/2 - intD/2;
+              
+              // Face positions (center of each face, at X=0 for bottom rail)
+              const faces = [
+                // F1: Ext front face (+Z)
+                { n: 1, pos: [0, extCY, extCZ + extD/2 + 0.002], desc: 'Ext front', bg: '#e74c3c' },
+                // F2: Ext bottom face (-Y)
+                { n: 2, pos: [0, -H/2 - 0.002, extCZ], desc: 'Ext bottom', bg: '#2980b9' },
+                // F3: Ext top face (+Y, inner edge of ext block)
+                { n: 3, pos: [0, -H/2 + fW + 0.002, extCZ], desc: 'Ext top (inner)', bg: '#27ae60' },
+                // F4: Int bottom face (-Y)
+                { n: 4, pos: [0, -H/2 + fW/2 - intFaceW/2 - 0.002, intCZ], desc: 'Int bottom', bg: '#f39c12' },
+                // F5: Ext back face / junction (-Z side of ext block)
+                { n: 5, pos: [0, extCY, extCZ - extD/2 - 0.002], desc: 'Junction (ext back)', bg: '#9b59b6' },
+                // F6: Int back face (-Z, room side)
+                { n: 6, pos: [0, intCY, intCZ - intD/2 - 0.002], desc: 'Int back (room)', bg: '#e67e22' },
+                // F7: Int top face (+Y, inner edge of int block)
+                { n: 7, pos: [0, intCY + intFaceW/2 + 0.002, intCZ], desc: 'Int top (inner)', bg: '#1abc9c' },
+                // F8: Rebate step horizontal (between ext and int, at junction Z)
+                { n: 8, pos: [0, -H/2 + fW - reb/2, extCZ - extD/2], desc: 'Rebate step', bg: '#c0392b' },
+              ];
+
+              return faces.map(f => (
+                <Html
+                  key={f.n}
+                  position={f.pos}
+                  center
+                  style={{
+                    background: f.bg,
+                    color: '#fff',
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    fontFamily: 'monospace',
+                    border: '2px solid #fff',
+                    boxShadow: '0 1px 4px rgba(0,0,0,.4)',
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                    cursor: 'default',
+                  }}
+                  title={f.desc}
+                >
+                  {f.n}
+                </Html>
+              ));
+            })()}
+
+            {/* Face legend */}
+            <Html
+              position={[W/2 + mm(100), 0, 0]}
+              style={{
+                background: 'rgba(255,255,255,0.95)',
+                padding: '8px 12px',
+                fontSize: '10px',
+                fontFamily: 'monospace',
+                lineHeight: '1.6',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                boxShadow: '0 2px 8px rgba(0,0,0,.15)',
+                pointerEvents: 'none',
+                userSelect: 'none',
+                whiteSpace: 'pre',
+              }}
+            >
+{`BOTTOM RAIL FACES:
+① Ext front (+Z)
+② Ext bottom (-Y) 
+③ Ext top/inner (+Y)
+④ Int bottom (-Y)
+⑤ Junction (ext↔int)
+⑥ Int back/room (-Z)
+⑦ Int top/inner (+Y)
+⑧ Rebate step`}
+            </Html>
           </group>
         );
       })()}
