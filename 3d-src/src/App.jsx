@@ -4,6 +4,7 @@ import { Bounds, ContactShadows, Html, OrbitControls, PerspectiveCamera } from '
 import { useMemo, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import ParametricSashWindow from './components/ParametricSashWindow';
+import CasementWindow from './components/casement/CasementWindow';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -587,7 +588,24 @@ function Scene({ config, isMobile }) {
 
       <group position={[0, 0.18, 0]}>
           <group onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
-            <ParametricSashWindow {...config} />
+            {config.windowCategory === 'casement' ? (
+              <CasementWindow
+                width={config.width}
+                height={config.height}
+                layout={config.casementLayout}
+                opening={config.opening / (Math.max(0, config.height / 2 - 120) || 1)}
+                woodColor={config.woodColor}
+                woodColorExt={config.woodColorExt}
+                woodColorInt={config.woodColorInt}
+                sameColor={config.sameColor}
+                glassType={config.doubleGlazing ? 'double' : 'triple'}
+                spacerColor={config.spacerColor}
+                showGuides={config.showGuides}
+                brightness={config.brightness}
+              />
+            ) : (
+              <ParametricSashWindow {...config} />
+            )}
           </group>
       </group>
 
@@ -666,6 +684,10 @@ export default function App() {
   const [fixUpperCustomBars, setFixUpperCustomBars] = useState([]);
   const [fixLowerCustomBars, setFixLowerCustomBars] = useState([]);
 
+  // ─── Casement state ───
+  const [windowCategory, setWindowCategory] = useState('sash'); // 'sash' | 'casement'
+  const [casementLayout, setCasementLayout] = useState('040L');
+
   const maxSashOpening = Math.max(0, height / 2 - 120);
 
   // Expose update3D function for Online Estimate to call
@@ -707,6 +729,9 @@ export default function App() {
       if (cfg.fixLowerBars !== undefined) setFixLowerBars(cfg.fixLowerBars);
       if (cfg.fixUpperCustomBars !== undefined) setFixUpperCustomBars(cfg.fixUpperCustomBars);
       if (cfg.fixLowerCustomBars !== undefined) setFixLowerCustomBars(cfg.fixLowerCustomBars);
+      // Casement
+      if (cfg.windowCategory !== undefined) setWindowCategory(cfg.windowCategory);
+      if (cfg.casementLayout !== undefined) setCasementLayout(cfg.casementLayout);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -744,8 +769,10 @@ export default function App() {
       fixLowerBars,
       fixUpperCustomBars,
       fixLowerCustomBars,
+      windowCategory,
+      casementLayout,
     }),
-    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars],
+    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout],
   );
 
   return (
