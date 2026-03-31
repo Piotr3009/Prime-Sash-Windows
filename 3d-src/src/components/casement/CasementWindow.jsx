@@ -328,7 +328,25 @@ export default function CasementWindow({
         debugColors={true}
       />
 
-      {/* Panels — TODO: add back step by step */}
+      {/* ─── Panels (leaves) ─── */}
+      {layoutDef.panels && layoutDef.panels.map((p, i) => {
+        // Panel Z: leaf sits in rebate zone
+        const leafZ = halfD - mm(EXT_DEPTH) + mm(57) / 2;
+        // Opening center Y offset (bottom rail taller than top rail)
+        const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
+        return (
+          <CasementPanel
+            key={`panel-${i}`}
+            width={p.w}
+            height={p.h}
+            hingeType={p.hinge}
+            opening={0.15}
+            material={extMaterial}
+            materialInt={intMaterial}
+            position={[mm(p.x), mm(p.y) + openingCenterY, leafZ]}
+          />
+        );
+      })}
 
       {/* ═══ Orientation markers — on the sides ═══ */}
       <Html position={[W/2 + mm(80), 0, halfD]} center style={{
