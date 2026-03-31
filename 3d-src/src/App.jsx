@@ -441,7 +441,7 @@ function ScreenshotHelper() {
     window.captureWindowScreenshots = async () => {
       return new Promise((resolve) => {
         const target = new THREE.Vector3(0, 0.18, 0);
-        const distance = 2.6;
+        const distance = 3.5;
 
         // Save current camera state
         const savedPos = camera.position.clone();
@@ -467,14 +467,37 @@ function ScreenshotHelper() {
           const oldBg = scene.background;
           scene.background = new THREE.Color(0xe8e8e8);
           
+          // Hide wall, floor, shadows, and dimension guides
+          const hidden = [];
+          scene.traverse((obj) => {
+            if (!obj.visible) return;
+            // Hide large background planes (wall, floor)
+            if (obj.isMesh && obj.geometry) {
+              const params = obj.geometry.parameters;
+              if (params && (params.width > 5 || params.height > 5)) {
+                obj.visible = false;
+                hidden.push(obj);
+                return;
+              }
+            }
+            // Hide Text (dimension labels) and Line (dimension lines)
+            if (obj.type === 'Line2' || obj.type === 'Line' || 
+                (obj.isMesh && obj.geometry?.type === 'TextGeometry') ||
+                (obj.material?.uniforms?.map)) {
+              obj.visible = false;
+              hidden.push(obj);
+            }
+          });
+          
           camera.position.copy(pos);
           camera.lookAt(target);
           camera.updateProjectionMatrix();
           gl.render(scene, camera);
           const dataUrl = gl.domElement.toDataURL('image/jpeg', 0.85);
           
-          // Restore original background
+          // Restore
           scene.background = oldBg;
+          hidden.forEach(obj => obj.visible = true);
           return dataUrl;
         };
 
