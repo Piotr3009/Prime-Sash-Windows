@@ -367,19 +367,29 @@ class EstimateRenderer {
     }
 
     // ─── SVG Window Drawing ───
-    static drawSVGBars(pattern, customList, glassX, glassW, topY, height, scale, light) {
+    static drawSVGBars(pattern, customList, glassX, glassW, topY, height, scale, light, panelWidthMm) {
         let svg = '';
         const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
 
         if (pattern === 'custom' && customList && customList.length > 0) {
+            // Find max position to detect if we need to scale down
+            const maxV = Math.max(...customList.filter(b => b.type === 'v' || b.type === 'vertical').map(b => b.mm), 0);
+            const maxH = Math.max(...customList.filter(b => b.type === 'h' || b.type === 'horizontal').map(b => b.mm), 0);
+            // Scale factor: if bar positions exceed panel, scale proportionally
+            const panelW = panelWidthMm || (glassW / scale);
+            const panelH = height / scale;
+            const vScale = maxV > panelW * 0.95 ? (panelW * 0.9) / maxV : 1;
+            const hScale = maxH > panelH * 0.95 ? (panelH * 0.9) / maxH : 1;
+
             customList.forEach(bar => {
-                const pos = Math.round(bar.mm * scale);
                 if (bar.type === 'h' || bar.type === 'horizontal') {
+                    const pos = Math.round(bar.mm * hScale * scale);
                     const y = topY + pos;
                     if (y > topY && y < topY + height) {
                         svg += `<line x1="${glassX}" y1="${y}" x2="${glassX + glassW}" y2="${y}" stroke="${light}" stroke-width="1"/>`;
                     }
                 } else {
+                    const pos = Math.round(bar.mm * vScale * scale);
                     const x = glassX + pos;
                     if (x > glassX && x < glassX + glassW) {
                         svg += `<line x1="${x}" y1="${topY}" x2="${x}" y2="${topY + height}" stroke="${light}" stroke-width="1"/>`;
@@ -517,6 +527,8 @@ class EstimateRenderer {
             const fixLowerCustomList = (fc.fixLowerCustomBars && fc.fixLowerCustomBars.length > 0) 
                 ? fc.fixLowerCustomBars : fixUpperCustomList;
 
+            const sectionsMm = [leftMm, centerMm, rightMm];
+
             sections.forEach((sec, i) => {
                 const glassX = sec.x + 2;
                 const glassW = sec.w - 4;
@@ -524,13 +536,14 @@ class EstimateRenderer {
                 const uH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
                 const lT = oy + meetingY + 1;
                 const lH = actualH - meetingY - frameW - 1;
+                const panelMm = sectionsMm[i];
 
                 if (i === 1) {
-                    svg += R.drawSVGBars(upperBarsPattern, upperCustomList, glassX, glassW, uT, uH, scale, light);
-                    svg += R.drawSVGBars(lowerBarsPattern, lowerCustomList, glassX, glassW, lT, lH, scale, light);
+                    svg += R.drawSVGBars(upperBarsPattern, upperCustomList, glassX, glassW, uT, uH, scale, light, panelMm);
+                    svg += R.drawSVGBars(lowerBarsPattern, lowerCustomList, glassX, glassW, lT, lH, scale, light, panelMm);
                 } else {
-                    svg += R.drawSVGBars(fixUpperBarsPattern, fixUpperCustomList, glassX, glassW, uT, uH, scale, light);
-                    svg += R.drawSVGBars(fixLowerBarsPattern, fixLowerCustomList, glassX, glassW, lT, lH, scale, light);
+                    svg += R.drawSVGBars(fixUpperBarsPattern, fixUpperCustomList, glassX, glassW, uT, uH, scale, light, panelMm);
+                    svg += R.drawSVGBars(fixLowerBarsPattern, fixLowerCustomList, glassX, glassW, lT, lH, scale, light, panelMm);
                 }
             });
 
@@ -621,8 +634,8 @@ class EstimateRenderer {
             const lowerCustomList = (fc.lowerCustomBars && fc.lowerCustomBars.length > 0) ? fc.lowerCustomBars : upperCustomList;
             const bUpperT = upperT + (headType === 'arch' ? archRise : 0);
             const bUpperH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
-            svg += R2.drawSVGBars(upperBarsPattern, upperCustomList, glassX, glassW, bUpperT, bUpperH, scale, light);
-            svg += R2.drawSVGBars(lowerBarsPattern, lowerCustomList, glassX, glassW, lowerT, lowerH, scale, light);
+            svg += R2.drawSVGBars(upperBarsPattern, upperCustomList, glassX, glassW, bUpperT, bUpperH, scale, light, innerMm);
+            svg += R2.drawSVGBars(lowerBarsPattern, lowerCustomList, glassX, glassW, lowerT, lowerH, scale, light, innerMm);
 
             // Opening arrows
             const arrowX = ox + drawW + 14;
