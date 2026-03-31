@@ -117,7 +117,7 @@ function getLayout(code, innerW, innerH) {
     case '021': {
       const fanlightH = innerH * 0.3;
       const mainH = innerH - MULLION_W - fanlightH;
-      const transomY = FRAME_FACE + mainH + MULLION_W / 2;
+      const transomY = BOTTOM_FACE + mainH + MULLION_W / 2;
       return {
         transoms: [transomY],
         panels: [
@@ -129,11 +129,14 @@ function getLayout(code, innerW, innerH) {
     case '031': {
       const fanlightH = innerH * 0.3;
       const mainH = innerH - MULLION_W - fanlightH;
-      const transomY = FRAME_FACE + mainH + MULLION_W / 2;
+      const transomY = BOTTOM_FACE + mainH + MULLION_W / 2;
       const topPanelW = (innerW - mullW) / 2;
+      const mullX = FRAME_FACE + topPanelW + mullW / 2;
+      // Mullion ONLY in fanlight area (from top of transom to top rail)
+      const mullStartY = transomY + MULLION_W / 2;
       return {
         transoms: [transomY],
-        mullions: [FRAME_FACE + topPanelW + mullW / 2],  // mullion only in top part (visual)
+        mullions: [{ x: mullX, startY: mullStartY, endY: height, touchesBottom: false, touchesTop: true }],
         panels: [
           { x: -(topPanelW + mullW) / 2, y: (fanlightH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
           { x:  (topPanelW + mullW) / 2, y: (fanlightH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
@@ -194,7 +197,7 @@ export default function CasementWindow({
 
   // Inner dimensions (after subtracting outer frame)
   const innerW = width - FRAME_FACE * 2;
-  const innerH = height - FRAME_FACE * 2;
+  const innerH = height - FRAME_FACE - BOTTOM_FACE;
 
   // Get layout definition
   const layoutDef = useMemo(

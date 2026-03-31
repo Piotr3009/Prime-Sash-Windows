@@ -174,72 +174,73 @@ function Stile({ frameHeight, side, mat, debugColors }) {
   );
 }
 
-// ═══ Mullion — vertical divider, rebate both sides ═══
-// EXT block: 15mm face (centered), 62mm depth
-// INT block: 57mm face, 31mm depth
-// Same top/bottom cutouts as stiles
-function Mullion({ frameHeight, mat, debugColors }) {
-  const h = mm(frameHeight);
-  const extTopCut = mm(frameHeight - FRAME_FACE + REBATE_STEP);
+// ═══ Mullion — vertical divider with variable start/end ═══
+// startY/endY in mm from bottom of frame
+// touchesBottom: startY==0 → slope cut, otherwise flat
+// touchesTop: endY==frameHeight → top rail cut, otherwise flat
+function Mullion({ startY, endY, touchesBottom = false, touchesTop = false, mat, debugColors }) {
+  const hMm = endY - startY;
+  const h = mm(hMm);
 
-  // EXT block shape — same height profile as stile (slope bottom, flat top cut)
+  // EXT block shape
   const extShape = useMemo(() => {
     const s = new THREE.Shape();
-    s.moveTo(0, mm(BOTTOM_EXT_OUTER));
-    s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));
-    s.lineTo(mm(EXT_DEPTH), extTopCut);
-    s.lineTo(0, extTopCut);
+    if (touchesBottom) {
+      // Slope at bottom matching bottom rail
+      s.moveTo(0, mm(BOTTOM_EXT_OUTER));
+      s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));
+    } else {
+      // Flat bottom (sits on transom)
+      s.moveTo(0, 0);
+      s.lineTo(mm(EXT_DEPTH), 0);
+    }
+    if (touchesTop) {
+      // Flat cut at top matching top rail EXT
+      const extTopCut = touchesBottom 
+        ? mm(endY - FRAME_FACE + REBATE_STEP)
+        : mm(hMm - FRAME_FACE + REBATE_STEP);
+      s.lineTo(mm(EXT_DEPTH), extTopCut);
+      s.lineTo(0, extTopCut);
+    } else {
+      // Flat top (meets transom)
+      s.lineTo(mm(EXT_DEPTH), h);
+      s.lineTo(0, h);
+    }
     s.closePath();
     return s;
-  }, [extTopCut]);
+  }, [hMm, touchesBottom, touchesTop]);
 
-  // EXT extrude depth = 15mm (centered in 57mm face)
   const extSettings = useMemo(() => ({ depth: mm(MULLION_EXT_FACE), bevelEnabled: false }), []);
 
-  // INT block: same as stile but MULLION_W wide
-  const intBottom = mm(BOTTOM_FACE);
-  const intTop = mm(frameHeight - FRAME_FACE);
-  const intH = intTop - intBottom;
-
-  // EXT block X offset: centered = REBATE_STEP from left edge
-  const extX = mm(REBATE_STEP);
-
   // INT block
+  const intStartY = touchesBottom ? mm(BOTTOM_FACE) : 0;
+  const intEndY = touchesTop ? mm(hMm - FRAME_FACE) : h;
+  const intH = intEndY - intStartY;
+
+  const extX = mm(REBATE_STEP);
   const intCenterX = mm(MULLION_W) / 2;
-  const intCenterY = intBottom + intH / 2;
+  const intCenterY = intStartY + intH / 2;
   const intCenterZ = halfD - mm(EXT_DEPTH) - mm(INT_DEPTH) / 2;
 
   const debugMatExt = useMemo(() => debugColors
     ? new THREE.MeshStandardMaterial({ color: '#f39c12', opacity: 0.85, transparent: true })
     : null, [debugColors]);
-
   const debugMatInt = useMemo(() => debugColors
     ? new THREE.MeshStandardMaterial({ color: '#d68910', opacity: 0.85, transparent: true })
     : null, [debugColors]);
 
   return (
     <group>
-      {/* EXT block — 15mm wide, centered */}
       <mesh castShadow receiveShadow
         rotation={[0, Math.PI / 2, 0]}
         position={[extX, 0, halfD]}
       >
         <extrudeGeometry args={[extShape, extSettings]} />
-        {debugColors
-          ? <primitive object={debugMatExt} attach="material" />
-          : <primitive object={mat} attach="material" />
-        }
+        {debugColors ? <primitive object={debugMatExt} attach="material" /> : <primitive object={mat} attach="material" />}
       </mesh>
-
-      {/* INT block — full 68mm, above bottom rail, below top rail */}
-      <mesh castShadow receiveShadow
-        position={[intCenterX, intCenterY, intCenterZ]}
-      >
-        <boxGeometry args={[mm(MULLION_W), intH, mm(INT_DEPTH)]} />
-        {debugColors
-          ? <primitive object={debugMatInt} attach="material" />
-          : <primitive object={mat} attach="material" />
-        }
+      <mesh castShadow receiveShadow position={[intCenterX, intCenterY, intCenterZ]}>
+        <boxGeometry args={[mm(MULLION_W), intH > 0 ? intH : 0.001, mm(INT_DEPTH)]} />
+        {debugColors ? <primitive object={debugMatInt} attach="material" /> : <primitive object={mat} attach="material" />}
       </mesh>
     </group>
   );
@@ -248,7 +249,7 @@ function Mullion({ frameHeight, mat, debugColors }) {
 // ═══ Transom — horizontal divider, rebate top and bottom ═══
 // EXT block: extends into stile rebates (wider)
 // INT block: between stiles (standard)
-function Transom({ transomWidth, frameWidth, mat, debugColors }) {
+function Transom({ transomWidth, mat, debugColors }) {
   // INT runs between stiles
   const intLen = mm(transomWidth);
   // EXT runs wider — into stile rebates on both sides
@@ -345,24 +346,34 @@ export default function CasementFrame({
       </group>
 
       {/* Mullions — vertical dividers */}
-      {mullions.map((xPosMm, i) => {
-        // xPosMm = mm from left edge of frame to center of mullion
-        const x = -W / 2 + mm(xPosMm) - mm(MULLION_W) / 2;
+      {mullions.map((m, i) => {
+        const mObj = typeof m === 'number'
+          ? { x: m, startY: 0, endY: height, touchesBottom: true, touchesTop: true }
+          : m;
+        const x = -W / 2 + mm(mObj.x) - mm(MULLION_W) / 2;
+        const y = mm(mObj.startY);
         return (
-          <group key={`mull-${i}`} position={[x, -H / 2, 0]}>
-            <Mullion frameHeight={height} mat={material} debugColors={debugColors} />
+          <group key={`mull-${i}`} position={[x, -H / 2 + y, 0]}>
+            <Mullion
+              startY={mObj.startY}
+              endY={mObj.endY}
+              touchesBottom={mObj.touchesBottom !== false}
+              touchesTop={mObj.touchesTop !== false}
+              mat={material}
+              debugColors={debugColors}
+            />
           </group>
         );
       })}
 
       {/* Transoms — horizontal dividers */}
-      {transoms.map((yPosMm, i) => {
-        // yPosMm = mm from bottom of frame to center of transom
-        const y = -H / 2 + mm(yPosMm) - mm(MULLION_W) / 2;
-        const transomLen = width - FRAME_FACE * 2;
+      {transoms.map((t, i) => {
+        const tObj = typeof t === 'number' ? { y: t, width: width - FRAME_FACE * 2 } : t;
+        const y = -H / 2 + mm(tObj.y) - mm(MULLION_W) / 2;
+        const tWidth = tObj.width || (width - FRAME_FACE * 2);
         return (
           <group key={`transom-${i}`} position={[0, y, 0]}>
-            <Transom transomWidth={transomLen} frameWidth={width} mat={material} debugColors={debugColors} />
+            <Transom transomWidth={tWidth} mat={material} debugColors={debugColors} />
           </group>
         );
       })}
