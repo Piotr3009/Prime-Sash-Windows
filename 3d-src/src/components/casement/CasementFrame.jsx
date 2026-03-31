@@ -206,6 +206,14 @@ function Mullion({ startY = 0, endY = 1200, touchesBottom = true, touchesTop = t
   const intEndYLocal = touchesTop ? mm(hMm - FRAME_FACE) : h + extendTop;
   const intH = Math.max(intEndYLocal - intStartYLocal, 0.001);
 
+  // Forced flat zones: where mullion extends into transom rebate
+  const allCuts = useMemo(() => {
+    const cuts = [...(intCuts || [])];
+    if (!touchesBottom) cuts.push({ start: 0, end: extendBottom });
+    if (!touchesTop) cuts.push({ start: intH - extendTop, end: intH });
+    return cuts;
+  }, [intCuts, touchesBottom, touchesTop, extendBottom, extendTop, intH]);
+
   const w = mm(MULLION_W);
   const d = mm(INT_DEPTH);
   const intFlat = useMemo(() => {
@@ -234,7 +242,7 @@ function Mullion({ startY = 0, endY = 1200, touchesBottom = true, touchesTop = t
         {debugColors ? <primitive object={debugMatExt} attach="material" /> : <primitive object={mat} attach="material" />}
       </mesh>
       <SegmentedExtrude shapeFlat={intFlat} shapeRounded={intRounded}
-        totalLen={intH} cuts={intCuts || []} rotation={[-Math.PI / 2, 0, 0]}
+        totalLen={intH} cuts={allCuts} rotation={[-Math.PI / 2, 0, 0]}
         position={[0, intStartYLocal, halfD - mm(EXT_DEPTH)]}
         mat={mat} debugMat={debugMatInt} debugColors={debugColors} />
     </group>
@@ -364,16 +372,17 @@ export default function CasementFrame({
   function getMullionCuts(mObj) {
     const cuts = [];
     transObjs.forEach(t => {
-      // Check if transom overlaps this mullion X position
+      // Transom X range in frame coords
       const transomLeftX = (width - t.width) / 2 + t.offsetX;
       const transomRightX = transomLeftX + t.width;
       const mullLeftX = mObj.x - MULLION_W / 2;
       const mullRightX = mObj.x + MULLION_W / 2;
-      if (transomLeftX <= mullLeftX && transomRightX >= mullRightX) {
-        // Convert transom Y to mullion INT local coords
-        const mullIntStart = mObj.touchesBottom !== false ? BOTTOM_FACE : mObj.startY - REBATE_STEP;
-        const cutStart = mm(t.y - MULLION_W / 2 - mullIntStart);
-        const cutEnd = mm(t.y + MULLION_W / 2 - mullIntStart);
+      // Check ANY overlap (not full containment)
+      if (transomRightX > mullLeftX && transomLeftX < mullRightX) {
+        // Mullion INT local Y starts at intStartYLocal
+        const mullIntStartMm = mObj.touchesBottom !== false ? BOTTOM_FACE : (mObj.startY - REBATE_STEP);
+        const cutStart = mm(t.y - MULLION_W / 2 - mullIntStartMm);
+        const cutEnd = mm(t.y + MULLION_W / 2 - mullIntStartMm);
         cuts.push({ start: cutStart, end: cutEnd });
       }
     });
