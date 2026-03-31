@@ -141,8 +141,13 @@ class EstimateRenderer {
         // FIX BARS (triple only)
         const fixUpperBars = fc.fixUpperBars || 'none';
         const fixLowerBars = fc.fixLowerBars || fixUpperBars;
-        const fixUpperCustomList = fc.fixUpperCustomBars || [];
-        const fixLowerCustomList = (fc.fixLowerCustomBars && fc.fixLowerCustomBars.length > 0) ? fc.fixLowerCustomBars : fixUpperCustomList;
+        // Fix custom bars fallback: fix own data → center bars data (when "same as center")
+        const fixUpperCustomList = (fc.fixUpperCustomBars && fc.fixUpperCustomBars.length > 0) 
+            ? fc.fixUpperCustomBars 
+            : upperCustomList;  // fallback to center bars
+        const fixLowerCustomList = (fc.fixLowerCustomBars && fc.fixLowerCustomBars.length > 0) 
+            ? fc.fixLowerCustomBars 
+            : fixUpperCustomList;  // fallback to fix upper
         let fixBarsText = '';
         if (sashType === 'triple' && fixUpperBars !== 'none') {
             const fixUpperText = formatBars(fixUpperBars, fixUpperCustomList);
@@ -506,8 +511,11 @@ class EstimateRenderer {
             const R = EstimateRenderer;
             const upperCustomList = fc.upperCustomBars || [];
             const lowerCustomList = (fc.lowerCustomBars && fc.lowerCustomBars.length > 0) ? fc.lowerCustomBars : upperCustomList;
-            const fixUpperCustomList = fc.fixUpperCustomBars || [];
-            const fixLowerCustomList = (fc.fixLowerCustomBars && fc.fixLowerCustomBars.length > 0) ? fc.fixLowerCustomBars : fixUpperCustomList;
+            // Fix custom: own data → center bars data (when "same as center")
+            const fixUpperCustomList = (fc.fixUpperCustomBars && fc.fixUpperCustomBars.length > 0) 
+                ? fc.fixUpperCustomBars : upperCustomList;
+            const fixLowerCustomList = (fc.fixLowerCustomBars && fc.fixLowerCustomBars.length > 0) 
+                ? fc.fixLowerCustomBars : fixUpperCustomList;
 
             sections.forEach((sec, i) => {
                 const glassX = sec.x + 2;
