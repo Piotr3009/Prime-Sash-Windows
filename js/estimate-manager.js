@@ -176,6 +176,22 @@ class EstimateManager {
                 customNameInput.value = '';
             }
 
+            // 📸 Capture 3D screenshot before saving to DB
+            if (typeof window.captureWindowScreenshots === 'function') {
+                try {
+                    const screenshots = await window.captureWindowScreenshots();
+                    if (screenshots) {
+                        windowConfig.screenshots = screenshots;
+                        if (windowConfig.fullConfig) {
+                            windowConfig.fullConfig.screenshots = screenshots;
+                        }
+                        console.log('📸 Screenshot captured for DB');
+                    }
+                } catch(e) {
+                    console.warn('Screenshot capture failed:', e);
+                }
+            }
+
             // Zapisz okno
             const { data: item, error: itemError } = await supabaseClient
                 .from('estimate_items')
