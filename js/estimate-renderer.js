@@ -39,10 +39,91 @@ class EstimateRenderer {
         const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
         const fc = spec.fullConfig || spec || {};
 
+        // ═══ SINGLE SOURCE OF TRUTH: fc (fullConfig from specification) ═══
+
+        // WINDOW TYPE
+        const sashType = fc.sashType || 'double';
+        const headType = fc.headType || 'flat';
+        const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
+
+        // DIMENSIONS — prefer spec over item columns
+        const width = fc.actualFrameWidth || item.width || 1000;
+        const height = fc.actualFrameHeight || item.height || 1500;
+        const originalWidth = fc.originalWidth || item.original_width || null;
+        const originalHeight = fc.originalHeight || item.original_height || null;
+        const measurementType = fc.measurementType || item.measurement_type || 'frame';
+
+        // FRAME
+        const frameType = fc.frameType || item.frame_type || 'standard';
+        const frameText = frameType === 'standard' ? 'Standard Frame (164mm)' : 'Slim Frame (144mm)';
+
+        // OPENING
+        const openingType = fc.openingType || item.opening_type || 'both';
+        const openingLabels = { both: 'Both Sashes', bottom: 'Bottom Only', fixed: 'Fixed (Non-opening)' };
+        const openingText = openingLabels[openingType] || openingType;
+
+        // GLASS
+        const glassType = fc.glassType || item.glass_type || 'double';
+        const glassLabels = { 'double': 'Double Glazed (4/16/4, U:1.4)', 'triple': 'Triple Glazed (U:1.2)', 'passive': 'Passive Glass (U:0.8)' };
+        const glassText = glassLabels[glassType] || glassType;
+
+        // GLASS SPEC
+        const glassSpec = fc.glassSpec || item.glass_spec || 'toughened';
+        const glassSpecText = glassSpec === 'laminated' ? 'Laminated' : 'Toughened';
+
+        // GLASS FINISH
+        const glassFinish = fc.glassFinish || item.glass_finish || 'clear';
+        const frostedLocation = fc.frostedLocation || item.frosted_location || 'bottom';
+        const showFrosted = glassFinish !== 'clear';
+        let glassFinishText = 'Clear';
+        if (glassFinish === 'frosted') {
+            glassFinishText = frostedLocation === 'both' ? 'Frosted (Both Sashes)' : 'Frosted (Bottom Only)';
+        }
+
+        // SPACER
+        const spacerColor = fc.spacerColor || item.spacer_color || 'silver';
+        const spacerLabels = { 'silver': 'Silver (Stainless Steel)', 'white': 'White', 'black': 'Black' };
+        const spacerText = spacerLabels[spacerColor] || spacerColor;
+
+        // COLOR
+        const colorType = fc.colorType || item.color_type || 'single';
+        let colorDisplay = '';
+        if (colorType === 'single') {
+            const name = fc.colorSingleName || item.color_single || 'Pure White';
+            colorDisplay = (name === 'white' || name === 'Pure White') ? 'Pure White' : name;
+        } else {
+            const extName = fc.colorExteriorName || item.color_exterior || '—';
+            const intName = fc.colorInteriorName || item.color_interior || '—';
+            colorDisplay = `Ext: ${extName} / Int: ${intName}`;
+        }
+
+        // BARS (center sash)
+        const upperBars = fc.upperBars || item.upper_bars || 'none';
+        const lowerBars = fc.lowerBars || item.lower_bars || upperBars;
+        let barsText = 'None';
+        if (upperBars !== 'none') {
+            barsText = upperBars === lowerBars ? `${upperBars} Pattern` : `Upper: ${upperBars}, Lower: ${lowerBars}`;
+        }
+
+        // FIX BARS (triple only)
+        const fixUpperBars = fc.fixUpperBars || 'none';
+        const fixLowerBars = fc.fixLowerBars || fixUpperBars;
+        let fixBarsText = '';
+        if (sashType === 'triple' && fixUpperBars !== 'none') {
+            fixBarsText = fixUpperBars === fixLowerBars ? `${fixUpperBars} Pattern` : `Upper: ${fixUpperBars}, Lower: ${fixLowerBars}`;
+        }
+
+        // HORNS
+        const horns = fc.horns || item.horns || 'none';
+        const hornsLabels = { 'A': 'Richmond', 'D': 'Type D', 'none': 'None' };
+        const hornsText = hornsLabels[horns] || horns;
+
+        // PAS24
+        const pas24 = fc.pas24 === 'yes' || fc.pas24 === true || item.pas24 === true;
+
         // IRONMONGERY
         let ironList = [];
-        let ironSource = item.ironmongery;
-        if (!ironSource && fc.ironmongery) ironSource = fc.ironmongery;
+        let ironSource = fc.ironmongery || item.ironmongery;
         if (ironSource) {
             try {
                 const ironData = typeof ironSource === 'string' ? JSON.parse(ironSource) : ironSource;
@@ -59,58 +140,29 @@ class EstimateRenderer {
         }
 
         // HARDWARE FINISH
-        let hardwareFinish = item.ironmongery_finish || fc.ironmongeryFinish;
+        let hardwareFinish = fc.ironmongeryFinish || item.ironmongery_finish || null;
         if (!hardwareFinish && ironList.length > 0) {
             const colors = [...new Set(ironList.map(p => p.color).filter(Boolean))];
             hardwareFinish = colors.length > 0 ? colors.join(' / ') : null;
         }
 
-        // COLOR
-        let colorDisplay = '';
-        if (item.color_type === 'single' || fc.colorType === 'single') {
-            if (fc.singleColor && fc.singleColor !== 'custom' && fc.singleColor !== 'white') {
-                colorDisplay = fc.colorSingleName || fc.singleColor;
-            } else if (fc.singleColor === 'white') {
-                colorDisplay = 'Pure White';
-            } else if (spec.colorSingleName && spec.colorSingleName !== 'Custom Color') {
-                colorDisplay = spec.colorSingleName;
-            } else if (fc.exteriorColor || fc.interiorColor) {
-                const ext = fc.exteriorColor || '—';
-                const int = fc.interiorColor || '—';
-                colorDisplay = ext === int ? ext.charAt(0).toUpperCase() + ext.slice(1) : `Ext: ${ext} / Int: ${int}`;
-            } else {
-                colorDisplay = item.color_single || 'White';
-            }
-        } else {
-            const extName = fc.colorExteriorName || fc.exteriorColor || item.color_exterior || '—';
-            const intName = fc.colorInteriorName || fc.interiorColor || item.color_interior || '—';
-            colorDisplay = `Ext: ${extName} / Int: ${intName}`;
-            if (item.custom_exterior_color) colorDisplay += ` (Custom: ${item.custom_exterior_color})`;
-        }
+        // QUANTITY
+        const quantity = fc.quantity || item.quantity || 1;
 
-        // HORNS
-        const horns = item.horns || fc.horns || 'none';
-        const hornsText = ({'A':'Richmond','D':'Type D','none':'None'})[horns] || horns;
-
-        // FROSTED
-        const glassFinish = item.glass_finish || fc.glassFinish || 'clear';
-        const showFrosted = glassFinish !== 'clear' && item.frosted_location;
-
-        // OPENING
-        const openingLabels = { both: 'Both Sashes', bottom: 'Bottom Only', fixed: 'Fixed', top: 'Top Only' };
-        const openingText = openingLabels[item.opening_type] || item.opening_type || '—';
-
-        // SPACER
-        const spacer = item.spacer_color || 'silver';
-        const spacerText = ({'silver':'Silver (Stainless Steel)','white':'White','black':'Black'})[spacer] || spacer;
-
-        // BARS
-        let barsText = 'None';
-        if (item.upper_bars && item.upper_bars !== 'none') {
-            barsText = `Upper: ${item.upper_bars}, Lower: ${item.lower_bars || item.upper_bars}`;
-        }
-
-        return { fc, spec, ironList, hardwareFinish, colorDisplay, horns, hornsText, glassFinish, showFrosted, openingText, spacer, spacerText, barsText };
+        return {
+            fc, spec, sashType, headType, splitRatio,
+            width, height, originalWidth, originalHeight, measurementType,
+            frameType, frameText,
+            openingType, openingText,
+            glassType, glassText, glassSpec, glassSpecText,
+            glassFinish, glassFinishText, showFrosted, frostedLocation,
+            spacerColor, spacerText,
+            colorType, colorDisplay,
+            upperBars, lowerBars, barsText,
+            fixUpperBars, fixLowerBars, fixBarsText,
+            horns, hornsText, pas24,
+            ironList, hardwareFinish, quantity
+        };
     }
 
     // ─── Render full estimate modal content ───
@@ -140,9 +192,7 @@ class EstimateRenderer {
         const itemsHTML = estimate.estimate_items?.map(item => {
             const p = R.parseItem(item);
             const svg = R.generateWindowSVG(item);
-            const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
-            const fc = spec.fullConfig || spec || {};
-            const screenshots = item.screenshots || spec.screenshots || fc.screenshots || null;
+            const screenshots = p.fc.screenshots || p.spec.screenshots || item.screenshots || null;
 
             return `
             <div style="background:var(--cream2);border:1px solid rgba(158,158,144,.15);margin-bottom:1.5rem;padding:0;border-radius:2px;overflow:hidden;">
@@ -154,7 +204,7 @@ class EstimateRenderer {
                         <button onclick="dashboard.deleteWindow('${item.id}','${estimate.id}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.7);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Delete</button>
                         ` : ''}
                     </div>
-                    <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${item.quantity} · £${R.formatPrice(item.total_price)} + VAT</span>
+                    <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${p.quantity} · £${R.formatPrice(item.total_price)} + VAT</span>
                 </div>
 
                 <div style="display:grid;grid-template-columns:280px 1fr;gap:0;">
@@ -171,24 +221,23 @@ class EstimateRenderer {
                     </div>
                     <div style="padding:1.5rem;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
-                            ${fc.sashType && fc.sashType !== 'double' ? R.specRow('Window Type', fc.sashType === 'triple' ? 'Triple Sash' : 'Double Hung') : ''}
-                            ${fc.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
-                            ${fc.splitRatio && fc.sashType === 'triple' ? R.specRow('Split Ratio', fc.splitRatio) : ''}
-                            ${item.original_width && item.original_height && (item.original_width !== item.width || item.original_height !== item.height) 
-                                ? R.specRow('Window Size (Frame)', `${item.width}mm × ${item.height}mm`) + R.specRow('Structural Opening', `${item.original_width}mm × ${item.original_height}mm`)
-                                : R.specRow('Dimensions', `${item.width}mm × ${item.height}mm`)}
-                            ${R.specRow('Frame', `${item.frame_type || 'standard'} (164mm)`)}
+                            ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
+                            ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
+                            ${p.sashType === 'triple' ? R.specRow('Split Ratio', p.splitRatio) : ''}
+                            ${p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height) 
+                                ? R.specRow('Window Size (Frame)', `${p.width}mm × ${p.height}mm`) + R.specRow('Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`)
+                                : R.specRow('Dimensions', `${p.width}mm × ${p.height}mm`)}
+                            ${R.specRow('Frame', p.frameText)}
                             ${R.specRow('Opening', p.openingText)}
-                            ${R.specRow('Glass', `${item.glass_type || 'double'}${item.glass_type === 'double' ? ' (4/16/4, U:1.4)' : item.glass_type === 'triple' ? ' (Triple)' : ''}`)}
-                            ${item.glass_spec ? R.specRow('Glass Spec', item.glass_spec === 'toughened' ? 'Toughened' : 'Laminated') : ''}
+                            ${R.specRow('Glass', p.glassText)}
+                            ${R.specRow('Glass Spec', p.glassSpecText)}
                             ${R.specRow('Spacer Bar', p.spacerText)}
-                            ${p.glassFinish !== 'clear' ? R.specRow('Glass Finish', p.glassFinish) : ''}
-                            ${p.showFrosted ? R.specRow('Frosted', item.frosted_location === 'both' ? 'Both Sashes' : 'Bottom Only') : ''}
+                            ${p.showFrosted ? R.specRow('Glass Finish', p.glassFinishText) : ''}
                             ${R.specRow('Colour', p.colorDisplay)}
-                            ${item.upper_bars && item.upper_bars !== 'none' ? R.specRow('Georgian Bars', `Upper: ${item.upper_bars}, Lower: ${item.lower_bars || item.upper_bars}`) : R.specRow('Georgian Bars', 'None')}
-                            ${fc.fixUpperBars && fc.fixUpperBars !== 'none' ? R.specRow('Fix Panel Bars', `Upper: ${fc.fixUpperBars}, Lower: ${fc.fixLowerBars || fc.fixUpperBars}`) : ''}
-                            ${R.specRow('PAS24', item.pas24 ? 'Yes ✓' : 'No')}
-                            ${p.horns !== 'none' ? R.specRow('Horns', p.hornsText) : R.specRow('Horns', 'None')}
+                            ${R.specRow('Georgian Bars', p.barsText)}
+                            ${p.fixBarsText ? R.specRow('Fix Panel Bars', p.fixBarsText) : ''}
+                            ${R.specRow('PAS24', p.pas24 ? 'Yes ✓' : 'No')}
+                            ${R.specRow('Horns', p.hornsText)}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
                         </div>
 
@@ -279,9 +328,14 @@ class EstimateRenderer {
         const sashType = fc.sashType || 'double';
         const headType = fc.headType || 'flat';
         const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
+        const openingType = fc.openingType || openingType || 'both';
 
-        const w = item.width || 1000;
-        const h = item.height || 1500;
+        const w = fc.actualFrameWidth || item.width || 1000;
+        const h = fc.actualFrameHeight || item.height || 1500;
+        const upperBarsPattern = fc.upperBars || upperBarsPattern || 'none';
+        const lowerBarsPattern = fc.lowerBars || lowerBarsPattern || upperBarsPattern;
+        const fixUpperBarsPattern = fc.fixUpperBars || 'none';
+        const fixLowerBarsPattern = fc.fixLowerBars || fixUpperBarsPattern;
         const stroke = 'rgba(10,22,40,.7)';
         const light = 'rgba(10,22,40,.25)';
         const dimColor = 'rgba(10,22,40,.45)';
@@ -377,8 +431,8 @@ class EstimateRenderer {
 
             // Bars on panels
             const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
-            const upperBars = patternDefs[item.upper_bars] || {h:0,v:0};
-            const fixBars = patternDefs[fc.fixUpperBars] || {h:0,v:0};
+            const upperBars = patternDefs[upperBarsPattern] || {h:0,v:0};
+            const fixBars = patternDefs[fixUpperBarsPattern] || {h:0,v:0};
 
             sections.forEach((sec, i) => {
                 const bars = i === 1 ? upperBars : fixBars;
@@ -479,8 +533,8 @@ class EstimateRenderer {
 
             // Bars
             const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
-            const upperBars = patternDefs[item.upper_bars] || {h:0,v:0};
-            const lowerBars = patternDefs[item.lower_bars] || patternDefs[item.upper_bars] || {h:0,v:0};
+            const upperBars = patternDefs[upperBarsPattern] || {h:0,v:0};
+            const lowerBars = patternDefs[lowerBarsPattern] || patternDefs[upperBarsPattern] || {h:0,v:0};
             const bUpperT = upperT + (headType === 'arch' ? archRise : 0);
             const bUpperH = meetingY - frameW - 2 - (headType === 'arch' ? archRise : 0);
 
@@ -503,12 +557,12 @@ class EstimateRenderer {
 
             // Opening arrows
             const arrowX = ox + drawW + 14;
-            if (item.opening_type === 'both') {
+            if (openingType === 'both') {
                 svg += `<text x="${arrowX}" y="${oy + meetingY/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↑</text>`;
                 svg += `<text x="${arrowX}" y="${oy + meetingY + lowerH/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
-            } else if (item.opening_type === 'bottom') {
+            } else if (openingType === 'bottom') {
                 svg += `<text x="${arrowX}" y="${oy + meetingY + lowerH/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
-            } else if (item.opening_type === 'fixed') {
+            } else if (openingType === 'fixed') {
                 svg += `<text x="${arrowX}" y="${oy + sh/2 + 3}" font-family="Jost,sans-serif" font-size="7" fill="rgba(10,22,40,.3)" text-anchor="middle">FIX</text>`;
             }
 
