@@ -325,7 +325,7 @@ export default function CasementWindow({
         materialInt={intMaterial}
         mullions={layoutDef.mullions || []}
         transoms={layoutDef.transoms || []}
-        debugColors={true}
+        debugColors={false}
       />
 
       {/* ─── Panels (leaves) ─── */}
