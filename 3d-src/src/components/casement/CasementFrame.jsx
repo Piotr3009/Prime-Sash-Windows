@@ -17,11 +17,11 @@ import * as THREE from 'three';
 const mm = (v) => v / 1000;
 
 // Frame profile constants (mm)
-const FRAME_FACE = 65;       // visible face width of frame members
+const FRAME_FACE = 57;       // visible face width of frame members
 const FRAME_DEPTH = 93;      // total depth
-const EXT_DEPTH = 36;        // exterior rebate depth
-const INT_DEPTH = 57;        // interior depth
-const REBATE_STEP = 12;      // rebate ledge width (where sash seats)
+const EXT_DEPTH = 57;        // exterior depth (thick front block)
+const INT_DEPTH = 36;        // interior depth (thin back block)
+const REBATE_STEP = 21;      // rebate ledge width (where sash seats)
 const MULLION_W = 50;        // mullion width
 
 // Single L-shape frame member: 2 boxes
