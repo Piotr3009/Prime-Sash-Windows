@@ -462,71 +462,85 @@ export default function CasementFrame({
       })}
 
       {/* ═══ Gasket strips on rebate surfaces ═══ */}
-      {/* Bottom rail gasket — on rebate step face, 19mm covering 21mm step */}
-      <mesh position={[0, -H / 2 + mm(BOTTOM_INNER_FACE) + gW / 2, gZ]}>
-        <boxGeometry args={[W, gW, gT]} />
-        <primitive object={gMat} attach="material" />
-      </mesh>
+      {(() => {
+        // Opening bounds (inner edges of rebates)
+        const openLeft = -W / 2 + mm(EXT_FACE);
+        const openRight = W / 2 - mm(EXT_FACE);
+        const openBottom = -H / 2 + mm(BOTTOM_INNER_FACE);
+        const openTop = H / 2 - mm(FRAME_FACE) + mm(REBATE_STEP);
+        const openW = openRight - openLeft;
+        const openH = openTop - openBottom;
+        const openCenterX = (openLeft + openRight) / 2;
+        const openCenterY = (openBottom + openTop) / 2;
 
-      {/* Top rail gasket — on rebate step face */}
-      <mesh position={[0, H / 2 - mm(FRAME_FACE) + mm(REBATE_STEP) - gW / 2, gZ]}>
-        <boxGeometry args={[W, gW, gT]} />
-        <primitive object={gMat} attach="material" />
-      </mesh>
-
-      {/* Left stile gasket — 19mm along X covering rebate, 5mm along Z */}
-      <mesh position={[-W / 2 + mm(EXT_FACE) + gW / 2, 0, gZ]}>
-        <boxGeometry args={[gW, H, gT]} />
-        <primitive object={gMat} attach="material" />
-      </mesh>
-
-      {/* Right stile gasket — mirror */}
-      <mesh position={[W / 2 - mm(EXT_FACE) - gW / 2, 0, gZ]}>
-        <boxGeometry args={[gW, H, gT]} />
-        <primitive object={gMat} attach="material" />
-      </mesh>
-
-      {/* Mullion gaskets — both rebate faces */}
-      {mullObjs.map((mObj, i) => {
-        const mullCenterX = -W / 2 + mm(mObj.x);
-        const mullY = -H / 2 + mm(mObj.startY);
-        const mullH = mm(mObj.endY - mObj.startY);
         return (
-          <group key={`mull-gasket-${i}`}>
-            {/* Left rebate gasket */}
-            <mesh position={[mullCenterX - mm(MULLION_W) / 2 + gW / 2, mullY + mullH / 2, gZ]}>
-              <boxGeometry args={[gW, mullH, gT]} />
+          <group>
+            {/* Bottom rail gasket — between stiles */}
+            <mesh position={[openCenterX, openBottom + gW / 2, gZ]}>
+              <boxGeometry args={[openW, gW, gT]} />
               <primitive object={gMat} attach="material" />
             </mesh>
-            {/* Right rebate gasket */}
-            <mesh position={[mullCenterX + mm(MULLION_W) / 2 - gW / 2, mullY + mullH / 2, gZ]}>
-              <boxGeometry args={[gW, mullH, gT]} />
+
+            {/* Top rail gasket — between stiles */}
+            <mesh position={[openCenterX, openTop - gW / 2, gZ]}>
+              <boxGeometry args={[openW, gW, gT]} />
               <primitive object={gMat} attach="material" />
             </mesh>
+
+            {/* Left stile gasket — between rails */}
+            <mesh position={[openLeft + gW / 2, openCenterY, gZ]}>
+              <boxGeometry args={[gW, openH, gT]} />
+              <primitive object={gMat} attach="material" />
+            </mesh>
+
+            {/* Right stile gasket — between rails */}
+            <mesh position={[openRight - gW / 2, openCenterY, gZ]}>
+              <boxGeometry args={[gW, openH, gT]} />
+              <primitive object={gMat} attach="material" />
+            </mesh>
+
+            {/* Mullion gaskets — between rails, both sides */}
+            {mullObjs.map((mObj, i) => {
+              const mullCenterX = -W / 2 + mm(mObj.x);
+              const mullBottom = -H / 2 + mm(mObj.startY) + (mObj.touchesBottom !== false ? mm(BOTTOM_INNER_FACE) : 0);
+              const mullTop = -H / 2 + mm(mObj.endY) - (mObj.touchesTop !== false ? mm(FRAME_FACE - REBATE_STEP) : 0);
+              const mullGH = mullTop - mullBottom;
+              const mullGCY = (mullBottom + mullTop) / 2;
+              return (
+                <group key={`mull-gasket-${i}`}>
+                  <mesh position={[mullCenterX - mm(MULLION_W) / 2 + gW / 2, mullGCY, gZ]}>
+                    <boxGeometry args={[gW, mullGH, gT]} />
+                    <primitive object={gMat} attach="material" />
+                  </mesh>
+                  <mesh position={[mullCenterX + mm(MULLION_W) / 2 - gW / 2, mullGCY, gZ]}>
+                    <boxGeometry args={[gW, mullGH, gT]} />
+                    <primitive object={gMat} attach="material" />
+                  </mesh>
+                </group>
+              );
+            })}
+
+            {/* Transom gaskets — between stiles, top and bottom */}
+            {transObjs.map((tObj, i) => {
+              const tY = -H / 2 + mm(tObj.y);
+              const tCenterX = mm(tObj.offsetX);
+              const tLen = mm(tObj.width);
+              return (
+                <group key={`trans-gasket-${i}`}>
+                  <mesh position={[tCenterX, tY - mm(MULLION_W) / 2 + gW / 2, gZ]}>
+                    <boxGeometry args={[tLen, gW, gT]} />
+                    <primitive object={gMat} attach="material" />
+                  </mesh>
+                  <mesh position={[tCenterX, tY + mm(MULLION_W) / 2 - gW / 2, gZ]}>
+                    <boxGeometry args={[tLen, gW, gT]} />
+                    <primitive object={gMat} attach="material" />
+                  </mesh>
+                </group>
+              );
+            })}
           </group>
         );
-      })}
-
-      {/* Transom gaskets — top and bottom rebate faces */}
-      {transObjs.map((tObj, i) => {
-        const tY = -H / 2 + mm(tObj.y);
-        const tCenterX = mm(tObj.offsetX);
-        const tLen = mm(tObj.width);
-        return (
-          <group key={`trans-gasket-${i}`}>
-            {/* Bottom rebate gasket */}
-            <mesh position={[tCenterX, tY - mm(MULLION_W) / 2 + gW / 2, gZ]}>
-              <boxGeometry args={[tLen, gW, gT]} />
-              <primitive object={gMat} attach="material" />
-            </mesh>
-            {/* Top rebate gasket */}
-            <mesh position={[tCenterX, tY + mm(MULLION_W) / 2 - gW / 2, gZ]}>
-              <boxGeometry args={[tLen, gW, gT]} />
-              <primitive object={gMat} attach="material" />
-            </mesh>
-          </group>
-        );
-      })}
+      })()}
     </group>
   );
 }
