@@ -123,8 +123,7 @@ function SashFrame({ width, height, mat }) {
   const W = mm(width);
   const H = mm(height);
 
-  // Rails full width, stiles between
-  const stileH = H - F * 2;
+  // BOTH stiles and rails go full extent — overlap at corners = natural miter
   const glassW = width - SASH_RAIL * 2;
   const glassH = height - SASH_RAIL * 2;
 
@@ -133,35 +132,30 @@ function SashFrame({ width, height, mat }) {
   const bRail = useMemo(() => buildBottomRailShape(), []);
   const tRail = useMemo(() => buildTopRailShape(), []);
 
-  const stileSettings = useMemo(() => ({ depth: stileH, bevelEnabled: false }), [stileH]);
+  const stileSettings = useMemo(() => ({ depth: H, bevelEnabled: false }), [H]);
   const railSettings = useMemo(() => ({ depth: W, bevelEnabled: false }), [W]);
 
   return (
     <group>
-      {/* ─── Left stile ─── */}
-      {/* rotation [-PI/2,0,0]: X→X, Y→-Z, Z→+Y */}
-      {/* X=0 (outer) at -W/2, Y=0 (EXT) at +halfD */}
+      {/* ─── Left stile — FULL HEIGHT ─── */}
       <mesh castShadow receiveShadow
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[-W / 2, -stileH / 2, halfD]}
+        position={[-W / 2, -H / 2, halfD]}
       >
         <extrudeGeometry args={[lStile, stileSettings]} />
         <primitive object={mat} attach="material" />
       </mesh>
 
-      {/* ─── Right stile ─── */}
-      {/* X=F (outer) at +W/2, so start at W/2-F */}
+      {/* ─── Right stile — FULL HEIGHT ─── */}
       <mesh castShadow receiveShadow
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[W / 2 - F, -stileH / 2, halfD]}
+        position={[W / 2 - F, -H / 2, halfD]}
       >
         <extrudeGeometry args={[rStile, stileSettings]} />
         <primitive object={mat} attach="material" />
       </mesh>
 
-      {/* ─── Bottom rail ─── */}
-      {/* rotation [0,PI/2,0]: X→-Z, Y→Y, Z→+X */}
-      {/* X=0 (EXT) at +halfD, Y=0 (outer) at -H/2 */}
+      {/* ─── Bottom rail — FULL WIDTH ─── */}
       <mesh castShadow receiveShadow
         rotation={[0, Math.PI / 2, 0]}
         position={[-W / 2, -H / 2, halfD]}
@@ -170,8 +164,7 @@ function SashFrame({ width, height, mat }) {
         <primitive object={mat} attach="material" />
       </mesh>
 
-      {/* ─── Top rail ─── */}
-      {/* Y=F (outer) at H/2, so start at H/2-F */}
+      {/* ─── Top rail — FULL WIDTH ─── */}
       <mesh castShadow receiveShadow
         rotation={[0, Math.PI / 2, 0]}
         position={[-W / 2, H / 2 - F, halfD]}
