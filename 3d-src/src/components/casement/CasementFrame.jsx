@@ -246,43 +246,66 @@ function Mullion({ frameHeight, mat, debugColors }) {
 }
 
 // ═══ Transom — horizontal divider, rebate top and bottom ═══
-// Same profile as mullion but horizontal, runs between stiles
-// EXT: 26mm face (centered), 62mm depth
-// INT: 68mm face, 31mm depth
-function Transom({ transomWidth, mat, debugColors }) {
-  const len = mm(transomWidth);
+// EXT block: extends into stile rebates (wider)
+// INT block: between stiles (standard)
+function Transom({ transomWidth, frameWidth, mat, debugColors }) {
+  // INT runs between stiles
+  const intLen = mm(transomWidth);
+  // EXT runs wider — into stile rebates on both sides
+  const extLen = mm(transomWidth + REBATE_STEP * 2);
 
-  // Shape XY: X=depth (0=ext, 93=int), Y=face (0=bottom, 68=top)
-  // L-shape: EXT centered 26mm + INT full 68mm
-  const shape = useMemo(() => {
+  // EXT shape: just the 26mm centered part, 62mm deep
+  const extShape = useMemo(() => {
     const s = new THREE.Shape();
-    s.moveTo(0, mm(REBATE_STEP));                          // ext bottom-rebate (21mm)
-    s.lineTo(0, mm(MULLION_W - REBATE_STEP));              // ext top-rebate (47mm)
+    s.moveTo(0, mm(REBATE_STEP));                          // bottom-rebate
+    s.lineTo(0, mm(MULLION_W - REBATE_STEP));              // top-rebate
     s.lineTo(mm(EXT_DEPTH), mm(MULLION_W - REBATE_STEP));  // junction top
-    s.lineTo(mm(EXT_DEPTH), mm(MULLION_W));                // int top (68mm)
-    s.lineTo(mm(FRAME_DEPTH), mm(MULLION_W));              // int back top
-    s.lineTo(mm(FRAME_DEPTH), 0);                          // int back bottom
-    s.lineTo(mm(EXT_DEPTH), 0);                            // junction bottom
-    s.lineTo(mm(EXT_DEPTH), mm(REBATE_STEP));              // junction rebate
+    s.lineTo(mm(EXT_DEPTH), mm(REBATE_STEP));              // junction bottom
     s.closePath();
     return s;
   }, []);
 
-  const settings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
+  // INT shape: full 68mm face, 31mm deep
+  const intShape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(mm(EXT_DEPTH), 0);
+    s.lineTo(mm(EXT_DEPTH), mm(MULLION_W));
+    s.lineTo(mm(FRAME_DEPTH), mm(MULLION_W));
+    s.lineTo(mm(FRAME_DEPTH), 0);
+    s.closePath();
+    return s;
+  }, []);
 
-  const debugMat = useMemo(() => debugColors
+  const extSettings = useMemo(() => ({ depth: extLen, bevelEnabled: false }), [extLen]);
+  const intSettings = useMemo(() => ({ depth: intLen, bevelEnabled: false }), [intLen]);
+
+  const debugMatExt = useMemo(() => debugColors
     ? new THREE.MeshStandardMaterial({ color: '#e91e9b', opacity: 0.85, transparent: true })
     : null, [debugColors]);
+  const debugMatInt = useMemo(() => debugColors
+    ? new THREE.MeshStandardMaterial({ color: '#a8145e', opacity: 0.85, transparent: true })
+    : null, [debugColors]);
 
-  // rotation [0, PI/2, 0]: shapeX→-worldZ, shapeY→worldY, extrudeZ→worldX
   return (
-    <mesh castShadow receiveShadow
-      rotation={[0, Math.PI / 2, 0]}
-      position={[-len / 2, 0, halfD]}
-    >
-      <extrudeGeometry args={[shape, settings]} />
-      {debugColors ? <primitive object={debugMat} attach="material" /> : <primitive object={mat} attach="material" />}
-    </mesh>
+    <group>
+      {/* EXT block — wider, extends into stile rebates */}
+      <mesh castShadow receiveShadow
+        rotation={[0, Math.PI / 2, 0]}
+        position={[-extLen / 2, 0, halfD]}
+      >
+        <extrudeGeometry args={[extShape, extSettings]} />
+        {debugColors ? <primitive object={debugMatExt} attach="material" /> : <primitive object={mat} attach="material" />}
+      </mesh>
+
+      {/* INT block — between stiles */}
+      <mesh castShadow receiveShadow
+        rotation={[0, Math.PI / 2, 0]}
+        position={[-intLen / 2, 0, halfD]}
+      >
+        <extrudeGeometry args={[intShape, intSettings]} />
+        {debugColors ? <primitive object={debugMatInt} attach="material" /> : <primitive object={mat} attach="material" />}
+      </mesh>
+    </group>
   );
 }
 
@@ -339,7 +362,7 @@ export default function CasementFrame({
         const transomLen = width - FRAME_FACE * 2;
         return (
           <group key={`transom-${i}`} position={[0, y, 0]}>
-            <Transom transomWidth={transomLen} mat={material} debugColors={debugColors} />
+            <Transom transomWidth={transomLen} frameWidth={width} mat={material} debugColors={debugColors} />
           </group>
         );
       })}
