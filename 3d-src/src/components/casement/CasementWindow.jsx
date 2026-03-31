@@ -232,73 +232,88 @@ export default function CasementWindow({
       <axesHelper args={[0.5]} />
 
       {/* ═══ DEBUG: Full dimensioning ═══ */}
-      {showGuides && (
-        <group>
-          {/* A — Overall Height (right side) */}
-          <DimLine
-            from={[W/2 + mm(50), -H/2, 0]}
-            to={[W/2 + mm(50), H/2, 0]}
-            label={`A: ${height}mm`}
-            color="#e74c3c"
-          />
+      {showGuides && (() => {
+        const fW = mm(FRAME_FACE);     // 65mm
+        const halfD = mm(FRAME_DEPTH) / 2; // 46.5mm
+        const extD = mm(EXT_DEPTH);    // 36mm
+        const intD = mm(INT_DEPTH);    // 57mm
+        const reb = mm(REBATE_STEP);   // 12mm
 
-          {/* B — Overall Width (below) */}
-          <DimLine
-            from={[-W/2, -H/2 - mm(50), 0]}
-            to={[W/2, -H/2 - mm(50), 0]}
-            label={`B: ${width}mm`}
-            color="#2980b9"
-          />
+        // Absolute Z positions of frame faces
+        const zExt = -halfD + extD / 2;           // exterior face
+        const zJunction = -halfD - extD / 2;      // ext/int junction
+        const zInt = -halfD - extD / 2 - intD;    // interior face
 
-          {/* C — Frame Face Width (top member, left edge detail) */}
-          <DimLine
-            from={[-W/2, H/2, mm(10)]}
-            to={[-W/2 + mm(FRAME_FACE), H/2, mm(10)]}
-            label={`C: ${FRAME_FACE}mm`}
-            color="#27ae60"
-          />
+        const off = mm(60); // offset for dimension lines from frame edge
 
-          {/* D — Frame Depth total (top-left corner, along Z) */}
-          <DimLine
-            from={[-W/2, H/2 + mm(30), mm(FRAME_DEPTH/2)]}
-            to={[-W/2, H/2 + mm(30), -mm(FRAME_DEPTH/2)]}
-            label={`D: ${FRAME_DEPTH}mm`}
-            color="#f39c12"
-          />
+        return (
+          <group>
+            {/* A — Overall Height — LEFT side, full height */}
+            <DimLine
+              from={[-W/2 - off, -H/2, zExt]}
+              to={[-W/2 - off, H/2, zExt]}
+              label={`A: ${height}mm (height)`}
+              color="#e74c3c"
+            />
 
-          {/* E — Ext Depth (exterior portion along Z) */}
-          <DimLine
-            from={[-W/2 - mm(30), H/2, mm(FRAME_DEPTH/2)]}
-            to={[-W/2 - mm(30), H/2, mm(FRAME_DEPTH/2) - mm(EXT_DEPTH)]}
-            label={`E: ${EXT_DEPTH}mm (ext)`}
-            color="#9b59b6"
-          />
+            {/* B — Overall Width — BOTTOM, full width */}
+            <DimLine
+              from={[-W/2, -H/2 - off, zExt]}
+              to={[W/2, -H/2 - off, zExt]}
+              label={`B: ${width}mm (width)`}
+              color="#2980b9"
+            />
 
-          {/* F — Int Depth (interior portion along Z) */}
-          <DimLine
-            from={[-W/2 - mm(30), H/2, mm(FRAME_DEPTH/2) - mm(EXT_DEPTH)]}
-            to={[-W/2 - mm(30), H/2, -mm(FRAME_DEPTH/2)]}
-            label={`F: ${INT_DEPTH}mm (int)`}
-            color="#e67e22"
-          />
+            {/* C — Frame Face Width — LEFT stile, mid-height, outer→inner edge */}
+            <DimLine
+              from={[-W/2, 0, zExt + mm(20)]}
+              to={[-W/2 + fW, 0, zExt + mm(20)]}
+              label={`C: ${FRAME_FACE}mm (frame face)`}
+              color="#27ae60"
+            />
 
-          {/* G — Rebate Step (width of rebate ledge) */}
-          <DimLine
-            from={[-W/2 + mm(FRAME_FACE) - mm(REBATE_STEP), H/2 + mm(15), -mm(EXT_DEPTH)]}
-            to={[-W/2 + mm(FRAME_FACE), H/2 + mm(15), -mm(EXT_DEPTH)]}
-            label={`G: ${REBATE_STEP}mm`}
-            color="#1abc9c"
-          />
+            {/* D — Frame Depth — TOP-RIGHT corner, along Z, ext face → int face */}
+            <DimLine
+              from={[W/2 + mm(20), H/2 + mm(20), zExt]}
+              to={[W/2 + mm(20), H/2 + mm(20), zInt]}
+              label={`D: ${FRAME_DEPTH}mm (total depth)`}
+              color="#f39c12"
+            />
 
-          {/* H — Inner Opening Width */}
-          <DimLine
-            from={[-W/2 + mm(FRAME_FACE), -H/2 - mm(30), 0]}
-            to={[W/2 - mm(FRAME_FACE), -H/2 - mm(30), 0]}
-            label={`H: ${width - FRAME_FACE*2}mm`}
-            color="#c0392b"
-          />
-        </group>
-      )}
+            {/* E — Ext Depth — BOTTOM-RIGHT corner, ext face → junction */}
+            <DimLine
+              from={[W/2 + mm(20), -H/2 - mm(20), zExt]}
+              to={[W/2 + mm(20), -H/2 - mm(20), zJunction]}
+              label={`E: ${EXT_DEPTH}mm (ext depth)`}
+              color="#9b59b6"
+            />
+
+            {/* F — Int Depth — BOTTOM-RIGHT corner, junction → int face */}
+            <DimLine
+              from={[W/2 + mm(20), -H/2 - mm(40), zJunction]}
+              to={[W/2 + mm(20), -H/2 - mm(40), zInt]}
+              label={`F: ${INT_DEPTH}mm (int depth)`}
+              color="#e67e22"
+            />
+
+            {/* G — Rebate Step — TOP-LEFT inner corner, the step width */}
+            <DimLine
+              from={[-W/2 + fW - reb, H/2 + mm(30), zJunction]}
+              to={[-W/2 + fW, H/2 + mm(30), zJunction]}
+              label={`G: ${REBATE_STEP}mm (rebate)`}
+              color="#1abc9c"
+            />
+
+            {/* H — Inner Opening Width — TOP, inner-left → inner-right */}
+            <DimLine
+              from={[-W/2 + fW, H/2 + mm(15), zExt]}
+              to={[W/2 - fW, H/2 + mm(15), zExt]}
+              label={`H: ${width - FRAME_FACE * 2}mm (inner opening)`}
+              color="#c0392b"
+            />
+          </group>
+        );
+      })()}
     </group>
   );
 }
