@@ -27,6 +27,7 @@
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
+import { Html } from '@react-three/drei';
 import CasementFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, mm } from './CasementFrame';
 import CasementPanel, { SASH_RAIL } from './CasementPanel';
 
@@ -199,6 +200,7 @@ export default function CasementWindow({
 
   const W = mm(width);
   const H = mm(height);
+  const halfD = mm(FRAME_DEPTH) / 2;
 
   return (
     <group>
@@ -214,6 +216,50 @@ export default function CasementWindow({
       />
 
       {/* Panels — TODO: add back step by step */}
+
+      {/* ═══ Dimensions ═══ */}
+      {showGuides && (() => {
+        const off = mm(70);
+        return (
+          <group>
+            {/* Height — left side */}
+            <DimLine from={[-W/2 - off, -H/2, 0]} to={[-W/2 - off, H/2, 0]}
+              label={`${height}mm`} color="#e74c3c" />
+            {/* Width — bottom */}
+            <DimLine from={[-W/2, -H/2 - off, 0]} to={[W/2, -H/2 - off, 0]}
+              label={`${width}mm`} color="#2980b9" />
+            {/* Depth — top right corner along Z */}
+            <DimLine from={[W/2 + mm(30), H/2 + mm(20), halfD]} to={[W/2 + mm(30), H/2 + mm(20), -halfD]}
+              label={`${FRAME_DEPTH}mm`} color="#9b59b6" />
+          </group>
+        );
+      })()}
+    </group>
+  );
+}
+
+// ─── Dimension line ───
+function DimLine({ from, to, label, color = '#888' }) {
+  const midX = (from[0] + to[0]) / 2;
+  const midY = (from[1] + to[1]) / 2;
+  const midZ = (from[2] + to[2]) / 2;
+  const positions = new Float32Array([...from, ...to]);
+
+  return (
+    <group>
+      <line>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" count={2} array={positions} itemSize={3} />
+        </bufferGeometry>
+        <lineBasicMaterial color={color} />
+      </line>
+      <mesh position={from}><sphereGeometry args={[0.006, 6, 6]} /><meshBasicMaterial color={color} /></mesh>
+      <mesh position={to}><sphereGeometry args={[0.006, 6, 6]} /><meshBasicMaterial color={color} /></mesh>
+      <Html position={[midX, midY + 0.01, midZ]} center style={{
+        background: 'rgba(255,255,255,0.92)', padding: '2px 6px', fontSize: '11px',
+        fontFamily: 'monospace', fontWeight: 'bold', color, borderRadius: '3px',
+        border: `1px solid ${color}`, whiteSpace: 'nowrap', pointerEvents: 'none',
+      }}>{label}</Html>
     </group>
   );
 }
