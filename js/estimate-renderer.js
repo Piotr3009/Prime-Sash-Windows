@@ -688,10 +688,10 @@ class EstimateRenderer {
     }
 
     // ─── PDF Window Drawing ───
-    static generateWindowPDF(doc, item, ox, oy) {
+    static generateWindowPDF(doc, p, ox, oy) {
         const maxW = 50, maxH = 55;
-        const w = item.width || 1000;
-        const h = item.height || 1500;
+        const w = p.width || 1000;
+        const h = p.height || 1500;
         const ratio = Math.min(maxW / w, maxH / h);
         const sw = Math.round(w * ratio);
         const sh = Math.round(h * ratio);
@@ -705,8 +705,8 @@ class EstimateRenderer {
             '4x4': {h:1,v:1}, '6x6': {h:1,v:2}, '9x9': {h:2,v:2},
             '2-vertical': {h:0,v:2}, '1-vertical': {h:0,v:1}, 'custom': {h:0,v:0}
         };
-        const upperDiv = patternDefs[item.upper_bars] || {h:0,v:0};
-        const lowerDiv = patternDefs[item.lower_bars] || patternDefs[item.upper_bars] || {h:0,v:0};
+        const upperDiv = patternDefs[p.upperBars] || {h:0,v:0};
+        const lowerDiv = patternDefs[p.lowerBars] || patternDefs[p.upperBars] || {h:0,v:0};
 
         const innerL = cx + frame;
         const innerW = sw - frame * 2;
@@ -754,12 +754,12 @@ class EstimateRenderer {
         doc.setFontSize(8);
         doc.setTextColor(10, 22, 40);
         const arrowX = cx + sw + 3;
-        if (item.opening_type === 'both') {
+        if (p.openingType === 'both') {
             doc.text('↑', arrowX, cy + meetingY / 2 + 1);
             doc.text('↓', arrowX, cy + meetingY + lowerH / 2 + 1);
-        } else if (item.opening_type === 'bottom') {
+        } else if (p.openingType === 'bottom') {
             doc.text('↓', arrowX, cy + meetingY + lowerH / 2 + 1);
-        } else if (item.opening_type === 'fixed') {
+        } else if (p.openingType === 'fixed') {
             doc.setFontSize(5);
             doc.setTextColor(150, 150, 150);
             doc.text('FIX', arrowX - 1, cy + sh / 2);
@@ -830,27 +830,46 @@ class EstimateRenderer {
 
                 doc.setFontSize(11);
                 doc.setTextColor(10, 22, 40);
-                doc.text(`Window ${item.window_number} (Qty: ${item.quantity})`, 14, yPos);
+                const typeLabel = p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+                const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
+                doc.text(`Window ${item.window_number} — ${typeLabel}${headLabel} (Qty: ${p.quantity})`, 14, yPos);
                 yPos += 3;
 
                 const drawStartY = yPos;
-                R.generateWindowPDF(doc, item, 14, yPos);
+                R.generateWindowPDF(doc, p, 14, yPos);
 
-                const rows = [['Dimensions', `${item.width}mm × ${item.height}mm`]];
-                if (item.original_width && item.original_height && (item.original_width !== item.width || item.original_height !== item.height)) {
-                    rows[0] = ['Window Size (Frame)', `${item.width}mm × ${item.height}mm`];
-                    rows.push(['Structural Opening', `${item.original_width}mm × ${item.original_height}mm`]);
+                const rows = [];
+                // Dimensions
+                if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
+                    rows.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
+                    rows.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
+                } else {
+                    rows.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+                }
+                if (p.sashType === 'triple') {
+                    rows.push(['Split Ratio', p.splitRatio]);
                 }
                 rows.push(
-                    ['Frame', `${item.frame_type || 'standard'} (164mm)`],
+                    ['Frame', p.frameText],
                     ['Opening', p.openingText],
-                    ['Glass', item.glass_type || 'double'],
-                    ['Glass Spec', item.glass_spec || 'standard'],
+                    ['Glass', p.glassText],
+                    ['Glass Spec', p.glassSpecText],
+                    ['Glass Finish', p.glassFinishText],
                     ['Spacer Bar', p.spacerText],
                     ['Colour', p.colorDisplay],
-                    ['Georgian Bars', p.barsText],
-                    ['PAS24', item.pas24 ? 'Yes' : 'No'],
-                    ['Horns', p.hornsText],
+                    ['Georgian Bars', p.barsText]
+                );
+                if (p.sashType === 'triple' && p.fixBarsText) {
+                    rows.push(['Fix Panel Bars', p.fixBarsText]);
+                }
+                rows.push(
+                    ['PAS24', p.pas24 ? 'Yes' : 'No'],
+                    ['Horns', p.hornsText]
+                );
+                if (p.hardwareFinish) {
+                    rows.push(['Hardware Finish', p.hardwareFinish]);
+                }
+                rows.push(
                     ['Ironmongery', p.ironText],
                     ['Price', `£${R.formatPrice(item.total_price)} + VAT`]
                 );
@@ -942,42 +961,48 @@ class EstimateRenderer {
                 wsData.push(['']);
             }
 
-            wsData.push(['Window', 'Width', 'Height', 'Frame', 'Glass', 'Glass Spec', 'Spacer', 'Opening', 'Colour', 'Bars', 'PAS24', 'Horns', 'Ironmongery', 'Qty', 'Price + VAT']);
+            wsData.push(['Window', 'Type', 'Width', 'Height', 'Frame', 'Glass', 'Glass Spec', 'Glass Finish', 'Spacer', 'Opening', 'Colour', 'Bars', 'Fix Bars', 'PAS24', 'Horns', 'Hardware Finish', 'Ironmongery', 'Qty', 'Price + VAT']);
 
             estimate.estimate_items?.forEach(item => {
                 const p = R.parseItemForExport(item);
+                const typeLabel = p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+                const headLabel = p.headType !== 'flat' ? ` (${p.headType})` : '';
                 wsData.push([
                     item.window_number,
-                    item.width,
-                    item.height,
-                    item.frame_type || 'standard',
-                    item.glass_type || 'double',
-                    item.glass_spec || 'standard',
+                    typeLabel + headLabel,
+                    p.width,
+                    p.height,
+                    p.frameText,
+                    p.glassText,
+                    p.glassSpecText,
+                    p.glassFinishText,
                     p.spacerText,
                     p.openingText,
                     p.colorDisplay,
                     p.barsText,
-                    item.pas24 ? 'Yes' : 'No',
+                    p.fixBarsText || '-',
+                    p.pas24 ? 'Yes' : 'No',
                     p.hornsText,
+                    p.hardwareFinish || '-',
                     p.ironText,
-                    item.quantity,
+                    p.quantity,
                     parseFloat(item.total_price) || 0
                 ]);
             });
 
             wsData.push(['']);
-            wsData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', 'Subtotal:', parseFloat(estimate.total_price) || 0]);
-            wsData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', 'VAT (20%):', (parseFloat(estimate.total_price) || 0) * 0.2]);
-            wsData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', 'Total incl. VAT:', (parseFloat(estimate.total_price) || 0) * 1.2]);
+            wsData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Subtotal:', parseFloat(estimate.total_price) || 0]);
+            wsData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'VAT (20%):', (parseFloat(estimate.total_price) || 0) * 0.2]);
+            wsData.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Total incl. VAT:', (parseFloat(estimate.total_price) || 0) * 1.2]);
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
             ws['!cols'] = [
-                { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 10 },
-                { wch: 10 }, { wch: 12 }, { wch: 8 }, { wch: 14 },
-                { wch: 25 }, { wch: 20 }, { wch: 6 }, { wch: 10 },
-                { wch: 40 }, { wch: 5 }, { wch: 12 }
+                { wch: 10 }, { wch: 18 }, { wch: 8 }, { wch: 8 }, { wch: 22 },
+                { wch: 28 }, { wch: 12 }, { wch: 22 }, { wch: 22 }, { wch: 14 },
+                { wch: 30 }, { wch: 30 }, { wch: 30 }, { wch: 6 }, { wch: 10 },
+                { wch: 16 }, { wch: 40 }, { wch: 5 }, { wch: 12 }
             ];
 
             XLSX.utils.book_append_sheet(wb, ws, 'Estimate');
