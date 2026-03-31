@@ -20,6 +20,7 @@ const INT_DEPTH = 31;
 const FRAME_DEPTH = 93;
 const REBATE_STEP = 21;
 const MULLION_W = 50;
+const MULLION_EXT_FACE = FRAME_FACE - REBATE_STEP * 2; // 57-21-21 = 15mm
 
 // Bottom rail (mm)
 const BOTTOM_FACE = 68;
@@ -173,6 +174,77 @@ function Stile({ frameHeight, side, mat, debugColors }) {
   );
 }
 
+// ═══ Mullion — vertical divider, rebate both sides ═══
+// EXT block: 15mm face (centered), 62mm depth
+// INT block: 57mm face, 31mm depth
+// Same top/bottom cutouts as stiles
+function Mullion({ frameHeight, mat, debugColors }) {
+  const h = mm(frameHeight);
+  const extTopCut = mm(frameHeight - FRAME_FACE + REBATE_STEP);
+
+  // EXT block shape — same height profile as stile (slope bottom, flat top cut)
+  const extShape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0, mm(BOTTOM_EXT_OUTER));
+    s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));
+    s.lineTo(mm(EXT_DEPTH), extTopCut);
+    s.lineTo(0, extTopCut);
+    s.closePath();
+    return s;
+  }, [extTopCut]);
+
+  // EXT extrude depth = 15mm (centered in 57mm face)
+  const extSettings = useMemo(() => ({ depth: mm(MULLION_EXT_FACE), bevelEnabled: false }), []);
+
+  // INT block: same as stile
+  const intBottom = mm(BOTTOM_FACE);
+  const intTop = mm(frameHeight - FRAME_FACE);
+  const intH = intTop - intBottom;
+
+  // EXT block X offset: centered = REBATE_STEP from left edge
+  const extX = mm(REBATE_STEP);
+
+  // INT block
+  const intCenterX = mm(FRAME_FACE) / 2;
+  const intCenterY = intBottom + intH / 2;
+  const intCenterZ = halfD - mm(EXT_DEPTH) - mm(INT_DEPTH) / 2;
+
+  const debugMatExt = useMemo(() => debugColors
+    ? new THREE.MeshStandardMaterial({ color: '#f39c12', opacity: 0.85, transparent: true })
+    : null, [debugColors]);
+
+  const debugMatInt = useMemo(() => debugColors
+    ? new THREE.MeshStandardMaterial({ color: '#d68910', opacity: 0.85, transparent: true })
+    : null, [debugColors]);
+
+  return (
+    <group>
+      {/* EXT block — 15mm wide, centered */}
+      <mesh castShadow receiveShadow
+        rotation={[0, Math.PI / 2, 0]}
+        position={[extX, 0, halfD]}
+      >
+        <extrudeGeometry args={[extShape, extSettings]} />
+        {debugColors
+          ? <primitive object={debugMatExt} attach="material" />
+          : <primitive object={mat} attach="material" />
+        }
+      </mesh>
+
+      {/* INT block — full 57mm, above bottom rail, below top rail */}
+      <mesh castShadow receiveShadow
+        position={[intCenterX, intCenterY, intCenterZ]}
+      >
+        <boxGeometry args={[mm(FRAME_FACE), intH, mm(INT_DEPTH)]} />
+        {debugColors
+          ? <primitive object={debugMatInt} attach="material" />
+          : <primitive object={mat} attach="material" />
+        }
+      </mesh>
+    </group>
+  );
+}
+
 // ═══ Main CasementFrame ═══
 export default function CasementFrame({
   width = 800,
@@ -207,8 +279,19 @@ export default function CasementFrame({
       <group position={[W / 2 - mm(FRAME_FACE), -H / 2, 0]}>
         <Stile frameHeight={height} side="right" mat={material} debugColors={debugColors} />
       </group>
+
+      {/* Mullions — vertical dividers */}
+      {mullions.map((xPosMm, i) => {
+        // xPosMm = mm from left edge of frame to center of mullion
+        const x = -W / 2 + mm(xPosMm) - mm(FRAME_FACE) / 2;
+        return (
+          <group key={`mull-${i}`} position={[x, -H / 2, 0]}>
+            <Mullion frameHeight={height} mat={material} debugColors={debugColors} />
+          </group>
+        );
+      })}
     </group>
   );
 }
 
-export { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, mm };
+export { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, MULLION_EXT_FACE, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, mm };
