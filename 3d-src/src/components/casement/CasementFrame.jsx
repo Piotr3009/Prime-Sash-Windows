@@ -19,8 +19,8 @@ const EXT_DEPTH = 62;
 const INT_DEPTH = 31;
 const FRAME_DEPTH = 93;
 const REBATE_STEP = 21;
-const MULLION_W = 50;
-const MULLION_EXT_FACE = FRAME_FACE - REBATE_STEP * 2; // 57-21-21 = 15mm
+const MULLION_W = 68;         // mullion total face width
+const MULLION_EXT_FACE = MULLION_W - REBATE_STEP * 2; // 68-21-21 = 26mm
 
 // Bottom rail (mm)
 const BOTTOM_FACE = 68;
@@ -196,7 +196,7 @@ function Mullion({ frameHeight, mat, debugColors }) {
   // EXT extrude depth = 15mm (centered in 57mm face)
   const extSettings = useMemo(() => ({ depth: mm(MULLION_EXT_FACE), bevelEnabled: false }), []);
 
-  // INT block: same as stile
+  // INT block: same as stile but MULLION_W wide
   const intBottom = mm(BOTTOM_FACE);
   const intTop = mm(frameHeight - FRAME_FACE);
   const intH = intTop - intBottom;
@@ -205,7 +205,7 @@ function Mullion({ frameHeight, mat, debugColors }) {
   const extX = mm(REBATE_STEP);
 
   // INT block
-  const intCenterX = mm(FRAME_FACE) / 2;
+  const intCenterX = mm(MULLION_W) / 2;
   const intCenterY = intBottom + intH / 2;
   const intCenterZ = halfD - mm(EXT_DEPTH) - mm(INT_DEPTH) / 2;
 
@@ -231,11 +231,11 @@ function Mullion({ frameHeight, mat, debugColors }) {
         }
       </mesh>
 
-      {/* INT block — full 57mm, above bottom rail, below top rail */}
+      {/* INT block — full 68mm, above bottom rail, below top rail */}
       <mesh castShadow receiveShadow
         position={[intCenterX, intCenterY, intCenterZ]}
       >
-        <boxGeometry args={[mm(FRAME_FACE), intH, mm(INT_DEPTH)]} />
+        <boxGeometry args={[mm(MULLION_W), intH, mm(INT_DEPTH)]} />
         {debugColors
           ? <primitive object={debugMatInt} attach="material" />
           : <primitive object={mat} attach="material" />
