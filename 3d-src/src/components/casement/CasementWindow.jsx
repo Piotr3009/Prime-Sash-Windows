@@ -34,7 +34,7 @@ import CasementPanel, { SASH_RAIL } from './CasementPanel';
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
 // Panel: { x, y, w, h, hinge } — position & size relative to glass area, hinge type
-function getLayout(code, innerW, innerH) {
+function getLayout(code, innerW, innerH, height) {
   const half = innerW / 2;
   const third = innerW / 3;
   const mullW = MULLION_W;
@@ -132,11 +132,12 @@ function getLayout(code, innerW, innerH) {
       const transomY = BOTTOM_FACE + mainH + MULLION_W / 2;
       const topPanelW = (innerW - mullW) / 2;
       const mullX = FRAME_FACE + topPanelW + mullW / 2;
-      // Mullion ONLY in fanlight area (from top of transom to top rail)
+      // Mullion ONLY in fanlight area (transom top to top rail bottom)
       const mullStartY = transomY + MULLION_W / 2;
+      const mullEndY = height;
       return {
         transoms: [transomY],
-        mullions: [{ x: mullX, startY: mullStartY, endY: height, touchesBottom: false, touchesTop: true }],
+        mullions: [{ x: mullX, startY: mullStartY, endY: mullEndY, touchesBottom: false, touchesTop: true }],
         panels: [
           { x: -(topPanelW + mullW) / 2, y: (fanlightH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
           { x:  (topPanelW + mullW) / 2, y: (fanlightH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
@@ -197,12 +198,12 @@ export default function CasementWindow({
 
   // Inner dimensions (after subtracting outer frame)
   const innerW = width - FRAME_FACE * 2;
-  const innerH = height - FRAME_FACE - BOTTOM_FACE;
+  const innerH = height - FRAME_FACE * 2;
 
   // Get layout definition
   const layoutDef = useMemo(
-    () => getLayout(layout, innerW, innerH),
-    [layout, innerW, innerH]
+    () => getLayout(layout, innerW, innerH, height),
+    [layout, innerW, innerH, height]
   );
 
   const W = mm(width);
