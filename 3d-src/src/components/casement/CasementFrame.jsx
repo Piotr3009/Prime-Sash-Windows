@@ -1,11 +1,11 @@
 /**
  * CasementFrame.jsx
  * 
- * Bottom rail: full width, passes through. Has slope on ext block.
- * Stiles: split into 2 parts each:
- *   - EXT block: ExtrudeGeometry with slope cutout at bottom (matches bottom rail slope)
- *   - INT block: box starting ABOVE bottom rail (no overlap)
- * Top rail: TODO next
+ * Bottom rail: full width, slope on ext block
+ * Top rail: full width, flat L-shape (same profile as stiles)
+ * Stiles: full height with cutouts:
+ *   - Bottom: EXT follows slope, INT starts above bottom rail
+ *   - Top: EXT stops below top rail EXT, INT stops below top rail INT
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
@@ -26,7 +26,7 @@ const BOTTOM_FACE = 68;
 const BOTTOM_EXT_OUTER = 36;
 const BOTTOM_INNER_FACE = BOTTOM_FACE - REBATE_STEP; // 47
 
-const halfD = mm(FRAME_DEPTH) / 2; // 0.0465
+const halfD = mm(FRAME_DEPTH) / 2;
 
 // ═══ Bottom Rail — full width, slope on ext ═══
 function BottomRail({ width, mat, debugColors }) {
@@ -45,13 +45,10 @@ function BottomRail({ width, mat, debugColors }) {
   }, []);
 
   const settings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
-
   const debugMat = useMemo(() => debugColors
     ? new THREE.MeshStandardMaterial({ color: '#e74c3c', opacity: 0.85, transparent: true })
     : null, [debugColors]);
 
-  // rotation [0, PI/2, 0]: shapeX → -worldZ, shapeY → worldY, extrudeZ → worldX
-  // position: center rail along X, ext front at +halfD
   return (
     <mesh castShadow receiveShadow
       rotation={[0, Math.PI / 2, 0]}
@@ -63,37 +60,77 @@ function BottomRail({ width, mat, debugColors }) {
   );
 }
 
-// ═══ Stile — EXT block with slope + INT block above bottom rail ═══
-function Stile({ stileHeight, side, mat, debugColors }) {
-  const h = mm(stileHeight);
+// ═══ Top Rail — full width, flat L-shape ═══
+function TopRail({ width, mat, debugColors }) {
+  const len = mm(width);
 
-  // EXT block shape: depth(X) vs height(Y)
-  // Bottom follows bottom rail slope: Y=36mm at depth=0, Y=47mm at depth=62
-  const extShape = useMemo(() => {
+  // Shape XY: X=depth (0=ext, 93=int), Y=face (0=inner/opening, 57=outer/top)
+  // EXT: Y from REBATE_STEP→FRAME_FACE (36mm face), depth 0→62
+  // INT: Y from 0→FRAME_FACE (57mm face), depth 62→93
+  const shape = useMemo(() => {
     const s = new THREE.Shape();
-    s.moveTo(0, mm(BOTTOM_EXT_OUTER));
-    s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));
-    s.lineTo(mm(EXT_DEPTH), h);
-    s.lineTo(0, h);
+    s.moveTo(0, mm(REBATE_STEP));
+    s.lineTo(0, mm(FRAME_FACE));
+    s.lineTo(mm(FRAME_DEPTH), mm(FRAME_FACE));
+    s.lineTo(mm(FRAME_DEPTH), 0);
+    s.lineTo(mm(EXT_DEPTH), 0);
+    s.lineTo(mm(EXT_DEPTH), mm(REBATE_STEP));
     s.closePath();
     return s;
-  }, [h]);
+  }, []);
+
+  const settings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
+  const debugMat = useMemo(() => debugColors
+    ? new THREE.MeshStandardMaterial({ color: '#9b59b6', opacity: 0.85, transparent: true })
+    : null, [debugColors]);
+
+  return (
+    <mesh castShadow receiveShadow
+      rotation={[0, Math.PI / 2, 0]}
+      position={[-len / 2, 0, halfD]}
+    >
+      <extrudeGeometry args={[shape, settings]} />
+      {debugColors ? <primitive object={debugMat} attach="material" /> : <primitive object={mat} attach="material" />}
+    </mesh>
+  );
+}
+
+// ═══ Stile — with bottom slope cutout + top rail cutout ═══
+function Stile({ frameHeight, side, mat, debugColors }) {
+  const h = mm(frameHeight);
+
+  // EXT block shape (X=depth 0→62, Y=height 0→frameHeight)
+  // Bottom: slope matching bottom rail (Y=36 at depth=0, Y=47 at depth=62)
+  // Top: flat cut where top rail EXT starts
+  //   Top rail EXT fills: Y from (frameHeight - FRAME_FACE + REBATE_STEP) to frameHeight
+  //   So stile EXT goes up to Y = frameHeight - FRAME_FACE + REBATE_STEP = frameHeight - 36
+  const extTopCut = mm(frameHeight - FRAME_FACE + REBATE_STEP); // = mm(frameHeight - 36)
+
+  const extShape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0, mm(BOTTOM_EXT_OUTER));                // bottom-ext (slope start, 36mm)
+    s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));   // bottom-junction (slope end, 47mm)
+    s.lineTo(mm(EXT_DEPTH), extTopCut);                // top-junction (cut)
+    s.lineTo(0, extTopCut);                            // top-ext (cut)
+    s.closePath();
+    return s;
+  }, [extTopCut]);
 
   const extSettings = useMemo(() => ({ depth: mm(EXT_FACE), bevelEnabled: false }), []);
 
-  // INT block: simple box, starts above bottom rail
-  const intH = mm(stileHeight - BOTTOM_FACE);
+  // INT block: box from top of bottom rail to bottom of top rail
+  // Bottom: BOTTOM_FACE (68mm)
+  // Top: frameHeight - FRAME_FACE
+  const intBottom = mm(BOTTOM_FACE);
+  const intTop = mm(frameHeight - FRAME_FACE);
+  const intH = intTop - intBottom;
 
-  // EXT block X offset:
-  //   Left stile: extruded from X=0 (outer edge) toward center → extX = 0
-  //   Right stile: ext block on outer side, rebate toward center → extX = REBATE_STEP
+  // EXT block X: left stile starts at 0, right stile offset by rebate
   const extX = side === 'left' ? 0 : mm(REBATE_STEP);
 
-  // INT block center X: always FRAME_FACE/2 (covers full 57mm face width)
+  // INT block positions
   const intCenterX = mm(FRAME_FACE) / 2;
-  // INT block center Y: above bottom rail
-  const intCenterY = mm(BOTTOM_FACE) + intH / 2;
-  // INT block center Z: behind ext block
+  const intCenterY = intBottom + intH / 2;
   const intCenterZ = halfD - mm(EXT_DEPTH) - mm(INT_DEPTH) / 2;
 
   const debugMatExt = useMemo(() => debugColors
@@ -110,7 +147,7 @@ function Stile({ stileHeight, side, mat, debugColors }) {
 
   return (
     <group>
-      {/* EXT block — with slope cutout at bottom */}
+      {/* EXT block — slope at bottom, flat cut at top */}
       <mesh castShadow receiveShadow
         rotation={[0, Math.PI / 2, 0]}
         position={[extX, 0, halfD]}
@@ -122,7 +159,7 @@ function Stile({ stileHeight, side, mat, debugColors }) {
         }
       </mesh>
 
-      {/* INT block — box above bottom rail */}
+      {/* INT block — above bottom rail, below top rail */}
       <mesh castShadow receiveShadow
         position={[intCenterX, intCenterY, intCenterZ]}
       >
@@ -133,42 +170,6 @@ function Stile({ stileHeight, side, mat, debugColors }) {
         }
       </mesh>
     </group>
-  );
-}
-
-// ═══ Top Rail — between stiles, L-shape no slope ═══
-function TopRail({ railWidth, mat, debugColors }) {
-  const len = mm(railWidth);
-
-  // Shape XY: X=depth (0=ext front, 93=int back), Y=face (0=inner/opening, 57=outer/top)
-  // L-shape: EXT 36mm face (Y: 21→57) × 62mm depth, INT 57mm face (Y: 0→57) × 31mm depth
-  const shape = useMemo(() => {
-    const s = new THREE.Shape();
-    s.moveTo(0, mm(REBATE_STEP));                 // ext, rebate level
-    s.lineTo(0, mm(FRAME_FACE));                  // ext, outer (top)
-    s.lineTo(mm(FRAME_DEPTH), mm(FRAME_FACE));    // int, outer (top)
-    s.lineTo(mm(FRAME_DEPTH), 0);                 // int, inner (opening)
-    s.lineTo(mm(EXT_DEPTH), 0);                   // junction, inner
-    s.lineTo(mm(EXT_DEPTH), mm(REBATE_STEP));     // junction, rebate
-    s.closePath();
-    return s;
-  }, []);
-
-  const settings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
-
-  const debugMat = useMemo(() => debugColors
-    ? new THREE.MeshStandardMaterial({ color: '#9b59b6', opacity: 0.85, transparent: true })
-    : null, [debugColors]);
-
-  // rotation [0, PI/2, 0]: shapeX → -worldZ, shapeY → worldY, extrudeZ → worldX
-  return (
-    <mesh castShadow receiveShadow
-      rotation={[0, Math.PI / 2, 0]}
-      position={[-len / 2, 0, halfD]}
-    >
-      <extrudeGeometry args={[shape, settings]} />
-      {debugColors ? <primitive object={debugMat} attach="material" /> : <primitive object={mat} attach="material" />}
-    </mesh>
   );
 }
 
@@ -185,29 +186,26 @@ export default function CasementFrame({
   const W = mm(width);
   const H = mm(height);
 
-  // Stile runs from frame bottom to bottom of top rail
-  const stileLen = height - FRAME_FACE;
-
   return (
     <group>
-      {/* Bottom rail — full width, at frame bottom */}
+      {/* Bottom rail — full width */}
       <group position={[0, -H / 2, 0]}>
         <BottomRail width={width} mat={material} debugColors={debugColors} />
       </group>
 
+      {/* Top rail — full width */}
+      <group position={[0, H / 2 - mm(FRAME_FACE), 0]}>
+        <TopRail width={width} mat={material} debugColors={debugColors} />
+      </group>
+
       {/* Left stile — outer edge at -W/2 */}
       <group position={[-W / 2, -H / 2, 0]}>
-        <Stile stileHeight={stileLen} side="left" mat={material} debugColors={debugColors} />
+        <Stile frameHeight={height} side="left" mat={material} debugColors={debugColors} />
       </group>
 
-      {/* Right stile — outer edge at W/2, shape origin at inner edge */}
+      {/* Right stile — outer edge at W/2 */}
       <group position={[W / 2 - mm(FRAME_FACE), -H / 2, 0]}>
-        <Stile stileHeight={stileLen} side="right" mat={material} debugColors={debugColors} />
-      </group>
-
-      {/* Top rail — between stiles, at top of frame */}
-      <group position={[0, H / 2 - mm(FRAME_FACE), 0]}>
-        <TopRail railWidth={width - FRAME_FACE * 2} mat={material} debugColors={debugColors} />
+        <Stile frameHeight={height} side="right" mat={material} debugColors={debugColors} />
       </group>
     </group>
   );
