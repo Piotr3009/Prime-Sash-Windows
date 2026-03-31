@@ -365,7 +365,7 @@ export default function CasementFrame({
       {transoms.map((t, i) => {
         const tY = typeof t === 'number' ? t : t.y;
         const y = -H / 2 + mm(tY) - mm(MULLION_W) / 2;
-        const transomLen = width - FRAME_FACE * 2;
+        const transomLen = typeof t === 'object' && t.width ? t.width : (width - FRAME_FACE * 2);
         return (
           <group key={`transom-${i}`} position={[0, y, 0]}>
             <Transom transomWidth={transomLen} mat={material} debugColors={debugColors} />

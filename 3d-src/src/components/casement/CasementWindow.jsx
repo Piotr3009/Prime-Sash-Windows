@@ -213,7 +213,7 @@ function getLayout(code, innerW, innerH, height) {
         transoms: [transomY],
         panels: [
           { x: -(panelW + mullW), y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-          { x: 0,                 y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: 0,                 y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'fixed' },
           { x:  (panelW + mullW), y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
           { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'left' },
           { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
