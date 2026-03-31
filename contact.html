@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google tag (gtag.js) — GA4 + Google Ads -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S88RZLHQL2"></script>
+<script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js',new Date());
+  gtag('config','G-S88RZLHQL2');
+  gtag('config','AW-3481705735');
+</script>
     <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S88RZLHQL2"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-S88RZLHQL2');
-    </script>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Contact Prime Sash Windows - Book a measurement visit or send us a message.">
@@ -639,6 +640,13 @@
                 document.getElementById('contact-form').style.display = 'none';
                 document.getElementById('selected-slots-container').style.display = 'none';
                 document.getElementById('success-message').classList.add('show');
+                
+                // Google Ads conversion tracking
+                if (typeof gtag === 'function') {
+                    gtag('event', 'conversion', {
+                        'send_to': 'AW-3481705735/contact_form',
+                    });
+                }
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error submitting request. Please try again.');

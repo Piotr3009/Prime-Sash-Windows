@@ -275,6 +275,14 @@ class EstimateManager {
 
             console.log('Window added:', windowNumber);
             
+            // Google Ads conversion tracking
+            if (typeof gtag === 'function') {
+                gtag('event', 'conversion', {
+                    'send_to': 'AW-3481705735/submit_lead_form',
+                });
+                console.log('📊 Google Ads conversion tracked');
+            }
+            
             // Pobierz nazwę estimate dla wiadomości
             const { data: estimate } = await supabaseClient
                 .from('estimates')

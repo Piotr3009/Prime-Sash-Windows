@@ -239,7 +239,9 @@ class AuthSystem {
             
             // Google Ads conversion tracking
             if (typeof gtag === 'function') {
-                gtag('event', 'ads_conversion_Book_appointment_1', {});
+                gtag('event', 'conversion', {
+                    'send_to': 'AW-3481705735/sign_up',
+                });
             }
 
             // Sprawdź czy email wymaga potwierdzenia
