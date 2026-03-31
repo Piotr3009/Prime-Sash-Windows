@@ -210,13 +210,15 @@ function getLayout(code, innerW, innerH, height) {
       const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
       return {
         mullions: [m1, m2],
-        transoms: [transomY],
+        transoms: [
+          { y: transomY, width: panelW, offsetX: -(panelW + mullW) },  // left transom
+          { y: transomY, width: panelW, offsetX: (panelW + mullW) },   // right transom
+        ],
         panels: [
           { x: -(panelW + mullW), y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-          { x: 0,                 y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'fixed' },
+          { x: 0,                 y: 0, w: panelW, h: innerH, hinge: 'fixed' },
           { x:  (panelW + mullW), y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
           { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'left' },
-          { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
           { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'right' },
         ],
       };
