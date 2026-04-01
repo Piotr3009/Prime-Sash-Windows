@@ -121,11 +121,11 @@ export default function CasementGlazing({
         <primitive object={glassMat} attach="material" />
       </mesh>
 
-      {/* Edge spacers */}
-      <mesh position={[0, H/2-mm(2), 0]}><boxGeometry args={[W, mm(4), D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
-      <mesh position={[0, -H/2+mm(2), 0]}><boxGeometry args={[W, mm(4), D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
-      <mesh position={[-W/2+mm(2), 0, 0]}><boxGeometry args={[mm(4), H, D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
-      <mesh position={[W/2-mm(2), 0, 0]}><boxGeometry args={[mm(4), H, D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
+      {/* Edge spacers — 1mm visible like sash */}
+      <mesh position={[0, H/2-mm(0.5), 0]}><boxGeometry args={[W, mm(1), D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
+      <mesh position={[0, -H/2+mm(0.5), 0]}><boxGeometry args={[W, mm(1), D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
+      <mesh position={[-W/2+mm(0.5), 0, 0]}><boxGeometry args={[mm(1), H, D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
+      <mesh position={[W/2-mm(0.5), 0, 0]}><boxGeometry args={[mm(1), H, D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
 
       {/* ─── Glazing bars ─── */}
       {barItems.map((bar, i) => {

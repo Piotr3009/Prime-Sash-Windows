@@ -18,7 +18,7 @@
   // ─── Default dimensions per layout ───
   const LAYOUT_DEFAULTS = {
     '010':  { w: 600,  h: 1000 },
-    '010T': { w: 600,  h: 600  },
+    '010T': { w: 1000, h: 1200 },
     '040L': { w: 600,  h: 1200 },
     '040R': { w: 600,  h: 1200 },
     '040D': { w: 1200, h: 1200 },
@@ -30,7 +30,11 @@
     '180L': { w: 1500, h: 1200 },
     '180R': { w: 1500, h: 1200 },
     '021':  { w: 800,  h: 1400 },
+    '021L': { w: 800,  h: 1400 },
+    '021R': { w: 800,  h: 1400 },
     '031':  { w: 1200, h: 1400 },
+    '031L': { w: 1200, h: 1400 },
+    '031R': { w: 1200, h: 1400 },
     '032':  { w: 1200, h: 1400 },
     '130':  { w: 1800, h: 1200 },
     '131':  { w: 1800, h: 1500 },
@@ -174,7 +178,7 @@
       extHeight: h,
       fanlightRatio: fanlightRatio,
       glassType: checked('c-glass-type') || 'double',
-      spacerColor: val('c-spacer') || 'silver',
+      spacerColor: checked('c-spacer-color') || 'silver',
       casementHBars: parseInt(checked('c-hbars')) || 0,
       casementVBars: parseInt(checked('c-vbars')) || 0,
     });
@@ -459,8 +463,9 @@
     });
 
     // Spacer
-    var spacer = $('c-spacer');
-    if (spacer) spacer.addEventListener('change', updateCasement3D);
+    document.querySelectorAll('input[name="c-spacer-color"]').forEach(function(r) {
+      r.addEventListener('change', updateCasement3D);
+    });
 
     // PAS24
     document.querySelectorAll('input[name="c-pas24"]').forEach(function(r) {
@@ -490,7 +495,7 @@
       glassType: checked('c-glass-type') || 'double',
       glassSpec: checked('c-glass-spec') || 'float',
       glassFinish: checked('c-glass-finish') || 'clear',
-      spacer: val('c-spacer') || 'silver',
+      spacer: checked('c-spacer-color') || 'silver',
       pas24: checked('c-pas24') || 'no',
       hardwareFinish: checked('c-hardware-finish') || 'chrome',
       quantity: parseInt(val('c-quantity')) || 1,
