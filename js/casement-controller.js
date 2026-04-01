@@ -85,8 +85,16 @@
 
     // Fanlight row
     const fRow = $('c-fanlight-row');
+    const hasFanlight = FANLIGHT_LAYOUTS.includes(layout);
     if (fRow) {
-      fRow.style.display = FANLIGHT_LAYOUTS.includes(layout) ? 'block' : 'none';
+      fRow.style.display = hasFanlight ? 'block' : 'none';
+    }
+    // Set default fanlight height (30% of inner height)
+    if (hasFanlight) {
+      var innerH = def.h - 57 - 68;
+      var defaultFH = Math.round(innerH * 0.3);
+      var fInput = $('c-fanlight-height');
+      if (fInput) fInput.value = defaultFH;
     }
   }
 
@@ -119,6 +127,17 @@
       var el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
+
+    // Update info panel
+    var infoPanel = document.getElementById('info-panel-content');
+    if (infoPanel) {
+      infoPanel.innerHTML =
+        '<p class="info-title">Casement Ordering Dimensions</p>' +
+        '<p>Measure the brick/stone opening at the <strong>narrowest point</strong>.</p>' +
+        '<p>Order <strong>10mm less</strong> than the structural opening (width &amp; height).</p>' +
+        '<p class="info-note">Check plumb and level of reveals before ordering.</p>' +
+        '<a href="measurement-guide.html" class="measurement-link" target="_blank">📐 Measuring instructions</a>';
+    }
   }
 
   // ─── Update 3D ───
@@ -128,14 +147,24 @@
     var layout = checked('casement-layout') || '040L';
     var w = parseInt(val('c-width')) || 800;
     var h = parseInt(val('c-height')) || 1200;
-    var fanlightRatio = parseInt(val('c-fanlight-ratio')) || 30;
+    var fanlightMm = parseInt(val('c-fanlight-height')) || 350;
+    var innerH = h - 57 - 68; // height minus top rail minus bottom rail
+    var fanlightRatio = Math.max(0.15, Math.min(0.5, fanlightMm / innerH));
+
+    // Update min/max display
+    var fMinEl = $('c-fanlight-min');
+    var fMaxEl = $('c-fanlight-max');
+    var fMin = Math.round(innerH * 0.15);
+    var fMax = Math.round(innerH * 0.5);
+    if (fMinEl) fMinEl.textContent = fMin;
+    if (fMaxEl) fMaxEl.textContent = fMax;
 
     window.update3D({
       windowCategory: 'casement',
       casementLayout: layout,
       extWidth: w,
       extHeight: h,
-      fanlightRatio: fanlightRatio / 100,
+      fanlightRatio: fanlightRatio,
       glassType: checked('c-glass-type') || 'double',
       spacerColor: val('c-spacer') || 'silver',
     });
@@ -303,7 +332,7 @@
     setupDimSelect('c-height-select', 'c-height-custom', 'c-height');
 
     // Fanlight ratio
-    var fRatio = $('c-fanlight-ratio');
+    var fRatio = $('c-fanlight-height');
     if (fRatio) fRatio.addEventListener('change', updateCasement3D);
 
     // Bars
@@ -345,7 +374,7 @@
       layout: checked('casement-layout') || '040L',
       width: parseInt(val('c-width')) || 800,
       height: parseInt(val('c-height')) || 1200,
-      fanlightRatio: parseInt(val('c-fanlight-ratio')) || 30,
+      fanlightHeight: parseInt(val('c-fanlight-height')) || 350,
       hBars: parseInt(checked('c-hbars')) || 0,
       vBars: parseInt(checked('c-vbars')) || 0,
       colourMode: checked('c-colour-mode') || 'single',

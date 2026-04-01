@@ -593,7 +593,8 @@ function Scene({ config, isMobile }) {
                 width={config.extWidth}
                 height={config.extHeight}
                 layout={config.casementLayout}
-                opening={0}
+                opening={casementOpening}
+                fanlightRatio={fanlightRatio}
                 woodColor={config.woodColor}
                 woodColorExt={config.woodColorExt}
                 woodColorInt={config.woodColorInt}
@@ -687,6 +688,8 @@ export default function App() {
   // ─── Casement state ───
   const [windowCategory, setWindowCategory] = useState('sash'); // 'sash' | 'casement'
   const [casementLayout, setCasementLayout] = useState('040L');
+  const [casementOpening, setCasementOpening] = useState(0);
+  const [fanlightRatio, setFanlightRatio] = useState(0.3);
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
 
@@ -732,6 +735,7 @@ export default function App() {
       // Casement
       if (cfg.windowCategory !== undefined) setWindowCategory(cfg.windowCategory);
       if (cfg.casementLayout !== undefined) setCasementLayout(cfg.casementLayout);
+      if (cfg.fanlightRatio !== undefined) setFanlightRatio(cfg.fanlightRatio);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -789,26 +793,40 @@ export default function App() {
           maxWidth: '200px', width: '100%',
           pointerEvents: 'auto'
         }}>
-          <div style={{ opacity: openingType === 'fixed' ? 0.3 : 1, pointerEvents: openingType === 'fixed' ? 'none' : 'auto' }}>
+          {windowCategory === 'sash' ? (
+            <>
+              <div style={{ opacity: openingType === 'fixed' ? 0.3 : 1, pointerEvents: openingType === 'fixed' ? 'none' : 'auto' }}>
+                <Slider
+                  label="Lower sash"
+                  value={opening}
+                  min={0}
+                  max={maxSashOpening}
+                  step={5}
+                  onChange={setOpening}
+                />
+              </div>
+              <div style={{ opacity: (openingType === 'fixed' || openingType === 'bottom') ? 0.3 : 1, pointerEvents: (openingType === 'fixed' || openingType === 'bottom') ? 'none' : 'auto' }}>
+                <Slider
+                  label="Upper sash"
+                  value={upperOpening}
+                  min={0}
+                  max={maxSashOpening}
+                  step={5}
+                  onChange={setUpperOpening}
+                />
+              </div>
+            </>
+          ) : (
             <Slider
-              label="Lower sash"
-              value={opening}
+              label="Opening"
+              value={Math.round(casementOpening * 100)}
               min={0}
-              max={maxSashOpening}
+              max={100}
               step={5}
-              onChange={setOpening}
+              suffix="%"
+              onChange={(v) => setCasementOpening(v / 100)}
             />
-          </div>
-          <div style={{ opacity: (openingType === 'fixed' || openingType === 'bottom') ? 0.3 : 1, pointerEvents: (openingType === 'fixed' || openingType === 'bottom') ? 'none' : 'auto' }}>
-            <Slider
-              label="Upper sash"
-              value={upperOpening}
-              min={0}
-              max={maxSashOpening}
-              step={5}
-              onChange={setUpperOpening}
-            />
-          </div>
+          )}
           <Slider label="Brightness" value={Math.round((brightness - 1) * 100)} min={-30} max={30} step={5} suffix="%" onChange={(v) => setBrightness(1 + v / 100)} />
         </div>
 

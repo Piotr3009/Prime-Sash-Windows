@@ -1505,16 +1505,6 @@
       <div class="config-section" data-for="casement" data-category="dim-design" style="display:none;">
         <h3>Step 1: Window Dimensions</h3>
 
-        <div class="measurement-info-box" style="display:block; margin-bottom:15px;">
-          <div class="info-content">
-            <p><strong>Casement Ordering Dimensions:</strong></p>
-            <p>Measure the brick/stone opening at the <strong>narrowest point</strong>.</p>
-            <p>Order <strong>10mm less</strong> than the structural opening (width &amp; height).</p>
-            <p class="info-note"><em>We recommend checking plumb and level of reveals before ordering.</em></p>
-            <a href="measurement-guide.html" class="measurement-link" target="_blank">📐 See measuring instructions</a>
-          </div>
-        </div>
-
         <div class="dim-row">
           <div class="input-group">
             <label for="c-width-select">Width (mm):</label>
@@ -2012,17 +2002,12 @@
 
         <!-- Fanlight height — shown only for layouts with transoms -->
         <div id="c-fanlight-row" class="input-group" style="display:none; margin-top:10px;">
-          <label for="c-fanlight-ratio">Fanlight Height Ratio:</label>
-          <select id="c-fanlight-ratio" class="dimension-select" style="max-width:200px;">
-              <option value="20">20%</option>
-              <option value="25">25%</option>
-              <option value="30" selected>30%</option>
-              <option value="35">35%</option>
-              <option value="40">40%</option>
-              <option value="45">45%</option>
-              <option value="50">50%</option>
-          </select>
-          <p style="font-size:0.7rem; color:var(--secondary-color); margin-top:4px;">Percentage of inner height allocated to fanlight panels</p>
+          <label for="c-fanlight-height">Fanlight Height (mm):</label>
+          <div class="dimension-input-wrapper">
+            <input type="number" id="c-fanlight-height" min="200" max="800" value="350" step="10" style="max-width:150px;">
+            <span style="font-size:0.7rem; color:var(--secondary-color); margin-left:8px;">Min: <span id="c-fanlight-min">200</span>mm — Max: <span id="c-fanlight-max">800</span>mm</span>
+          </div>
+          <p style="font-size:0.7rem; color:#c0392b; margin-top:4px; font-weight:600;">⚠ For consistent appearance, keep the same fanlight height across all windows on the same elevation.</p>
         </div>
       </div>
 
@@ -2117,6 +2102,7 @@
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="c-glass-double" name="c-glass-type" value="double" checked><label for="c-glass-double" class="radio-label">Double Glazed</label></div>
             <div class="radio-option"><input type="radio" id="c-glass-triple" name="c-glass-type" value="triple"><label for="c-glass-triple" class="radio-label">Triple Glazed</label></div>
+            <div class="radio-option"><input type="radio" id="c-glass-passive" name="c-glass-type" value="passive"><label for="c-glass-passive" class="radio-label">Passive Glass</label></div>
           </div>
         </div>
       </div>
@@ -2143,21 +2129,36 @@
           <label for="c-spacer">Spacer Bar:</label>
           <select id="c-spacer" class="colour-select" style="max-width:250px;">
             <option value="silver">Silver (Stainless Steel)</option>
+            <option value="white">White</option>
             <option value="black">Black</option>
-            <option value="grey">Grey</option>
-            <option value="gold">Gold</option>
           </select>
         </div>
       </div>
 
-      <!-- C-STEP 6: PAS24 -->
+      <!-- C-STEP 6: SECURITY & VENTILATION -->
       <div class="config-section" data-for="casement" data-category="opening" style="display:none;">
-        <h3>Step 6: PAS 24 Security Standard</h3>
+        <h3>Step 6: Security & Ventilation</h3>
         <div class="input-group">
           <label>PAS 24 Enhanced Security:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="c-pas24-no" name="c-pas24" value="no" checked><label for="c-pas24-no" class="radio-label">No</label></div>
             <div class="radio-option"><input type="radio" id="c-pas24-yes" name="c-pas24" value="yes"><label for="c-pas24-yes" class="radio-label">Yes</label></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Safety Glass:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="c-safety-none" name="c-safety-glass" value="none" checked><label for="c-safety-none" class="radio-label">Standard</label></div>
+            <div class="radio-option"><input type="radio" id="c-safety-toughened" name="c-safety-glass" value="toughened"><label for="c-safety-toughened" class="radio-label">Toughened</label></div>
+            <div class="radio-option"><input type="radio" id="c-safety-laminate" name="c-safety-glass" value="laminate"><label for="c-safety-laminate" class="radio-label">Laminate (Extra Security)</label></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Trickle Vent:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="c-vent-none" name="c-trickle-vent" value="none" checked><label for="c-vent-none" class="radio-label">None</label></div>
+            <div class="radio-option"><input type="radio" id="c-vent-frame" name="c-trickle-vent" value="window-frame"><label for="c-vent-frame" class="radio-label">Window Frame</label></div>
+            <div class="radio-option"><input type="radio" id="c-vent-inframe" name="c-trickle-vent" value="in-frame"><label for="c-vent-inframe" class="radio-label">In Frame</label></div>
           </div>
         </div>
       </div>

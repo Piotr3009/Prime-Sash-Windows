@@ -34,10 +34,11 @@ import CasementPanel, { SASH_RAIL } from './CasementPanel';
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
 // Panel: { x, y, w, h, hinge } — position & size relative to glass area, hinge type
-function getLayout(code, innerW, innerH, height) {
+function getLayout(code, innerW, innerH, height, fanlightRatio) {
   const half = innerW / 2;
   const third = innerW / 3;
   const mullW = MULLION_W;
+  const FR = fanlightRatio || 0.3;
 
   switch (code) {
     // ─── SINGLE PANELS ───
@@ -101,7 +102,7 @@ function getLayout(code, innerW, innerH, height) {
     case '052L': {
       const panelW = (innerW - mullW) / 2;
       const mullX = FRAME_FACE + panelW + mullW / 2;
-      const topH = innerH * 0.3;
+      const topH = innerH * FR;
       const bottomH = innerH - MULLION_W - topH;
       const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
       return {
@@ -119,7 +120,7 @@ function getLayout(code, innerW, innerH, height) {
     case '052R': {
       const panelW = (innerW - mullW) / 2;
       const mullX = FRAME_FACE + panelW + mullW / 2;
-      const topH = innerH * 0.3;
+      const topH = innerH * FR;
       const bottomH = innerH - MULLION_W - topH;
       const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
       return {
@@ -157,7 +158,7 @@ function getLayout(code, innerW, innerH, height) {
 
     // ─── WITH FANLIGHT (top-hung top + side-hung bottom) ───
     case '021': {
-      const fanlightH = innerH * 0.3;
+      const fanlightH = innerH * FR;
       const mainH = innerH - MULLION_W - fanlightH;
       const transomY = BOTTOM_FACE + mainH + MULLION_W / 2;
       return {
@@ -169,7 +170,7 @@ function getLayout(code, innerW, innerH, height) {
       };
     }
     case '031': {
-      const fanlightH = innerH * 0.3;
+      const fanlightH = innerH * FR;
       const mainH = innerH - MULLION_W - fanlightH;
       const transomY = BOTTOM_FACE + mainH + MULLION_W / 2;
       const topPanelW = (innerW - mullW) / 2;
@@ -190,7 +191,7 @@ function getLayout(code, innerW, innerH, height) {
 
     // ─── 032: Transom full width + mullion ONLY below transom ───
     case '032': {
-      const topH = innerH * 0.3;
+      const topH = innerH * FR;
       const bottomH = innerH - MULLION_W - topH;
       const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
       const bottomPanelW = (innerW - mullW) / 2;
@@ -227,7 +228,7 @@ function getLayout(code, innerW, innerH, height) {
       const panelW = (innerW - mullW * 2) / 3;
       const m1 = FRAME_FACE + panelW + mullW / 2;
       const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
-      const topH = innerH * 0.3;
+      const topH = innerH * FR;
       const bottomH = innerH - MULLION_W - topH;
       const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
       return {
@@ -247,7 +248,7 @@ function getLayout(code, innerW, innerH, height) {
       const panelW = (innerW - mullW * 2) / 3;
       const m1 = FRAME_FACE + panelW + mullW / 2;
       const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
-      const topH = innerH * 0.3;
+      const topH = innerH * FR;
       const bottomH = innerH - MULLION_W - topH;
       const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
       return {
@@ -279,6 +280,7 @@ export default function CasementWindow({
   height = 1200,
   layout = '040L',
   opening = 0.3,
+  fanlightRatio = 0.3,
   woodColor = '#F6F6F6',
   woodColorExt = '#F6F6F6',
   woodColorInt = '#F6F6F6',
@@ -307,8 +309,8 @@ export default function CasementWindow({
 
   // Get layout definition
   const layoutDef = useMemo(
-    () => getLayout(layout, innerW, innerH, height),
-    [layout, innerW, innerH, height]
+    () => getLayout(layout, innerW, innerH, height, fanlightRatio),
+    [layout, innerW, innerH, height, fanlightRatio]
   );
 
   const W = mm(width);
