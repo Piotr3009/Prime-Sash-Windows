@@ -175,7 +175,7 @@ function SashFrame({ width, height, mat, hBars, vBars }) {
 
       {/* ─── Glazing ─── */}
       {glassW > 0 && glassH > 0 && (
-        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} position={[0, 0, 0]} />
+        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mat} position={[0, 0, 0]} />
       )}
     </group>
   );
