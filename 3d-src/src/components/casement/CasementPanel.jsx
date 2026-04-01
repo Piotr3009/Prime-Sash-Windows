@@ -119,7 +119,7 @@ function buildTopRailShape() {
 }
 
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat, matInt, hBars, vBars }) {
+function SashFrame({ width, height, mat, matInt, spacerColor, hBars, vBars }) {
   const W = mm(width);
   const H = mm(height);
 
@@ -236,7 +236,7 @@ function SashFrame({ width, height, mat, matInt, hBars, vBars }) {
 
       {/* ─── Glazing ─── */}
       {glassW > 0 && glassH > 0 && (
-        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} position={[0, 0, 0]} />
+        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} position={[0, 0, 0]} />
       )}
     </group>
   );
@@ -250,6 +250,7 @@ export default function CasementPanel({
   opening = 0,
   material,
   materialInt,
+  spacerColor = 'silver',
   hBars = 0,
   vBars = 0,
   position = [0, 0, 0],
@@ -259,7 +260,7 @@ export default function CasementPanel({
   // For now: always closed (opening later)
   return (
     <group position={position}>
-      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} hBars={hBars} vBars={vBars} />
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />
     </group>
   );
 }

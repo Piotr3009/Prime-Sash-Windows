@@ -353,6 +353,7 @@ export default function CasementWindow({
             opening={0}
             material={extMaterial}
             materialInt={intMaterial}
+            spacerColor={spacerColor}
             hBars={isFanlight ? 0 : hBars}
             vBars={isFanlight ? 0 : vBars}
             position={[mm(p.x), mm(p.y) + openingCenterY, leafZ]}
