@@ -593,8 +593,8 @@ function Scene({ config, isMobile }) {
                 width={config.extWidth}
                 height={config.extHeight}
                 layout={config.casementLayout}
-                opening={casementOpening}
-                fanlightRatio={fanlightRatio}
+                opening={config.casementOpening || 0}
+                fanlightRatio={config.fanlightRatio || 0.3}
                 woodColor={config.woodColor}
                 woodColorExt={config.woodColorExt}
                 woodColorInt={config.woodColorInt}
@@ -777,8 +777,10 @@ export default function App() {
       fixLowerCustomBars,
       windowCategory,
       casementLayout,
+      casementOpening,
+      fanlightRatio,
     }),
-    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout],
+    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio],
   );
 
   return (
