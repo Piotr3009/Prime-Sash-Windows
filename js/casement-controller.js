@@ -1,0 +1,392 @@
+/**
+ * casement-controller.js
+ * Controls casement window configurator menu — separate from sash specification-controller.js
+ * Handles: dimensions, bars, colour, glass, PAS24, hardware, quantity
+ * Updates 3D via window.update3D()
+ */
+(function() {
+  'use strict';
+
+  // ─── Default dimensions per layout ───
+  const LAYOUT_DEFAULTS = {
+    '010':  { w: 600,  h: 1000 },
+    '010T': { w: 600,  h: 600  },
+    '040L': { w: 600,  h: 1200 },
+    '040R': { w: 600,  h: 1200 },
+    '040D': { w: 1200, h: 1200 },
+    '120':  { w: 1200, h: 1200 },
+    '051L': { w: 1200, h: 1200 },
+    '051R': { w: 1200, h: 1200 },
+    '052L': { w: 1200, h: 1500 },
+    '052R': { w: 1200, h: 1500 },
+    '180L': { w: 1500, h: 1200 },
+    '180R': { w: 1500, h: 1200 },
+    '021':  { w: 800,  h: 1400 },
+    '031':  { w: 1200, h: 1400 },
+    '032':  { w: 1200, h: 1400 },
+    '130':  { w: 1800, h: 1200 },
+    '131':  { w: 1800, h: 1500 },
+    '132':  { w: 1800, h: 1500 },
+  };
+
+  // Layouts that have fanlights (transom)
+  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '131', '132'];
+
+  // ─── Helpers ───
+  function $(id) { return document.getElementById(id); }
+  function val(id) { const el = $(id); return el ? el.value : null; }
+  function checked(name) { const el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : null; }
+
+  function debounce(fn, ms) {
+    let t;
+    return function() { clearTimeout(t); t = setTimeout(fn, ms); };
+  }
+
+  // ─── Dimension select ↔ hidden input sync ───
+  function setupDimSelect(selectId, customId, hiddenId) {
+    const sel = $(selectId);
+    const cust = $(customId);
+    const hidden = $(hiddenId);
+    if (!sel || !hidden) return;
+
+    sel.addEventListener('change', function() {
+      if (sel.value === 'custom') {
+        if (cust) { cust.style.display = 'block'; cust.focus(); }
+      } else {
+        if (cust) cust.style.display = 'none';
+        hidden.value = sel.value;
+        hidden.dispatchEvent(new Event('input'));
+        updateCasement3D();
+      }
+    });
+
+    if (cust) {
+      cust.addEventListener('input', function() {
+        hidden.value = cust.value;
+        updateCasement3D();
+      });
+    }
+  }
+
+  // ─── Set dimensions from layout defaults ───
+  function setDefaultDimensions(layout) {
+    const def = LAYOUT_DEFAULTS[layout] || { w: 800, h: 1200 };
+    const wSel = $('c-width-select');
+    const hSel = $('c-height-select');
+    const wHid = $('c-width');
+    const hHid = $('c-height');
+    const wCust = $('c-width-custom');
+    const hCust = $('c-height-custom');
+
+    if (wSel) { wSel.value = String(def.w); if (wCust) wCust.style.display = 'none'; }
+    if (hSel) { hSel.value = String(def.h); if (hCust) hCust.style.display = 'none'; }
+    if (wHid) wHid.value = def.w;
+    if (hHid) hHid.value = def.h;
+
+    // Fanlight row
+    const fRow = $('c-fanlight-row');
+    if (fRow) {
+      fRow.style.display = FANLIGHT_LAYOUTS.includes(layout) ? 'block' : 'none';
+    }
+  }
+
+  // ─── Update spec panel sidebar ───
+  function updateSpecPanel() {
+    var layout = checked('casement-layout') || '040L';
+    var w = parseInt(val('c-width')) || 800;
+    var h = parseInt(val('c-height')) || 1200;
+
+    // Reuse sash spec elements for dimensions
+    var specType = document.getElementById('spec-window-type');
+    var specSashType = document.getElementById('spec-sash-type');
+    var specDims = document.getElementById('spec-dimensions');
+    var specWidth = document.getElementById('spec-width');
+    var specHeight = document.getElementById('spec-height');
+    var specMeasurement = document.getElementById('spec-measurement');
+    var specSplitItem = document.getElementById('spec-split-ratio-item');
+
+    if (specType) specType.style.display = 'block';
+    if (specSashType) specSashType.textContent = 'Casement — Layout ' + layout;
+    if (specSplitItem) specSplitItem.style.display = 'none';
+    if (specDims) specDims.style.display = 'block';
+    if (specWidth) specWidth.textContent = w + 'mm';
+    if (specHeight) specHeight.textContent = h + 'mm';
+    if (specMeasurement) specMeasurement.textContent = 'Frame Dimensions';
+
+    // Hide sash-only spec sections
+    var sashOnlySpecs = ['spec-bars', 'spec-fix-bars', 'spec-frame'];
+    sashOnlySpecs.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+  }
+
+  // ─── Update 3D ───
+  function updateCasement3D() {
+    if (typeof window.update3D !== 'function') return;
+
+    var layout = checked('casement-layout') || '040L';
+    var w = parseInt(val('c-width')) || 800;
+    var h = parseInt(val('c-height')) || 1200;
+    var fanlightRatio = parseInt(val('c-fanlight-ratio')) || 30;
+
+    window.update3D({
+      windowCategory: 'casement',
+      casementLayout: layout,
+      extWidth: w,
+      extHeight: h,
+      fanlightRatio: fanlightRatio / 100,
+      glassType: checked('c-glass-type') || 'double',
+      spacerColor: val('c-spacer') || 'silver',
+    });
+
+    updateSpecPanel();
+  }
+
+  // ─── Colour logic ───
+  function setupColour() {
+    // Single/Dual toggle
+    const modeRadios = document.querySelectorAll('input[name="c-colour-mode"]');
+    modeRadios.forEach(function(r) {
+      r.addEventListener('change', function() {
+        const isDual = r.value === 'dual';
+        const single = $('c-single-colour-section');
+        const dual = $('c-dual-colour-section');
+        if (single) single.style.display = isDual ? 'none' : 'block';
+        if (dual) dual.style.display = isDual ? 'block' : 'none';
+        updateCasementColour();
+      });
+    });
+
+    // Main colour selects
+    setupColourSelect('c-colour', 'c-ral-input', 'c-fb-input', 'single');
+    setupColourSelect('c-colour-ext', 'c-ral-ext-input', 'c-fb-ext-input', 'exterior');
+    setupColourSelect('c-colour-int', 'c-ral-int-input', 'c-fb-int-input', 'interior');
+
+    // Populate RAL/FB dropdowns
+    populateRALDropdowns();
+    populateFBDropdowns();
+
+    // RAL/FB change → update colour
+    ['c-ral-code', 'c-ral-ext', 'c-ral-int', 'c-fb-code', 'c-fb-ext', 'c-fb-int'].forEach(function(id) {
+      var el = $(id);
+      if (el) el.addEventListener('change', updateCasementColour);
+    });
+
+    // Seal colour
+    document.querySelectorAll('input[name="c-seal-colour"]').forEach(function(r) {
+      r.addEventListener('change', updateCasementColour);
+    });
+  }
+
+  function setupColourSelect(selectId, ralDivId, fbDivId, target) {
+    var sel = $(selectId);
+    if (!sel) return;
+    sel.addEventListener('change', function() {
+      var ralDiv = $(ralDivId);
+      var fbDiv = $(fbDivId);
+      if (ralDiv) ralDiv.style.display = sel.value === 'ral' ? 'block' : 'none';
+      if (fbDiv) fbDiv.style.display = sel.value === 'fb' ? 'block' : 'none';
+      updateCasementColour();
+    });
+  }
+
+  function updateCasementColour() {
+    if (typeof window.update3D !== 'function') return;
+
+    var mode = checked('c-colour-mode') || 'single';
+    var sameColor = mode === 'single';
+
+    if (sameColor) {
+      var hex = getColourHex('c-colour', 'c-ral-code', 'c-fb-code');
+      window.update3D({ woodColor: hex, sameColor: true });
+    } else {
+      var hexExt = getColourHex('c-colour-ext', 'c-ral-ext', 'c-fb-ext');
+      var hexInt = getColourHex('c-colour-int', 'c-ral-int', 'c-fb-int');
+      window.update3D({ woodColorExt: hexExt, woodColorInt: hexInt, sameColor: false });
+    }
+  }
+
+  function getColourHex(mainSelectId, ralSelectId, fbSelectId) {
+    var mainVal = val(mainSelectId);
+    if (mainVal === 'ral') {
+      var ralSel = $(ralSelectId);
+      return ralSel ? ralSel.value : '#F6F6F6';
+    }
+    if (mainVal === 'fb') {
+      var fbSel = $(fbSelectId);
+      return fbSel ? fbSel.value : '#F6F6F6';
+    }
+    return mainVal || '#F6F6F6';
+  }
+
+  // ─── RAL colours (same data as sash) ───
+  const RAL = {
+    '1000':'#BEBD7F','1001':'#C2B078','1002':'#C6A664','1003':'#E5BE01','1004':'#CDA434',
+    '1005':'#A98307','1006':'#E4A010','1007':'#DC9D00','1011':'#8A6642','1012':'#C7B446',
+    '1013':'#EAE6CA','1014':'#E1CC4F','1015':'#E6D690','1016':'#EDFF21','1017':'#F5D033',
+    '1018':'#F8F32B','1019':'#9E9764','1020':'#999950','1021':'#F3DA0B','1023':'#FAD201',
+    '1024':'#AEA04B','1026':'#FFFF00','1027':'#9D9101','1028':'#F4A900','1032':'#D6AE01',
+    '1033':'#F3A505','1034':'#EFA94A','2000':'#ED760E','2001':'#C93C20','2002':'#CB2821',
+    '2003':'#FF7514','2004':'#F44611','3000':'#AF2B1E','3001':'#A52019','3002':'#A2231D',
+    '3003':'#9B111E','3004':'#75151E','3005':'#5E2129','3007':'#412227','3009':'#642424',
+    '3011':'#781F19','3012':'#C1876B','3013':'#A12312','3014':'#D36E70','3015':'#EA899A',
+    '3016':'#B32821','3017':'#E63244','3018':'#D53032','3020':'#CC0605','3022':'#D95030',
+    '3027':'#C51D34','3031':'#B32428','4001':'#6D3F5B','4002':'#922B3E','4003':'#DE4C8A',
+    '4004':'#641C34','4005':'#6C4675','4006':'#A03472','4007':'#4A192C','4008':'#924E7D',
+    '5000':'#354D73','5001':'#1F3438','5002':'#1E2460','5003':'#1D1E33','5004':'#18171C',
+    '5005':'#1E2460','5007':'#3E5F8A','5008':'#26252D','5009':'#025669','5010':'#0E4243',
+    '5011':'#1B2A4A','5012':'#3B83BD','5013':'#1E213D','5014':'#606E8C','5015':'#2271B3',
+    '5017':'#063971','5018':'#3F888F','5019':'#1B5583','5020':'#1D334A','5021':'#256D7B',
+    '5022':'#252850','5023':'#49678D','5024':'#5D9B9B','6000':'#316650','6001':'#287233',
+    '6002':'#2D572C','6003':'#424632','6004':'#1F3A3D','6005':'#2F4538','6006':'#3E3B32',
+    '6007':'#343B29','6008':'#39352A','6009':'#31372B','6010':'#35682D','6011':'#587246',
+    '6012':'#343E40','6013':'#6C7156','6014':'#47402E','6016':'#1E5945','7000':'#78858B',
+    '7001':'#8A9597','7002':'#817F68','7003':'#7D7F7D','7004':'#9EA0A1','7005':'#6C7059',
+    '7006':'#756F61','7008':'#6A5F31','7011':'#434B4D','7012':'#4E5754','7015':'#434750',
+    '7016':'#293133','7021':'#23282B','7022':'#332F2C','7023':'#8B8C7A','7024':'#474A51',
+    '7030':'#8B8B7A','7031':'#474B4E','7032':'#B8B799','7033':'#7D8471','7034':'#8F8B66',
+    '7035':'#D7D7D7','7036':'#7F7679','7037':'#7D7F7D','7038':'#B5B8B1','7039':'#6C6960',
+    '7040':'#9DA1AA','7042':'#8D948D','7043':'#4E5452','7044':'#CAC4B0','7045':'#909090',
+    '7046':'#82898F','7047':'#D0D0D0','8000':'#826C34','8001':'#955F20','8002':'#6C3B2A',
+    '8003':'#734222','8004':'#8E402A','8007':'#59351F','8008':'#6F4F28','8011':'#6F3B2A',
+    '8014':'#382C1E','8017':'#45322E','8019':'#403A3A','8022':'#212121','8024':'#79553D',
+    '8025':'#755C48','8028':'#4E3B31','9001':'#FDF4E3','9002':'#E7EBDA','9003':'#F4F4F4',
+    '9004':'#282828','9005':'#0A0A0A','9006':'#A5A5A5','9007':'#8F8F8F','9010':'#FFFFFF',
+    '9011':'#1C2023','9016':'#F6F6F6','9017':'#1E1E1E','9018':'#D7D7D7'
+  };
+
+  function populateRALDropdowns() {
+    ['c-ral-code', 'c-ral-ext', 'c-ral-int'].forEach(function(id) {
+      var sel = $(id);
+      if (!sel) return;
+      sel.innerHTML = '';
+      Object.keys(RAL).forEach(function(code) {
+        var opt = document.createElement('option');
+        opt.value = RAL[code];
+        opt.textContent = 'RAL ' + code;
+        opt.style.backgroundColor = RAL[code];
+        sel.appendChild(opt);
+      });
+    });
+  }
+
+  // Farrow & Ball — copy from sash dropdown (single source of truth)
+  function populateFBDropdowns() {
+    var source = document.getElementById('single-fb-select');
+    if (!source) {
+      console.log('F&B source dropdown not found — casement FB dropdowns empty');
+      return;
+    }
+    ['c-fb-code', 'c-fb-ext', 'c-fb-int'].forEach(function(id) {
+      var sel = $(id);
+      if (!sel) return;
+      sel.innerHTML = source.innerHTML;
+    });
+  }
+
+  // ─── Layout change handler ───
+  function setupLayoutChange() {
+    var layoutRadios = document.querySelectorAll('input[name="casement-layout"]');
+    layoutRadios.forEach(function(r) {
+      r.addEventListener('change', function() {
+        setDefaultDimensions(r.value);
+        updateCasement3D();
+      });
+    });
+  }
+
+  // ─── Live watchers for all casement inputs ───
+  function setupLiveWatchers() {
+    // Dimensions
+    setupDimSelect('c-width-select', 'c-width-custom', 'c-width');
+    setupDimSelect('c-height-select', 'c-height-custom', 'c-height');
+
+    // Fanlight ratio
+    var fRatio = $('c-fanlight-ratio');
+    if (fRatio) fRatio.addEventListener('change', updateCasement3D);
+
+    // Bars
+    document.querySelectorAll('input[name="c-hbars"], input[name="c-vbars"]').forEach(function(r) {
+      r.addEventListener('change', updateCasement3D);
+    });
+
+    // Glass type
+    document.querySelectorAll('input[name="c-glass-type"]').forEach(function(r) {
+      r.addEventListener('change', updateCasement3D);
+    });
+
+    // Glass spec + finish
+    document.querySelectorAll('input[name="c-glass-spec"], input[name="c-glass-finish"]').forEach(function(r) {
+      r.addEventListener('change', updateCasement3D);
+    });
+
+    // Spacer
+    var spacer = $('c-spacer');
+    if (spacer) spacer.addEventListener('change', updateCasement3D);
+
+    // PAS24
+    document.querySelectorAll('input[name="c-pas24"]').forEach(function(r) {
+      r.addEventListener('change', updateCasement3D);
+    });
+
+    // Hardware finish
+    document.querySelectorAll('input[name="c-hardware-finish"]').forEach(function(r) {
+      r.addEventListener('change', function() {
+        // Hardware update — placeholder for future
+      });
+    });
+  }
+
+  // ─── Store casement config (parallel to window.currentConfig for sash) ───
+  function getCasementConfig() {
+    return {
+      windowCategory: 'casement',
+      layout: checked('casement-layout') || '040L',
+      width: parseInt(val('c-width')) || 800,
+      height: parseInt(val('c-height')) || 1200,
+      fanlightRatio: parseInt(val('c-fanlight-ratio')) || 30,
+      hBars: parseInt(checked('c-hbars')) || 0,
+      vBars: parseInt(checked('c-vbars')) || 0,
+      colourMode: checked('c-colour-mode') || 'single',
+      sealColour: checked('c-seal-colour') || 'black',
+      glassType: checked('c-glass-type') || 'double',
+      glassSpec: checked('c-glass-spec') || 'float',
+      glassFinish: checked('c-glass-finish') || 'clear',
+      spacer: val('c-spacer') || 'silver',
+      pas24: checked('c-pas24') || 'no',
+      hardwareFinish: checked('c-hardware-finish') || 'chrome',
+      quantity: parseInt(val('c-quantity')) || 1,
+    };
+  }
+
+  // Expose globally
+  window.getCasementConfig = getCasementConfig;
+  window.updateCasement3D = updateCasement3D;
+
+  // ─── Init ───
+  function init() {
+    // Wait for DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setup);
+    } else {
+      setup();
+    }
+  }
+
+  function setup() {
+    setupDimSelect('c-width-select', 'c-width-custom', 'c-width');
+    setupDimSelect('c-height-select', 'c-height-custom', 'c-height');
+    setupLayoutChange();
+    setupColour();
+    setupLiveWatchers();
+
+    // Set initial defaults from current layout
+    var currentLayout = checked('casement-layout') || '040L';
+    setDefaultDimensions(currentLayout);
+
+    console.log('✅ Casement controller initialized');
+  }
+
+  init();
+})();
