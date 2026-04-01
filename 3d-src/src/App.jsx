@@ -840,6 +840,7 @@ export default function App() {
       woodColor,
       woodColorExt: sameColor ? woodColor : woodColorExt,
       woodColorInt: sameColor ? woodColor : woodColorInt,
+      sameColor,
       sashType,
       splitRatio,
       headType,
