@@ -66,67 +66,94 @@ function SegmentedExtrude({ shapeFlat, shapeRounded, totalLen, cuts, rotation, p
 }
 
 // ═══ Bottom Rail ═══
-function BottomRail({ width, cuts, mat, debugColors }) {
+function BottomRail({ width, cuts, mat, matInt, debugColors }) {
   const len = mm(width);
-  const shapeFlat = useMemo(() => {
+  // EXT part: slope (0 to EXT_DEPTH)
+  const extShape = useMemo(() => {
     const s = new THREE.Shape();
     s.moveTo(0, 0); s.lineTo(0, mm(BOTTOM_EXT_OUTER));
     s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));
-    s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_FACE));
-    s.lineTo(mm(FRAME_DEPTH), mm(BOTTOM_FACE));
-    s.lineTo(mm(FRAME_DEPTH), 0); s.closePath();
+    s.lineTo(mm(EXT_DEPTH), 0); s.closePath();
     return s;
   }, []);
-  const shapeRounded = useMemo(() => {
+  const extSettings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
+  // INT part: flat rectangle (EXT_DEPTH to FRAME_DEPTH)
+  const intFlat = useMemo(() => {
     const s = new THREE.Shape();
-    s.moveTo(0, 0); s.lineTo(0, mm(BOTTOM_EXT_OUTER));
-    s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));
-    s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_FACE));
+    s.moveTo(mm(EXT_DEPTH), 0); s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_FACE));
+    s.lineTo(mm(FRAME_DEPTH), mm(BOTTOM_FACE)); s.lineTo(mm(FRAME_DEPTH), 0); s.closePath();
+    return s;
+  }, []);
+  const intRounded = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(mm(EXT_DEPTH), 0); s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_FACE));
     s.lineTo(mm(FRAME_DEPTH) - R, mm(BOTTOM_FACE));
     s.quadraticCurveTo(mm(FRAME_DEPTH), mm(BOTTOM_FACE), mm(FRAME_DEPTH), mm(BOTTOM_FACE) - R);
     s.lineTo(mm(FRAME_DEPTH), 0); s.closePath();
     return s;
   }, []);
-  const debugMat = useMemo(() => debugColors
+  const debugMatExt = useMemo(() => debugColors
     ? new THREE.MeshStandardMaterial({ color: '#e74c3c', opacity: 0.85, transparent: true }) : null, [debugColors]);
+  const debugMatInt = useMemo(() => debugColors
+    ? new THREE.MeshStandardMaterial({ color: '#c0392b', opacity: 0.85, transparent: true }) : null, [debugColors]);
   return (
-    <SegmentedExtrude shapeFlat={shapeFlat} shapeRounded={shapeRounded}
-      totalLen={len} cuts={cuts} rotation={[0, Math.PI / 2, 0]}
-      position={[-len / 2, 0, halfD]} mat={mat} debugMat={debugMat} debugColors={debugColors} />
+    <group>
+      <mesh castShadow receiveShadow rotation={[0, Math.PI / 2, 0]} position={[-len / 2, 0, halfD]}>
+        <extrudeGeometry args={[extShape, extSettings]} />
+        {debugColors ? <primitive object={debugMatExt} attach="material" /> : <primitive object={mat} attach="material" />}
+      </mesh>
+      <SegmentedExtrude shapeFlat={intFlat} shapeRounded={intRounded}
+        totalLen={len} cuts={cuts} rotation={[0, Math.PI / 2, 0]}
+        position={[-len / 2, 0, halfD]} mat={matInt || mat} debugMat={debugMatInt} debugColors={debugColors} />
+    </group>
   );
 }
 
 // ═══ Top Rail ═══
-function TopRail({ width, cuts, mat, debugColors }) {
+function TopRail({ width, cuts, mat, matInt, debugColors }) {
   const len = mm(width);
-  const shapeFlat = useMemo(() => {
+  // EXT part: upper area (0 to EXT_DEPTH, above rebate)
+  const extShape = useMemo(() => {
     const s = new THREE.Shape();
     s.moveTo(0, mm(REBATE_STEP)); s.lineTo(0, mm(FRAME_FACE));
-    s.lineTo(mm(FRAME_DEPTH), mm(FRAME_FACE));
-    s.lineTo(mm(FRAME_DEPTH), 0);
-    s.lineTo(mm(EXT_DEPTH), 0); s.lineTo(mm(EXT_DEPTH), mm(REBATE_STEP)); s.closePath();
+    s.lineTo(mm(EXT_DEPTH), mm(FRAME_FACE)); s.lineTo(mm(EXT_DEPTH), mm(REBATE_STEP)); s.closePath();
     return s;
   }, []);
-  const shapeRounded = useMemo(() => {
+  const extSettings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
+  // INT part: L-shape (EXT_DEPTH to FRAME_DEPTH, full height)
+  const intFlat = useMemo(() => {
     const s = new THREE.Shape();
-    s.moveTo(0, mm(REBATE_STEP)); s.lineTo(0, mm(FRAME_FACE));
+    s.moveTo(mm(EXT_DEPTH), 0); s.lineTo(mm(EXT_DEPTH), mm(FRAME_FACE));
+    s.lineTo(mm(FRAME_DEPTH), mm(FRAME_FACE)); s.lineTo(mm(FRAME_DEPTH), 0); s.closePath();
+    return s;
+  }, []);
+  const intRounded = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(mm(EXT_DEPTH), 0); s.lineTo(mm(EXT_DEPTH), mm(FRAME_FACE));
     s.lineTo(mm(FRAME_DEPTH), mm(FRAME_FACE));
     s.lineTo(mm(FRAME_DEPTH), R);
-    s.quadraticCurveTo(mm(FRAME_DEPTH), 0, mm(FRAME_DEPTH) - R, 0);
-    s.lineTo(mm(EXT_DEPTH), 0); s.lineTo(mm(EXT_DEPTH), mm(REBATE_STEP)); s.closePath();
+    s.quadraticCurveTo(mm(FRAME_DEPTH), 0, mm(FRAME_DEPTH) - R, 0); s.closePath();
     return s;
   }, []);
-  const debugMat = useMemo(() => debugColors
+  const debugMatExt = useMemo(() => debugColors
     ? new THREE.MeshStandardMaterial({ color: '#9b59b6', opacity: 0.85, transparent: true }) : null, [debugColors]);
+  const debugMatInt = useMemo(() => debugColors
+    ? new THREE.MeshStandardMaterial({ color: '#7d3c98', opacity: 0.85, transparent: true }) : null, [debugColors]);
   return (
-    <SegmentedExtrude shapeFlat={shapeFlat} shapeRounded={shapeRounded}
-      totalLen={len} cuts={cuts} rotation={[0, Math.PI / 2, 0]}
-      position={[-len / 2, 0, halfD]} mat={mat} debugMat={debugMat} debugColors={debugColors} />
+    <group>
+      <mesh castShadow receiveShadow rotation={[0, Math.PI / 2, 0]} position={[-len / 2, 0, halfD]}>
+        <extrudeGeometry args={[extShape, extSettings]} />
+        {debugColors ? <primitive object={debugMatExt} attach="material" /> : <primitive object={mat} attach="material" />}
+      </mesh>
+      <SegmentedExtrude shapeFlat={intFlat} shapeRounded={intRounded}
+        totalLen={len} cuts={cuts} rotation={[0, Math.PI / 2, 0]}
+        position={[-len / 2, 0, halfD]} mat={matInt || mat} debugMat={debugMatInt} debugColors={debugColors} />
+    </group>
   );
 }
 
 // ═══ Stile ═══
-function Stile({ frameHeight, side, intCuts, mat, debugColors }) {
+function Stile({ frameHeight, side, intCuts, mat, matInt, debugColors }) {
   const extTopCut = mm(frameHeight - FRAME_FACE + REBATE_STEP);
   const extShape = useMemo(() => {
     const s = new THREE.Shape();
@@ -176,13 +203,13 @@ function Stile({ frameHeight, side, intCuts, mat, debugColors }) {
       <SegmentedExtrude shapeFlat={intFlat} shapeRounded={intRounded}
         totalLen={intH} cuts={intCuts} rotation={[-Math.PI / 2, 0, 0]}
         position={[0, intStartY, halfD - mm(EXT_DEPTH)]}
-        mat={mat} debugMat={debugMatInt} debugColors={debugColors} />
+        mat={matInt || mat} debugMat={debugMatInt} debugColors={debugColors} />
     </group>
   );
 }
 
 // ═══ Mullion ═══
-function Mullion({ startY = 0, endY = 1200, touchesBottom = true, touchesTop = true, intCuts, mat, debugColors }) {
+function Mullion({ startY = 0, endY = 1200, touchesBottom = true, touchesTop = true, intCuts, mat, matInt, debugColors }) {
   const hMm = endY - startY;
   const h = mm(hMm);
   const extendBottom = (!touchesBottom) ? mm(REBATE_STEP) : 0;
@@ -248,13 +275,13 @@ function Mullion({ startY = 0, endY = 1200, touchesBottom = true, touchesTop = t
       <SegmentedExtrude shapeFlat={intFlat} shapeRounded={intRounded}
         totalLen={intH} cuts={allCuts} rotation={[-Math.PI / 2, 0, 0]}
         position={[0, intStartYLocal, halfD - mm(EXT_DEPTH)]}
-        mat={mat} debugMat={debugMatInt} debugColors={debugColors} />
+        mat={matInt || mat} debugMat={debugMatInt} debugColors={debugColors} />
     </group>
   );
 }
 
 // ═══ Transom ═══
-function Transom({ transomWidth, intCuts, mat, debugColors }) {
+function Transom({ transomWidth, intCuts, mat, matInt, debugColors }) {
   const intLen = mm(transomWidth);
   const extLen = mm(transomWidth + REBATE_STEP * 2);
 
@@ -297,7 +324,7 @@ function Transom({ transomWidth, intCuts, mat, debugColors }) {
       <SegmentedExtrude shapeFlat={intFlat} shapeRounded={intRounded}
         totalLen={intLen} cuts={intCuts || []} rotation={[0, Math.PI / 2, 0]}
         position={[-intLen / 2, 0, halfD]}
-        mat={mat} debugMat={debugMatInt} debugColors={debugColors} />
+        mat={matInt || mat} debugMat={debugMatInt} debugColors={debugColors} />
     </group>
   );
 }
@@ -423,16 +450,16 @@ export default function CasementFrame({
   return (
     <group>
       <group position={[0, -H / 2, 0]}>
-        <BottomRail width={width} cuts={railCuts} mat={material} debugColors={debugColors} />
+        <BottomRail width={width} cuts={railCuts} mat={material} matInt={materialInt} debugColors={debugColors} />
       </group>
       <group position={[0, H / 2 - mm(FRAME_FACE), 0]}>
-        <TopRail width={width} cuts={railCuts} mat={material} debugColors={debugColors} />
+        <TopRail width={width} cuts={railCuts} mat={material} matInt={materialInt} debugColors={debugColors} />
       </group>
       <group position={[-W / 2, -H / 2, 0]}>
-        <Stile frameHeight={height} side="left" intCuts={leftStileCuts} mat={material} debugColors={debugColors} />
+        <Stile frameHeight={height} side="left" intCuts={leftStileCuts} mat={material} matInt={materialInt} debugColors={debugColors} />
       </group>
       <group position={[W / 2 - mm(FRAME_FACE), -H / 2, 0]}>
-        <Stile frameHeight={height} side="right" intCuts={rightStileCuts} mat={material} debugColors={debugColors} />
+        <Stile frameHeight={height} side="right" intCuts={rightStileCuts} mat={material} matInt={materialInt} debugColors={debugColors} />
       </group>
 
       {mullObjs.map((mObj, i) => {

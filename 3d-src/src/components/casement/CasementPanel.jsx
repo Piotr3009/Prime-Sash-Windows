@@ -119,7 +119,7 @@ function buildTopRailShape() {
 }
 
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat, hBars, vBars }) {
+function SashFrame({ width, height, mat, matInt, hBars, vBars }) {
   const W = mm(width);
   const H = mm(height);
 
@@ -135,47 +135,108 @@ function SashFrame({ width, height, mat, hBars, vBars }) {
   const stileSettings = useMemo(() => ({ depth: H, bevelEnabled: false }), [H]);
   const railSettings = useMemo(() => ({ depth: W, bevelEnabled: false }), [W]);
 
+  // Split shapes at depth midpoint for dual colour
+  const halfDepth = D / 2;
+
+  // EXT halves
+  const lStileExt = useMemo(() => {
+    const pts = [[0,0],[F-EBW,0],[F,EBD],[F,halfDepth],[0,halfDepth]];
+    return shapeFromPts(pts);
+  }, []);
+  const rStileExt = useMemo(() => {
+    const pts = [[F,0],[EBW,0],[0,EBD],[0,halfDepth],[F,halfDepth]];
+    return shapeFromPts(pts);
+  }, []);
+  const bRailExt = useMemo(() => {
+    const pts = [[0,0],[0,F-EBW],[EBD,F],[halfDepth,F],[halfDepth,0]];
+    return shapeFromPts(pts);
+  }, []);
+  const tRailExt = useMemo(() => {
+    const pts = [[0,F],[0,EBW],[EBD,0],[halfDepth,0],[halfDepth,F]];
+    return shapeFromPts(pts);
+  }, []);
+
+  // INT halves
+  const lStileInt = useMemo(() => {
+    const pts = [[0,halfDepth],[F,halfDepth],[F,D-IBR]];
+    const arc = ovoloArc(F-IBR, D-IBR, IBR, 0, Math.PI/2, OVOLO_N);
+    pts.push(...arc);
+    pts.push([0,D]);
+    return shapeFromPts(pts);
+  }, []);
+  const rStileInt = useMemo(() => {
+    const pts = [[F,halfDepth],[0,halfDepth],[0,D-IBR]];
+    const arc = ovoloArc(IBR, D-IBR, IBR, Math.PI, Math.PI/2, OVOLO_N);
+    pts.push(...arc);
+    pts.push([F,D]);
+    return shapeFromPts(pts);
+  }, []);
+  const bRailInt = useMemo(() => {
+    const pts = [[halfDepth,0],[halfDepth,F],[D-IBR,F]];
+    const arc = ovoloArc(D-IBR, F-IBR, IBR, Math.PI/2, 0, OVOLO_N);
+    pts.push(...arc);
+    pts.push([D,0]);
+    return shapeFromPts(pts);
+  }, []);
+  const tRailInt = useMemo(() => {
+    const pts = [[halfDepth,F],[halfDepth,0],[D-IBR,0]];
+    const arc = ovoloArc(D-IBR, IBR, IBR, -Math.PI/2, 0, OVOLO_N);
+    pts.push(...arc);
+    pts.push([D,F]);
+    return shapeFromPts(pts);
+  }, []);
+
+  const mi = matInt || mat;
+
   return (
     <group>
-      {/* ─── Left stile — FULL HEIGHT ─── */}
-      <mesh castShadow receiveShadow
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[-W / 2, -H / 2, halfD]}
-      >
-        <extrudeGeometry args={[lStile, stileSettings]} />
+      {/* ─── Left stile EXT ─── */}
+      <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[-W/2,-H/2,halfD]}>
+        <extrudeGeometry args={[lStileExt, stileSettings]} />
         <primitive object={mat} attach="material" />
       </mesh>
-
-      {/* ─── Right stile — FULL HEIGHT ─── */}
-      <mesh castShadow receiveShadow
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[W / 2 - F, -H / 2, halfD]}
-      >
-        <extrudeGeometry args={[rStile, stileSettings]} />
-        <primitive object={mat} attach="material" />
+      {/* ─── Left stile INT ─── */}
+      <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[-W/2,-H/2,halfD]}>
+        <extrudeGeometry args={[lStileInt, stileSettings]} />
+        <primitive object={mi} attach="material" />
       </mesh>
 
-      {/* ─── Bottom rail — FULL WIDTH ─── */}
-      <mesh castShadow receiveShadow
-        rotation={[0, Math.PI / 2, 0]}
-        position={[-W / 2, -H / 2, halfD]}
-      >
-        <extrudeGeometry args={[bRail, railSettings]} />
+      {/* ─── Right stile EXT ─── */}
+      <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[W/2-F,-H/2,halfD]}>
+        <extrudeGeometry args={[rStileExt, stileSettings]} />
         <primitive object={mat} attach="material" />
       </mesh>
+      {/* ─── Right stile INT ─── */}
+      <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[W/2-F,-H/2,halfD]}>
+        <extrudeGeometry args={[rStileInt, stileSettings]} />
+        <primitive object={mi} attach="material" />
+      </mesh>
 
-      {/* ─── Top rail — FULL WIDTH ─── */}
-      <mesh castShadow receiveShadow
-        rotation={[0, Math.PI / 2, 0]}
-        position={[-W / 2, H / 2 - F, halfD]}
-      >
-        <extrudeGeometry args={[tRail, railSettings]} />
+      {/* ─── Bottom rail EXT ─── */}
+      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,-H/2,halfD]}>
+        <extrudeGeometry args={[bRailExt, railSettings]} />
         <primitive object={mat} attach="material" />
+      </mesh>
+      {/* ─── Bottom rail INT ─── */}
+      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,-H/2,halfD]}>
+        <extrudeGeometry args={[bRailInt, railSettings]} />
+        <primitive object={mi} attach="material" />
+      </mesh>
+
+      {/* ─── Top rail EXT ─── */}
+      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-F,halfD]}>
+        <extrudeGeometry args={[tRailExt, railSettings]} />
+        <primitive object={mat} attach="material" />
+      </mesh>
+      {/* ─── Top rail INT ─── */}
+      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-F,halfD]}>
+        <extrudeGeometry args={[tRailInt, railSettings]} />
+        <primitive object={mi} attach="material" />
       </mesh>
 
       {/* ─── Glazing ─── */}
       {glassW > 0 && glassH > 0 && (
-        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mat} position={[0, 0, 0]} />
+        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} position={[0, 0, 0]} />
       )}
     </group>
   );
@@ -198,7 +259,7 @@ export default function CasementPanel({
   // For now: always closed (opening later)
   return (
     <group position={position}>
-      <SashFrame width={width} height={height} mat={mat} hBars={hBars} vBars={vBars} />
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} hBars={hBars} vBars={vBars} />
     </group>
   );
 }

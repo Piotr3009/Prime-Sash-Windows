@@ -737,20 +737,35 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
    ============================================================ */
 
 /* Dual color - 2 columns side by side */
-#dual-color-selector,
+#dual-color-selector .dual-color-columns {
+  display: flex;
+  gap: 16px;
+}
+
+#dual-color-selector .dual-color-columns .dual-color-section {
+  flex: 1;
+  min-width: 0;
+}
+
+#dual-color-selector .dual-color-columns .dual-color-section > label {
+  display: block;
+  font-size: 0.65rem !important;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--secondary-color);
+  margin-bottom: 8px;
+}
+
+/* Casement dual color layout */
 #c-dual-color-selector {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
 }
-
-#dual-color-selector > .dual-color-section,
 #c-dual-color-selector > .dual-color-section {
   flex: 1;
   min-width: 250px;
 }
-
-#dual-color-selector > .dual-color-section > label,
 #c-dual-color-selector > .dual-color-section > label {
   display: block;
   font-size: 0.65rem !important;
