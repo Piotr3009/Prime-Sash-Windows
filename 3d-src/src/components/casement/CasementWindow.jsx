@@ -108,7 +108,7 @@ function getLayout(code, innerW, innerH, height) {
         mullions: [mullX],
         transoms: [{ y: transomY, width: panelW, offsetX: -(panelW + mullW) / 2 }],
         panels: [
-          { x: -(panelW + mullW) / 2, y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: -(panelW + mullW) / 2, y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
           { x: -(panelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'left' },
           { x:  (panelW + mullW) / 2, y: 0, w: panelW, h: innerH, hinge: 'right' },
         ],
@@ -127,7 +127,7 @@ function getLayout(code, innerW, innerH, height) {
         transoms: [{ y: transomY, width: panelW, offsetX: (panelW + mullW) / 2 }],
         panels: [
           { x: -(panelW + mullW) / 2, y: 0, w: panelW, h: innerH, hinge: 'left' },
-          { x:  (panelW + mullW) / 2, y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x:  (panelW + mullW) / 2, y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
           { x:  (panelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'right' },
         ],
       };
@@ -163,8 +163,8 @@ function getLayout(code, innerW, innerH, height) {
       return {
         transoms: [transomY],
         panels: [
-          { x: 0, y: (fanlightH + MULLION_W) / 2, w: innerW, h: fanlightH, hinge: 'top' },
-          { x: 0, y: -(mainH - fanlightH + MULLION_W) / 2 + (fanlightH - mainH) / 2, w: innerW, h: mainH, hinge: 'left' },
+          { x: 0, y: (mainH + MULLION_W) / 2, w: innerW, h: fanlightH, hinge: 'top' },
+          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'left' },
         ],
       };
     }
@@ -181,9 +181,9 @@ function getLayout(code, innerW, innerH, height) {
         transoms: [transomY],
         mullions: [{ x: mullX, startY: mullStartY, endY: mullEndY, touchesBottom: false, touchesTop: true }],
         panels: [
-          { x: -(topPanelW + mullW) / 2, y: (fanlightH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
-          { x:  (topPanelW + mullW) / 2, y: (fanlightH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
-          { x: 0, y: -(mainH - fanlightH + MULLION_W) / 2 + (fanlightH - mainH) / 2, w: innerW, h: mainH, hinge: 'left' },
+          { x: -(topPanelW + mullW) / 2, y: (mainH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
+          { x:  (topPanelW + mullW) / 2, y: (mainH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
+          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'left' },
         ],
       };
     }
@@ -200,7 +200,7 @@ function getLayout(code, innerW, innerH, height) {
         transoms: [transomY],
         mullions: [{ x: mullX, startY: 0, endY: mullEndY, touchesBottom: true, touchesTop: false }],
         panels: [
-          { x: 0, y: (topH + MULLION_W) / 2, w: innerW, h: topH, hinge: 'top' },
+          { x: 0, y: (bottomH + MULLION_W) / 2, w: innerW, h: topH, hinge: 'top' },
           { x: -(bottomPanelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: bottomPanelW, h: bottomH, hinge: 'left' },
           { x:  (bottomPanelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: bottomPanelW, h: bottomH, hinge: 'right' },
         ],
@@ -235,7 +235,7 @@ function getLayout(code, innerW, innerH, height) {
         transoms: [{ y: transomY, width: panelW }],
         panels: [
           { x: -(panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'left' },
-          { x: 0, y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: 0, y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
           { x: 0, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
           { x:  (panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'right' },
         ],
@@ -257,9 +257,9 @@ function getLayout(code, innerW, innerH, height) {
           { y: transomY, width: panelW, offsetX: (panelW + mullW) },   // right transom
         ],
         panels: [
-          { x: -(panelW + mullW), y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: -(panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
           { x: 0,                 y: 0, w: panelW, h: innerH, hinge: 'fixed' },
-          { x:  (panelW + mullW), y: (topH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x:  (panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
           { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'left' },
           { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'right' },
         ],
