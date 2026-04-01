@@ -179,10 +179,13 @@
     // Single/Dual toggle
     // Color type radio buttons — exact copy of sash pattern
     var cColorTypeRadios = document.querySelectorAll('input[name="c-color-type"]');
+    console.log('🎨 Found c-color-type radios:', cColorTypeRadios.length);
     cColorTypeRadios.forEach(function(radio) {
       radio.addEventListener('change', function() {
+        console.log('🎨 TOGGLE FIRED:', radio.value);
         var dualSection = document.getElementById('c-dual-colour-section');
         var singleSelector = document.getElementById('c-single-color-selector');
+        console.log('🎨 Elements found - single:', !!singleSelector, 'dual:', !!dualSection);
 
         if (radio.value === 'single') {
           if (dualSection) dualSection.style.display = 'none';
