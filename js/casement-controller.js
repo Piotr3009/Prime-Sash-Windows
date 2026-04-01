@@ -7,6 +7,14 @@
 (function() {
   'use strict';
 
+  // ─── Casement colour state (full payload sent every time) ───
+  var casementColourState = {
+    sameColor: true,
+    woodColor: '#F6F6F6',
+    woodColorInt: '#F6F6F6',
+    woodColorExt: '#F6F6F6'
+  };
+
   // ─── Default dimensions per layout ───
   const LAYOUT_DEFAULTS = {
     '010':  { w: 600,  h: 1000 },
@@ -191,6 +199,10 @@
           var dualPreview = document.getElementById('c-dual-color-preview-info');
           if (singlePreview) singlePreview.style.display = 'block';
           if (dualPreview) dualPreview.style.display = 'none';
+          // Sync colour state back to single
+          casementColourState.sameColor = true;
+          casementColourState.woodColorInt = casementColourState.woodColor;
+          casementColourState.woodColorExt = casementColourState.woodColor;
         } else {
           if (dualSection) dualSection.style.display = 'block';
           if (singleSelector) singleSelector.style.display = 'none';
@@ -203,6 +215,17 @@
             '<p class="info-title">Dual Colour</p>' +
             '<p><span class="info-highlight">Additional cost:</span> +15% applied to total window price</p>' +
             '<p class="info-note">Interior and exterior can be different colours</p>';
+          // Switch to dual mode
+          casementColourState.sameColor = false;
+        }
+        // Send full colour state to 3D
+        if (typeof window.update3D === 'function') {
+          window.update3D({
+            sameColor: casementColourState.sameColor,
+            woodColor: casementColourState.woodColor,
+            woodColorInt: casementColourState.woodColorInt,
+            woodColorExt: casementColourState.woodColorExt
+          });
         }
       });
     });
@@ -244,7 +267,7 @@
 
   function setupTileClicks(selector, target) {
     var tiles = document.querySelectorAll(selector);
-    console.log('🎨 setupTileClicks:', selector, 'found:', tiles.length);
+
     tiles.forEach(function(tile) {
       tile.addEventListener('click', function() {
         // Deselect siblings
@@ -294,15 +317,27 @@
   }
 
   function applyColourHex(hex, target) {
-    console.log('🎨 applyColourHex:', target, hex, 'update3D exists:', typeof window.update3D);
     if (typeof window.update3D !== 'function') return;
+
     if (target === 'single') {
-      window.update3D({ woodColor: hex, sameColor: true });
+      casementColourState.sameColor = true;
+      casementColourState.woodColor = hex;
+      casementColourState.woodColorInt = hex;
+      casementColourState.woodColorExt = hex;
     } else if (target === 'interior') {
-      window.update3D({ woodColorInt: hex, sameColor: false });
+      casementColourState.sameColor = false;
+      casementColourState.woodColorInt = hex;
     } else if (target === 'exterior') {
-      window.update3D({ woodColorExt: hex, sameColor: false });
+      casementColourState.sameColor = false;
+      casementColourState.woodColorExt = hex;
     }
+
+    window.update3D({
+      sameColor: casementColourState.sameColor,
+      woodColor: casementColourState.woodColor,
+      woodColorInt: casementColourState.woodColorInt,
+      woodColorExt: casementColourState.woodColorExt
+    });
   }
 
   function updatePreview(target, name, code) {
@@ -450,7 +485,7 @@
       fanlightHeight: parseInt(val('c-fanlight-height')) || 350,
       hBars: parseInt(checked('c-hbars')) || 0,
       vBars: parseInt(checked('c-vbars')) || 0,
-      colourMode: checked('c-colour-mode') || 'single',
+      colourMode: checked('c-color-type') || 'single',
       sealColour: checked('c-seal-colour') || 'black',
       glassType: checked('c-glass-type') || 'double',
       glassSpec: checked('c-glass-spec') || 'float',
