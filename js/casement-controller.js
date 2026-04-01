@@ -182,6 +182,7 @@
         var isDual = r.value === 'dual';
         var single = $('c-single-color-selector');
         var dual = $('c-dual-colour-section');
+        console.log('🎨 Casement colour toggle:', r.value, 'single:', !!single, 'dual:', !!dual);
         if (single) single.style.display = isDual ? 'none' : 'block';
         if (dual) dual.style.display = isDual ? 'block' : 'none';
         updateCasementColour();
