@@ -289,6 +289,8 @@ export default function CasementWindow({
   spacerColor = 'silver',
   showGuides = true,
   brightness = 1.0,
+  hBars = 0,
+  vBars = 0,
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -340,6 +342,8 @@ export default function CasementWindow({
         const leafZ = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
         // Opening center Y offset (bottom rail taller than top rail)
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
+        // Bars: only on main (large) panels, not fanlights
+        const isFanlight = p.h < innerH * 0.5;
         return (
           <CasementPanel
             key={`panel-${i}`}
@@ -349,6 +353,8 @@ export default function CasementWindow({
             opening={0}
             material={extMaterial}
             materialInt={intMaterial}
+            hBars={isFanlight ? 0 : hBars}
+            vBars={isFanlight ? 0 : vBars}
             position={[mm(p.x), mm(p.y) + openingCenterY, leafZ]}
           />
         );

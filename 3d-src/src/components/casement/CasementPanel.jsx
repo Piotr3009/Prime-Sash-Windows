@@ -119,7 +119,7 @@ function buildTopRailShape() {
 }
 
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat }) {
+function SashFrame({ width, height, mat, hBars, vBars }) {
   const W = mm(width);
   const H = mm(height);
 
@@ -175,7 +175,7 @@ function SashFrame({ width, height, mat }) {
 
       {/* ─── Glazing ─── */}
       {glassW > 0 && glassH > 0 && (
-        <CasementGlazing width={glassW} height={glassH} position={[0, 0, 0]} />
+        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} position={[0, 0, 0]} />
       )}
     </group>
   );
@@ -189,6 +189,8 @@ export default function CasementPanel({
   opening = 0,
   material,
   materialInt,
+  hBars = 0,
+  vBars = 0,
   position = [0, 0, 0],
 }) {
   const mat = material;
@@ -196,7 +198,7 @@ export default function CasementPanel({
   // For now: always closed (opening later)
   return (
     <group position={position}>
-      <SashFrame width={width} height={height} mat={mat} />
+      <SashFrame width={width} height={height} mat={mat} hBars={hBars} vBars={vBars} />
     </group>
   );
 }

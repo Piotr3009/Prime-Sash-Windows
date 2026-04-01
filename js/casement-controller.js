@@ -167,6 +167,8 @@
       fanlightRatio: fanlightRatio,
       glassType: checked('c-glass-type') || 'double',
       spacerColor: val('c-spacer') || 'silver',
+      casementHBars: parseInt(checked('c-hbars')) || 0,
+      casementVBars: parseInt(checked('c-vbars')) || 0,
     });
 
     updateSpecPanel();
