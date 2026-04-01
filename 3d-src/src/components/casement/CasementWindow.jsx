@@ -138,8 +138,8 @@ function getLayout(code, innerW, innerH, height) {
       return {
         mullions: [FRAME_FACE + openW + mullW / 2],
         panels: [
-          { x: -(fixedW + mullW) / 2 + (openW - fixedW) / 2, y: 0, w: openW, h: innerH, hinge: 'left' },
-          { x:  (openW + mullW) / 2 + (fixedW - openW) / 2, y: 0, w: fixedW, h: innerH, hinge: 'fixed' },
+          { x: -(fixedW + mullW) / 2, y: 0, w: openW, h: innerH, hinge: 'left' },
+          { x:  (openW + mullW) / 2, y: 0, w: fixedW, h: innerH, hinge: 'fixed' },
         ],
       };
     }
@@ -149,8 +149,8 @@ function getLayout(code, innerW, innerH, height) {
       return {
         mullions: [FRAME_FACE + fixedW + mullW / 2],
         panels: [
-          { x: -(openW + mullW) / 2 + (fixedW - openW) / 2, y: 0, w: fixedW, h: innerH, hinge: 'fixed' },
-          { x:  (fixedW + mullW) / 2 + (openW - fixedW) / 2, y: 0, w: openW, h: innerH, hinge: 'right' },
+          { x: -(openW + mullW) / 2, y: 0, w: fixedW, h: innerH, hinge: 'fixed' },
+          { x:  (fixedW + mullW) / 2, y: 0, w: openW, h: innerH, hinge: 'right' },
         ],
       };
     }
