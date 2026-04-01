@@ -590,10 +590,10 @@ function Scene({ config, isMobile }) {
           <group onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
             {config.windowCategory === 'casement' ? (
               <CasementWindow
-                width={config.width}
-                height={config.height}
+                width={config.extWidth}
+                height={config.extHeight}
                 layout={config.casementLayout}
-                opening={config.opening / (Math.max(0, config.height / 2 - 120) || 1)}
+                opening={0}
                 woodColor={config.woodColor}
                 woodColorExt={config.woodColorExt}
                 woodColorInt={config.woodColorInt}
@@ -740,6 +740,8 @@ export default function App() {
     () => ({
       width,
       height,
+      extWidth,
+      extHeight,
       opening,
       upperOpening,
       autoRotate,
@@ -772,7 +774,7 @@ export default function App() {
       windowCategory,
       casementLayout,
     }),
-    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout],
+    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout],
   );
 
   return (
