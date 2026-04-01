@@ -120,7 +120,7 @@ function TopRail({ width, cuts, mat, matInt, debugColors }) {
     return s;
   }, []);
   const extSettings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
-  // INT part: L-shape (EXT_DEPTH to FRAME_DEPTH, full height)
+  // INT part: full-height rectangle (EXT_DEPTH to FRAME_DEPTH)
   const intFlat = useMemo(() => {
     const s = new THREE.Shape();
     s.moveTo(mm(EXT_DEPTH), 0); s.lineTo(mm(EXT_DEPTH), mm(FRAME_FACE));
