@@ -471,7 +471,7 @@ export default function CasementFrame({
               touchesBottom={mObj.touchesBottom !== false}
               touchesTop={mObj.touchesTop !== false}
               intCuts={getMullionCuts(mObj)}
-              mat={material} debugColors={debugColors} />
+              mat={material} matInt={materialInt} debugColors={debugColors} />
           </group>
         );
       })}
@@ -483,7 +483,7 @@ export default function CasementFrame({
           <group key={`transom-${i}`} position={[offsetX, y, 0]}>
             <Transom transomWidth={tObj.width}
               intCuts={getTransomCuts(tObj)}
-              mat={material} debugColors={debugColors} />
+              mat={material} matInt={materialInt} debugColors={debugColors} />
           </group>
         );
       })}
