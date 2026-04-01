@@ -1,7 +1,7 @@
 import React from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { Bounds, ContactShadows, Html, OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import ParametricSashWindow from './components/ParametricSashWindow';
 import CasementWindow from './components/casement/CasementWindow';
