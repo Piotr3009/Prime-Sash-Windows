@@ -177,17 +177,33 @@
   // ─── Colour logic (matching sash tile system) ───
   function setupColour() {
     // Single/Dual toggle
-    document.querySelectorAll('input[name="c-color-type"]').forEach(function(r) {
-      r.addEventListener('change', function() {
-        var isDual = r.value === 'dual';
-        var single = $('c-single-color-selector');
-        var dual = $('c-dual-colour-section');
-        console.log('🎨 Casement colour toggle:', r.value);
-        console.log('🎨 BEFORE - single display:', single ? single.style.display : 'N/A', 'dual display:', dual ? dual.style.display : 'N/A');
-        if (single) single.style.display = isDual ? 'none' : 'block';
-        if (dual) dual.style.display = isDual ? 'block' : 'none';
-        console.log('🎨 AFTER  - single display:', single ? single.style.display : 'N/A', 'dual display:', dual ? dual.style.display : 'N/A');
-        updateCasementColour();
+    // Color type radio buttons — exact copy of sash pattern
+    var cColorTypeRadios = document.querySelectorAll('input[name="c-color-type"]');
+    cColorTypeRadios.forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        var dualSection = document.getElementById('c-dual-colour-section');
+        var singleSelector = document.getElementById('c-single-color-selector');
+
+        if (radio.value === 'single') {
+          if (dualSection) dualSection.style.display = 'none';
+          if (singleSelector) singleSelector.style.display = 'block';
+          var singlePreview = document.getElementById('c-single-color-preview-info');
+          var dualPreview = document.getElementById('c-dual-color-preview-info');
+          if (singlePreview) singlePreview.style.display = 'block';
+          if (dualPreview) dualPreview.style.display = 'none';
+        } else {
+          if (dualSection) dualSection.style.display = 'block';
+          if (singleSelector) singleSelector.style.display = 'none';
+          var singlePreview2 = document.getElementById('c-single-color-preview-info');
+          var dualPreview2 = document.getElementById('c-dual-color-preview-info');
+          if (singlePreview2) singlePreview2.style.display = 'none';
+          if (dualPreview2) dualPreview2.style.display = 'block';
+          var infoPanel = document.getElementById('info-panel-content');
+          if (infoPanel) infoPanel.innerHTML =
+            '<p class="info-title">Dual Colour</p>' +
+            '<p><span class="info-highlight">Additional cost:</span> +15% applied to total window price</p>' +
+            '<p class="info-note">Interior and exterior can be different colours</p>';
+        }
       });
     });
 
