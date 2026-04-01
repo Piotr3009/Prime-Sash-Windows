@@ -52,8 +52,8 @@ class SpecificationController {
       }, 1000); // 1 sekunda debounce
     };
     
-    // Słuchaj na wszystkie inputy, selecty i radio buttons
-    document.querySelectorAll('.config-section input, .config-section select').forEach(element => {
+    // Słuchaj na wszystkie inputy, selecty i radio buttons — ONLY sash sections
+    document.querySelectorAll('.config-section:not([data-for="casement"]) input, .config-section:not([data-for="casement"]) select').forEach(element => {
       element.addEventListener('change', debouncedSave);
       element.addEventListener('input', debouncedSave);
     });
