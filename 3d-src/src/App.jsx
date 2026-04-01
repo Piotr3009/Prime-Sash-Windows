@@ -686,16 +686,81 @@ export default function App() {
   const [fixLowerCustomBars, setFixLowerCustomBars] = useState([]);
 
   // ─── Casement state ───
-  const [windowCategory, setWindowCategory] = useState('sash'); // 'sash' | 'casement'
+  const [windowCategory, setWindowCategory] = useState('sash'); // 'sash' | 'casement' | 'doors' | ...
   const [casementLayout, setCasementLayout] = useState('040L');
   const [casementOpening, setCasementOpening] = useState(0);
   const [fanlightRatio, setFanlightRatio] = useState(0.3);
+
+  // ─── State bucket system — isolates state per window type ───
+  const categoryRef = useRef('sash');
+  const buckets = useRef({});
+
+  const BUCKET_DEFAULTS = {
+    sash: { extWidth: 1000, extHeight: 1500, woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', showHorns: true, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3 },
+    casement: { extWidth: 800, extHeight: 1200, woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', showHorns: false, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3 },
+  };
+
+  // Capture current state snapshot
+  function captureState() {
+    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio };
+  }
+
+  // Restore state from bucket
+  function restoreState(s) {
+    if (!s) return;
+    if (s.extWidth !== undefined) setExtWidth(s.extWidth);
+    if (s.extHeight !== undefined) setExtHeight(s.extHeight);
+    if (s.woodColor !== undefined) { setWoodColor(s.woodColor); setWoodColorExt(s.woodColor); setWoodColorInt(s.woodColor); }
+    if (s.woodColorExt !== undefined) setWoodColorExt(s.woodColorExt);
+    if (s.woodColorInt !== undefined) setWoodColorInt(s.woodColorInt);
+    if (s.sameColor !== undefined) setSameColor(s.sameColor);
+    if (s.spacerColor !== undefined) setSpacerColor(s.spacerColor);
+    if (s.opening !== undefined) setOpening(s.opening);
+    if (s.upperOpening !== undefined) setUpperOpening(s.upperOpening);
+    if (s.openingType !== undefined) setOpeningType(s.openingType);
+    if (s.boxType !== undefined) setBoxType(s.boxType);
+    if (s.showHorns !== undefined) setShowHorns(s.showHorns);
+    if (s.hornType !== undefined) setHornType(s.hornType);
+    if (s.ironmongery !== undefined) setIronmongery(s.ironmongery);
+    if (s.upperGlass !== undefined) setUpperGlass(s.upperGlass);
+    if (s.lowerGlass !== undefined) setLowerGlass(s.lowerGlass);
+    if (s.upperBars !== undefined) setUpperBars(s.upperBars);
+    if (s.lowerBars !== undefined) setLowerBars(s.lowerBars);
+    if (s.sameBars !== undefined) setSameBars(s.sameBars);
+    if (s.upperCustomBars !== undefined) setUpperCustomBars(s.upperCustomBars);
+    if (s.lowerCustomBars !== undefined) setLowerCustomBars(s.lowerCustomBars);
+    if (s.sashType !== undefined) setSashType(s.sashType);
+    if (s.splitRatio !== undefined) setSplitRatio(s.splitRatio);
+    if (s.headType !== undefined) setHeadType(s.headType);
+    if (s.fixUpperBars !== undefined) setFixUpperBars(s.fixUpperBars);
+    if (s.fixLowerBars !== undefined) setFixLowerBars(s.fixLowerBars);
+    if (s.fixUpperCustomBars !== undefined) setFixUpperCustomBars(s.fixUpperCustomBars);
+    if (s.fixLowerCustomBars !== undefined) setFixLowerCustomBars(s.fixLowerCustomBars);
+    if (s.casementLayout !== undefined) setCasementLayout(s.casementLayout);
+    if (s.casementOpening !== undefined) setCasementOpening(s.casementOpening);
+    if (s.fanlightRatio !== undefined) setFanlightRatio(s.fanlightRatio);
+  }
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
 
   // Expose update3D function for Online Estimate to call
   React.useEffect(() => {
     window.update3D = (cfg) => {
+      // ─── Category switch: save old state, restore new ───
+      if (cfg.windowCategory !== undefined && cfg.windowCategory !== categoryRef.current) {
+        // Save current state to old category bucket
+        buckets.current[categoryRef.current] = captureState();
+        // Switch category
+        const newCat = cfg.windowCategory;
+        categoryRef.current = newCat;
+        setWindowCategory(newCat);
+        // Restore from saved bucket or defaults
+        const restored = buckets.current[newCat] || BUCKET_DEFAULTS[newCat] || BUCKET_DEFAULTS.sash;
+        restoreState(restored);
+        // Apply any extra values from this update3D call (e.g. casementLayout)
+        delete cfg.windowCategory; // already handled
+      }
+
       if (cfg.extWidth  !== undefined) setExtWidth(cfg.extWidth);
       if (cfg.extHeight !== undefined) setExtHeight(cfg.extHeight);
       if (cfg.upperBars !== undefined) setUpperBars(cfg.upperBars);
@@ -732,8 +797,7 @@ export default function App() {
       if (cfg.fixLowerBars !== undefined) setFixLowerBars(cfg.fixLowerBars);
       if (cfg.fixUpperCustomBars !== undefined) setFixUpperCustomBars(cfg.fixUpperCustomBars);
       if (cfg.fixLowerCustomBars !== undefined) setFixLowerCustomBars(cfg.fixLowerCustomBars);
-      // Casement
-      if (cfg.windowCategory !== undefined) setWindowCategory(cfg.windowCategory);
+      // Casement (windowCategory handled above in bucket system)
       if (cfg.casementLayout !== undefined) setCasementLayout(cfg.casementLayout);
       if (cfg.fanlightRatio !== undefined) setFanlightRatio(cfg.fanlightRatio);
     };
