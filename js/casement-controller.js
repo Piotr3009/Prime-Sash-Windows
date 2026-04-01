@@ -182,9 +182,11 @@
         var isDual = r.value === 'dual';
         var single = $('c-single-color-selector');
         var dual = $('c-dual-colour-section');
-        console.log('🎨 Casement colour toggle:', r.value, 'single:', !!single, 'dual:', !!dual);
+        console.log('🎨 Casement colour toggle:', r.value);
+        console.log('🎨 BEFORE - single display:', single ? single.style.display : 'N/A', 'dual display:', dual ? dual.style.display : 'N/A');
         if (single) single.style.display = isDual ? 'none' : 'block';
         if (dual) dual.style.display = isDual ? 'block' : 'none';
+        console.log('🎨 AFTER  - single display:', single ? single.style.display : 'N/A', 'dual display:', dual ? dual.style.display : 'N/A');
         updateCasementColour();
       });
     });
