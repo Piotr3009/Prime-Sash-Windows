@@ -174,35 +174,48 @@
     updateSpecPanel();
   }
 
-  // ─── Colour logic ───
+  // ─── Colour logic (matching sash tile system) ───
   function setupColour() {
     // Single/Dual toggle
-    const modeRadios = document.querySelectorAll('input[name="c-colour-mode"]');
-    modeRadios.forEach(function(r) {
+    document.querySelectorAll('input[name="c-color-type"]').forEach(function(r) {
       r.addEventListener('change', function() {
-        const isDual = r.value === 'dual';
-        const single = $('c-single-colour-section');
-        const dual = $('c-dual-colour-section');
+        var isDual = r.value === 'dual';
+        var single = $('c-single-color-selector');
+        var dual = $('c-dual-colour-section');
         if (single) single.style.display = isDual ? 'none' : 'block';
         if (dual) dual.style.display = isDual ? 'block' : 'none';
         updateCasementColour();
       });
     });
 
-    // Main colour selects
-    setupColourSelect('c-colour', 'c-ral-input', 'c-fb-input', 'single');
-    setupColourSelect('c-colour-ext', 'c-ral-ext-input', 'c-fb-ext-input', 'exterior');
-    setupColourSelect('c-colour-int', 'c-ral-int-input', 'c-fb-int-input', 'interior');
+    // ── Tile clicks: single ──
+    setupTileClicks('#c-single-color-selector .c-color-option', 'single');
+    setupTileClicks('.c-interior-color', 'interior');
+    setupTileClicks('.c-exterior-color', 'exterior');
 
-    // Populate RAL/FB dropdowns
-    populateRALDropdowns();
-    populateFBDropdowns();
-
-    // RAL/FB change → update colour
-    ['c-ral-code', 'c-ral-ext', 'c-ral-int', 'c-fb-code', 'c-fb-ext', 'c-fb-int'].forEach(function(id) {
-      var el = $(id);
-      if (el) el.addEventListener('change', updateCasementColour);
+    // ── RAL/FB dropdowns ──
+    ['c-single-ral-select', 'c-single-fb-select', 'c-int-ral-select', 'c-int-fb-select', 'c-ext-ral-select', 'c-ext-fb-select'].forEach(function(id) {
+      var sel = $(id);
+      if (!sel) return;
+      sel.addEventListener('change', function() {
+        var hex = sel.value;
+        if (!hex) return;
+        var target = id.indexOf('int-') > -1 ? 'interior' : id.indexOf('ext-') > -1 ? 'exterior' : 'single';
+        switchToCustomTile(target);
+        applyColourHex(hex, target);
+        // Update preview
+        var text = sel.options[sel.selectedIndex].text;
+        updatePreview(target, text, hex);
+        // Reset other dropdown in same row
+        var row = sel.closest('.color-dropdown-row');
+        if (row) row.querySelectorAll('select').forEach(function(s) { if (s !== sel) s.value = ''; });
+      });
     });
+
+    // ── RAL text input ──
+    setupRalInput('c-single-ral-input', 'c-single-ral-apply', 'c-single-ral-error', 'single');
+    setupRalInput('c-int-ral-input', 'c-int-ral-apply', 'c-int-ral-error', 'interior');
+    setupRalInput('c-ext-ral-input', 'c-ext-ral-apply', 'c-ext-ral-error', 'exterior');
 
     // Seal colour
     document.querySelectorAll('input[name="c-seal-colour"]').forEach(function(r) {
@@ -210,45 +223,91 @@
     });
   }
 
-  function setupColourSelect(selectId, ralDivId, fbDivId, target) {
-    var sel = $(selectId);
-    if (!sel) return;
-    sel.addEventListener('change', function() {
-      var ralDiv = $(ralDivId);
-      var fbDiv = $(fbDivId);
-      if (ralDiv) ralDiv.style.display = sel.value === 'ral' ? 'block' : 'none';
-      if (fbDiv) fbDiv.style.display = sel.value === 'fb' ? 'block' : 'none';
-      updateCasementColour();
+  function setupTileClicks(selector, target) {
+    document.querySelectorAll(selector).forEach(function(tile) {
+      tile.addEventListener('click', function() {
+        // Deselect siblings
+        tile.closest('.color-options').querySelectorAll('.color-option').forEach(function(t) { t.classList.remove('selected'); });
+        tile.classList.add('selected');
+        var hex = tile.style.backgroundColor;
+        var name = tile.dataset.name || '';
+        var ral = tile.dataset.ral || '';
+        if (tile.dataset.color === 'custom') return; // custom = use dropdown
+        // Convert rgb to hex
+        hex = rgbToHex(hex) || '#F6F6F6';
+        applyColourHex(hex, target);
+        updatePreview(target, name, ral);
+      });
     });
   }
 
-  function updateCasementColour() {
+  function switchToCustomTile(target) {
+    var selector = target === 'single' ? '#c-single-color-selector .c-color-option' :
+                   target === 'interior' ? '.c-interior-color' : '.c-exterior-color';
+    document.querySelectorAll(selector).forEach(function(t) { t.classList.remove('selected'); });
+    var customBtn = target === 'single' ? document.querySelector('#c-single-color-selector .c-custom-color-btn') :
+                    target === 'interior' ? document.querySelector('.c-interior-color.c-custom-color-btn') :
+                    document.querySelector('.c-exterior-color.c-custom-color-btn');
+    if (customBtn) customBtn.classList.add('selected');
+  }
+
+  function setupRalInput(inputId, btnId, errorId, target) {
+    var input = $(inputId);
+    var btn = $(btnId);
+    var err = $(errorId);
+    if (!input || !btn) return;
+    var apply = function() {
+      var key = input.value.trim().replace(/^ral\s*/i, '');
+      var hex = RAL[key];
+      if (hex) {
+        switchToCustomTile(target);
+        applyColourHex(hex, target);
+        updatePreview(target, 'RAL ' + key, hex);
+        if (err) err.textContent = '';
+      } else {
+        if (err) err.textContent = 'RAL not found';
+      }
+    };
+    btn.addEventListener('click', apply);
+    input.addEventListener('keydown', function(e) { if (e.key === 'Enter') apply(); });
+  }
+
+  function applyColourHex(hex, target) {
     if (typeof window.update3D !== 'function') return;
-
-    var mode = checked('c-colour-mode') || 'single';
-    var sameColor = mode === 'single';
-
-    if (sameColor) {
-      var hex = getColourHex('c-colour', 'c-ral-code', 'c-fb-code');
+    if (target === 'single') {
       window.update3D({ woodColor: hex, sameColor: true });
-    } else {
-      var hexExt = getColourHex('c-colour-ext', 'c-ral-ext', 'c-fb-ext');
-      var hexInt = getColourHex('c-colour-int', 'c-ral-int', 'c-fb-int');
-      window.update3D({ woodColorExt: hexExt, woodColorInt: hexInt, sameColor: false });
+    } else if (target === 'interior') {
+      window.update3D({ woodColorInt: hex, sameColor: false });
+    } else if (target === 'exterior') {
+      window.update3D({ woodColorExt: hex, sameColor: false });
     }
   }
 
-  function getColourHex(mainSelectId, ralSelectId, fbSelectId) {
-    var mainVal = val(mainSelectId);
-    if (mainVal === 'ral') {
-      var ralSel = $(ralSelectId);
-      return ralSel ? ralSel.value : '#F6F6F6';
+  function updatePreview(target, name, code) {
+    if (target === 'single') {
+      var pn = $('c-single-preview-name');
+      var pr = $('c-single-preview-ral');
+      if (pn) pn.textContent = name;
+      if (pr) pr.textContent = code;
+    } else if (target === 'interior') {
+      var pi = $('c-dual-preview-interior');
+      if (pi) pi.textContent = name + ' (' + code + ')';
+    } else if (target === 'exterior') {
+      var pe = $('c-dual-preview-exterior');
+      if (pe) pe.textContent = name + ' (' + code + ')';
     }
-    if (mainVal === 'fb') {
-      var fbSel = $(fbSelectId);
-      return fbSel ? fbSel.value : '#F6F6F6';
-    }
-    return mainVal || '#F6F6F6';
+  }
+
+  function updateCasementColour() {
+    // Called by seal colour change — just trigger a generic update
+    updateCasement3D();
+  }
+
+  function rgbToHex(rgb) {
+    if (!rgb || rgb.charAt(0) === '#') return rgb;
+    var m = rgb.match(/\d+/g);
+    if (!m || m.length < 3) return null;
+    return '#' + ((1 << 24) + (parseInt(m[0]) << 16) + (parseInt(m[1]) << 8) + parseInt(m[2])).toString(16).slice(1).toUpperCase();
   }
 
   // ─── RAL colours (same data as sash) ───
@@ -287,19 +346,9 @@
     '9011':'#1C2023','9016':'#F6F6F6','9017':'#1E1E1E','9018':'#D7D7D7'
   };
 
+  // RAL dropdowns already populated in HTML (same as sash)
   function populateRALDropdowns() {
-    ['c-ral-code', 'c-ral-ext', 'c-ral-int'].forEach(function(id) {
-      var sel = $(id);
-      if (!sel) return;
-      sel.innerHTML = '';
-      Object.keys(RAL).forEach(function(code) {
-        var opt = document.createElement('option');
-        opt.value = RAL[code];
-        opt.textContent = 'RAL ' + code;
-        opt.style.backgroundColor = RAL[code];
-        sel.appendChild(opt);
-      });
-    });
+    // No-op: RAL options are in the HTML
   }
 
   // Farrow & Ball — copy from sash dropdown (single source of truth)
