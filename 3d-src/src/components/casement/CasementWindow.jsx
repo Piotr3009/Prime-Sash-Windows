@@ -381,7 +381,7 @@ export default function CasementWindow({
             width={leafW}
             height={leafH}
             hingeType={p.hinge}
-            opening={0}
+            opening={p.hinge === 'fixed' ? 0 : opening}
             material={extMaterial}
             materialInt={intMaterial}
             spacerColor={spacerColor}

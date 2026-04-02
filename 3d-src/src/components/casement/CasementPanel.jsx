@@ -256,13 +256,70 @@ export default function CasementPanel({
   position = [0, 0, 0],
 }) {
   const mat = material;
+  const W = mm(width);
+  const H = mm(height);
 
-  // For now: always closed (opening later)
-  return (
-    <group position={position}>
-      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />
-    </group>
+  // Opening angle: 0-1 mapped to 0-MAX_ANGLE degrees
+  const clampedOpening = Math.max(0, Math.min(1, opening));
+  const angleRad = THREE.MathUtils.degToRad(clampedOpening * MAX_ANGLE);
+
+  const content = (
+    <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />
   );
+
+  if (hingeType === 'fixed' || clampedOpening === 0) {
+    // No rotation
+    return <group position={position}>{content}</group>;
+  }
+
+  // Pivot rotation: translate hinge to origin → rotate → translate back
+  if (hingeType === 'left') {
+    // Hinge at left edge (x = -W/2), opens outward (+Z)
+    return (
+      <group position={position}>
+        <group position={[-W / 2, 0, 0]}>
+          <group rotation={[0, angleRad, 0]}>
+            <group position={[W / 2, 0, 0]}>
+              {content}
+            </group>
+          </group>
+        </group>
+      </group>
+    );
+  }
+
+  if (hingeType === 'right') {
+    // Hinge at right edge (x = +W/2), opens outward (+Z)
+    return (
+      <group position={position}>
+        <group position={[W / 2, 0, 0]}>
+          <group rotation={[0, -angleRad, 0]}>
+            <group position={[-W / 2, 0, 0]}>
+              {content}
+            </group>
+          </group>
+        </group>
+      </group>
+    );
+  }
+
+  if (hingeType === 'top') {
+    // Hinge at top edge (y = +H/2), opens outward (+Z)
+    return (
+      <group position={position}>
+        <group position={[0, H / 2, 0]}>
+          <group rotation={[-angleRad, 0, 0]}>
+            <group position={[0, -H / 2, 0]}>
+              {content}
+            </group>
+          </group>
+        </group>
+      </group>
+    );
+  }
+
+  // Fallback
+  return <group position={position}>{content}</group>;
 }
 
 export { SASH_RAIL, SASH_DEPTH, MAX_ANGLE };

@@ -805,6 +805,7 @@ export default function App() {
       if (cfg.fixLowerCustomBars !== undefined) setFixLowerCustomBars(cfg.fixLowerCustomBars);
       // Casement (windowCategory handled above in bucket system)
       if (cfg.casementLayout !== undefined) setCasementLayout(cfg.casementLayout);
+      if (cfg.casementOpening !== undefined) setCasementOpening(cfg.casementOpening);
       if (cfg.fanlightRatio !== undefined) setFanlightRatio(cfg.fanlightRatio);
       if (cfg.casementHBars !== undefined) setCasementHBars(cfg.casementHBars);
       if (cfg.casementVBars !== undefined) setCasementVBars(cfg.casementVBars);

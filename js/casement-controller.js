@@ -181,6 +181,7 @@
       spacerColor: checked('c-spacer-color') || 'silver',
       casementHBars: parseInt(checked('c-hbars')) || 0,
       casementVBars: parseInt(checked('c-vbars')) || 0,
+      casementOpening: (parseInt(val('c-opening')) || 0) / 100,
     });
 
     updateSpecPanel();
@@ -471,6 +472,16 @@
     document.querySelectorAll('input[name="c-pas24"]').forEach(function(r) {
       r.addEventListener('change', updateCasement3D);
     });
+
+    // Opening slider
+    var openingSlider = $('c-opening');
+    if (openingSlider) {
+      openingSlider.addEventListener('input', function() {
+        var label = $('c-opening-value');
+        if (label) label.textContent = openingSlider.value;
+        updateCasement3D();
+      });
+    }
 
     // Hardware finish
     document.querySelectorAll('input[name="c-hardware-finish"]').forEach(function(r) {
