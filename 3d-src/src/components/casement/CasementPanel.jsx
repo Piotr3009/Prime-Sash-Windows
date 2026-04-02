@@ -13,6 +13,7 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import CasementGlazing from './CasementGlazing';
+import WindowCasementHandle from './WindowCasementHandle';
 
 const mm = (v) => v / 1000;
 
@@ -262,9 +263,38 @@ export default function CasementPanel({
   // Opening angle: 0-1 mapped to 0-MAX_ANGLE degrees
   const clampedOpening = Math.max(0, Math.min(1, opening));
   const angleRad = THREE.MathUtils.degToRad(clampedOpening * MAX_ANGLE);
+  const handleDeg = clampedOpening * MAX_ANGLE;
+
+  // Handle position: opposite stile from hinges, interior face
+  const handleScale = 0.001;
+  const stileCenter = F / 2; // half stile width from edge
+  const intZ = -D / 2 - 0.001; // just outside interior face
+
+  let handlePos = null;
+  let handleRot = null;
+  if (hingeType === 'left') {
+    // Handle on right stile, interior face
+    handlePos = [W / 2 - stileCenter, 0, intZ];
+    handleRot = [0, -Math.PI / 2, 0];
+  } else if (hingeType === 'right') {
+    // Handle on left stile, interior face
+    handlePos = [-W / 2 + stileCenter, 0, intZ];
+    handleRot = [0, Math.PI / 2, 0];
+  } else if (hingeType === 'top') {
+    // Handle on bottom rail, interior face, horizontal
+    handlePos = [0, -H / 2 + stileCenter, intZ];
+    handleRot = [0, -Math.PI / 2, Math.PI / 2];
+  }
 
   const content = (
-    <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />
+    <group>
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />
+      {handlePos && hingeType !== 'fixed' && (
+        <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
+          <WindowCasementHandle rotationDeg={handleDeg} />
+        </group>
+      )}
+    </group>
   );
 
   if (hingeType === 'fixed' || clampedOpening === 0) {
