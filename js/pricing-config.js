@@ -134,7 +134,7 @@ const pricingConfig = {
     firstSqmPrice: 600,        // first sqm = £600
     mullionPrice: 150,         // per mullion
     transomPrice: 200,         // per transom
-    sashPrice: 200,            // per opening sash (operable panel)
+    sashPrice: 90,             // per opening sash (operable panel)
     
     // Layout data: mullions, transoms, sashes (operable only)
     layouts: {
