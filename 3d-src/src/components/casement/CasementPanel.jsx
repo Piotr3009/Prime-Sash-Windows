@@ -272,7 +272,7 @@ export default function CasementPanel({
   const intZ = -D / 2 - 0.001; // just outside interior face
 
   // Handle Y: 400mm from bottom, or center if panel < 800mm
-  const handleY = height >= 800 ? (-H / 2 + mm(400)) : 0;
+  const handleY = height >= 800 ? (-H / 2 + mm(500)) : 0;
 
   let handlePos = null;
   let handleRot = null;
