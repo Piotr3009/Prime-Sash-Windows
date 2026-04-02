@@ -331,17 +331,17 @@ function Transom({ transomWidth, intCuts, mat, matInt, debugColors }) {
 
 // ═══ Main CasementFrame — computes cuts for each member ═══
 export default function CasementFrame({
-  width = 800, height = 1200, material, materialInt, gasketMat,
+  width = 800, height = 1200, material, materialInt, sealColour = 'black',
   mullions = [], transoms = [], debugColors = false,
 }) {
   const W = mm(width);
   const H = mm(height);
 
-  // Default gasket material (black rubber)
-  const defaultGasketMat = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#1a1a1a', roughness: 0.9, metalness: 0.0,
-  }), []);
-  const gMat = gasketMat || defaultGasketMat;
+  // Gasket material based on seal colour
+  const gMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: sealColour === 'white' ? '#E8E8E8' : '#1a1a1a',
+    roughness: 0.9, metalness: 0.0,
+  }), [sealColour]);
   const gW = mm(GASKET_W);  // 19mm - covers rebate face
   const gT = mm(GASKET_T);  // 5mm - projects toward opening
   // Gasket Z: sits on rebate face (junction), projects toward exterior

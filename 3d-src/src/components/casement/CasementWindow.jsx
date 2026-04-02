@@ -397,7 +397,7 @@ export default function CasementWindow({
         height={height}
         material={extMaterial}
         materialInt={intMaterial}
-        gasketMat={gasketMat}
+        sealColour={sealColour}
         mullions={layoutDef.mullions || []}
         transoms={layoutDef.transoms || []}
         debugColors={false}
