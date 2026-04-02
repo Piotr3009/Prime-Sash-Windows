@@ -2357,7 +2357,13 @@
       <!-- C-STEP 7: HARDWARE -->
       <div class="config-section" data-for="casement" data-category="hardware" style="display:none;">
         <h3>Step 7: Casement Hardware</h3>
-        <p style="font-size:0.75rem; color:var(--secondary-color); margin-bottom:10px;">Hardware selection for casement windows — coming soon.</p>
+        <div class="input-group">
+          <button class="btn btn-primary" style="width:100%; padding:12px; font-size:0.85rem; cursor:pointer;"
+                  onclick="openIronmongeryGallery('casement')">
+            🔧 Browse Casement Hardware
+          </button>
+        </div>
+        <div id="c-selected-products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 15px;"></div>
         <div class="input-group">
           <label for="c-hardware-finish">Hardware Finish:</label>
           <div class="radio-group">
@@ -2725,6 +2731,10 @@
       <button class="category-tab" data-category="pullHandles">Pull Handles</button>
       <button class="category-tab" data-category="stoppers">Stoppers</button>
       <button class="category-tab" data-category="horns">Sash Horns</button>
+      <!-- Casement tabs (hidden by default, shown when windowType=casement) -->
+      <button class="category-tab casement-tab" data-category="casementHandles" style="display:none;">Handles</button>
+      <button class="category-tab casement-tab" data-category="casementStays" style="display:none;">Stays / Hinges</button>
+      <button class="category-tab casement-tab" data-category="casementLocks" style="display:none;">Locks</button>
     </div>
 
     <!-- Products Grid -->

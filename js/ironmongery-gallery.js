@@ -18,6 +18,7 @@ class IronmongeryGallery {
     this.currentFinish = 'all';
     this.currentType = 'standard'; // NEW: standard, pas24, horns
     this.isAdminMode = false;
+    this.windowType = 'sash'; // 'sash' | 'casement'
     
     this.init();
   }
@@ -1135,12 +1136,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Function to open gallery (called from configurator)
-async function openIronmongeryGallery() {
+async function openIronmongeryGallery(windowType) {
   if (!window.IronmongeryGallery) {
     window.IronmongeryGallery = new IronmongeryGallery();
   }
   
-  // Load products from database
+  window.IronmongeryGallery.windowType = windowType || 'sash';
   await window.IronmongeryGallery.loadProductsFromDatabase();
   window.IronmongeryGallery.open();
 }

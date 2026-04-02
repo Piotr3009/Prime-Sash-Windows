@@ -430,7 +430,7 @@ export default function CasementWindow({
 
       {/* ═══ Dimensions ═══ */}
 
-      {/* ═══ Trickle Vent — 320mm × 21mm recess, pill shape R10.5 ═══ */}
+      {/* ═══ Trickle Vent — 320mm × 21mm recess, pill shape R10.5, both sides ═══ */}
       {trickleVent !== 'none' && (() => {
         const ventW = mm(320);
         const ventH = mm(21);
@@ -440,19 +440,19 @@ export default function CasementWindow({
 
         // Position: frame = head rail center, sash = top rail of first opening panel
         let ventX = 0;
-        let ventY = H / 2 - mm(FRAME_FACE / 2);
+        let ventY = H / 2 - mm(FRAME_FACE / 2) + mm(20);
         if (trickleVent === 'sash') {
-          // Find first non-fixed panel
           const layoutData = getLayout(layout, innerW, innerH, height, fanlightRatio);
           const openPanel = (layoutData.panels || []).find(p => p.hinge !== 'fixed' && p.hinge !== 'top');
           if (openPanel) {
             ventX = mm(openPanel.x);
-            ventY = mm(openPanel.y) + mm(openPanel.h) / 2 - mm(SASH_RAIL / 2);
+            ventY = mm(openPanel.y) + mm(openPanel.h) / 2 - mm(SASH_RAIL / 2) + mm(20);
           }
         }
-        const ventZ = halfD + ventD / 2 + mm(1);
+        const ventZext = halfD + ventD / 2 + mm(1);
+        const ventZint = -halfD - ventD / 2 - mm(1);
 
-        // Pill shape (stadium) using Shape
+        // Pill shape (stadium)
         const ventShape = new THREE.Shape();
         const hw = ventW / 2 - ventR;
         const hh = ventH / 2 - ventR;
@@ -466,11 +466,21 @@ export default function CasementWindow({
         ventShape.lineTo(-ventW / 2, -hh);
         ventShape.absarc(-hw, -hh, ventR, Math.PI, Math.PI * 1.5, false);
 
+        const extrudeSettings = { depth: ventD, bevelEnabled: false };
+
         return (
-          <mesh position={[ventX, ventY, ventZ]} castShadow>
-            <extrudeGeometry args={[ventShape, { depth: ventD, bevelEnabled: false }]} />
-            <meshStandardMaterial color={ventColor} roughness={0.7} />
-          </mesh>
+          <group>
+            {/* EXT side */}
+            <mesh position={[ventX, ventY, ventZext]} castShadow>
+              <extrudeGeometry args={[ventShape, extrudeSettings]} />
+              <meshStandardMaterial color={ventColor} roughness={0.7} />
+            </mesh>
+            {/* INT side */}
+            <mesh position={[ventX, ventY, ventZint]} castShadow>
+              <extrudeGeometry args={[ventShape, extrudeSettings]} />
+              <meshStandardMaterial color={ventColor} roughness={0.7} />
+            </mesh>
+          </group>
         );
       })()}
 

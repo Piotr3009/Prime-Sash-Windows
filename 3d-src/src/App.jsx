@@ -904,7 +904,7 @@ export default function App() {
                   value={opening}
                   min={0}
                   max={maxSashOpening}
-                  step={5}
+                  step={1}
                   onChange={setOpening}
                 />
               </div>
@@ -914,7 +914,7 @@ export default function App() {
                   value={upperOpening}
                   min={0}
                   max={maxSashOpening}
-                  step={5}
+                  step={1}
                   onChange={setUpperOpening}
                 />
               </div>
@@ -925,12 +925,12 @@ export default function App() {
               value={Math.round(casementOpening * 100)}
               min={0}
               max={100}
-              step={5}
+              step={1}
               suffix="%"
               onChange={(v) => setCasementOpening(v / 100)}
             />
           )}
-          <Slider label="Brightness" value={Math.round((brightness - 1) * 100)} min={-30} max={30} step={5} suffix="%" onChange={(v) => setBrightness(1 + v / 100)} />
+          <Slider label="Brightness" value={Math.round((brightness - 1) * 100)} min={-30} max={30} step={1} suffix="%" onChange={(v) => setBrightness(1 + v / 100)} />
         </div>
 
         {/* Floating toggles - bottom left */}
