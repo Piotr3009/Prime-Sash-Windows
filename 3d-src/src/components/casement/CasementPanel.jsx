@@ -279,7 +279,7 @@ export default function CasementPanel({
   } else if (hingeType === 'right') {
     // Handle on left stile, interior face
     handlePos = [-W / 2 + stileCenter, 0, intZ];
-    handleRot = [0, Math.PI / 2, Math.PI];
+    handleRot = [0, -Math.PI / 2, Math.PI];
   } else if (hingeType === 'top') {
     // Handle on bottom rail, interior face, horizontal
     handlePos = [0, -H / 2 + stileCenter, intZ];
