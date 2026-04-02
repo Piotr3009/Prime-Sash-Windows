@@ -742,6 +742,10 @@ class ConfiguratorCore {
   updateAll() {
     if (!this.isInitialized) return;
     
+    // Skip sash price update when casement is active
+    var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
+    if (windowType === 'casement') return;
+    
     // Merge state with currentConfig (currentConfig has color data)
     const stateConfig = this.state.get();
     const config = { ...stateConfig, ...window.currentConfig };
