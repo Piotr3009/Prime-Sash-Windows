@@ -305,6 +305,10 @@
         '<p class="info-note">Check plumb and level of reveals before ordering.</p>' +
         '<a href="measurement-guide.html" class="measurement-link" target="_blank">📐 Measuring instructions</a>';
     }
+
+    // Update price on every spec change
+    window.currentConfig = getCasementConfig();
+    updateCasementPrice();
   }
 
   // ─── Update 3D ───
@@ -347,10 +351,33 @@
 
     updateSpecPanel();
 
-    // Update currentConfig for price calculator
+    // Update currentConfig and calculate price directly
     window.currentConfig = getCasementConfig();
-    if (window.configuratorCore && window.configuratorCore.isInitialized) {
-      window.configuratorCore.updateAll();
+    updateCasementPrice();
+  }
+
+  function updateCasementPrice() {
+    var config = window.currentConfig;
+    if (!config || config.windowType !== 'casement') return;
+    if (typeof window.calculatePrice !== 'function') return;
+
+    var priceData = window.calculatePrice(config);
+    if (!priceData) return;
+
+    // Update price display
+    var priceEl = document.getElementById('sidebar-total-price');
+    if (priceEl && priceData.unitPrice > 0) {
+      priceEl.textContent = '£' + priceData.unitPrice.toFixed(2);
+    }
+
+    // Also update total if quantity > 1
+    var totalEl = document.getElementById('sidebar-total-with-qty');
+    var qty = config.quantity || 1;
+    if (totalEl && qty > 1) {
+      totalEl.textContent = '£' + priceData.totalPrice.toFixed(2) + ' (' + qty + ' × £' + priceData.unitPrice.toFixed(2) + ')';
+      totalEl.style.display = 'block';
+    } else if (totalEl) {
+      totalEl.style.display = 'none';
     }
   }
 
