@@ -278,7 +278,7 @@ export default function CasementPanel({
     return (
       <group position={position}>
         <group position={[-W / 2, 0, 0]}>
-          <group rotation={[0, angleRad, 0]}>
+          <group rotation={[0, -angleRad, 0]}>
             <group position={[W / 2, 0, 0]}>
               {content}
             </group>
@@ -293,7 +293,7 @@ export default function CasementPanel({
     return (
       <group position={position}>
         <group position={[W / 2, 0, 0]}>
-          <group rotation={[0, -angleRad, 0]}>
+          <group rotation={[0, angleRad, 0]}>
             <group position={[-W / 2, 0, 0]}>
               {content}
             </group>
