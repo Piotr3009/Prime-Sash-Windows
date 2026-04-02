@@ -157,8 +157,7 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
     }
 
     // ─── WITH FANLIGHT (top-hung top + side-hung bottom) ───
-    case '021':
-    case '021L': {
+    case '021': {
       const fanlightH = innerH * FR;
       const mainH = innerH - MULLION_W - fanlightH;
       const transomY = BOTTOM_FACE + mainH + MULLION_W / 2;
@@ -166,11 +165,11 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
         transoms: [transomY],
         panels: [
           { x: 0, y: (mainH + MULLION_W) / 2, w: innerW, h: fanlightH, hinge: 'top' },
-          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'left' },
+          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'fixed' },
         ],
       };
     }
-    case '021R': {
+    case '021L': {
       const fanlightH = innerH * FR;
       const mainH = innerH - MULLION_W - fanlightH;
       const transomY = BOTTOM_FACE + mainH + MULLION_W / 2;
@@ -182,7 +181,36 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
         ],
       };
     }
-    case '031':
+    case '021R': {
+      const fanlightH = innerH * FR;
+      const mainH = innerH - MULLION_W - fanlightH;
+      const transomY = BOTTOM_FACE + mainH + MULLION_W / 2;
+      return {
+        transoms: [transomY],
+        panels: [
+          { x: 0, y: (mainH + MULLION_W) / 2, w: innerW, h: fanlightH, hinge: 'top' },
+          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'left' },
+        ],
+      };
+    }
+    case '031': {
+      const fanlightH = innerH * FR;
+      const mainH = innerH - MULLION_W - fanlightH;
+      const transomY = BOTTOM_FACE + mainH + MULLION_W / 2;
+      const topPanelW = (innerW - mullW) / 2;
+      const mullX = FRAME_FACE + topPanelW + mullW / 2;
+      const mullStartY = transomY + MULLION_W / 2;
+      const mullEndY = height;
+      return {
+        transoms: [transomY],
+        mullions: [{ x: mullX, startY: mullStartY, endY: mullEndY, touchesBottom: false, touchesTop: true }],
+        panels: [
+          { x: -(topPanelW + mullW) / 2, y: (mainH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
+          { x:  (topPanelW + mullW) / 2, y: (mainH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
+          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'fixed' },
+        ],
+      };
+    }
     case '031L': {
       const fanlightH = innerH * FR;
       const mainH = innerH - MULLION_W - fanlightH;
@@ -197,7 +225,7 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
         panels: [
           { x: -(topPanelW + mullW) / 2, y: (mainH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
           { x:  (topPanelW + mullW) / 2, y: (mainH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
-          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'left' },
+          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'right' },
         ],
       };
     }
@@ -215,7 +243,7 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
         panels: [
           { x: -(topPanelW + mullW) / 2, y: (mainH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
           { x:  (topPanelW + mullW) / 2, y: (mainH + MULLION_W) / 2, w: topPanelW, h: fanlightH, hinge: 'top' },
-          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'right' },
+          { x: 0, y: -(fanlightH + MULLION_W) / 2, w: innerW, h: mainH, hinge: 'left' },
         ],
       };
     }
