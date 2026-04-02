@@ -337,11 +337,8 @@ export default function CasementFrame({
   const W = mm(width);
   const H = mm(height);
 
-  // Gasket material based on seal colour
-  const gMat = useMemo(() => new THREE.MeshStandardMaterial({
-    color: sealColour === 'white' ? '#E8E8E8' : '#1a1a1a',
-    roughness: 0.9, metalness: 0.0,
-  }), [sealColour]);
+  // Gasket colour
+  const gasketColor = sealColour === 'white' ? '#E8E8E8' : '#1a1a1a';
   const gW = mm(GASKET_W);  // 19mm - covers rebate face
   const gT = mm(GASKET_T);  // 5mm - projects toward opening
   // Gasket Z: sits on rebate face (junction), projects toward exterior
@@ -505,25 +502,25 @@ export default function CasementFrame({
             {/* Bottom rail gasket — between stiles */}
             <mesh position={[openCenterX, openBottom + gW / 2, gZ]}>
               <boxGeometry args={[openW, gW, gT]} />
-              <primitive object={gMat} attach="material" />
+              <meshStandardMaterial color={gasketColor} roughness={0.9} />
             </mesh>
 
             {/* Top rail gasket — between stiles */}
             <mesh position={[openCenterX, openTop - gW / 2, gZ]}>
               <boxGeometry args={[openW, gW, gT]} />
-              <primitive object={gMat} attach="material" />
+              <meshStandardMaterial color={gasketColor} roughness={0.9} />
             </mesh>
 
             {/* Left stile gasket — between rails */}
             <mesh position={[openLeft + gW / 2, openCenterY, gZ]}>
               <boxGeometry args={[gW, openH, gT]} />
-              <primitive object={gMat} attach="material" />
+              <meshStandardMaterial color={gasketColor} roughness={0.9} />
             </mesh>
 
             {/* Right stile gasket — between rails */}
             <mesh position={[openRight - gW / 2, openCenterY, gZ]}>
               <boxGeometry args={[gW, openH, gT]} />
-              <primitive object={gMat} attach="material" />
+              <meshStandardMaterial color={gasketColor} roughness={0.9} />
             </mesh>
 
             {/* Mullion gaskets — between rails, both sides */}
@@ -537,11 +534,11 @@ export default function CasementFrame({
                 <group key={`mull-gasket-${i}`}>
                   <mesh position={[mullCenterX - mm(MULLION_W) / 2 + gW / 2, mullGCY, gZ]}>
                     <boxGeometry args={[gW, mullGH, gT]} />
-                    <primitive object={gMat} attach="material" />
+                    <meshStandardMaterial color={gasketColor} roughness={0.9} />
                   </mesh>
                   <mesh position={[mullCenterX + mm(MULLION_W) / 2 - gW / 2, mullGCY, gZ]}>
                     <boxGeometry args={[gW, mullGH, gT]} />
-                    <primitive object={gMat} attach="material" />
+                    <meshStandardMaterial color={gasketColor} roughness={0.9} />
                   </mesh>
                 </group>
               );
@@ -556,11 +553,11 @@ export default function CasementFrame({
                 <group key={`trans-gasket-${i}`}>
                   <mesh position={[tCenterX, tY - mm(MULLION_W) / 2 + gW / 2, gZ]}>
                     <boxGeometry args={[tLen, gW, gT]} />
-                    <primitive object={gMat} attach="material" />
+                    <meshStandardMaterial color={gasketColor} roughness={0.9} />
                   </mesh>
                   <mesh position={[tCenterX, tY + mm(MULLION_W) / 2 - gW / 2, gZ]}>
                     <boxGeometry args={[tLen, gW, gT]} />
-                    <primitive object={gMat} attach="material" />
+                    <meshStandardMaterial color={gasketColor} roughness={0.9} />
                   </mesh>
                 </group>
               );
