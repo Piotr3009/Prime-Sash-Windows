@@ -133,12 +133,26 @@
     if (specHeight) specHeight.textContent = h + 'mm';
     if (specMeasurement) specMeasurement.textContent = 'Frame Dimensions';
 
-    // Hide sash-only spec sections
-    var sashOnlySpecs = ['spec-bars', 'spec-fix-bars', 'spec-frame'];
+    // Hide sash-only spec sections, show casement bars
+    var sashOnlySpecs = ['spec-fix-bars', 'spec-frame'];
     sashOnlySpecs.forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
+
+    // Show bars if casement has bars selected
+    var hBars = parseInt(checked('c-hbars')) || 0;
+    var vBars = parseInt(checked('c-vbars')) || 0;
+    var specBars = document.getElementById('spec-bars');
+    if (specBars) {
+      if (hBars > 0 || vBars > 0) {
+        specBars.style.display = 'block';
+        var specUpperBars = document.getElementById('spec-upper-bars');
+        if (specUpperBars) specUpperBars.textContent = hBars + ' horizontal, ' + vBars + ' vertical';
+      } else {
+        specBars.style.display = 'none';
+      }
+    }
 
     // Update info panel
     var infoPanel = document.getElementById('info-panel-content');

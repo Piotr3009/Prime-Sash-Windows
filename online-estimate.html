@@ -2701,6 +2701,13 @@
       <button id="galleryClose" class="gallery-close" aria-label="Close">&times;</button>
     </div>
 
+    <!-- Window Type Selector (top level) -->
+    <div class="window-type-tabs" style="display:flex;gap:6px;padding:8px 20px;border-bottom:1px solid rgba(255,255,255,0.1);">
+      <button class="wt-tab active" data-wt="sash" style="padding:8px 18px;border:1px solid var(--primary-color);border-radius:4px;font-size:0.8rem;font-weight:600;cursor:pointer;background:var(--primary-color);color:white;">Sash Windows</button>
+      <button class="wt-tab" data-wt="casement" style="padding:8px 18px;border:1px solid var(--primary-color);border-radius:4px;font-size:0.8rem;font-weight:600;cursor:pointer;background:transparent;color:var(--primary-color);">Casement</button>
+      <button class="wt-tab" data-wt="doors" style="padding:8px 18px;border:1px solid #999;border-radius:4px;font-size:0.8rem;font-weight:600;cursor:not-allowed;background:transparent;color:#999;opacity:0.5;">Doors <span style="font-size:0.6rem;">Soon</span></button>
+    </div>
+
     <!-- Type Selector (NEW) -->
     <div class="type-selector">
       <button class="type-btn active" data-type="standard">Standard</button>
@@ -2732,9 +2739,7 @@
       <button class="category-tab" data-category="stoppers">Stoppers</button>
       <button class="category-tab" data-category="horns">Sash Horns</button>
       <!-- Casement tabs (hidden by default, shown when windowType=casement) -->
-      <button class="category-tab casement-tab" data-category="casementHandles" style="display:none;">Handles</button>
-      <button class="category-tab casement-tab" data-category="casementStays" style="display:none;">Stays / Hinges</button>
-      <button class="category-tab casement-tab" data-category="casementLocks" style="display:none;">Locks</button>
+      <button class="category-tab casement-tab" data-category="casementHandles" style="display:none;">Casement Handles</button>
     </div>
 
     <!-- Products Grid -->

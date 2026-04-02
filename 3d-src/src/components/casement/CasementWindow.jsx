@@ -440,7 +440,9 @@ export default function CasementWindow({
 
         // Position: frame = head rail center, sash = top rail of first opening panel
         let ventX = 0;
-        let ventY = H / 2 - mm(FRAME_FACE / 2) + mm(20);
+        let ventY = H / 2 - mm(FRAME_FACE / 2) + mm(15); // frame: +15mm
+        let ventZextOffset = 0;
+        let ventZintOffset = 0;
         if (trickleVent === 'sash') {
           const layoutData = getLayout(layout, innerW, innerH, height, fanlightRatio);
           const openPanel = (layoutData.panels || []).find(p => p.hinge !== 'fixed' && p.hinge !== 'top');
@@ -448,9 +450,11 @@ export default function CasementWindow({
             ventX = mm(openPanel.x);
             ventY = mm(openPanel.y) + mm(openPanel.h) / 2 - mm(SASH_RAIL / 2) + mm(20);
           }
+          // Leaf is 26mm thinner than frame — push INT side toward leaf
+          ventZintOffset = mm(26);
         }
-        const ventZext = halfD + ventD / 2 + mm(1);
-        const ventZint = -halfD - ventD / 2 - mm(1);
+        const ventZext = halfD + ventD / 2 + mm(1) + ventZextOffset;
+        const ventZint = -halfD - ventD / 2 - mm(1) + ventZintOffset;
 
         // Pill shape (stadium)
         const ventShape = new THREE.Shape();
