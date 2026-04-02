@@ -174,10 +174,16 @@
         var dualEl = document.getElementById('spec-dual-color');
         if (singleEl) singleEl.style.display = 'block';
         if (dualEl) dualEl.style.display = 'none';
-        // Find selected single tile
-        var selectedTile = document.querySelector('#c-single-color-selector .c-color-option.selected');
-        var colorName = selectedTile ? (selectedTile.dataset.name || 'White') : 'White';
-        var colorRal = selectedTile ? (selectedTile.dataset.ral || '') : '';
+        // Read from preview (works for tiles AND F&B/RAL)
+        var previewName = $('c-single-preview-name');
+        var previewRal = $('c-single-preview-ral');
+        var colorName = previewName ? previewName.textContent : 'White';
+        var colorRal = previewRal ? previewRal.textContent : '';
+        if (!colorName || colorName === '-') {
+          var selectedTile = document.querySelector('#c-single-color-selector .c-color-option.selected');
+          colorName = selectedTile ? (selectedTile.dataset.name || 'White') : 'White';
+          colorRal = selectedTile ? (selectedTile.dataset.ral || '') : '';
+        }
         var nameEl = document.getElementById('spec-color-name');
         var ralEl = document.getElementById('spec-color-ral');
         if (nameEl) nameEl.textContent = colorName;
@@ -187,10 +193,19 @@
         var dualEl2 = document.getElementById('spec-dual-color');
         if (singleEl2) singleEl2.style.display = 'none';
         if (dualEl2) dualEl2.style.display = 'block';
-        var intTile = document.querySelector('.c-interior-color.selected');
-        var extTile = document.querySelector('.c-exterior-color.selected');
-        var intName = intTile ? (intTile.dataset.name + ' (' + intTile.dataset.ral + ')') : '-';
-        var extName = extTile ? (extTile.dataset.name + ' (' + extTile.dataset.ral + ')') : '-';
+        // Read from dual preview elements
+        var previewInt = $('c-dual-preview-interior');
+        var previewExt = $('c-dual-preview-exterior');
+        var intName = previewInt ? previewInt.textContent : '-';
+        var extName = previewExt ? previewExt.textContent : '-';
+        if (!intName || intName === '-') {
+          var intTile = document.querySelector('.c-interior-color.selected');
+          intName = intTile ? (intTile.dataset.name + ' (' + intTile.dataset.ral + ')') : '-';
+        }
+        if (!extName || extName === '-') {
+          var extTile = document.querySelector('.c-exterior-color.selected');
+          extName = extTile ? (extTile.dataset.name + ' (' + extTile.dataset.ral + ')') : '-';
+        }
         var intEl = document.getElementById('spec-interior-color');
         var extEl = document.getElementById('spec-exterior-color');
         if (intEl) intEl.textContent = intName;
