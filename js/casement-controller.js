@@ -116,45 +116,130 @@
     var w = parseInt(val('c-width')) || 800;
     var h = parseInt(val('c-height')) || 1200;
 
-    // Reuse sash spec elements for dimensions
+    // Window type
     var specType = document.getElementById('spec-window-type');
     var specSashType = document.getElementById('spec-sash-type');
+    var specSplitItem = document.getElementById('spec-split-ratio-item');
+    if (specType) specType.style.display = 'block';
+    if (specSashType) specSashType.textContent = 'Casement — Layout ' + layout;
+    if (specSplitItem) specSplitItem.style.display = 'none';
+
+    // Dimensions
     var specDims = document.getElementById('spec-dimensions');
     var specWidth = document.getElementById('spec-width');
     var specHeight = document.getElementById('spec-height');
     var specMeasurement = document.getElementById('spec-measurement');
-    var specSplitItem = document.getElementById('spec-split-ratio-item');
-
-    if (specType) specType.style.display = 'block';
-    if (specSashType) specSashType.textContent = 'Casement — Layout ' + layout;
-    if (specSplitItem) specSplitItem.style.display = 'none';
     if (specDims) specDims.style.display = 'block';
     if (specWidth) specWidth.textContent = w + 'mm';
     if (specHeight) specHeight.textContent = h + 'mm';
     if (specMeasurement) specMeasurement.textContent = 'Frame Dimensions';
 
-    // Hide sash-only spec sections, show casement bars
-    var sashOnlySpecs = ['spec-fix-bars', 'spec-frame'];
-    sashOnlySpecs.forEach(function(id) {
+    // Hide sash-only sections
+    ['spec-fix-bars', 'spec-frame', 'spec-opening'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
 
-    // Show bars if casement has bars selected
+    // Bars
     var hBars = parseInt(checked('c-hbars')) || 0;
     var vBars = parseInt(checked('c-vbars')) || 0;
     var specBars = document.getElementById('spec-bars');
     if (specBars) {
       if (hBars > 0 || vBars > 0) {
         specBars.style.display = 'block';
-        var specUpperBars = document.getElementById('spec-upper-bars');
-        if (specUpperBars) specUpperBars.textContent = hBars + ' horizontal, ' + vBars + ' vertical';
+        var specUpper = document.getElementById('spec-upper-bars');
+        if (specUpper) specUpper.textContent = hBars + ' horizontal, ' + vBars + ' vertical';
+        // Hide lower bars label (casement doesn't have upper/lower distinction)
+        var lowerItem = specBars.querySelector('#spec-lower-bars');
+        if (lowerItem) lowerItem.parentElement.style.display = 'none';
       } else {
         specBars.style.display = 'none';
       }
     }
 
-    // Update info panel
+    // Glass type + spacer (reuse sash spec elements)
+    var specGlass = document.getElementById('spec-glass');
+    var glassType = checked('c-glass-type') || 'double';
+    var spacer = checked('c-spacer-color') || 'silver';
+    if (specGlass) {
+      specGlass.style.display = 'block';
+      var gt = document.getElementById('spec-glass-type');
+      if (gt) gt.textContent = glassType === 'passive' ? 'Passive Glass (U: 0.8)' : glassType === 'triple' ? 'Triple Glazing (U: 1.2)' : 'Double Glazing (U: 1.4)';
+      var sc = document.getElementById('spec-spacer-color');
+      if (sc) sc.textContent = spacer.charAt(0).toUpperCase() + spacer.slice(1);
+    }
+
+    // Glass specification (casement-specific)
+    var specCGlass = document.getElementById('spec-casement-glass');
+    if (specCGlass) {
+      specCGlass.style.display = 'block';
+      var gs = document.getElementById('spec-c-glass-spec');
+      var gf = document.getElementById('spec-c-glass-finish');
+      if (gs) gs.textContent = (checked('c-glass-spec') || 'float') === 'low-e' ? 'Low-E Coated' : 'Float Glass';
+      if (gf) {
+        var finish = checked('c-glass-finish') || 'clear';
+        gf.textContent = finish.charAt(0).toUpperCase() + finish.slice(1);
+      }
+    }
+
+    // Security & ventilation
+    var specCSec = document.getElementById('spec-casement-security');
+    if (specCSec) {
+      specCSec.style.display = 'block';
+      var sg = document.getElementById('spec-c-safety-glass');
+      var tv = document.getElementById('spec-c-trickle');
+      if (sg) {
+        var safety = checked('c-safety-glass') || 'none';
+        sg.textContent = safety === 'none' ? 'Standard' : safety === 'toughened' ? 'Toughened' : 'Laminate';
+      }
+      if (tv) {
+        var vent = checked('c-trickle-vent') || 'none';
+        var ventColour = checked('c-trickle-colour') || 'white';
+        if (vent === 'none') {
+          tv.textContent = 'None';
+        } else {
+          tv.textContent = (vent === 'frame' ? 'On Frame' : 'On Sash') + ' (' + ventColour + ')';
+        }
+      }
+    }
+
+    // PAS24 (reuse existing)
+    var specPas = document.getElementById('spec-pas24');
+    var pas = checked('c-pas24') || 'no';
+    if (specPas) {
+      specPas.style.display = 'block';
+      var pv = document.getElementById('spec-pas24-value');
+      if (pv) pv.textContent = pas === 'yes' ? 'Yes — Enhanced Security' : 'No';
+    }
+
+    // Sill
+    var specSill = document.getElementById('spec-casement-sill');
+    var sill = checked('c-sill-ext') || 'none';
+    if (specSill) {
+      if (sill !== 'none') {
+        specSill.style.display = 'block';
+        var sv = document.getElementById('spec-c-sill');
+        var wider = checked('c-sill-wider') === 'yes';
+        if (sv) sv.textContent = sill + 'mm' + (wider ? ' (+50mm each side)' : '');
+      } else {
+        specSill.style.display = 'none';
+      }
+    }
+
+    // Seal colour
+    var specSeal = document.getElementById('spec-casement-seal');
+    if (specSeal) {
+      specSeal.style.display = 'block';
+      var seal = document.getElementById('spec-c-seal');
+      var sealVal = checked('c-seal-colour') || 'black';
+      if (seal) seal.textContent = sealVal.charAt(0).toUpperCase() + sealVal.slice(1);
+    }
+
+    // Hide sash details (horns etc)
+    var specDetails = document.getElementById('spec-details');
+    if (specDetails) specDetails.style.display = 'none';
+
+    // Info panel
     var infoPanel = document.getElementById('info-panel-content');
     if (infoPanel) {
       infoPanel.innerHTML =

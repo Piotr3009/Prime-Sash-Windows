@@ -2526,6 +2526,44 @@
           </div>
         </div>
         
+
+        <!-- Casement-specific spec sections -->
+        <div class="spec-section" id="spec-casement-glass" style="display: none;">
+          <h4>Glass Specification</h4>
+          <div class="spec-item">
+            <span class="spec-label">Glass:</span>
+            <span class="spec-value" id="spec-c-glass-spec">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Finish:</span>
+            <span class="spec-value" id="spec-c-glass-finish">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-casement-security" style="display: none;">
+          <h4>Security & Ventilation</h4>
+          <div class="spec-item">
+            <span class="spec-label">Safety Glass:</span>
+            <span class="spec-value" id="spec-c-safety-glass">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Trickle Vent:</span>
+            <span class="spec-value" id="spec-c-trickle">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-casement-sill" style="display: none;">
+          <h4>External Sill</h4>
+          <div class="spec-item">
+            <span class="spec-label">Projection:</span>
+            <span class="spec-value" id="spec-c-sill">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-casement-seal" style="display: none;">
+          <h4>Seal</h4>
+          <div class="spec-item">
+            <span class="spec-label">Seal Colour:</span>
+            <span class="spec-value" id="spec-c-seal">-</span>
+          </div>
+        </div>
         <div class="spec-section" id="spec-details" style="display: none;">
           <h4>Details</h4>
           <div class="spec-item" id="spec-horns-item" style="display: none;">
@@ -3106,6 +3144,12 @@
               window.update3D({ windowCategory: 'sash' });
             }
           }
+          // Hide/show casement-specific spec sections
+          var casementSpecs = ['spec-casement-glass', 'spec-casement-security', 'spec-casement-sill', 'spec-casement-seal'];
+          casementSpecs.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = (radio.value === 'casement') ? '' : 'none';
+          });
         });
       });
 
