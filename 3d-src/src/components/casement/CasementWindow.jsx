@@ -351,6 +351,7 @@ export default function CasementWindow({
   trickleColour = 'white',
   sillExtension = 0,
   sillWider = false,
+  sealColour = 'black',
   showGuides = true,
   brightness = 1.0,
   hBars = 0,
@@ -368,6 +369,11 @@ export default function CasementWindow({
     color: colorI, roughness: 0.72, metalness: 0.02,
     clearcoat: 0.06, clearcoatRoughness: 0.4,
   }), [colorI]);
+
+  const gasketMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: sealColour === 'white' ? '#E8E8E8' : '#1a1a1a',
+    roughness: 0.85, metalness: 0,
+  }), [sealColour]);
 
   // Inner dimensions (after subtracting outer frame)
   const innerW = width - FRAME_FACE * 2;
@@ -391,6 +397,7 @@ export default function CasementWindow({
         height={height}
         material={extMaterial}
         materialInt={intMaterial}
+        gasketMat={gasketMat}
         mullions={layoutDef.mullions || []}
         transoms={layoutDef.transoms || []}
         debugColors={false}

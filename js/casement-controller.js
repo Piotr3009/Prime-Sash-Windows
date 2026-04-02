@@ -409,10 +409,9 @@
         if (!hex) return;
         var target = id.indexOf('int-') > -1 ? 'interior' : id.indexOf('ext-') > -1 ? 'exterior' : 'single';
         switchToCustomTile(target);
-        applyColourHex(hex, target);
-        // Update preview
         var text = sel.options[sel.selectedIndex].text;
         updatePreview(target, text, hex);
+        applyColourHex(hex, target);
         // Reset other dropdown in same row
         var row = sel.closest('.color-dropdown-row');
         if (row) row.querySelectorAll('select').forEach(function(s) { if (s !== sel) s.value = ''; });
@@ -444,8 +443,8 @@
         if (tile.dataset.color === 'custom') return; // custom = use dropdown
         // Convert rgb to hex
         hex = rgbToHex(hex) || '#F6F6F6';
-        applyColourHex(hex, target);
         updatePreview(target, name, ral);
+        applyColourHex(hex, target);
       });
     });
   }
@@ -470,8 +469,8 @@
       var hex = RAL[key];
       if (hex) {
         switchToCustomTile(target);
-        applyColourHex(hex, target);
         updatePreview(target, 'RAL ' + key, hex);
+        applyColourHex(hex, target);
         if (err) err.textContent = '';
       } else {
         if (err) err.textContent = 'RAL not found';
