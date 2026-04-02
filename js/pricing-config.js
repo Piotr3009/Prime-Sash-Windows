@@ -101,6 +101,14 @@ const pricingConfig = {
       'triple': 0.20      // +20% surcharge
     },
     
+    // Sill extension
+    sillExtension: {
+      'none': 0,
+      '35': 45,
+      '60': 65,
+      '85': 85
+    },
+    
     // Security
     pas24: {
       'no': 0,
@@ -117,7 +125,41 @@ const pricingConfig = {
   ],
   
   // VAT
-  vatRate: 0.20  // 20% VAT
+  vatRate: 0.20,  // 20% VAT
+  
+  // ═══ CASEMENT PRICING ═══
+  casement: {
+    basePriceMin: 600,         // minimum £600
+    basePricePerSqm: 300,      // £300 per additional sqm above 1
+    firstSqmPrice: 600,        // first sqm = £600
+    mullionPrice: 150,         // per mullion
+    transomPrice: 200,         // per transom
+    sashPrice: 200,            // per opening sash (operable panel)
+    
+    // Layout data: mullions, transoms, sashes (operable only)
+    layouts: {
+      '010T': { mullions: 0, transoms: 0, sashes: 1 },
+      '040L': { mullions: 0, transoms: 0, sashes: 1 },
+      '040R': { mullions: 0, transoms: 0, sashes: 1 },
+      '040D': { mullions: 1, transoms: 0, sashes: 2 },
+      '051L': { mullions: 1, transoms: 0, sashes: 1 },
+      '051R': { mullions: 1, transoms: 0, sashes: 1 },
+      '052L': { mullions: 1, transoms: 1, sashes: 2 },
+      '052R': { mullions: 1, transoms: 1, sashes: 2 },
+      '180L': { mullions: 1, transoms: 0, sashes: 1 },
+      '180R': { mullions: 1, transoms: 0, sashes: 1 },
+      '021':  { mullions: 0, transoms: 1, sashes: 1 },
+      '021L': { mullions: 0, transoms: 1, sashes: 2 },
+      '021R': { mullions: 0, transoms: 1, sashes: 2 },
+      '031':  { mullions: 1, transoms: 1, sashes: 2 },
+      '031L': { mullions: 1, transoms: 1, sashes: 3 },
+      '031R': { mullions: 1, transoms: 1, sashes: 3 },
+      '032':  { mullions: 1, transoms: 1, sashes: 3 },
+      '130':  { mullions: 2, transoms: 0, sashes: 2 },
+      '131':  { mullions: 2, transoms: 1, sashes: 3 },
+      '132':  { mullions: 2, transoms: 2, sashes: 4 }
+    }
+  }
 };
 
 // Funkcja do ładowania cen z Supabase

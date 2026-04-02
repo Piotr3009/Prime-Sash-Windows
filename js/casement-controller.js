@@ -346,6 +346,12 @@
     });
 
     updateSpecPanel();
+
+    // Update currentConfig for price calculator
+    window.currentConfig = getCasementConfig();
+    if (window.configuratorCore && window.configuratorCore.isInitialized) {
+      window.configuratorCore.updateAll();
+    }
   }
 
   // ─── Colour logic (matching sash tile system) ───
@@ -705,13 +711,18 @@
   // ─── Store casement config (parallel to window.currentConfig for sash) ───
   function getCasementConfig() {
     return {
+      windowType: 'casement',
       windowCategory: 'casement',
+      casementLayout: checked('casement-layout') || '040L',
       layout: checked('casement-layout') || '040L',
       width: parseInt(val('c-width')) || 800,
       height: parseInt(val('c-height')) || 1200,
       fanlightHeight: parseInt(val('c-fanlight-height')) || 350,
+      casementHBars: parseInt(checked('c-hbars')) || 0,
+      casementVBars: parseInt(checked('c-vbars')) || 0,
       hBars: parseInt(checked('c-hbars')) || 0,
       vBars: parseInt(checked('c-vbars')) || 0,
+      colorType: checked('c-color-type') || 'single',
       colourMode: checked('c-color-type') || 'single',
       sealColour: checked('c-seal-colour') || 'black',
       glassType: checked('c-glass-type') || 'double',
@@ -719,7 +730,9 @@
       glassFinish: checked('c-glass-finish') || 'clear',
       spacer: checked('c-spacer-color') || 'silver',
       pas24: checked('c-pas24') || 'no',
-      hardwareFinish: checked('c-hardware-finish') || 'chrome',
+      safetyGlass: checked('c-safety-glass') || 'none',
+      sillExtension: checked('c-sill-ext') || 'none',
+      trickleVent: checked('c-trickle-vent') || 'none',
       quantity: parseInt(val('c-quantity')) || 1,
     };
   }

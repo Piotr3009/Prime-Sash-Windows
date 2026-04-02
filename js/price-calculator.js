@@ -55,7 +55,12 @@ class PriceCalculator {
     
     console.log('PriceCalculator: Frame dimensions:', frameWidth, 'x', frameHeight, '=', sqm, 'm²');
     
-    // 1. CENA BAZOWA
+    // ═══ CASEMENT PRICING ═══
+    if (configuration.windowType === 'casement' && this.pricing.casement) {
+      return this.calculateCasement(configuration, sqm, frameWidth, frameHeight);
+    }
+
+    // 1. CENA BAZOWA (SASH)
     let basePrice;
     let sizeMultiplier;
     if (configuration.sashType === 'triple') {
@@ -279,6 +284,13 @@ class PriceCalculator {
     // Color surcharge based on color choice
     // Color surcharges handled above (single non-white +5%, dual +15%)
     
+    // Sill extension
+    if (configuration.sillExtension && options.sillExtension && options.sillExtension[configuration.sillExtension]) {
+      const sillPrice = options.sillExtension[configuration.sillExtension];
+      additionalPrice += sillPrice;
+      console.log('Sill extension (' + configuration.sillExtension + 'mm): £' + sillPrice);
+    }
+    
     // PAS24
     if (configuration.pas24 && options.pas24[configuration.pas24]) {
       const pas24Price = options.pas24[configuration.pas24];
@@ -292,7 +304,104 @@ class PriceCalculator {
     return additionalPrice;
   }
 
-  getQuantityDiscount(quantity) {
+  calculateCasement(configuration, sqm, frameWidth, frameHeight) {
+    const c = this.pricing.casement;
+    const layout = configuration.casementLayout || '040L';
+    const layoutData = c.layouts[layout] || { mullions: 0, transoms: 0, sashes: 1 };
+    
+    console.log('=== CASEMENT PRICING ===');
+    console.log('Layout:', layout, layoutData);
+    console.log('SQM:', sqm.toFixed(2));
+    
+    // Base price: 600 + (sqm - 1) * 300 + mullions * 150 + transoms * 200 + sashes * 200
+    let basePrice = c.firstSqmPrice;
+    if (sqm > 1) {
+      basePrice += (sqm - 1) * c.basePricePerSqm;
+    }
+    basePrice = Math.max(basePrice, c.basePriceMin);
+    
+    const mullionPrice = layoutData.mullions * c.mullionPrice;
+    const transomPrice = layoutData.transoms * c.transomPrice;
+    const sashPrice = layoutData.sashes * c.sashPrice;
+    
+    console.log('Base (sqm):', basePrice.toFixed(2));
+    console.log('Mullions:', layoutData.mullions, '×', c.mullionPrice, '=', mullionPrice);
+    console.log('Transoms:', layoutData.transoms, '×', c.transomPrice, '=', transomPrice);
+    console.log('Sashes:', layoutData.sashes, '×', c.sashPrice, '=', sashPrice);
+    
+    basePrice += mullionPrice + transomPrice + sashPrice;
+    console.log('Total base:', basePrice.toFixed(2));
+    
+    // Bars pricing (casement uses hBars × vBars count)
+    let barsPrice = 0;
+    const hBars = configuration.casementHBars || 0;
+    const vBars = configuration.casementVBars || 0;
+    const totalBars = hBars + vBars;
+    if (totalBars > 0) {
+      barsPrice = totalBars * this.pricing.barPricing.pricePerBar;
+      // Multiply by number of panels
+      const panelCount = layoutData.mullions + 1 + (layoutData.transoms > 0 ? layoutData.mullions + 1 : 0);
+      barsPrice *= Math.max(1, layoutData.sashes + (layoutData.mullions + 1 - layoutData.sashes));
+      console.log('Bars:', totalBars, '× £' + this.pricing.barPricing.pricePerBar, '× panels =', barsPrice.toFixed(2));
+    }
+    
+    // Additional options (glass, finish, PAS24, sill, ironmongery — same as sash)
+    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
+    
+    // Subtotal
+    let subtotal = basePrice + barsPrice + additionalPrice;
+    
+    // Colour surcharges (same logic as sash)
+    if (configuration.colorType === 'dual') {
+      const dualSurcharge = subtotal * 0.15;
+      console.log('Dual color: 15% × £' + subtotal.toFixed(2) + ' = £' + dualSurcharge.toFixed(2));
+      subtotal += dualSurcharge;
+    } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
+      const colorSurcharge = subtotal * 0.05;
+      console.log('Single colour (non-white): 5% = £' + colorSurcharge.toFixed(2));
+      subtotal += colorSurcharge;
+    }
+    
+    // Quantity discount
+    const quantity = configuration.quantity || 1;
+    const discount = this.getQuantityDiscount(quantity);
+    const discountAmount = subtotal * discount;
+    const unitPrice = subtotal - discountAmount;
+    const totalPrice = unitPrice * quantity;
+    
+    console.log('Subtotal: £' + subtotal.toFixed(2));
+    console.log('Quantity:', quantity, 'Discount:', (discount * 100) + '%');
+    console.log('Final unit: £' + unitPrice.toFixed(2));
+    console.log('=========================');
+    
+    return {
+      unitPrice: Math.round(unitPrice * 100) / 100,
+      totalPrice: Math.round(totalPrice * 100) / 100,
+      breakdown: {
+        windowType: 'casement',
+        layout: layout,
+        frameWidth: frameWidth,
+        frameHeight: frameHeight,
+        sqm: sqm.toFixed(2),
+        basePrice: basePrice.toFixed(2),
+        mullions: layoutData.mullions,
+        transoms: layoutData.transoms,
+        sashes: layoutData.sashes,
+        barsPrice: barsPrice.toFixed(2),
+        additionalOptions: additionalPrice,
+        subtotal: subtotal.toFixed(2),
+        quantity: quantity,
+        discount: (discount * 100) + '%',
+        discountAmount: discountAmount.toFixed(2),
+        unitPrice: unitPrice.toFixed(2),
+        totalPrice: totalPrice.toFixed(2),
+        vatAmount: (totalPrice * this.pricing.vatRate).toFixed(2),
+        totalWithVat: (totalPrice * (1 + this.pricing.vatRate)).toFixed(2)
+      }
+    };
+  }
+
+    getQuantityDiscount(quantity) {
     // Znajdź odpowiedni rabat dla ilości
     let discount = 0;
     for (const tier of this.pricing.quantityDiscounts) {
