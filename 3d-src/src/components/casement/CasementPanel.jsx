@@ -271,15 +271,18 @@ export default function CasementPanel({
   const stileCenter = mm(REBATE + (SASH_RAIL - REBATE) / 2); // visible center
   const intZ = -D / 2 - 0.001; // just outside interior face
 
+  // Handle Y: 400mm from bottom, or center if panel < 800mm
+  const handleY = height >= 800 ? (-H / 2 + mm(400)) : 0;
+
   let handlePos = null;
   let handleRot = null;
   if (hingeType === 'left') {
     // Handle on right stile, interior face
-    handlePos = [W / 2 - stileCenter, 0, intZ];
+    handlePos = [W / 2 - stileCenter, handleY, intZ];
     handleRot = [0, -Math.PI / 2, 0];
   } else if (hingeType === 'right') {
     // Handle on left stile, interior face
-    handlePos = [-W / 2 + stileCenter, 0, intZ];
+    handlePos = [-W / 2 + stileCenter, handleY, intZ];
     handleRot = [0, -Math.PI / 2, 0];
   } else if (hingeType === 'top') {
     // Handle on bottom rail, interior face, horizontal
