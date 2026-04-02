@@ -231,7 +231,7 @@ export default function WindowCasementHandle({
     [lockColor]
   )
 
-  const handleRotation = THREE.MathUtils.degToRad(Math.max(0, Math.min(90, rotationDeg)))
+  const handleRotation = THREE.MathUtils.degToRad(Math.max(-90, Math.min(90, rotationDeg)))
 
   return (
     <group {...props}>

@@ -291,7 +291,7 @@ export default function CasementPanel({
       <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />
       {handlePos && hingeType !== 'fixed' && (
         <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
-          <WindowCasementHandle rotationDeg={handleDeg} />
+          <WindowCasementHandle rotationDeg={hingeType === 'left' ? -handleDeg : handleDeg} />
         </group>
       )}
     </group>
