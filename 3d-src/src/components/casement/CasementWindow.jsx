@@ -474,37 +474,17 @@ export default function CasementWindow({
         );
       })()}
 
-      {/* ═══ Sill Extension — sloped 30→20mm, flush bottom, R5 front ═══ */}
+      {/* ═══ Sill Extension — flush bottom, sloped profile ═══ */}
       {sillExtension > 0 && (() => {
         const sillProj = mm(sillExtension);
         const extra = sillWider ? mm(50) : 0;
         const sillW = W + extra * 2;
-        const backH = mm(30);
-        const frontH = mm(20);
-        const sillR = mm(5);
-
-        // Sill shape in XZ plane (side profile): back thick, front thin, round front edge
-        const shape = new THREE.Shape();
-        shape.moveTo(0, 0);                           // back-bottom (at window)
-        shape.lineTo(0, backH);                        // back-top
-        shape.lineTo(sillProj - sillR, frontH);        // slope to front
-        shape.absarc(sillProj - sillR, frontH - sillR, sillR, Math.PI / 2, 0, true); // round front top
-        shape.lineTo(sillProj, sillR);                 // front face
-        shape.absarc(sillProj - sillR, sillR, sillR, 0, -Math.PI / 2, true); // round front bottom
-        shape.lineTo(0, 0);                            // back to start
-        shape.closePath();
-
-        const extSettings = { depth: sillW, bevelEnabled: false };
-
-        // Position: flush bottom of frame, extruded along X
-        const sillY = -H / 2;
-        const sillZ = halfD;
-
+        const sillH = mm(25);
+        const sillY = -H / 2 + sillH / 2; // flush — raised by thickness
+        const sillZ = halfD + sillProj / 2;
         return (
-          <mesh position={[-sillW / 2, sillY, sillZ]}
-            rotation={[Math.PI / 2, Math.PI / 2, 0]}
-            castShadow receiveShadow>
-            <extrudeGeometry args={[shape, extSettings]} />
+          <mesh position={[0, sillY, sillZ]} castShadow receiveShadow>
+            <boxGeometry args={[sillW, sillH, sillProj]} />
             <primitive object={extMaterial} attach="material" />
           </mesh>
         );
