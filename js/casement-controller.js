@@ -342,6 +342,7 @@
       sillExtension: parseInt(checked('c-sill-ext')) || 0,
       sillWider: checked('c-sill-wider') === 'yes',
       glassFinish: checked('c-glass-finish') || 'clear',
+      sealColour: checked('c-seal-colour') || 'black',
     });
 
     updateSpecPanel();
