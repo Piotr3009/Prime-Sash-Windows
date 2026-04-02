@@ -27,7 +27,7 @@
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import { Html } from '@react-three/drei';
+import { Text, Line } from '@react-three/drei';
 import CasementFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, GASKET_T, mm } from './CasementFrame';
 import CasementPanel, { SASH_RAIL } from './CasementPanel';
 
@@ -346,6 +346,10 @@ export default function CasementWindow({
   sameColor = true,
   glassType = 'double',
   spacerColor = 'silver',
+  glassFinish = 'clear',
+  trickleVent = 'none',
+  trickleColour = 'white',
+  sillExtension = 0,
   showGuides = true,
   brightness = 1.0,
   hBars = 0,
@@ -413,6 +417,7 @@ export default function CasementWindow({
             material={extMaterial}
             materialInt={intMaterial}
             spacerColor={spacerColor}
+            glassFinish={glassFinish}
             hBars={isFanlight ? 0 : hBars}
             vBars={isFanlight ? 0 : vBars}
             position={[mm(p.x), mm(p.y) + openingCenterY, leafZ]}
@@ -420,62 +425,89 @@ export default function CasementWindow({
         );
       })}
 
-      {/* ═══ Orientation markers — on the sides ═══ */}
-      <Html position={[W/2 + mm(80), 0, halfD]} center style={{
-        fontSize: '14px', fontWeight: 'bold', color: '#2980b9', fontFamily: 'monospace',
-        background: 'rgba(255,255,255,0.9)', padding: '3px 8px', borderRadius: '4px',
-        border: '2px solid #2980b9', pointerEvents: 'none',
-      }}>EXT (+Z)</Html>
-
-      <Html position={[W/2 + mm(80), 0, -halfD]} center style={{
-        fontSize: '14px', fontWeight: 'bold', color: '#e74c3c', fontFamily: 'monospace',
-        background: 'rgba(255,255,255,0.9)', padding: '3px 8px', borderRadius: '4px',
-        border: '2px solid #e74c3c', pointerEvents: 'none',
-      }}>INT (-Z)</Html>
+      {/* ═══ Orientation markers removed — using sash-style dimensions ═══ */}
 
       {/* ═══ Dimensions ═══ */}
-      {showGuides && (() => {
-        const off = mm(70);
+
+      {/* ═══ Trickle Vent ═══ */}
+      {trickleVent !== 'none' && (() => {
+        const ventW = mm(Math.min(width * 0.6, 400));
+        const ventH = mm(12);
+        const ventD = mm(8);
+        const ventColor = trickleColour === 'brown' ? '#5C3A1E' : '#F0F0F0';
+        const ventY = trickleVent === 'frame'
+          ? H / 2 - mm(FRAME_FACE / 2)
+          : H / 2 - mm(FRAME_FACE) - mm(32);
+        const ventZ = trickleVent === 'frame'
+          ? halfD + ventD / 2 + mm(1)
+          : halfD + ventD / 2 + mm(1);
         return (
-          <group>
-            {/* Height — left side */}
-            <DimLine from={[-W/2 - off, -H/2, 0]} to={[-W/2 - off, H/2, 0]}
-              label={`${height}mm`} color="#e74c3c" />
-            {/* Width — bottom */}
-            <DimLine from={[-W/2, -H/2 - off, 0]} to={[W/2, -H/2 - off, 0]}
-              label={`${width}mm`} color="#2980b9" />
-            {/* Depth — top right corner along Z */}
-            <DimLine from={[W/2 + mm(30), H/2 + mm(20), halfD]} to={[W/2 + mm(30), H/2 + mm(20), -halfD]}
-              label={`${FRAME_DEPTH}mm`} color="#9b59b6" />
-          </group>
+          <mesh position={[0, ventY, ventZ]}>
+            <boxGeometry args={[ventW, ventH, ventD]} />
+            <meshStandardMaterial color={ventColor} roughness={0.8} />
+          </mesh>
         );
       })()}
+
+      {/* ═══ Sill Extension ═══ */}
+      {sillExtension > 0 && (() => {
+        const sillW = W + mm(10);
+        const sillH = mm(25);
+        const sillD = mm(sillExtension);
+        const sillY = -H / 2 - sillH / 2;
+        const sillZ = halfD + sillD / 2;
+        return (
+          <mesh position={[0, sillY, sillZ]} castShadow receiveShadow>
+            <boxGeometry args={[sillW, sillH, sillD]} />
+            <primitive object={extMaterial} attach="material" />
+          </mesh>
+        );
+      })()}
+
+      {showGuides && (
+        <group>
+          {/* Width — top */}
+          <DimensionGuide
+            from={[-W/2, H/2 + mm(80), 0]}
+            to={[W/2, H/2 + mm(80), 0]}
+            label={`${width}mm`}
+            offset={[0, 0.05, 0]}
+          />
+          {/* Height — right side */}
+          <DimensionGuide
+            from={[W/2 + mm(130), -H/2, 0]}
+            to={[W/2 + mm(130), H/2, 0]}
+            label={`${height}mm`}
+            offset={[0.07, 0, 0]}
+          />
+          {/* Depth — left side */}
+          <DimensionGuide
+            from={[-W/2 - mm(130), 0, -halfD]}
+            to={[-W/2 - mm(130), 0, halfD]}
+            label={`${FRAME_DEPTH}mm`}
+            offset={[-0.07, 0, 0]}
+          />
+        </group>
+      )}
     </group>
   );
 }
 
-// ─── Dimension line ───
-function DimLine({ from, to, label, color = '#888' }) {
-  const midX = (from[0] + to[0]) / 2;
-  const midY = (from[1] + to[1]) / 2;
-  const midZ = (from[2] + to[2]) / 2;
-  const positions = new Float32Array([...from, ...to]);
-
+// ─── Dimension guide (same style as sash) ───
+function DimensionGuide({ from, to, label, offset = [0, 0, 0] }) {
+  const mid = [
+    (from[0] + to[0]) / 2 + offset[0],
+    (from[1] + to[1]) / 2 + offset[1],
+    (from[2] + to[2]) / 2 + offset[2],
+  ];
+  const points = [from, to].map((p) => new THREE.Vector3(p[0], p[1], p[2]));
   return (
     <group>
-      <line>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" count={2} array={positions} itemSize={3} />
-        </bufferGeometry>
-        <lineBasicMaterial color={color} />
-      </line>
-      <mesh position={from}><sphereGeometry args={[0.006, 6, 6]} /><meshBasicMaterial color={color} /></mesh>
-      <mesh position={to}><sphereGeometry args={[0.006, 6, 6]} /><meshBasicMaterial color={color} /></mesh>
-      <Html position={[midX, midY + 0.01, midZ]} center style={{
-        background: 'rgba(255,255,255,0.92)', padding: '2px 6px', fontSize: '11px',
-        fontFamily: 'monospace', fontWeight: 'bold', color, borderRadius: '3px',
-        border: `1px solid ${color}`, whiteSpace: 'nowrap', pointerEvents: 'none',
-      }}>{label}</Html>
+      <Line points={points} color="#22324a" lineWidth={1.25} transparent opacity={0.9} />
+      <Text position={mid} fontSize={0.06} color="#22324a" anchorX="center" anchorY="middle"
+        outlineColor="#f5f2ec" outlineWidth={0.008}>
+        {label}
+      </Text>
     </group>
   );
 }

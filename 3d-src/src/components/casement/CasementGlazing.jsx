@@ -31,6 +31,7 @@ export default function CasementGlazing({
   vBars = 0,
   barMaterial,
   barMaterialInt,
+  glassFinish = 'clear',
   position = [0, 0, 0],
 }) {
   const W = mm(width);
@@ -38,6 +39,52 @@ export default function CasementGlazing({
   const D = mm(GLASS_UNIT_DEPTH);
   const glassHalf = D / 2;
   const spacerHex = spacerHexMap[spacerColor] || '#C8C8C8';
+
+
+  // ─── Glass finish textures ───
+  const frostedTexture = useMemo(() => {
+    if (glassFinish !== 'frosted') return null;
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#d0e4f0';
+    ctx.fillRect(0, 0, size, size);
+    for (let i = 0; i < 40000; i++) {
+      const x = Math.random() * size;
+      const y = Math.random() * size;
+      const r = Math.random() * 2;
+      const alpha = Math.random() * 0.35;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.fill();
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+  }, [glassFinish]);
+
+  const obscureTexture = useMemo(() => {
+    if (glassFinish !== 'obscure') return null;
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#c8dce8';
+    ctx.fillRect(0, 0, size, size);
+    for (let i = 0; i < 8000; i++) {
+      const x = Math.random() * size;
+      const y = Math.random() * size;
+      ctx.beginPath();
+      ctx.arc(x, y, Math.random() * 5 + 1, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,220,240,${Math.random() * 0.5})`;
+      ctx.fill();
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+  }, [glassFinish]);
 
   // ─── Bar dimensions (identical to sash) ───
   const barW = mm(22);     // base width
@@ -100,11 +147,29 @@ export default function CasementGlazing({
     return items;
   }, [hBars, vBars, W, H]);
 
-  const glassMat = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: '#d4e8f0', metalness: 0.05, roughness: 0.05,
-    transmission: 0.92, transparent: true, opacity: 0.35,
-    ior: 1.5, thickness: D, side: THREE.DoubleSide,
-  }), [D]);
+  const glassMat = useMemo(() => {
+    if (glassFinish === 'frosted' && frostedTexture) {
+      return new THREE.MeshPhysicalMaterial({
+        color: '#c8dce8', roughness: 1.0, metalness: 0,
+        transmission: 0.15, transparent: true, opacity: 0.96,
+        thickness: D, ior: 1.52, side: THREE.DoubleSide,
+        map: frostedTexture, roughnessMap: frostedTexture,
+      });
+    }
+    if (glassFinish === 'obscure' && obscureTexture) {
+      return new THREE.MeshPhysicalMaterial({
+        color: '#b8ccd8', roughness: 0.7, metalness: 0.02,
+        transmission: 0.4, transparent: true, opacity: 0.85,
+        thickness: D, ior: 1.5, side: THREE.DoubleSide,
+        map: obscureTexture,
+      });
+    }
+    return new THREE.MeshPhysicalMaterial({
+      color: '#d4e8f0', metalness: 0.05, roughness: 0.05,
+      transmission: 0.92, transparent: true, opacity: 0.35,
+      ior: 1.5, thickness: D, side: THREE.DoubleSide,
+    });
+  }, [D, glassFinish, frostedTexture, obscureTexture]);
 
   const defaultBarMat = useMemo(() => new THREE.MeshPhysicalMaterial({
     color: '#F6F6F6', roughness: 0.72, metalness: 0.02,

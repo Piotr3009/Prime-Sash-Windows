@@ -182,6 +182,10 @@
       casementHBars: parseInt(checked('c-hbars')) || 0,
       casementVBars: parseInt(checked('c-vbars')) || 0,
       casementOpening: (parseInt(val('c-opening')) || 0) / 100,
+      trickleVent: checked('c-trickle-vent') || 'none',
+      trickleColour: checked('c-trickle-colour') || 'white',
+      sillExtension: parseInt(checked('c-sill-ext')) || 0,
+      glassFinish: checked('c-glass-finish') || 'clear',
     });
 
     updateSpecPanel();
@@ -470,6 +474,28 @@
 
     // PAS24
     document.querySelectorAll('input[name="c-pas24"]').forEach(function(r) {
+      r.addEventListener('change', updateCasement3D);
+    });
+
+    // Trickle vent
+    document.querySelectorAll('input[name="c-trickle-vent"]').forEach(function(r) {
+      r.addEventListener('change', function() {
+        var colourRow = document.getElementById('c-trickle-colour-row');
+        if (colourRow) colourRow.style.display = r.value === 'none' ? 'none' : 'block';
+        updateCasement3D();
+      });
+    });
+    document.querySelectorAll('input[name="c-trickle-colour"]').forEach(function(r) {
+      r.addEventListener('change', updateCasement3D);
+    });
+
+    // Sill extension
+    document.querySelectorAll('input[name="c-sill-ext"]').forEach(function(r) {
+      r.addEventListener('change', updateCasement3D);
+    });
+
+    // Glass finish
+    document.querySelectorAll('input[name="c-glass-finish"]').forEach(function(r) {
       r.addEventListener('change', updateCasement3D);
     });
 
