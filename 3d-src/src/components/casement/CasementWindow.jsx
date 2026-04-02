@@ -350,6 +350,7 @@ export default function CasementWindow({
   trickleVent = 'none',
   trickleColour = 'white',
   sillExtension = 0,
+  sillWider = false,
   showGuides = true,
   brightness = 1.0,
   hBars = 0,
@@ -429,36 +430,81 @@ export default function CasementWindow({
 
       {/* ═══ Dimensions ═══ */}
 
-      {/* ═══ Trickle Vent ═══ */}
+      {/* ═══ Trickle Vent — 320mm × 21mm recess, pill shape R10.5 ═══ */}
       {trickleVent !== 'none' && (() => {
-        const ventW = mm(Math.min(width * 0.6, 400));
-        const ventH = mm(12);
-        const ventD = mm(8);
+        const ventW = mm(320);
+        const ventH = mm(21);
+        const ventD = mm(6);
+        const ventR = mm(10.5);
         const ventColor = trickleColour === 'brown' ? '#5C3A1E' : '#F0F0F0';
-        const ventY = trickleVent === 'frame'
-          ? H / 2 - mm(FRAME_FACE / 2)
-          : H / 2 - mm(FRAME_FACE) - mm(32);
-        const ventZ = trickleVent === 'frame'
-          ? halfD + ventD / 2 + mm(1)
-          : halfD + ventD / 2 + mm(1);
+
+        // Position: frame = head rail center, sash = top rail of first opening panel
+        let ventX = 0;
+        let ventY = H / 2 - mm(FRAME_FACE / 2);
+        if (trickleVent === 'sash') {
+          // Find first non-fixed panel
+          const layoutData = getLayout(layout, innerW, innerH, height, fanlightRatio);
+          const openPanel = (layoutData.panels || []).find(p => p.hinge !== 'fixed' && p.hinge !== 'top');
+          if (openPanel) {
+            ventX = mm(openPanel.x);
+            ventY = mm(openPanel.y) + mm(openPanel.h) / 2 - mm(SASH_RAIL / 2);
+          }
+        }
+        const ventZ = halfD + ventD / 2 + mm(1);
+
+        // Pill shape (stadium) using Shape
+        const ventShape = new THREE.Shape();
+        const hw = ventW / 2 - ventR;
+        const hh = ventH / 2 - ventR;
+        ventShape.moveTo(-hw, -ventH / 2);
+        ventShape.lineTo(hw, -ventH / 2);
+        ventShape.absarc(hw, -hh, ventR, -Math.PI / 2, 0, false);
+        ventShape.lineTo(ventW / 2, hh);
+        ventShape.absarc(hw, hh, ventR, 0, Math.PI / 2, false);
+        ventShape.lineTo(-hw, ventH / 2);
+        ventShape.absarc(-hw, hh, ventR, Math.PI / 2, Math.PI, false);
+        ventShape.lineTo(-ventW / 2, -hh);
+        ventShape.absarc(-hw, -hh, ventR, Math.PI, Math.PI * 1.5, false);
+
         return (
-          <mesh position={[0, ventY, ventZ]}>
-            <boxGeometry args={[ventW, ventH, ventD]} />
-            <meshStandardMaterial color={ventColor} roughness={0.8} />
+          <mesh position={[ventX, ventY, ventZ]} castShadow>
+            <extrudeGeometry args={[ventShape, { depth: ventD, bevelEnabled: false }]} />
+            <meshStandardMaterial color={ventColor} roughness={0.7} />
           </mesh>
         );
       })()}
 
-      {/* ═══ Sill Extension ═══ */}
+      {/* ═══ Sill Extension — sloped 30→20mm, flush bottom, R5 front ═══ */}
       {sillExtension > 0 && (() => {
-        const sillW = W + mm(10);
-        const sillH = mm(25);
-        const sillD = mm(sillExtension);
-        const sillY = -H / 2 - sillH / 2;
-        const sillZ = halfD + sillD / 2;
+        const sillProj = mm(sillExtension);
+        const extra = sillWider ? mm(50) : 0;
+        const sillW = W + extra * 2;
+        const backH = mm(30);
+        const frontH = mm(20);
+        const sillR = mm(5);
+
+        // Sill shape in XZ plane (side profile): back thick, front thin, round front edge
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);                           // back-bottom (at window)
+        shape.lineTo(0, backH);                        // back-top
+        shape.lineTo(sillProj - sillR, frontH);        // slope to front
+        shape.absarc(sillProj - sillR, frontH - sillR, sillR, Math.PI / 2, 0, true); // round front top
+        shape.lineTo(sillProj, sillR);                 // front face
+        shape.absarc(sillProj - sillR, sillR, sillR, 0, -Math.PI / 2, true); // round front bottom
+        shape.lineTo(0, 0);                            // back to start
+        shape.closePath();
+
+        const extSettings = { depth: sillW, bevelEnabled: false };
+
+        // Position: flush bottom of frame, extruded along X
+        const sillY = -H / 2;
+        const sillZ = halfD;
+
         return (
-          <mesh position={[0, sillY, sillZ]} castShadow receiveShadow>
-            <boxGeometry args={[sillW, sillH, sillD]} />
+          <mesh position={[-sillW / 2, sillY, sillZ]}
+            rotation={[Math.PI / 2, Math.PI / 2, 0]}
+            castShadow receiveShadow>
+            <extrudeGeometry args={[shape, extSettings]} />
             <primitive object={extMaterial} attach="material" />
           </mesh>
         );

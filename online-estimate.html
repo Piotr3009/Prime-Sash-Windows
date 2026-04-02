@@ -2052,6 +2052,28 @@
         </div>
       </div>
 
+
+      <!-- C-STEP 2B: EXTERNAL SILL -->
+      <div class="config-section" data-for="casement" data-category="dim-design" style="display:none;">
+        <h3>External Sill Extension</h3>
+        <div class="input-group">
+          <label>Sill Projection:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="c-sill-none" name="c-sill-ext" value="none" checked><label for="c-sill-none" class="radio-label">None</label></div>
+            <div class="radio-option"><input type="radio" id="c-sill-35" name="c-sill-ext" value="35"><label for="c-sill-35" class="radio-label">35mm</label></div>
+            <div class="radio-option"><input type="radio" id="c-sill-60" name="c-sill-ext" value="60"><label for="c-sill-60" class="radio-label">60mm</label></div>
+            <div class="radio-option"><input type="radio" id="c-sill-85" name="c-sill-ext" value="85"><label for="c-sill-85" class="radio-label">85mm</label></div>
+          </div>
+        </div>
+        <div class="input-group" id="c-sill-wider-row" style="display:none;">
+          <label>Extend sill 50mm on each side?</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="c-sill-wider-no" name="c-sill-wider" value="no" checked><label for="c-sill-wider-no" class="radio-label">No</label></div>
+            <div class="radio-option"><input type="radio" id="c-sill-wider-yes" name="c-sill-wider" value="yes"><label for="c-sill-wider-yes" class="radio-label">Yes (+50mm each side)</label></div>
+          </div>
+        </div>
+      </div>
+
       <!-- C-STEP 3: COLOUR -->
       <div class="config-section" data-for="casement" data-category="colour" style="display:none;">
         <h3>Step 3: Colour Selection</h3>
@@ -2278,15 +2300,7 @@
           </div>
         </div>
 
-        <div class="input-group">
-          <label>External Sill Extension:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="c-sill-none" name="c-sill-ext" value="none" checked><label for="c-sill-none" class="radio-label">None</label></div>
-            <div class="radio-option"><input type="radio" id="c-sill-35" name="c-sill-ext" value="35"><label for="c-sill-35" class="radio-label">35mm</label></div>
-            <div class="radio-option"><input type="radio" id="c-sill-60" name="c-sill-ext" value="60"><label for="c-sill-60" class="radio-label">60mm</label></div>
-            <div class="radio-option"><input type="radio" id="c-sill-85" name="c-sill-ext" value="85"><label for="c-sill-85" class="radio-label">85mm</label></div>
-          </div>
-        </div>
+
       </div>
 
       <!-- C-STEP 6: SECURITY & VENTILATION -->
@@ -2331,7 +2345,7 @@
       <!-- C-STEP 6C: TRICKLE VENT -->
       <div class="config-section" data-for="casement" data-category="opening" style="display:none;">
         <h3>Trickle Ventilation</h3>
-        <p style="font-size:0.7rem; color:var(--secondary-color); margin-bottom:10px;">Building Regulations Approved Document F requires adequate background ventilation in habitable rooms. Trickle vents provide continuous low-level ventilation when windows are closed.</p>
+
         <div class="input-group">
           <label>Trickle Vent:</label>
           <div class="radio-group">

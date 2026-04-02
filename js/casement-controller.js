@@ -185,6 +185,7 @@
       trickleVent: checked('c-trickle-vent') || 'none',
       trickleColour: checked('c-trickle-colour') || 'white',
       sillExtension: parseInt(checked('c-sill-ext')) || 0,
+      sillWider: checked('c-sill-wider') === 'yes',
       glassFinish: checked('c-glass-finish') || 'clear',
     });
 
@@ -482,6 +483,17 @@
       r.addEventListener('change', function() {
         var colourRow = document.getElementById('c-trickle-colour-row');
         if (colourRow) colourRow.style.display = r.value === 'none' ? 'none' : 'block';
+        var infoPanel = document.getElementById('info-panel-content');
+        if (infoPanel) {
+          if (r.value !== 'none') {
+            infoPanel.innerHTML =
+              '<p class="info-title">Trickle Ventilation</p>' +
+              '<p><span class="info-highlight">Building Regulations:</span> Approved Document F requires adequate background ventilation in habitable rooms.</p>' +
+              '<p class="info-note">Trickle vents provide continuous low-level ventilation when windows are closed. 320mm × 21mm recessed unit with rounded ends.</p>';
+          } else {
+            infoPanel.innerHTML = '';
+          }
+        }
         updateCasement3D();
       });
     });
@@ -491,6 +503,13 @@
 
     // Sill extension
     document.querySelectorAll('input[name="c-sill-ext"]').forEach(function(r) {
+      r.addEventListener('change', function() {
+        var widerRow = document.getElementById('c-sill-wider-row');
+        if (widerRow) widerRow.style.display = r.value === 'none' ? 'none' : 'block';
+        updateCasement3D();
+      });
+    });
+    document.querySelectorAll('input[name="c-sill-wider"]').forEach(function(r) {
       r.addEventListener('change', updateCasement3D);
     });
 
