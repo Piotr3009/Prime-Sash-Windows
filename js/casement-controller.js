@@ -752,6 +752,11 @@
       vBars: parseInt(checked('c-vbars')) || 0,
       colorType: checked('c-color-type') || 'single',
       colourMode: checked('c-color-type') || 'single',
+      colorSingle: (function() {
+        var pn = document.getElementById('c-single-preview-name');
+        var name = pn ? pn.textContent.trim().toLowerCase() : 'white';
+        return name.indexOf('white') > -1 ? 'white' : name || 'white';
+      })(),
       sealColour: checked('c-seal-colour') || 'black',
       glassType: checked('c-glass-type') || 'double',
       glassSpec: checked('c-glass-spec') || 'float',

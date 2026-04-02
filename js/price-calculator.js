@@ -357,8 +357,8 @@ class PriceCalculator {
       console.log('Dual color: 15% × £' + subtotal.toFixed(2) + ' = £' + dualSurcharge.toFixed(2));
       subtotal += dualSurcharge;
     } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
-      const colorSurcharge = subtotal * 0.05;
-      console.log('Single colour (non-white): 5% = £' + colorSurcharge.toFixed(2));
+      const colorSurcharge = subtotal * 0.10;
+      console.log('Single colour (non-white): 10% = £' + colorSurcharge.toFixed(2));
       subtotal += colorSurcharge;
     }
     
