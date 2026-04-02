@@ -713,6 +713,7 @@
     return {
       windowType: 'casement',
       windowCategory: 'casement',
+      measurementType: 'frame',
       casementLayout: checked('casement-layout') || '040L',
       layout: checked('casement-layout') || '040L',
       width: parseInt(val('c-width')) || 800,
