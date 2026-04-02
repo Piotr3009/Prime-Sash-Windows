@@ -273,17 +273,17 @@ export default function CasementPanel({
   let handlePos = null;
   let handleRot = null;
   if (hingeType === 'left') {
-    // Handle on right stile, interior face
+    // Handle on right stile, interior face, flipped 180° on Z
     handlePos = [W / 2 - stileCenter, 0, intZ];
-    handleRot = [0, -Math.PI / 2, 0];
+    handleRot = [0, -Math.PI / 2, Math.PI];
   } else if (hingeType === 'right') {
-    // Handle on left stile, interior face
+    // Handle on left stile, interior face, flipped 180° on Z
     handlePos = [-W / 2 + stileCenter, 0, intZ];
-    handleRot = [0, Math.PI / 2, 0];
+    handleRot = [0, Math.PI / 2, Math.PI];
   } else if (hingeType === 'top') {
     // Handle on bottom rail, interior face, horizontal
     handlePos = [0, -H / 2 + stileCenter, intZ];
-    handleRot = [0, -Math.PI / 2, Math.PI / 2];
+    handleRot = [Math.PI / 2, -Math.PI / 2, 0];
   }
 
   const content = (
