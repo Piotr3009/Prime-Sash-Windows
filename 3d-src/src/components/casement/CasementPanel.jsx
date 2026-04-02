@@ -283,7 +283,7 @@ export default function CasementPanel({
   } else if (hingeType === 'top') {
     // Handle on bottom rail, interior face, horizontal
     handlePos = [0, -H / 2 + stileCenter, intZ];
-    handleRot = [0, -Math.PI / 2, Math.PI / 2];
+    handleRot = [Math.PI / 2, 0, Math.PI / 2];
   }
 
   const content = (
