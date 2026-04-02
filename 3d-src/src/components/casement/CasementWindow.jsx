@@ -45,11 +45,11 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
     case '040L':
     case '010':
       return {
-        panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'left' }],
+        panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'right' }],
       };
     case '040R':
       return {
-        panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'right' }],
+        panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'left' }],
       };
     case '010T':
       return {
