@@ -147,13 +147,54 @@
     if (specBars) {
       if (hBars > 0 || vBars > 0) {
         specBars.style.display = 'block';
-        var specUpper = document.getElementById('spec-upper-bars');
-        if (specUpper) specUpper.textContent = hBars + ' horizontal, ' + vBars + ' vertical';
-        // Hide lower bars label (casement doesn't have upper/lower distinction)
-        var lowerItem = specBars.querySelector('#spec-lower-bars');
+        // Change label from "Upper Sash:" to "Bars:"
+        var upperLabel = specBars.querySelector('#spec-upper-bars');
+        if (upperLabel) {
+          var labelEl = upperLabel.previousElementSibling;
+          if (labelEl) labelEl.textContent = 'Bars:';
+          upperLabel.textContent = hBars + ' horizontal, ' + vBars + ' vertical';
+        }
+        // Hide lower bars row
+        var lowerItem = document.getElementById('spec-lower-bars');
         if (lowerItem) lowerItem.parentElement.style.display = 'none';
+        var lowerDetail = document.getElementById('spec-lower-bars-detail');
+        if (lowerDetail) lowerDetail.style.display = 'none';
       } else {
         specBars.style.display = 'none';
+      }
+    }
+
+    // Colour — read from casement colour state
+    var specColor = document.getElementById('spec-color');
+    if (specColor) {
+      specColor.style.display = 'block';
+      var colorType = checked('c-color-type') || 'single';
+      if (colorType === 'single') {
+        var singleEl = document.getElementById('spec-single-color');
+        var dualEl = document.getElementById('spec-dual-color');
+        if (singleEl) singleEl.style.display = 'block';
+        if (dualEl) dualEl.style.display = 'none';
+        // Find selected single tile
+        var selectedTile = document.querySelector('#c-single-color-selector .c-color-option.selected');
+        var colorName = selectedTile ? (selectedTile.dataset.name || 'White') : 'White';
+        var colorRal = selectedTile ? (selectedTile.dataset.ral || '') : '';
+        var nameEl = document.getElementById('spec-color-name');
+        var ralEl = document.getElementById('spec-color-ral');
+        if (nameEl) nameEl.textContent = colorName;
+        if (ralEl) ralEl.textContent = colorRal;
+      } else {
+        var singleEl2 = document.getElementById('spec-single-color');
+        var dualEl2 = document.getElementById('spec-dual-color');
+        if (singleEl2) singleEl2.style.display = 'none';
+        if (dualEl2) dualEl2.style.display = 'block';
+        var intTile = document.querySelector('.c-interior-color.selected');
+        var extTile = document.querySelector('.c-exterior-color.selected');
+        var intName = intTile ? (intTile.dataset.name + ' (' + intTile.dataset.ral + ')') : '-';
+        var extName = extTile ? (extTile.dataset.name + ' (' + extTile.dataset.ral + ')') : '-';
+        var intEl = document.getElementById('spec-interior-color');
+        var extEl = document.getElementById('spec-exterior-color');
+        if (intEl) intEl.textContent = intName;
+        if (extEl) extEl.textContent = extName;
       }
     }
 
@@ -447,6 +488,7 @@
       woodColorInt: casementColourState.woodColorInt,
       woodColorExt: casementColourState.woodColorExt
     });
+    updateSpecPanel();
   }
 
   function updatePreview(target, name, code) {
@@ -614,7 +656,17 @@
 
     // Glass finish
     document.querySelectorAll('input[name="c-glass-finish"]').forEach(function(r) {
-      r.addEventListener('change', updateCasement3D);
+      r.addEventListener('change', function() { updateCasement3D(); updateSpecPanel(); });
+    });
+
+    // Safety glass
+    document.querySelectorAll('input[name="c-safety-glass"]').forEach(function(r) {
+      r.addEventListener('change', function() { updateSpecPanel(); });
+    });
+
+    // Glass spec (float/low-e)
+    document.querySelectorAll('input[name="c-glass-spec"]').forEach(function(r) {
+      r.addEventListener('change', function() { updateSpecPanel(); });
     });
 
     // Opening slider
