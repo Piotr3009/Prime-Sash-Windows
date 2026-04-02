@@ -267,7 +267,8 @@ export default function CasementPanel({
 
   // Handle position: opposite stile from hinges, interior face
   const handleScale = 0.001;
-  const stileCenter = F / 2; // half stile width from edge
+  const REBATE = 21; // mm hidden behind frame
+  const stileCenter = mm(REBATE + (SASH_RAIL - REBATE) / 2); // visible center
   const intZ = -D / 2 - 0.001; // just outside interior face
 
   let handlePos = null;
