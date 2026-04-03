@@ -129,12 +129,12 @@ const pricingConfig = {
   
   // ═══ CASEMENT PRICING ═══
   casement: {
-    basePriceMin: 600,         // minimum £600
+    basePriceMin: 300,         // minimum £300 (0.5 sqm)
     basePricePerSqm: 300,      // £300 per additional sqm above 1
     firstSqmPrice: 600,        // first sqm = £600
     mullionPrice: 150,         // per mullion
     transomPrice: 200,         // per transom
-    sashPrice: 90,             // per opening sash (operable panel)
+    sashPrice: 50,             // per opening sash (operable panel)
     
     // Layout data: mullions, transoms, sashes (operable only)
     layouts: {
