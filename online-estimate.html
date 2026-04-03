@@ -496,6 +496,8 @@
             </label>
           </div>
         </div>
+
+        <button class="btn btn-apply" id="apply-casement-layout">Apply</button>
       </div>
 
       <div class="config-section" data-category="product-range" id="door-type-section" style="display:none;">
@@ -3162,6 +3164,19 @@
             window.specificationController.applyProductRange();
           }
           // Switch to Dimensions/Design
+          if (typeof window.showCategory === 'function') {
+            window.showCategory('dim-design');
+          }
+        });
+      }
+
+      // Casement Apply button
+      var applyCasementBtn = document.getElementById('apply-casement-layout');
+      if (applyCasementBtn) {
+        applyCasementBtn.addEventListener('click', function() {
+          if (typeof window.updateCasement3D === 'function') {
+            window.updateCasement3D();
+          }
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
           }
