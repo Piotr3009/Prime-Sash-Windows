@@ -189,16 +189,6 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
 
   const mi = matInt || mat;
 
-  const handleColors = useMemo(() => {
-    const defs = {
-      brass:         { metalColor: '#d4af37', lockColor: '#c9b07a' },
-      chrome:        { metalColor: '#e8eaec', lockColor: '#c8cacc' },
-      stainless:     { metalColor: '#c8c8c8', lockColor: '#a8a8a8' },
-      antique_brass: { metalColor: '#9c7722', lockColor: '#7a5810' },
-    };
-    return defs[ironmongery] || defs.brass;
-  }, [ironmongery]);
-
   return (
     <group>
       {/* ─── Left stile EXT ─── */}
@@ -271,6 +261,16 @@ export default function CasementPanel({
   const mat = material;
   const W = mm(width);
   const H = mm(height);
+
+  const handleColors = useMemo(() => {
+    const defs = {
+      brass:         { metalColor: '#d4af37', lockColor: '#c9b07a' },
+      chrome:        { metalColor: '#e8eaec', lockColor: '#c8cacc' },
+      stainless:     { metalColor: '#c8c8c8', lockColor: '#a8a8a8' },
+      antique_brass: { metalColor: '#9c7722', lockColor: '#7a5810' },
+    };
+    return defs[ironmongery] || defs.brass;
+  }, [ironmongery]);
 
   // Opening angle: 0-1 mapped to 0-MAX_ANGLE degrees
   const clampedOpening = Math.max(0, Math.min(1, opening));
