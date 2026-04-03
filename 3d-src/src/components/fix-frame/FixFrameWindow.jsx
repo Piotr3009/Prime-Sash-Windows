@@ -179,16 +179,12 @@ function FixBars({ barItems, matExt, matInt }) {
 function CurvedGlass({ innerPts, glassMat, spacerColor }) {
   const spacerHex = spacerColor === 'white' ? '#E8E8E8' : spacerColor === 'black' ? '#1a1a1a' : '#C8C8C8';
 
-  const THIN = mm(2);
   const glassGeo = useMemo(() => {
     const shape = new THREE.Shape();
     shape.moveTo(innerPts[0][0], innerPts[0][1]);
     for (let i = 1; i < innerPts.length; i++) shape.lineTo(innerPts[i][0], innerPts[i][1]);
     shape.closePath();
-    const g = new THREE.ExtrudeGeometry(shape, { depth: THIN, bevelEnabled: false });
-    g.translate(0, 0, -THIN / 2);
-    g.computeVertexNormals();
-    return g;
+    return new THREE.ShapeGeometry(shape, 1);
   }, [innerPts]);
 
   const spacerGeo = useMemo(() => {
@@ -208,10 +204,10 @@ function CurvedGlass({ innerPts, glassMat, spacerColor }) {
         <primitive object={glassMat} attach="material" />
       </mesh>
       <mesh geometry={spacerGeo} position={[0, 0, GU / 2]}>
-        <meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} />
+        <meshStandardMaterial color="#00ff00" metalness={0.6} roughness={0.4} />
       </mesh>
       <mesh geometry={spacerGeo} position={[0, 0, -GU / 2]}>
-        <meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} />
+        <meshStandardMaterial color="#00ff00" metalness={0.6} roughness={0.4} />
       </mesh>
     </group>
   );
