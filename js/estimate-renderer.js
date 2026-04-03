@@ -840,35 +840,38 @@ class EstimateRenderer {
             }
         });
 
-        // ─── DIMENSIONS ───
+        // ─── DIMENSIONS (EXTERIOR VIEW) ───
         const dimY = oy + drawH + 8;
         const tickH = 3;
-        const bottomFrame = 68; // bottom rail is thicker
+        // Exterior visible face dimensions
+        const extFrame = 36;    // frame stile/top rail ext face
+        const extBottom = 36;   // bottom rail ext face
+        const extMullion = 26;  // mullion ext face
+        const extTransom = 26;  // transom ext face
 
         // Count mullions and transoms for dimension calculation
         const nMullions = panels.mullions ? panels.mullions.length : 0;
         const hasTransom = panels.transoms && panels.transoms.length > 0;
 
         // === WIDTH BREAKDOWN (bottom) ===
-        // Compute actual mm segments
         let wSegs = [];
         if (nMullions === 0) {
-            wSegs = [57, w - 57 - 57, 57];
+            wSegs = [extFrame, w - extFrame * 2, extFrame];
         } else if (layout === '180L') {
-            const inner = w - 57 - 57 - 68;
+            const inner = w - extFrame * 2 - extMullion;
             const openW = Math.round(inner * 0.4);
-            wSegs = [57, openW, 68, inner - openW, 57];
+            wSegs = [extFrame, openW, extMullion, inner - openW, extFrame];
         } else if (layout === '180R') {
-            const inner = w - 57 - 57 - 68;
+            const inner = w - extFrame * 2 - extMullion;
             const openW = Math.round(inner * 0.4);
-            wSegs = [57, inner - openW, 68, openW, 57];
+            wSegs = [extFrame, inner - openW, extMullion, openW, extFrame];
         } else if (nMullions === 1) {
-            const panelW = Math.round((w - 57 - 57 - 68) / 2);
-            wSegs = [57, panelW, 68, w - 57 - 57 - 68 - panelW, 57];
+            const panelW = Math.round((w - extFrame * 2 - extMullion) / 2);
+            wSegs = [extFrame, panelW, extMullion, w - extFrame * 2 - extMullion - panelW, extFrame];
         } else if (nMullions === 2) {
-            const panelW = Math.round((w - 57 - 57 - 68 * 2) / 3);
-            const lastP = w - 57 - 57 - 68 * 2 - panelW * 2;
-            wSegs = [57, panelW, 68, panelW, 68, lastP, 57];
+            const panelW = Math.round((w - extFrame * 2 - extMullion * 2) / 3);
+            const lastP = w - extFrame * 2 - extMullion * 2 - panelW * 2;
+            wSegs = [extFrame, panelW, extMullion, panelW, extMullion, lastP, extFrame];
         }
 
         // Overall width line
@@ -895,10 +898,10 @@ class EstimateRenderer {
         // === HEIGHT BREAKDOWN (right side) ===
         let hSegs = [];
         if (hasTransom && fanlightHeight > 0) {
-            const mainH = h - 57 - bottomFrame - 68 - fanlightHeight;
-            hSegs = [57, fanlightHeight, 68, Math.max(mainH, 0), bottomFrame];
+            const mainH = h - extFrame - extBottom - extTransom - fanlightHeight;
+            hSegs = [extFrame, fanlightHeight, extTransom, Math.max(mainH, 0), extBottom];
         } else {
-            hSegs = [57, h - 57 - bottomFrame, bottomFrame];
+            hSegs = [extFrame, h - extFrame - extBottom, extBottom];
         }
 
         // Overall height line
