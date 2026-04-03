@@ -2451,6 +2451,112 @@
         </div>
       </div>
 
+      <!-- ═══════ FIX FRAME: Dimensions ═══════ -->
+      <div class="config-section" data-for="fix-only" data-category="dim-design" style="display:none;">
+        <h3>Step 1: Frame Dimensions</h3>
+        <div id="fix-frame-info" style="font-size:0.75rem;color:var(--secondary-color);margin-bottom:10px;">
+          Standard frame: 57 × 57 mm profile
+        </div>
+        <div class="dim-row">
+          <div class="input-group">
+            <label for="fix-width">Width (mm):</label>
+            <input type="number" id="fix-width" min="300" max="2500" value="600" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+          </div>
+          <div class="input-group" id="fix-height-group">
+            <label for="fix-height">Height (mm):</label>
+            <input type="number" id="fix-height" min="300" max="2500" value="800" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+          </div>
+        </div>
+        <p id="fix-dim-note" style="font-size:0.7rem;color:#999;margin-top:4px;"></p>
+      </div>
+
+      <!-- ═══════ FIX FRAME: Bars ═══════ -->
+      <div class="config-section" data-for="fix-only" data-category="dim-design" style="display:none;">
+        <h3>Step 2: Georgian Bars</h3>
+        <div class="input-group">
+          <label>Horizontal Bars:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="f-hbars-0" name="f-hbars" value="0" checked><label for="f-hbars-0" class="radio-label">None</label></div>
+            <div class="radio-option"><input type="radio" id="f-hbars-1" name="f-hbars" value="1"><label for="f-hbars-1" class="radio-label">1</label></div>
+            <div class="radio-option"><input type="radio" id="f-hbars-2" name="f-hbars" value="2"><label for="f-hbars-2" class="radio-label">2</label></div>
+            <div class="radio-option"><input type="radio" id="f-hbars-3" name="f-hbars" value="3"><label for="f-hbars-3" class="radio-label">3</label></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Vertical Bars:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="f-vbars-0" name="f-vbars" value="0" checked><label for="f-vbars-0" class="radio-label">None</label></div>
+            <div class="radio-option"><input type="radio" id="f-vbars-1" name="f-vbars" value="1"><label for="f-vbars-1" class="radio-label">1</label></div>
+            <div class="radio-option"><input type="radio" id="f-vbars-2" name="f-vbars" value="2"><label for="f-vbars-2" class="radio-label">2</label></div>
+            <div class="radio-option"><input type="radio" id="f-vbars-3" name="f-vbars" value="3"><label for="f-vbars-3" class="radio-label">3</label></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ FIX FRAME: Glass ═══════ -->
+      <div class="config-section" data-for="fix-only" data-category="glass" style="display:none;">
+        <h3>Glazing</h3>
+        <div class="input-group" id="fix-glazing-group">
+          <label>Glazing Type:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="f-glaz-double" name="f-glazing" value="double" checked><label for="f-glaz-double" class="radio-label">Double Glazed</label></div>
+            <div class="radio-option" id="f-single-option" style="display:none;"><input type="radio" id="f-glaz-single" name="f-glazing" value="single"><label for="f-glaz-single" class="radio-label">Single Glazed</label></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Glass Finish:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="f-finish-clear" name="f-glass-finish" value="clear" checked><label for="f-finish-clear" class="radio-label">Clear</label></div>
+            <div class="radio-option"><input type="radio" id="f-finish-frosted" name="f-glass-finish" value="frosted"><label for="f-finish-frosted" class="radio-label">Frosted</label></div>
+            <div class="radio-option"><input type="radio" id="f-finish-obscure" name="f-glass-finish" value="obscure"><label for="f-finish-obscure" class="radio-label">Obscure</label></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Spacer Bar Colour:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="f-spacer-silver" name="f-spacer" value="silver" checked><label for="f-spacer-silver" class="radio-label">Silver</label></div>
+            <div class="radio-option"><input type="radio" id="f-spacer-black" name="f-spacer" value="black"><label for="f-spacer-black" class="radio-label">Black</label></div>
+            <div class="radio-option"><input type="radio" id="f-spacer-white" name="f-spacer" value="white"><label for="f-spacer-white" class="radio-label">White</label></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ FIX FRAME: Colour ═══════ -->
+      <div class="config-section" data-for="fix-only" data-category="colour" style="display:none;">
+        <h3>Frame Colour</h3>
+        <div class="input-group">
+          <label>Colour Scheme:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="f-col-same" name="f-colour-mode" value="same" checked><label for="f-col-same" class="radio-label">Same Both Sides</label></div>
+            <div class="radio-option"><input type="radio" id="f-col-dual" name="f-colour-mode" value="dual"><label for="f-col-dual" class="radio-label">Dual Colour</label></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label id="f-ext-label">Colour:</label>
+          <select id="f-ext-colour" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+            <option value="#F6F6F6" selected>Pure White</option>
+            <option value="#FAF0E6">Cream White</option>
+            <option value="#C8B898">Light Oak</option>
+            <option value="#8B7355">Dark Oak</option>
+            <option value="#2C2C2C">Anthracite Grey</option>
+            <option value="#1A1A1A">Black</option>
+            <option value="custom">F&B / RAL Custom</option>
+          </select>
+        </div>
+        <div class="input-group" id="f-int-colour-group" style="display:none;">
+          <label>Interior Colour:</label>
+          <select id="f-int-colour" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+            <option value="#F6F6F6" selected>Pure White</option>
+            <option value="#FAF0E6">Cream White</option>
+            <option value="#C8B898">Light Oak</option>
+            <option value="#8B7355">Dark Oak</option>
+            <option value="#2C2C2C">Anthracite Grey</option>
+            <option value="#1A1A1A">Black</option>
+            <option value="custom">F&B / RAL Custom</option>
+          </select>
+        </div>
+      </div>
+
       <div class="config-section estimate-selector-section" data-category="finalise">
         <h3>Add Window To:</h3>
         <div class="estimate-selector-container">
@@ -3292,6 +3398,100 @@
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
           }
+        });
+      }
+    })();
+
+    // ── Fix Frame Controller ──
+    (function(){
+      var fixTypeRadios = document.querySelectorAll('input[name="fix-type"]');
+      var fixShapeRadios = document.querySelectorAll('input[name="fix-shape"]');
+      var fixWidth = document.getElementById('fix-width');
+      var fixHeight = document.getElementById('fix-height');
+      var fixHeightGroup = document.getElementById('fix-height-group');
+      var fixFrameInfo = document.getElementById('fix-frame-info');
+      var fixDimNote = document.getElementById('fix-dim-note');
+      var singleOption = document.getElementById('f-single-option');
+      var fixHbars = document.querySelectorAll('input[name="f-hbars"]');
+      var fixVbars = document.querySelectorAll('input[name="f-vbars"]');
+      var fixColourMode = document.querySelectorAll('input[name="f-colour-mode"]');
+      var fixIntGroup = document.getElementById('f-int-colour-group');
+      var fixExtLabel = document.getElementById('f-ext-label');
+
+      function getFixType() { return (document.querySelector('input[name="fix-type"]:checked') || {}).value || 'standard'; }
+      function getFixShape() { return (document.querySelector('input[name="fix-shape"]:checked') || {}).value || 'rectangle'; }
+
+      // Fix type change → update info + single glazing visibility
+      fixTypeRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          var t = getFixType();
+          if (t === 'fd30') {
+            fixFrameInfo.textContent = 'FD30 Fire Rated frame: 57 × 57 mm profile';
+            singleOption.style.display = '';
+          } else if (t === 'fd60') {
+            fixFrameInfo.textContent = 'FD60 Fire Rated frame: 100 × 57 mm profile';
+            singleOption.style.display = '';
+          } else {
+            fixFrameInfo.textContent = 'Standard frame: 57 × 57 mm profile';
+            singleOption.style.display = 'none';
+            document.getElementById('f-glaz-double').checked = true;
+          }
+        });
+      });
+
+      // Shape change → circle locks width=height
+      fixShapeRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          var s = getFixShape();
+          if (s === 'circle') {
+            fixHeight.value = fixWidth.value;
+            fixDimNote.textContent = 'Circle: width = height (diameter)';
+          } else {
+            fixDimNote.textContent = '';
+          }
+          update3DFix();
+        });
+      });
+
+      // Dimension changes → 3D
+      var fixDimTimer = null;
+      function onDimChange() {
+        clearTimeout(fixDimTimer);
+        fixDimTimer = setTimeout(function() {
+          if (getFixShape() === 'circle') fixHeight.value = fixWidth.value;
+          update3DFix();
+        }, 300);
+      }
+      if (fixWidth) fixWidth.addEventListener('input', onDimChange);
+      if (fixHeight) fixHeight.addEventListener('input', onDimChange);
+
+      // Bars → 3D
+      fixHbars.forEach(function(r) { r.addEventListener('change', update3DFix); });
+      fixVbars.forEach(function(r) { r.addEventListener('change', update3DFix); });
+
+      // Colour mode toggle
+      fixColourMode.forEach(function(r) {
+        r.addEventListener('change', function() {
+          var dual = r.value === 'dual';
+          fixIntGroup.style.display = dual ? '' : 'none';
+          fixExtLabel.textContent = dual ? 'Exterior Colour:' : 'Colour:';
+        });
+      });
+
+      function update3DFix() {
+        if (!window.update3D) return;
+        var w = parseInt(fixWidth.value) || 600;
+        var h = parseInt(fixHeight.value) || 800;
+        var hb = parseInt((document.querySelector('input[name="f-hbars"]:checked') || {}).value) || 0;
+        var vb = parseInt((document.querySelector('input[name="f-vbars"]:checked') || {}).value) || 0;
+        window.update3D({
+          windowCategory: 'casement',
+          casementLayout: '010',
+          casementOpening: 0,
+          extWidth: w,
+          extHeight: h,
+          casementHBars: hb,
+          casementVBars: vb
         });
       }
     })();
