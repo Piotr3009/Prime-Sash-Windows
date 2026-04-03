@@ -72,10 +72,7 @@ function CurvedGlass({ innerPts, glassMat, spacerColor }) {
     shape.moveTo(innerPts[0][0], innerPts[0][1]);
     for (let i = 1; i < innerPts.length; i++) shape.lineTo(innerPts[i][0], innerPts[i][1]);
     shape.closePath();
-    const g = new THREE.ExtrudeGeometry(shape, { depth: GU, bevelEnabled: false });
-    g.translate(0, 0, -GU / 2);
-    g.computeVertexNormals();
-    return g;
+    return new THREE.ShapeGeometry(shape, 1);
   }, [innerPts]);
 
   const spacerGeo = useMemo(() => {
