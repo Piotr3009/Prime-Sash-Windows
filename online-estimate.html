@@ -714,7 +714,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1200">1200 mm</option>
+              <option value="1500">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -946,7 +946,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1200">1200 mm</option>
+              <option value="1500">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -1674,7 +1674,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1200">1200 mm</option>
+              <option value="1500">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -1945,7 +1945,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1200" selected>1200 mm</option>
+              <option value="1500" selected>1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -2079,7 +2079,7 @@
               </select>
               <input type="number" id="c-height-custom" class="dimension-custom-input" min="400" max="2500" step="1" placeholder="Enter mm" style="display:none;">
             </div>
-            <input type="number" id="c-height" min="400" max="2500" value="1200" step="10" style="display:none;">
+            <input type="number" id="c-height" min="400" max="2500" value="1500" step="10" style="display:none;">
           </div>
         </div>
 
@@ -2460,11 +2460,11 @@
         <div class="dim-row">
           <div class="input-group">
             <label for="fix-width">Width (mm):</label>
-            <input type="number" id="fix-width" min="300" max="2500" value="600" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+            <input type="number" id="fix-width" min="300" max="2500" value="1000" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
           </div>
           <div class="input-group" id="fix-height-group">
             <label for="fix-height">Height (mm):</label>
-            <input type="number" id="fix-height" min="300" max="2500" value="800" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+            <input type="number" id="fix-height" min="300" max="2500" value="1500" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
           </div>
         </div>
         <p id="fix-dim-note" style="font-size:0.7rem;color:#999;margin-top:4px;"></p>
@@ -3482,8 +3482,8 @@
 
       function update3DFix() {
         if (!window.update3D) return;
-        var w = (fixWidth && parseInt(fixWidth.value)) || 600;
-        var h = (fixHeight && parseInt(fixHeight.value)) || 800;
+        var w = (fixWidth && parseInt(fixWidth.value)) || 1000;
+        var h = (fixHeight && parseInt(fixHeight.value)) || 1500;
         var hb = parseInt((document.querySelector('input[name="f-hbars"]:checked') || {}).value) || 0;
         var vb = parseInt((document.querySelector('input[name="f-vbars"]:checked') || {}).value) || 0;
         window.update3D({

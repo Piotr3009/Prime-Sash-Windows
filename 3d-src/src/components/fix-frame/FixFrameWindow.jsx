@@ -414,8 +414,8 @@ function DimensionGuide({ from, to, label, offset = [0, 0, 0] }) {
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════ */
 export default function FixFrameWindow({
-  width = 600,
-  height = 800,
+  width = 1000,
+  height = 1500,
   woodColor = '#F6F6F6',
   woodColorExt = '#F6F6F6',
   woodColorInt = '#F6F6F6',
