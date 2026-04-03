@@ -198,6 +198,7 @@ class EstimateManager {
                 .insert([{
                     estimate_id: targetEstimateId,
                     window_number: windowNumber,
+                    window_type: windowConfig.windowType || 'sash',
                     width: windowConfig.width,
                     height: windowConfig.height,
                     measurement_type: windowConfig.measurementType,
@@ -205,8 +206,14 @@ class EstimateManager {
                     original_width: windowConfig.originalWidth,
                     original_height: windowConfig.originalHeight,
                     
-                    frame_type: windowConfig.frameType,
-                    glass_type: windowConfig.glassType,
+                    frame_type: windowConfig.frameType || null,
+                    casement_layout: windowConfig.casementLayout || null,
+                    sill_extension: windowConfig.sillExtension || null,
+                    trickle_vent: windowConfig.trickleVent || null,
+                    seal_colour: windowConfig.sealColour || null,
+                    safety_glass: windowConfig.safetyGlass || null,
+
+                    glass_type: windowConfig.glassType || 'double',
                     glass_spec: windowConfig.glassSpec,
                     glass_finish: windowConfig.glassFinish,
                     spacer_color: windowConfig.spacerColor || windowConfig.fullConfig?.spacerColor || 'silver',
@@ -274,7 +281,7 @@ class EstimateManager {
             if (itemError) throw itemError;
 
             console.log('Window added:', windowNumber);
-            
+
             // Google Ads conversion tracking
             if (typeof gtag === 'function') {
                 gtag('event', 'conversion', {
@@ -466,55 +473,68 @@ class EstimateManager {
     getCurrentWindowConfig() {
         // Użyj window.currentConfig który ma WSZYSTKIE dane ze specyfikacji
         if (window.currentConfig) {
+            const cfg = window.currentConfig;
+            const isCasement = cfg.windowType === 'casement' || cfg.windowCategory === 'casement';
+
             return {
+                // Window type
+                windowType: isCasement ? 'casement' : 'sash',
+
                 // Wymiary - ZAWSZE wymiar okna (nie brick-to-brick)
-                width: window.currentConfig.actualFrameWidth || window.currentConfig.width,
-                height: window.currentConfig.actualFrameHeight || window.currentConfig.height,
+                width: cfg.actualFrameWidth || cfg.width,
+                height: cfg.actualFrameHeight || cfg.height,
                 
                 // Informacja o pomiarze (do wyświetlenia)
-                measurementType: window.currentConfig.measurementType,
-                originalWidth: window.currentConfig.width,  // Oryginalny pomiar (brick-to-brick)
-                originalHeight: window.currentConfig.height,
+                measurementType: cfg.measurementType,
+                originalWidth: cfg.width,
+                originalHeight: cfg.height,
                 
-                // Typ ramy
-                frameType: window.currentConfig.frameType,
+                // Typ ramy (casement nie ma frameType)
+                frameType: isCasement ? null : cfg.frameType,
+
+                // Casement-specific
+                casementLayout: isCasement ? (cfg.casementLayout || cfg.layout || '040L') : null,
+                sillExtension: isCasement ? (cfg.sillExtension || 'none') : null,
+                trickleVent: isCasement ? (cfg.trickleVent || 'none') : null,
+                sealColour: isCasement ? (cfg.sealColour || 'black') : null,
+                safetyGlass: isCasement ? (cfg.safetyGlass || 'none') : null,
                 
                 // Szkło
-                glassType: window.currentConfig.glassType,
-                glassSpec: window.currentConfig.glassSpec,
-                glassFinish: window.currentConfig.glassFinish,
-                frostedLocation: window.currentConfig.frostedLocation,
-                spacerColor: window.currentConfig.spacerColor || 'silver',
+                glassType: cfg.glassType,
+                glassSpec: cfg.glassSpec,
+                glassFinish: cfg.glassFinish,
+                frostedLocation: cfg.frostedLocation,
+                spacerColor: cfg.spacerColor || cfg.spacer || 'silver',
                 
-                // Opening
-                openingType: window.currentConfig.openingType,
+                // Opening (sash only)
+                openingType: isCasement ? null : cfg.openingType,
                 
                 // Kolory
-                colorType: window.currentConfig.colorType,
-                colorSingle: window.currentConfig.colorSingle,
-                colorInterior: window.currentConfig.colorInterior,
-                colorExterior: window.currentConfig.colorExterior,
-                customExteriorColor: window.currentConfig.customExteriorColor,
+                colorType: cfg.colorType || cfg.colourMode || 'single',
+                colorSingle: cfg.colorSingle,
+                colorInterior: cfg.colorInterior || cfg.colorInteriorName,
+                colorExterior: cfg.colorExterior || cfg.colorExteriorName,
+                customExteriorColor: cfg.customExteriorColor,
                 
-                // Bary - Pobierz z window.currentConfig (najprostsze i najnowsze źródło)
-                upperBars: window.currentConfig.upperBars || null,
-                lowerBars: window.currentConfig.lowerBars || null,
+                // Bary
+                upperBars: isCasement ? (cfg.hBars || cfg.casementHBars || null) : (cfg.upperBars || null),
+                lowerBars: isCasement ? (cfg.vBars || cfg.casementVBars || null) : (cfg.lowerBars || null),
                 
                 // Detale (horns są w ironmongery)
-                horns: null, // USUNIĘTE - teraz w Gallery
+                horns: null,
                 
-                // Ironmongery - NOWY SYSTEM: z Gallery
+                // Ironmongery
                 ironmongery: window.ConfiguratorCore?.currentWindow?.ironmongery || null,
-                ironmongeryFinish: null, // USUNIĘTE - finish teraz w produkcie
+                ironmongeryFinish: null,
                 
                 // PAS24
-                pas24: window.currentConfig.pas24,
+                pas24: cfg.pas24,
                 
                 // Quantity
-                quantity: window.currentConfig.quantity || 1,
+                quantity: cfg.quantity || 1,
                 
                 // FULL BACKUP - cała konfiguracja
-                fullConfig: { ...window.currentConfig }
+                fullConfig: { ...cfg }
             };
         }
 
