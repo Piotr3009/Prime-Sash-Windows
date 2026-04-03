@@ -3529,8 +3529,13 @@
             fixHeight.value = fixWidth.value;
             fixDimNote.textContent = 'Circle: width = height (diameter)';
             if (window.update3D) window.update3D({ extHeight: parseInt(fixWidth.value) || 1000 });
-          } else if (fixDimNote) {
-            fixDimNote.textContent = '';
+          } else {
+            if (fixDimNote) fixDimNote.textContent = '';
+            // Restore height to at least 1500 when leaving circle
+            if (fixHeight && parseInt(fixHeight.value) <= parseInt(fixWidth.value)) {
+              fixHeight.value = 1500;
+              if (window.update3D) window.update3D({ extHeight: 1500 });
+            }
           }
         });
       });
