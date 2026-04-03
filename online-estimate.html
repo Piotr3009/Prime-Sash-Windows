@@ -529,47 +529,73 @@
             <label class="layout-option">
               <input type="radio" name="fix-shape" value="rectangle" checked>
               <div class="layout-thumb" title="Rectangle">
-                <svg viewBox="0 0 60 80" width="44" height="58"><rect x="4" y="4" width="52" height="72" fill="none" stroke="#0a1628" stroke-width="3" rx="0"/><text x="30" y="95" text-anchor="middle" font-size="9" fill="#666"></text></svg>
+                <svg viewBox="0 0 60 84" width="48" height="67">
+                  <rect x="5" y="5" width="50" height="74" fill="none" stroke="#0a1628" stroke-width="2.5" rx="1"/>
+                  <rect x="11" y="11" width="38" height="62" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="1" rx="0"/>
+                </svg>
               </div>
               <span style="font-size:11px;color:#666;margin-top:2px;">Rectangle</span>
             </label>
             <label class="layout-option">
               <input type="radio" name="fix-shape" value="gothic-arch">
               <div class="layout-thumb" title="Gothic Arch">
-                <svg viewBox="0 0 60 80" width="44" height="58"><path d="M4 76 L4 30 Q30 -5 56 30 L56 76 Z" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+                <svg viewBox="0 0 60 92" width="48" height="73">
+                  <path d="M5 87 L5 48 A48 48 0 0 1 30 6 A48 48 0 0 1 55 48 L55 87 Z" fill="none" stroke="#0a1628" stroke-width="2.5" stroke-linejoin="round"/>
+                  <path d="M11 81 L11 48 A42 42 0 0 1 30 12 A42 42 0 0 1 49 48 L49 81 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="0.8" stroke-linejoin="round"/>
+                </svg>
               </div>
               <span style="font-size:11px;color:#666;margin-top:2px;">Gothic</span>
             </label>
             <label class="layout-option">
               <input type="radio" name="fix-shape" value="semi-circle">
               <div class="layout-thumb" title="Semi-Circle Arch">
-                <svg viewBox="0 0 60 80" width="44" height="58"><path d="M4 76 L4 36 A26 26 0 0 1 56 36 L56 76 Z" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+                <svg viewBox="0 0 60 84" width="48" height="67">
+                  <path d="M5 79 L5 48 A25 25 0 0 1 55 48 L55 79 Z" fill="none" stroke="#0a1628" stroke-width="2.5"/>
+                  <path d="M11 73 L11 48 A19 19 0 0 1 49 48 L49 73 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
               </div>
               <span style="font-size:11px;color:#666;margin-top:2px;">Semi-Circle</span>
             </label>
             <label class="layout-option">
               <input type="radio" name="fix-shape" value="segmental-arch">
               <div class="layout-thumb" title="Segmental Arch">
-                <svg viewBox="0 0 60 80" width="44" height="58"><path d="M4 76 L4 26 Q30 8 56 26 L56 76 Z" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+                <svg viewBox="0 0 60 84" width="48" height="67">
+                  <path d="M5 79 L5 22 A80 80 0 0 1 55 22 L55 79 Z" fill="none" stroke="#0a1628" stroke-width="2.5"/>
+                  <path d="M11 73 L11 24 A70 70 0 0 1 49 24 L49 73 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
               </div>
               <span style="font-size:11px;color:#666;margin-top:2px;">Segmental</span>
             </label>
             <label class="layout-option">
               <input type="radio" name="fix-shape" value="elliptical-arch">
               <div class="layout-thumb" title="Elliptical Arch">
-                <svg viewBox="0 0 60 80" width="44" height="58"><path d="M4 76 L4 32 Q14 4 30 4 Q46 4 56 32 L56 76 Z" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+                <svg viewBox="0 0 60 84" width="48" height="67">
+                  <path d="M5 79 L5 38 A25 22 0 0 1 55 38 L55 79 Z" fill="none" stroke="#0a1628" stroke-width="2.5"/>
+                  <path d="M11 73 L11 40 A19 18 0 0 1 49 40 L49 73 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
               </div>
               <span style="font-size:11px;color:#666;margin-top:2px;">Elliptical</span>
             </label>
             <label class="layout-option">
               <input type="radio" name="fix-shape" value="circle">
-              <div class="layout-thumb" title="Circle / Oval">
-                <svg viewBox="0 0 60 80" width="44" height="58"><ellipse cx="30" cy="40" rx="24" ry="32" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+              <div class="layout-thumb" title="Circle">
+                <svg viewBox="0 0 60 66" width="48" height="53">
+                  <circle cx="30" cy="33" r="27" fill="none" stroke="#0a1628" stroke-width="2.5"/>
+                  <circle cx="30" cy="33" r="21" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
               </div>
               <span style="font-size:11px;color:#666;margin-top:2px;">Circle</span>
             </label>
           </div>
         </div>
+
+        <!-- Arch rise control (only for arched shapes) -->
+        <div class="input-group" id="fix-arch-rise-group" style="display:none;margin-top:10px;">
+          <label for="fix-arch-rise">Arch Rise (mm): <strong id="fix-arch-rise-value">0</strong></label>
+          <input type="range" id="fix-arch-rise" min="50" max="1500" value="500" step="10" style="width:100%;">
+          <p style="font-size:0.7rem;color:#999;margin-top:2px;">Adjust the height of the arch from springing line to peak</p>
+        </div>
+
         <button class="btn btn-apply" id="apply-fix-frame">Apply</button>
       </div>
 
@@ -3412,6 +3438,9 @@
       var fixFrameInfo = document.getElementById('fix-frame-info');
       var fixDimNote = document.getElementById('fix-dim-note');
       var singleOption = document.getElementById('f-single-option');
+      var archRiseGroup = document.getElementById('fix-arch-rise-group');
+      var archRiseSlider = document.getElementById('fix-arch-rise');
+      var archRiseValue = document.getElementById('fix-arch-rise-value');
       var fixHbars = document.querySelectorAll('input[name="f-hbars"]');
       var fixVbars = document.querySelectorAll('input[name="f-vbars"]');
       var fixColourMode = document.querySelectorAll('input[name="f-colour-mode"]');
@@ -3440,20 +3469,49 @@
         });
       });
 
+      // Default arch rise per shape (based on width)
+      var archRiseDefaults = {
+        'gothic-arch': function(w) { return Math.round(w * Math.sqrt(3) / 2); },
+        'semi-circle': function(w) { return Math.round(w / 2); },
+        'segmental-arch': function(w) { return Math.round(w * 0.2); },
+        'elliptical-arch': function(w) { return Math.round(w * 0.325); }
+      };
+
+      function updateArchRiseUI(shape) {
+        var isArch = archRiseDefaults[shape] !== undefined;
+        if (archRiseGroup) archRiseGroup.style.display = isArch ? '' : 'none';
+        if (isArch && archRiseSlider) {
+          var w = (fixWidth && parseInt(fixWidth.value)) || 1000;
+          var defaultRise = archRiseDefaults[shape](w);
+          archRiseSlider.value = defaultRise;
+          archRiseSlider.max = Math.round(w * 1.2);
+          if (archRiseValue) archRiseValue.textContent = defaultRise;
+        }
+      }
+
       // Shape change → update 3D directly
       fixShapeRadios.forEach(function(r) {
         r.addEventListener('change', function() {
           var s = getFixShape();
-          if (window.update3D) window.update3D({ fixShape: s });
+          updateArchRiseUI(s);
+          if (window.update3D) window.update3D({ fixShape: s, fixArchRise: archRiseSlider ? parseInt(archRiseSlider.value) : 0 });
           if (s === 'circle' && fixWidth && fixHeight) {
             fixHeight.value = fixWidth.value;
             fixDimNote.textContent = 'Circle: width = height (diameter)';
-            if (window.update3D) window.update3D({ extHeight: parseInt(fixWidth.value) || 600 });
+            if (window.update3D) window.update3D({ extHeight: parseInt(fixWidth.value) || 1000 });
           } else if (fixDimNote) {
             fixDimNote.textContent = '';
           }
         });
       });
+
+      // Arch rise slider
+      if (archRiseSlider) {
+        archRiseSlider.addEventListener('input', function() {
+          if (archRiseValue) archRiseValue.textContent = archRiseSlider.value;
+          if (window.update3D) window.update3D({ fixArchRise: parseInt(archRiseSlider.value) });
+        });
+      }
 
       // Dimension changes → 3D
       var fixDimTimer = null;

@@ -629,6 +629,7 @@ function Scene({ config, isMobile }) {
                 showGuides={config.showGuides}
                 fixShape={config.fixShape || 'rectangle'}
                 fixType={config.fixType || 'standard'}
+                fixArchRise={config.fixArchRise || 0}
               />
             ) : (
               <ParametricSashWindow {...config} />
@@ -726,6 +727,7 @@ export default function App() {
   const [sealColour, setSealColour] = useState('black');
   const [fixShape, setFixShape] = useState('rectangle');
   const [fixType, setFixType] = useState('standard');
+  const [fixArchRise, setFixArchRise] = useState(0);
 
   // ─── State bucket system — isolates state per window type ───
   const categoryRef = useRef('sash');
@@ -739,7 +741,7 @@ export default function App() {
 
   // Capture current state snapshot
   function captureState() {
-    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType };
+    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise };
   }
 
   // Restore state from bucket
@@ -786,6 +788,7 @@ export default function App() {
     if (s.sealColour !== undefined) setSealColour(s.sealColour);
     if (s.fixShape !== undefined) setFixShape(s.fixShape);
     if (s.fixType !== undefined) setFixType(s.fixType);
+    if (s.fixArchRise !== undefined) setFixArchRise(s.fixArchRise);
   }
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
@@ -858,6 +861,7 @@ export default function App() {
       if (cfg.sealColour !== undefined) setSealColour(cfg.sealColour);
       if (cfg.fixShape !== undefined) setFixShape(cfg.fixShape);
       if (cfg.fixType !== undefined) setFixType(cfg.fixType);
+      if (cfg.fixArchRise !== undefined) setFixArchRise(cfg.fixArchRise);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -912,8 +916,9 @@ export default function App() {
       sealColour,
       fixShape,
       fixType,
+      fixArchRise,
     }),
-    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType],
+    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise],
   );
 
   return (
