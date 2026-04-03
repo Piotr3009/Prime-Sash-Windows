@@ -3421,7 +3421,7 @@
       function getFixType() { return (document.querySelector('input[name="fix-type"]:checked') || {}).value || 'standard'; }
       function getFixShape() { return (document.querySelector('input[name="fix-shape"]:checked') || {}).value || 'rectangle'; }
 
-      // Fix type change → update info + single glazing visibility
+      // Fix type change → update info + single glazing + 3D
       fixTypeRadios.forEach(function(r) {
         r.addEventListener('change', function() {
           var t = getFixType();
@@ -3436,20 +3436,22 @@
             singleOption.style.display = 'none';
             document.getElementById('f-glaz-double').checked = true;
           }
+          if (window.update3D) window.update3D({ fixType: t });
         });
       });
 
-      // Shape change → circle locks width=height
+      // Shape change → update 3D directly
       fixShapeRadios.forEach(function(r) {
         r.addEventListener('change', function() {
           var s = getFixShape();
-          if (s === 'circle') {
+          if (window.update3D) window.update3D({ fixShape: s });
+          if (s === 'circle' && fixWidth && fixHeight) {
             fixHeight.value = fixWidth.value;
             fixDimNote.textContent = 'Circle: width = height (diameter)';
-          } else {
+            if (window.update3D) window.update3D({ extHeight: parseInt(fixWidth.value) || 600 });
+          } else if (fixDimNote) {
             fixDimNote.textContent = '';
           }
-          update3DFix();
         });
       });
 
@@ -3480,15 +3482,17 @@
 
       function update3DFix() {
         if (!window.update3D) return;
-        var w = parseInt(fixWidth.value) || 600;
-        var h = parseInt(fixHeight.value) || 800;
+        var w = (fixWidth && parseInt(fixWidth.value)) || 600;
+        var h = (fixHeight && parseInt(fixHeight.value)) || 800;
         var hb = parseInt((document.querySelector('input[name="f-hbars"]:checked') || {}).value) || 0;
         var vb = parseInt((document.querySelector('input[name="f-vbars"]:checked') || {}).value) || 0;
         window.update3D({
           extWidth: w,
           extHeight: h,
           casementHBars: hb,
-          casementVBars: vb
+          casementVBars: vb,
+          fixShape: getFixShape(),
+          fixType: getFixType()
         });
       }
     })();
