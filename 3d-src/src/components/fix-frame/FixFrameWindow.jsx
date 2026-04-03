@@ -9,6 +9,7 @@
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
+import { Text, Line } from '@react-three/drei';
 import CasementPanel from '../casement/CasementPanel';
 
 const mm = (v) => v / 1000;
@@ -390,6 +391,25 @@ function EllipticalFrame({ width, height, depth, mat, glassMat }) {
   );
 }
 
+/* ─── Dimension guide (same style as sash/casement) ─── */
+function DimensionGuide({ from, to, label, offset = [0, 0, 0] }) {
+  const mid = [
+    (from[0] + to[0]) / 2 + offset[0],
+    (from[1] + to[1]) / 2 + offset[1],
+    (from[2] + to[2]) / 2 + offset[2],
+  ];
+  const points = [from, to].map((p) => new THREE.Vector3(p[0], p[1], p[2]));
+  return (
+    <group>
+      <Line points={points} color="#22324a" lineWidth={1.25} transparent opacity={0.9} />
+      <Text position={mid} fontSize={0.06} color="#22324a" anchorX="center" anchorY="middle"
+        outlineColor="#f5f2ec" outlineWidth={0.008}>
+        {label}
+      </Text>
+    </group>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════ */
@@ -422,42 +442,98 @@ export default function FixFrameWindow({
   );
   const glassMat = useGlassMaterial(glassFinish);
 
-  if (fixShape === 'circle') {
-    return <CircleFrame diameter={width} depth={depth} mat={extMaterial} glassMat={glassMat} />;
-  }
+  // Calculate effective height and arch rise per shape
+  let effectiveH = height;
+  let archRiseMm = 0; // arch rise in mm for dimension display
+  let springYFrac = 1; // fraction of height where arch starts (1 = no arch)
+
   if (fixShape === 'gothic-arch') {
-    // Auto-calculate min height for equilateral arch
-    const minH = width * Math.sqrt(3) / 2 + 50; // arch rise + min wall
-    const h = Math.max(height, minH);
-    return <GothicArchFrame width={width} height={h} depth={depth} mat={extMaterial} glassMat={glassMat} />;
-  }
-  if (fixShape === 'semi-circle') {
-    const minH = width / 2 + 50;
-    const h = Math.max(height, minH);
-    return <SemiCircleFrame width={width} height={h} depth={depth} mat={extMaterial} glassMat={glassMat} />;
-  }
-  if (fixShape === 'segmental-arch') {
-    return <SegmentalFrame width={width} height={height} depth={depth} mat={extMaterial} glassMat={glassMat} />;
-  }
-  if (fixShape === 'elliptical-arch') {
-    return <EllipticalFrame width={width} height={height} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+    archRiseMm = Math.round(width * Math.sqrt(3) / 2);
+    const minH = archRiseMm + 50;
+    effectiveH = Math.max(height, minH);
+    springYFrac = (effectiveH - archRiseMm) / effectiveH;
+  } else if (fixShape === 'semi-circle') {
+    archRiseMm = Math.round(width / 2);
+    const minH = archRiseMm + 50;
+    effectiveH = Math.max(height, minH);
+    springYFrac = (effectiveH - archRiseMm) / effectiveH;
+  } else if (fixShape === 'segmental-arch') {
+    archRiseMm = Math.round(width * 0.2);
+    springYFrac = (effectiveH - archRiseMm) / effectiveH;
+  } else if (fixShape === 'elliptical-arch') {
+    archRiseMm = Math.round(width * 0.325);
+    springYFrac = (effectiveH - archRiseMm) / effectiveH;
+  } else if (fixShape === 'circle') {
+    effectiveH = width; // circle: height = width
   }
 
-  // Rectangle — reuse CasementPanel fixed
+  const W = mm(width);
+  const H = mm(effectiveH);
+  const springY = -H / 2 + H * springYFrac; // Y coordinate of springing line
+
+  // Shape component
+  let shapeNode = null;
+  if (fixShape === 'circle') {
+    shapeNode = <CircleFrame diameter={width} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+  } else if (fixShape === 'gothic-arch') {
+    shapeNode = <GothicArchFrame width={width} height={effectiveH} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+  } else if (fixShape === 'semi-circle') {
+    shapeNode = <SemiCircleFrame width={width} height={effectiveH} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+  } else if (fixShape === 'segmental-arch') {
+    shapeNode = <SegmentalFrame width={width} height={effectiveH} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+  } else if (fixShape === 'elliptical-arch') {
+    shapeNode = <EllipticalFrame width={width} height={effectiveH} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+  } else {
+    // Rectangle
+    shapeNode = (
+      <CasementPanel
+        width={width}
+        height={height}
+        hingeType="fixed"
+        opening={0}
+        material={extMaterial}
+        materialInt={intMaterial}
+        spacerColor={spacerColor}
+        glassFinish={glassFinish}
+        hBars={hBars}
+        vBars={vBars}
+        ironmongery="brass"
+        position={[0, 0, 0]}
+      />
+    );
+  }
+
   return (
-    <CasementPanel
-      width={width}
-      height={height}
-      hingeType="fixed"
-      opening={0}
-      material={extMaterial}
-      materialInt={intMaterial}
-      spacerColor={spacerColor}
-      glassFinish={glassFinish}
-      hBars={hBars}
-      vBars={vBars}
-      ironmongery="brass"
-      position={[0, 0, 0]}
-    />
+    <group>
+      {shapeNode}
+
+      {showGuides && (
+        <group>
+          {/* Width — top */}
+          <DimensionGuide
+            from={[-W / 2, H / 2 + mm(80), 0]}
+            to={[W / 2, H / 2 + mm(80), 0]}
+            label={`${width} mm`}
+            offset={[0, 0.05, 0]}
+          />
+          {/* Total height — right */}
+          <DimensionGuide
+            from={[W / 2 + mm(130), -H / 2, 0]}
+            to={[W / 2 + mm(130), H / 2, 0]}
+            label={`${effectiveH} mm`}
+            offset={[0.07, 0, 0]}
+          />
+          {/* Arch rise — left side (only for arched shapes) */}
+          {archRiseMm > 0 && (
+            <DimensionGuide
+              from={[-W / 2 - mm(130), springY, 0]}
+              to={[-W / 2 - mm(130), H / 2, 0]}
+              label={`↑ ${archRiseMm} mm`}
+              offset={[-0.07, 0, 0]}
+            />
+          )}
+        </group>
+      )}
+    </group>
   );
 }
