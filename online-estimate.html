@@ -285,9 +285,9 @@
               <input type="radio" id="type-casement" name="window-type" value="casement">
               <label for="type-casement" class="radio-label">Casement Windows</label>
             </div>
-            <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-              <input type="radio" id="type-fix" name="window-type" value="fix-only" disabled>
-              <label for="type-fix" class="radio-label">Fix Frame Only <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+            <div class="radio-option">
+              <input type="radio" id="type-fix" name="window-type" value="fix-only">
+              <label for="type-fix" class="radio-label">Fix Frame Only</label>
             </div>
           </div>
         </div>
@@ -498,6 +498,79 @@
         </div>
 
         <button class="btn btn-apply" id="apply-casement-layout">Apply</button>
+      </div>
+
+      <!-- ═══════ FIX FRAME: Type ═══════ -->
+      <div class="config-section" data-category="product-range" data-for="fix-only" id="fix-type-section" style="display:none;">
+        <h3>Fix Frame Type</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fix-standard" name="fix-type" value="standard" checked>
+              <label for="fix-standard" class="radio-label">Standard</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fix-fd30" name="fix-type" value="fd30">
+              <label for="fix-fd30" class="radio-label">FD30 Fire Rated</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fix-fd60" name="fix-type" value="fd60">
+              <label for="fix-fd60" class="radio-label">FD60 Fire Rated</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ FIX FRAME: Shape ═══════ -->
+      <div class="config-section" data-category="product-range" data-for="fix-only" id="fix-shape-section" style="display:none;">
+        <h3>Frame Shape</h3>
+        <div class="input-group">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <label class="layout-option">
+              <input type="radio" name="fix-shape" value="rectangle" checked>
+              <div class="layout-thumb" title="Rectangle">
+                <svg viewBox="0 0 60 80" width="44" height="58"><rect x="4" y="4" width="52" height="72" fill="none" stroke="#0a1628" stroke-width="3" rx="0"/><text x="30" y="95" text-anchor="middle" font-size="9" fill="#666"></text></svg>
+              </div>
+              <span style="font-size:11px;color:#666;margin-top:2px;">Rectangle</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="fix-shape" value="gothic-arch">
+              <div class="layout-thumb" title="Gothic Arch">
+                <svg viewBox="0 0 60 80" width="44" height="58"><path d="M4 76 L4 30 Q30 -5 56 30 L56 76 Z" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+              </div>
+              <span style="font-size:11px;color:#666;margin-top:2px;">Gothic</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="fix-shape" value="semi-circle">
+              <div class="layout-thumb" title="Semi-Circle Arch">
+                <svg viewBox="0 0 60 80" width="44" height="58"><path d="M4 76 L4 36 A26 26 0 0 1 56 36 L56 76 Z" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+              </div>
+              <span style="font-size:11px;color:#666;margin-top:2px;">Semi-Circle</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="fix-shape" value="segmental-arch">
+              <div class="layout-thumb" title="Segmental Arch">
+                <svg viewBox="0 0 60 80" width="44" height="58"><path d="M4 76 L4 26 Q30 8 56 26 L56 76 Z" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+              </div>
+              <span style="font-size:11px;color:#666;margin-top:2px;">Segmental</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="fix-shape" value="elliptical-arch">
+              <div class="layout-thumb" title="Elliptical Arch">
+                <svg viewBox="0 0 60 80" width="44" height="58"><path d="M4 76 L4 32 Q14 4 30 4 Q46 4 56 32 L56 76 Z" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+              </div>
+              <span style="font-size:11px;color:#666;margin-top:2px;">Elliptical</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="fix-shape" value="circle">
+              <div class="layout-thumb" title="Circle / Oval">
+                <svg viewBox="0 0 60 80" width="44" height="58"><ellipse cx="30" cy="40" rx="24" ry="32" fill="none" stroke="#0a1628" stroke-width="3"/></svg>
+              </div>
+              <span style="font-size:11px;color:#666;margin-top:2px;">Circle</span>
+            </label>
+          </div>
+        </div>
+        <button class="btn btn-apply" id="apply-fix-frame">Apply</button>
       </div>
 
       <div class="config-section" data-category="product-range" id="door-type-section" style="display:none;">
@@ -2834,11 +2907,19 @@
     if (cat === 'product-range') {
       var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value !== 'doors';
       var isSash = (document.querySelector('input[name="window-type"]:checked') || {}).value === 'sash';
+      var isCasementPR = (document.querySelector('input[name="window-type"]:checked') || {}).value === 'casement';
+      var isFixOnly = (document.querySelector('input[name="window-type"]:checked') || {}).value === 'fix-only';
       var wts = document.getElementById('window-type-section');
       var sts = document.getElementById('sash-type-section');
+      var cls = document.getElementById('casement-layout-section');
+      var fts = document.getElementById('fix-type-section');
+      var fss = document.getElementById('fix-shape-section');
       var dts = document.getElementById('door-type-section');
       if (wts) wts.style.display = isWindows ? 'block' : 'none';
       if (sts) sts.style.display = (isWindows && isSash) ? 'block' : 'none';
+      if (cls) cls.style.display = (isWindows && isCasementPR) ? 'block' : 'none';
+      if (fts) fts.style.display = (isWindows && isFixOnly) ? 'block' : 'none';
+      if (fss) fss.style.display = (isWindows && isFixOnly) ? 'block' : 'none';
       if (dts) dts.style.display = isWindows ? 'none' : 'block';
     }
     // Fix bars: only show for triple
@@ -3119,6 +3200,8 @@
       var windowTypeSection = document.getElementById('window-type-section');
       var sashTypeSection = document.getElementById('sash-type-section');
       var casementLayoutSection = document.getElementById('casement-layout-section');
+      var fixTypeSection = document.getElementById('fix-type-section');
+      var fixShapeSection = document.getElementById('fix-shape-section');
       var doorTypeSection = document.getElementById('door-type-section');
 
       function updateSections() {
@@ -3127,6 +3210,8 @@
         windowTypeSection.style.display = isWindows ? 'block' : 'none';
         sashTypeSection.style.display = (isWindows && windowType === 'sash') ? 'block' : 'none';
         casementLayoutSection.style.display = (isWindows && windowType === 'casement') ? 'block' : 'none';
+        fixTypeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
+        fixShapeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         doorTypeSection.style.display = isWindows ? 'none' : 'block';
       }
 
@@ -3148,6 +3233,8 @@
             if (radio.value === 'casement') {
               var layout = (document.querySelector('input[name="casement-layout"]:checked') || {}).value || '040L';
               window.update3D({ windowCategory: 'casement', casementLayout: layout });
+            } else if (radio.value === 'fix-only') {
+              window.update3D({ windowCategory: 'casement', casementLayout: '010', casementOpening: 0 });
             } else {
               window.update3D({ windowCategory: 'sash' });
             }
@@ -3192,6 +3279,16 @@
           if (typeof window.updateCasement3D === 'function') {
             window.updateCasement3D();
           }
+          if (typeof window.showCategory === 'function') {
+            window.showCategory('dim-design');
+          }
+        });
+      }
+
+      // Fix Frame Apply
+      var applyFixBtn = document.getElementById('apply-fix-frame');
+      if (applyFixBtn) {
+        applyFixBtn.addEventListener('click', function() {
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
           }
