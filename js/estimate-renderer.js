@@ -267,7 +267,7 @@ class EstimateRenderer {
             const screenshots = p.fc.screenshots || p.spec.screenshots || item.screenshots || null;
 
             return `
-            <div style="background:var(--cream2);border:1px solid rgba(158,158,144,.15);margin-bottom:1.5rem;padding:0;border-radius:2px;overflow:hidden;">
+            <div style="background:var(--cream2);border:1px solid rgba(158,158,144,.15);margin-bottom:1.5rem;padding:0;border-radius:2px;overflow:hidden;break-inside:avoid;page-break-inside:avoid;">
                 <div style="background:var(--navy);padding:.8rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
                     <div style="display:flex;align-items:center;gap:.8rem;">
                         <span style="font-family:'Jost',sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#fff;">Window ${item.window_number}</span>
@@ -757,7 +757,7 @@ class EstimateRenderer {
         const gold = 'rgba(200,162,78,.5)';
 
         // SVG coordinate system
-        const svgW = 290, drawW = 200;
+        const svgW = 260, drawW = 160;
         const scale = drawW / w;
         const drawH = Math.round(h * scale);
         const svgH = drawH + 80;
