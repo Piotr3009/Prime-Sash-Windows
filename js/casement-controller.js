@@ -346,6 +346,10 @@
       sillExtension: parseInt(checked('c-sill-ext')) || 0,
       sillWider: checked('c-sill-wider') === 'yes',
       glassFinish: checked('c-glass-finish') || 'clear',
+      colorSingleName: (function() { var pn = document.getElementById('c-single-preview-name'); return pn ? pn.textContent.trim() : 'Pure White'; })(),
+      colorSingleRal: (function() { var pr = document.getElementById('c-single-preview-ral'); return pr ? pr.textContent.trim() : '#FAFAFA'; })(),
+      colorExteriorName: (function() { var pe = document.getElementById('c-dual-preview-exterior'); return pe ? pe.textContent.trim() : ''; })(),
+      colorInteriorName: (function() { var pi = document.getElementById('c-dual-preview-interior'); return pi ? pi.textContent.trim() : ''; })(),
       sealColour: checked('c-seal-colour') || 'black',
     });
 
@@ -757,6 +761,10 @@
         var name = pn ? pn.textContent.trim().toLowerCase() : 'white';
         return name.indexOf('white') > -1 ? 'white' : name || 'white';
       })(),
+      colorSingleName: (function() { var pn = document.getElementById('c-single-preview-name'); return pn ? pn.textContent.trim() : 'Pure White'; })(),
+      colorSingleRal: (function() { var pr = document.getElementById('c-single-preview-ral'); return pr ? pr.textContent.trim() : '#FAFAFA'; })(),
+      colorExteriorName: (function() { var pe = document.getElementById('c-dual-preview-exterior'); return pe ? pe.textContent.trim() : ''; })(),
+      colorInteriorName: (function() { var pi = document.getElementById('c-dual-preview-interior'); return pi ? pi.textContent.trim() : ''; })(),
       sealColour: checked('c-seal-colour') || 'black',
       glassType: checked('c-glass-type') || 'double',
       glassSpec: checked('c-glass-spec') || 'float',
