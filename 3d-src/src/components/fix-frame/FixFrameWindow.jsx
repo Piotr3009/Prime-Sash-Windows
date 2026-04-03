@@ -356,10 +356,12 @@ function SegmentalFrame({ width, height, depth, mat, glassMat, spacerColor, cust
   const { frameGeo, innerPts } = useMemo(() => {
     const topArc = arcPoints(0, cy, R, Math.PI/2 - startAngle, Math.PI/2 + startAngle, segs);
     const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...topArc, [-halfW, springY]];
-    // Inner arc: same center, radius = R - fw (parallel offset = uniform frame width)
-    const Ri = R - fw;
-    const iAngle = Math.asin(Math.min(iHalfW / Ri, 1));
-    const innerArc = arcPoints(0, cy, Ri, Math.PI/2 - iAngle, Math.PI/2 + iAngle, segs);
+    // Inner arc: recompute from iRise/iHalfW so endpoints land at springY
+    const iRise = Math.max(rise - fw, mm(10));
+    const iR = (iRise*iRise + iHalfW*iHalfW) / (2*iRise);
+    const iCY = springY - (iR - iRise);
+    const iAngle = Math.asin(Math.min(iHalfW / iR, 1));
+    const innerArc = arcPoints(0, iCY, iR, Math.PI/2 - iAngle, Math.PI/2 + iAngle, segs);
     const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
   }, [W, H, D, halfW, springY, R, cy, startAngle, rise, iHalfW, iBottom]);
