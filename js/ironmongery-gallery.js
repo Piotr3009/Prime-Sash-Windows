@@ -769,7 +769,7 @@ class IronmongeryGallery {
     
     // ✅ AUTO-UPDATE 3D ironmongery finish from selected products
     if (typeof window.update3D === 'function') {
-      const finishMap = { 'chrome': 'chrome', 'satin': 'stainless', 'brass': 'brass', 'antique-brass': 'antique_brass', 'black': 'chrome', 'white': 'chrome' };
+      const finishMap = { 'chrome': 'chrome', 'satin': 'stainless', 'brass': 'brass', 'antique-brass': 'antique_brass', 'black': 'black', 'white': 'white' };
       // Find the dominant finish from selected products
       const finishes = Object.values(this.selectedProducts).map(s => s.product.color).filter(Boolean);
       if (finishes.length > 0) {

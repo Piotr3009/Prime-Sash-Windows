@@ -2033,6 +2033,16 @@ export default function ParametricSashWindow({
         dark:  { color: '#7a5810', metalness: 0.72, roughness: 0.52 },
         screw: { color: '#5c3e08', metalness: 0.65, roughness: 0.58 },
       },
+      black: {
+        main:  { color: '#1a1a1a', metalness: 0.85, roughness: 0.30 },
+        dark:  { color: '#111111', metalness: 0.80, roughness: 0.38 },
+        screw: { color: '#0a0a0a', metalness: 0.75, roughness: 0.42 },
+      },
+      white: {
+        main:  { color: '#f0f0f0', metalness: 0.30, roughness: 0.50 },
+        dark:  { color: '#d8d8d8', metalness: 0.28, roughness: 0.55 },
+        screw: { color: '#c0c0c0', metalness: 0.35, roughness: 0.45 },
+      },
     };
     const d = defs[ironmongery] || defs.brass;
     return {
@@ -2057,6 +2067,8 @@ export default function ParametricSashWindow({
             chrome:        { color: '#e0e2e4', roughness: 0.05, metalness: 1.0  },
             stainless:     { color: '#c0c0c0', roughness: 0.28, metalness: 0.9  },
             antique_brass: { color: '#8b6914', roughness: 0.48, metalness: 0.75 },
+            black:         { color: '#1a1a1a', roughness: 0.30, metalness: 0.85 },
+            white:         { color: '#f0f0f0', roughness: 0.50, metalness: 0.30 },
           };
           return defs[ironmongery] || defs.brass;
         })(),

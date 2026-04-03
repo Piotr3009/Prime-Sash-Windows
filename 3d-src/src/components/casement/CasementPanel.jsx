@@ -268,6 +268,8 @@ export default function CasementPanel({
       chrome:        { metalColor: '#e8eaec', lockColor: '#c8cacc' },
       stainless:     { metalColor: '#c8c8c8', lockColor: '#a8a8a8' },
       antique_brass: { metalColor: '#9c7722', lockColor: '#7a5810' },
+      black:         { metalColor: '#1a1a1a', lockColor: '#111111' },
+      white:         { metalColor: '#f0f0f0', lockColor: '#d8d8d8' },
     };
     return defs[ironmongery] || defs.brass;
   }, [ironmongery]);
