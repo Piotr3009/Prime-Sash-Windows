@@ -1274,7 +1274,7 @@ class EstimateRenderer {
         });
     }
 
-    // ─── Download PDF ───
+    // ─── Download PDF (smart page-breaking — never cuts cards) ───
     static async downloadEstimatePDF(estimate) {
         const R = EstimateRenderer;
         try {
@@ -1282,67 +1282,178 @@ class EstimateRenderer {
             if (!jsPDF) throw new Error('jsPDF library not loaded. Please refresh the page.');
             if (!window.html2canvas) throw new Error('html2canvas library not loaded. Please refresh the page.');
 
-            // Build print-only HTML (no buttons, white background, fixed width)
-            const printHTML = R.renderEstimatePrintHTML(estimate);
+            // Build separate blocks: header, each window, footer
+            const blocks = [];
 
-            // Create offscreen container
-            const container = document.createElement('div');
-            container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;padding:40px 50px;font-family:Jost,sans-serif;color:#0a1628;';
-            container.innerHTML = printHTML;
-            document.body.appendChild(container);
+            // HEADER block
+            const customer = estimate.customers || {};
+            const customerBlock = customer.full_name ? `
+                <div style="margin-bottom:15px;">
+                    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;">Customer</div>
+                    <div style="font-size:14px;"><strong>${customer.full_name}</strong>${customer.company_name ? ` · ${customer.company_name}` : ''}${customer.customer_code ? ` · ${customer.customer_code}` : ''}</div>
+                    <div style="font-size:12px;color:#666;">${customer.email || ''}${customer.phone ? ` · ${customer.phone}` : ''}</div>
+                </div>
+            ` : '';
 
-            // Wait for images to load
-            const images = container.querySelectorAll('img');
-            if (images.length > 0) {
-                await Promise.all([...images].map(img => {
-                    if (img.complete) return Promise.resolve();
-                    return new Promise(res => { img.onload = res; img.onerror = res; });
-                }));
-            }
+            blocks.push(`
+                <div style="text-align:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #0a1628;">
+                    <div style="font-size:28px;font-weight:700;color:#0a1628;letter-spacing:2px;">Prime Sash Windows</div>
+                    <div style="font-size:11px;color:#999;margin-top:3px;">A trading name of Skylon Joinery LTD</div>
+                    <div style="font-size:18px;font-weight:600;color:#0a1628;margin-top:15px;">Estimate: ${estimate.estimate_number || ''}</div>
+                </div>
+                ${customerBlock}
+                <div style="margin-bottom:10px;font-size:12px;color:#555;line-height:1.8;">
+                    ${estimate.project_name ? `<div><strong>Project:</strong> ${estimate.project_name}</div>` : ''}
+                    ${estimate.delivery_address ? `<div><strong>Address:</strong> ${estimate.delivery_address}</div>` : ''}
+                    <div><strong>Date:</strong> ${new Date(estimate.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}</div>
+                    <div><strong>Status:</strong> ${R.getStatusConfig(estimate.status).label}</div>
+                </div>
+            `);
 
-            // Render to canvas
-            const canvas = await window.html2canvas(container, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false
+            // WINDOW blocks — each window is a separate block
+            (estimate.estimate_items || []).forEach(item => {
+                const p = R.parseItem(item);
+                const svg = R.generateWindowSVG(item);
+                const screenshots = p.fc.screenshots || p.spec.screenshots || item.screenshots || null;
+
+                const specs = [];
+                if (p.windowType === 'casement') {
+                    specs.push(['Type', 'Casement — Layout ' + p.casementLayout]);
+                    specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+                    if (p.fanlightHeight > 0) specs.push(['Fanlight Height', p.fanlightHeight + 'mm']);
+                    specs.push(['Glass', p.glassText]);
+                    specs.push(['Glass Spec', p.glassSpecCasementText]);
+                    specs.push(['Glass Finish', p.glassFinishText]);
+                    specs.push(['Spacer Bar', p.spacerText]);
+                    specs.push(['Colour', p.colorDisplay]);
+                    specs.push(['Bars', p.casementBarsText]);
+                    specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
+                    specs.push(['Safety Glass', p.safetyGlassText]);
+                    specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
+                    if (p.sillExtension !== 'none') specs.push(['Sill Projection', p.sillText]);
+                    if (p.trickleVent !== 'none') specs.push(['Trickle Vent', p.trickleText]);
+                    if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                } else {
+                    if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
+                    if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
+                    if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
+                    if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
+                        specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
+                        specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
+                    } else {
+                        specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+                    }
+                    specs.push(['Frame', p.frameText]);
+                    specs.push(['Opening', p.openingText]);
+                    specs.push(['Glass', p.glassText]);
+                    specs.push(['Glass Spec', p.glassSpecText]);
+                    specs.push(['Glass Finish', p.glassFinishText]);
+                    specs.push(['Spacer Bar', p.spacerText]);
+                    specs.push(['Colour', p.colorDisplay]);
+                    specs.push(['Georgian Bars', p.barsText]);
+                    if (p.fixBarsText) specs.push(['Fix Panel Bars', p.fixBarsText]);
+                    specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
+                    specs.push(['Horns', p.hornsText]);
+                    if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                }
+
+                const ironText = p.ironList.length > 0
+                    ? p.ironList.map(pr => `${pr.qty > 1 ? pr.qty + 'x ' : ''}${pr.name}`).join(', ')
+                    : '-';
+
+                const specRowsHTML = specs.map(([label, value]) => `
+                    <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f0f0f0;">
+                        <span style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${label}</span>
+                        <span style="font-size:12px;color:#0a1628;text-align:right;max-width:60%;">${value}</span>
+                    </div>
+                `).join('');
+
+                const typeLabel = p.windowType === 'casement' ? 'Casement' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+                const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
+
+                blocks.push(`
+                    <div style="border:1px solid #ddd;border-radius:3px;overflow:hidden;">
+                        <div style="background:#0a1628;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#fff;">Window ${item.window_number} — ${typeLabel}${headLabel}</span>
+                            <span style="font-size:11px;color:rgba(255,255,255,.5);">Qty: ${p.quantity} · £${R.formatPrice(item.total_price)} + VAT</span>
+                        </div>
+                        <div style="display:flex;gap:0;">
+                            <div style="width:280px;min-width:280px;padding:15px;display:flex;flex-direction:column;align-items:center;gap:10px;background:#f8f8f6;border-right:1px solid #eee;">
+                                ${screenshots?.interior ? `<img src="${screenshots.interior}" style="width:250px;border:1px solid #ddd;border-radius:2px;" />` : ''}
+                                <div>${svg}</div>
+                            </div>
+                            <div style="flex:1;padding:15px 20px;">
+                                ${specRowsHTML}
+                                <div style="margin-top:10px;padding-top:8px;border-top:1px solid #ddd;">
+                                    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Ironmongery</div>
+                                    <div style="font-size:12px;color:#0a1628;">${ironText}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
             });
 
-            document.body.removeChild(container);
+            // FOOTER block (totals)
+            const totalEx = (estimate.estimate_items || []).reduce((s, i) => s + parseFloat(i.total_price || 0), 0);
+            const vat = totalEx * 0.20;
+            blocks.push(`
+                <div style="border-top:2px solid #0a1628;padding-top:15px;margin-top:10px;text-align:right;">
+                    <div style="font-size:14px;margin-bottom:5px;">Subtotal (excl. VAT): <strong>£${R.formatPrice(totalEx)}</strong></div>
+                    <div style="font-size:14px;margin-bottom:5px;">VAT (20%): <strong>£${R.formatPrice(vat)}</strong></div>
+                    <div style="font-size:20px;font-weight:700;color:#0a1628;margin-top:8px;">Total: £${R.formatPrice(totalEx + vat)}</div>
+                </div>
+            `);
 
-            // Split canvas into A4 pages
+            // Render each block to canvas
+            const canvases = [];
+            for (const blockHTML of blocks) {
+                const container = document.createElement('div');
+                container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;padding:20px 30px;font-family:Jost,sans-serif;color:#0a1628;';
+                container.innerHTML = blockHTML;
+                document.body.appendChild(container);
+
+                const images = container.querySelectorAll('img');
+                if (images.length > 0) {
+                    await Promise.all([...images].map(img => {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise(res => { img.onload = res; img.onerror = res; });
+                    }));
+                }
+
+                const canvas = await window.html2canvas(container, {
+                    scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false
+                });
+                canvases.push(canvas);
+                document.body.removeChild(container);
+            }
+
+            // Build PDF — smart page-breaking
             const doc = new jsPDF('p', 'mm', 'a4');
-            const pageW = 210;
-            const pageH = 297;
-            const margin = 5;
+            const pageW = 210, pageH = 297, margin = 8;
             const usableW = pageW - margin * 2;
             const usableH = pageH - margin * 2;
+            let curY = margin;
 
-            const imgW = canvas.width;
-            const imgH = canvas.height;
-            const ratio = usableW / imgW;
-            const scaledH = imgH * ratio;
-            const pageContentH = usableH;
-            const totalPages = Math.ceil(scaledH / pageContentH);
+            canvases.forEach((canvas, i) => {
+                const ratio = usableW / canvas.width;
+                const blockH = canvas.height * ratio;
 
-            for (let i = 0; i < totalPages; i++) {
-                if (i > 0) doc.addPage();
+                // If block doesn't fit on current page → new page
+                if (curY + blockH > pageH - margin && curY > margin + 1) {
+                    doc.addPage();
+                    curY = margin;
+                }
 
-                // Crop section of canvas for this page
-                const srcY = Math.round(i * pageContentH / ratio);
-                const srcH = Math.min(Math.round(pageContentH / ratio), imgH - srcY);
-                if (srcH <= 0) break;
+                // If single block is taller than a page → scale to fit
+                const finalH = Math.min(blockH, usableH);
+                const finalRatio = finalH < blockH ? (finalH / blockH) : 1;
+                const finalW = usableW * finalRatio;
 
-                const pageCanvas = document.createElement('canvas');
-                pageCanvas.width = imgW;
-                pageCanvas.height = srcH;
-                pageCanvas.getContext('2d').drawImage(canvas, 0, srcY, imgW, srcH, 0, 0, imgW, srcH);
-
-                const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.92);
-                const drawH = srcH * ratio;
-                doc.addImage(pageImgData, 'JPEG', margin, margin, usableW, drawH);
-            }
+                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                doc.addImage(imgData, 'JPEG', margin, curY, finalW, finalH);
+                curY += finalH + 4;
+            });
 
             doc.save(`Estimate_${estimate.estimate_number || estimate.id.substring(0, 8)}.pdf`);
 
