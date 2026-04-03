@@ -178,6 +178,7 @@ function FixBars({ barItems, matExt, matInt }) {
 /* ─── Curved glass ─── */
 function CurvedGlass({ innerPts, glassMat, spacerColor }) {
   const spacerHex = spacerColor === 'white' ? '#E8E8E8' : spacerColor === 'black' ? '#1a1a1a' : '#C8C8C8';
+  const STRIP = mm(1);
 
   const glassGeo = useMemo(() => {
     const shape = new THREE.Shape();
@@ -187,27 +188,46 @@ function CurvedGlass({ innerPts, glassMat, spacerColor }) {
     return new THREE.ShapeGeometry(shape, 1);
   }, [innerPts]);
 
+  // Ring spacer: innerPts as outer, shrunk 1mm as inner hole, extruded 24mm
   const spacerGeo = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(innerPts[0][0], innerPts[0][1]);
-    for (let i = 1; i < innerPts.length; i++) shape.lineTo(innerPts[i][0], innerPts[i][1]);
-    shape.closePath();
-    const g = new THREE.ExtrudeGeometry(shape, { depth: mm(1), bevelEnabled: false });
-    g.translate(0, 0, -mm(0.5));
+    // Centroid for simple inward offset
+    let cx = 0, cy = 0;
+    for (const p of innerPts) { cx += p[0]; cy += p[1]; }
+    cx /= innerPts.length; cy /= innerPts.length;
+
+    const outer = new THREE.Shape();
+    outer.moveTo(innerPts[0][0], innerPts[0][1]);
+    for (let i = 1; i < innerPts.length; i++) outer.lineTo(innerPts[i][0], innerPts[i][1]);
+    outer.closePath();
+
+    const hole = new THREE.Path();
+    for (let i = 0; i < innerPts.length; i++) {
+      const dx = innerPts[i][0] - cx, dy = innerPts[i][1] - cy;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const x = innerPts[i][0] - (dx / d) * STRIP;
+      const y = innerPts[i][1] - (dy / d) * STRIP;
+      if (i === 0) hole.moveTo(x, y); else hole.lineTo(x, y);
+    }
+    hole.closePath();
+    outer.holes.push(hole);
+
+    const g = new THREE.ExtrudeGeometry(outer, { depth: GU, bevelEnabled: false });
+    g.translate(0, 0, -GU / 2);
     g.computeVertexNormals();
     return g;
   }, [innerPts]);
+
+  const spacerMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: spacerHex, metalness: 0.6, roughness: 0.4
+  }), [spacerHex]);
 
   return (
     <group>
       <mesh geometry={glassGeo} castShadow={false} receiveShadow>
         <primitive object={glassMat} attach="material" />
       </mesh>
-      <mesh geometry={spacerGeo} position={[0, 0, GU / 2]}>
-        <meshStandardMaterial color="#00ff00" metalness={0.6} roughness={0.4} />
-      </mesh>
-      <mesh geometry={spacerGeo} position={[0, 0, -GU / 2]}>
-        <meshStandardMaterial color="#00ff00" metalness={0.6} roughness={0.4} />
+      <mesh geometry={spacerGeo} castShadow receiveShadow>
+        <primitive object={spacerMat} attach="material" />
       </mesh>
     </group>
   );
@@ -444,7 +464,7 @@ export default function FixFrameWindow({
   const springY = -H/2 + H * springYFrac;
 
   let shapeNode = null;
-  if (fixShape === 'circle') shapeNode = <CircleFrame diameter={width} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} />;
+  if (fixShape === 'circle') shapeNode = <CircleFrame diameter={width} depth={depth} mat={extMat} glassMat={glassMat} />;
   else if (fixShape === 'gothic-arch') shapeNode = <GothicArchFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} gothicBars={fixGothicBars} />;
   else if (fixShape === 'semi-circle') shapeNode = <SemiCircleFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />;
   else if (fixShape === 'segmental-arch') shapeNode = <SegmentalFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} customRise={fixArchRise} hBars={hBars} vBars={vBars} />;
