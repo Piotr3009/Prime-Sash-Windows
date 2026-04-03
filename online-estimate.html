@@ -11,16 +11,6 @@
   gtag('config','AW-3481705735');
 </script>
   <!-- Google Analytics -->
-<!-- Google tag (gtag.js) — GA4 + Google Ads -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-S88RZLHQL2"></script>
-<script>
-  window.dataLayer=window.dataLayer||[];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js',new Date());
-  gtag('config','G-S88RZLHQL2');
-  gtag('config','AW-3481705735');
-</script>
-  <!-- Google Analytics -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prime Sash Windows | Online Estimate | Instant Price Calculator</title>
@@ -294,9 +284,6 @@
             <div class="radio-option">
               <input type="radio" id="type-casement" name="window-type" value="casement">
               <label for="type-casement" class="radio-label">Casement Windows</label>
-            <div class="radio-option">
-              <input type="radio" id="type-casement" name="window-type" value="casement">
-              <label for="type-casement" class="radio-label">Casement Windows</label>
             </div>
             <div class="radio-option" style="opacity:0.45; pointer-events:none;">
               <input type="radio" id="type-fix" name="window-type" value="fix-only" disabled>
@@ -383,7 +370,7 @@
       </div>
 
       <!-- ═══ CASEMENT LAYOUT ═══ -->
-      <div class="config-section" data-category="product-range" id="casement-layout-section" style="display:none;">
+      <div class="config-section" data-category="product-range" data-for="casement" id="casement-layout-section" style="display:none;">
         <h3>Casement Layout</h3>
         <div class="input-group">
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
@@ -3072,20 +3059,8 @@
       var windowTypeSection = document.getElementById('window-type-section');
       var sashTypeSection = document.getElementById('sash-type-section');
       var casementLayoutSection = document.getElementById('casement-layout-section');
-      var casementLayoutSection = document.getElementById('casement-layout-section');
       var doorTypeSection = document.getElementById('door-type-section');
 
-      function updateSections() {
-        var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
-        var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
-        windowTypeSection.style.display = isWindows ? 'block' : 'none';
-        sashTypeSection.style.display = (isWindows && windowType === 'sash') ? 'block' : 'none';
-        casementLayoutSection.style.display = (isWindows && windowType === 'casement') ? 'block' : 'none';
-        doorTypeSection.style.display = isWindows ? 'none' : 'block';
-      }
-
-      rangeRadios.forEach(function(radio) {
-        radio.addEventListener('change', updateSections);
       function updateSections() {
         var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
         var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
@@ -3100,11 +3075,15 @@
       });
 
       // Window type → show/hide sash or casement sections + update 3D
-      // Window type → show/hide sash or casement sections + update 3D
       var windowTypeRadios = document.querySelectorAll('input[name="window-type"]');
       windowTypeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
           updateSections();
+          // Re-trigger active tab to refresh data-for visibility
+          var activeBtn = document.querySelector('.cat-btn.active');
+          if (activeBtn && window.showCategory) {
+            window.showCategory(activeBtn.dataset.target);
+          }
           if (window.update3D) {
             if (radio.value === 'casement') {
               var layout = (document.querySelector('input[name="casement-layout"]:checked') || {}).value || '040L';
@@ -3113,6 +3092,12 @@
               window.update3D({ windowCategory: 'sash' });
             }
           }
+          // Hide/show casement-specific spec sections
+          var casementSpecs = ['spec-casement-glass', 'spec-casement-security', 'spec-casement-sill', 'spec-casement-seal'];
+          casementSpecs.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = (radio.value === 'casement') ? '' : 'none';
+          });
         });
       });
 
