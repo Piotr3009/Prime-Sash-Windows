@@ -2404,6 +2404,11 @@
       </div>
     </div>
     
+    <!-- SPEC PANEL TOGGLE (visible only on small screens) -->
+    <button class="spec-toggle-btn" id="spec-toggle-btn" onclick="document.querySelector('.window-specification').classList.toggle('spec-open');this.classList.toggle('active');">
+      <span class="spec-toggle-icon">☰</span> Spec
+    </button>
+
     <div class="window-specification">
         <h2>Window Specification</h2>
         <div class="spec-section" id="spec-window-type" style="display: none;">

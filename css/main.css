@@ -339,12 +339,26 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
   .features-grid { grid-template-columns: 1fr 1fr; }
   .process-grid { grid-template-columns: 1fr 1fr; }
   .ft-grid { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
-}
-@media (max-width: 680px) {
+
+  /* Nav → hamburger on tablets */
   .nav-links  { display: none; }
   .nav-rows   { display: none; }
   .nav-user   { display: none; }
   .hamburger  { display: flex; }
+
+  /* Mobile menu scrollable */
+  #mob-menu {
+    justify-content: flex-start;
+    padding-top: 3rem;
+    gap: 1.5rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #mob-menu a {
+    font-size: 1.8rem;
+  }
+}
+@media (max-width: 680px) {
   .sec        { padding: 5rem 6vw; }
   .hero-text  { padding: 4rem 6vw; }
   .stats-row  { grid-template-columns: 1fr 1fr; }

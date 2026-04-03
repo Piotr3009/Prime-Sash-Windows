@@ -2205,6 +2205,11 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   box-shadow: 0 5px 15px rgba(220,53,69,0.4);
 }
 
+/* Spec panel toggle — hidden on desktop */
+.spec-toggle-btn {
+  display: none;
+}
+
 /* ============================================================
    23. RESPONSIVE
    ============================================================ */
@@ -2215,8 +2220,7 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
       "preview"
       "sidebar"
       "infobox"
-      "options"
-      "spec" !important;
+      "options" !important;
   }
 
   .config-sidebar {
@@ -2261,9 +2265,57 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
 
   .configurator-preview { min-height: 300px; }
 
+  /* Spec panel — slide-out overlay from right */
   .window-specification {
-    border-left: none !important;
-    border-top: 2px solid var(--secondary-color) !important;
+    position: fixed !important;
+    top: 0 !important;
+    right: -320px;
+    width: 300px !important;
+    height: 100vh !important;
+    z-index: 9000;
+    border-left: 2px solid var(--secondary-color) !important;
+    border-top: none !important;
+    background: var(--white) !important;
+    overflow-y: auto !important;
+    transition: right 0.3s ease;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+  }
+
+  .window-specification.spec-open {
+    right: 0;
+  }
+
+  /* Spec toggle button — visible on tablets/mobile */
+  .spec-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 9001;
+    background: var(--navy, #0a1628);
+    color: #fff;
+    border: none;
+    padding: 12px 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    writing-mode: vertical-rl;
+    border-radius: 4px 0 0 4px;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+  }
+
+  .spec-toggle-btn .spec-toggle-icon {
+    writing-mode: horizontal-tb;
+    font-size: 0.9rem;
+  }
+
+  .spec-toggle-btn.active {
+    right: 300px;
   }
 
   .configurator-options {
