@@ -627,6 +627,8 @@ function Scene({ config, isMobile }) {
                 hBars={config.casementHBars || 0}
                 vBars={config.casementVBars || 0}
                 showGuides={config.showGuides}
+                fixShape={config.fixShape || 'rectangle'}
+                fixType={config.fixType || 'standard'}
               />
             ) : (
               <ParametricSashWindow {...config} />
@@ -722,6 +724,8 @@ export default function App() {
   const [sillExtension, setSillExtension] = useState(0);
   const [sillWider, setSillWider] = useState(false);
   const [sealColour, setSealColour] = useState('black');
+  const [fixShape, setFixShape] = useState('rectangle');
+  const [fixType, setFixType] = useState('standard');
 
   // ─── State bucket system — isolates state per window type ───
   const categoryRef = useRef('sash');
@@ -735,7 +739,7 @@ export default function App() {
 
   // Capture current state snapshot
   function captureState() {
-    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour };
+    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType };
   }
 
   // Restore state from bucket
@@ -850,6 +854,8 @@ export default function App() {
       if (cfg.sillExtension !== undefined) setSillExtension(cfg.sillExtension);
       if (cfg.sillWider !== undefined) setSillWider(cfg.sillWider);
       if (cfg.sealColour !== undefined) setSealColour(cfg.sealColour);
+      if (cfg.fixShape !== undefined) setFixShape(cfg.fixShape);
+      if (cfg.fixType !== undefined) setFixType(cfg.fixType);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -903,7 +909,7 @@ export default function App() {
       sillWider,
       sealColour,
     }),
-    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour],
+    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType],
   );
 
   return (
