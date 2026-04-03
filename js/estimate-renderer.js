@@ -1372,6 +1372,23 @@ class EstimateRenderer {
 
             // Build spec rows
             const specs = [];
+            if (p.windowType === 'casement') {
+                specs.push(['Type', 'Casement — Layout ' + p.casementLayout]);
+                specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+                if (p.fanlightHeight > 0) specs.push(['Fanlight Height', p.fanlightHeight + 'mm']);
+                specs.push(['Glass', p.glassText]);
+                specs.push(['Glass Spec', p.glassSpecCasementText]);
+                specs.push(['Glass Finish', p.glassFinishText]);
+                specs.push(['Spacer Bar', p.spacerText]);
+                specs.push(['Colour', p.colorDisplay]);
+                specs.push(['Bars', p.casementBarsText]);
+                specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
+                specs.push(['Safety Glass', p.safetyGlassText]);
+                specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
+                if (p.sillExtension !== 'none') specs.push(['Sill Projection', p.sillText]);
+                if (p.trickleVent !== 'none') specs.push(['Trickle Vent', p.trickleText]);
+                if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+            } else {
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
             if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
@@ -1393,6 +1410,7 @@ class EstimateRenderer {
             specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
             specs.push(['Horns', p.hornsText]);
             if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+            }
 
             const ironText = p.ironList.length > 0 
                 ? p.ironList.map(pr => `${pr.qty > 1 ? pr.qty + 'x ' : ''}${pr.name}`).join(', ')
@@ -1405,7 +1423,7 @@ class EstimateRenderer {
                 </div>
             `).join('');
 
-            const typeLabel = p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+            const typeLabel = p.windowType === 'casement' ? 'Casement' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
             const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
 
             return `
@@ -1502,7 +1520,7 @@ class EstimateRenderer {
 
             estimate.estimate_items?.forEach(item => {
                 const p = R.parseItemForExport(item);
-                const typeLabel = p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+                const typeLabel = p.windowType === 'casement' ? 'Casement' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
                 const headLabel = p.headType !== 'flat' ? ` (${p.headType})` : '';
                 wsData.push([
                     item.window_number,
