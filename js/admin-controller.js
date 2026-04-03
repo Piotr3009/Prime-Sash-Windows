@@ -8,7 +8,7 @@ const AdminController = {
     await this.loadAllData();
     this.setupEventListeners();
     await this.renderIronmongeryTable();
-    this.renderHornsGrid();
+    if (this.STORAGE_KEYS) this.renderHornsGrid();
   },
 
   setupEventListeners: function() {

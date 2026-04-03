@@ -932,11 +932,18 @@ class IronmongeryGallery {
           <div>
             <label style="display: block; margin-bottom: 5px; font-weight: 600;">Category *</label>
             <select id="gallery-product-category" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-              <option value="locks">Sash Locks</option>
-              <option value="fingerLifts">Finger Lifts</option>
-              <option value="pullHandles">Pull Handles</option>
-              <option value="stoppers">Stoppers</option>
-              <option value="horns">Sash Horns</option>
+              <optgroup label="Sash Windows">
+                <option value="locks">Sash Locks</option>
+                <option value="fingerLifts">Finger Lifts</option>
+                <option value="pullHandles">Pull Handles</option>
+                <option value="stoppers">Stoppers</option>
+                <option value="horns">Sash Horns</option>
+              </optgroup>
+              <optgroup label="Casement Windows">
+                <option value="casementHandles">Casement Handles</option>
+                <option value="casementStays">Casement Stays</option>
+                <option value="casementLocks">Casement Locks</option>
+              </optgroup>
             </select>
           </div>
 
