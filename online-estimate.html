@@ -2838,7 +2838,8 @@
     }
     // Fix bars: only show for triple
     if (cat === 'dim-design') {
-      var isTriple = (document.querySelector('input[name="sash-type"]:checked') || {}).value === 'triple';
+      var isCasement = (document.querySelector('input[name="window-type"]:checked') || {}).value === 'casement';
+      var isTriple = !isCasement && (document.querySelector('input[name="sash-type"]:checked') || {}).value === 'triple';
       var fbs = document.getElementById('fix-bars-section');
       if (fbs) fbs.style.display = isTriple ? 'block' : 'none';
     }
