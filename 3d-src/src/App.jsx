@@ -611,6 +611,7 @@ function Scene({ config, isMobile }) {
                 brightness={config.brightness}
                 hBars={config.casementHBars || 0}
                 vBars={config.casementVBars || 0}
+                ironmongery={config.ironmongery}
               />
             ) : (
               <ParametricSashWindow {...config} />

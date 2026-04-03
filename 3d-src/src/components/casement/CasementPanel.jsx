@@ -189,6 +189,16 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
 
   const mi = matInt || mat;
 
+  const handleColors = useMemo(() => {
+    const defs = {
+      brass:         { metalColor: '#d4af37', lockColor: '#c9b07a' },
+      chrome:        { metalColor: '#e8eaec', lockColor: '#c8cacc' },
+      stainless:     { metalColor: '#c8c8c8', lockColor: '#a8a8a8' },
+      antique_brass: { metalColor: '#9c7722', lockColor: '#7a5810' },
+    };
+    return defs[ironmongery] || defs.brass;
+  }, [ironmongery]);
+
   return (
     <group>
       {/* ─── Left stile EXT ─── */}
@@ -255,6 +265,7 @@ export default function CasementPanel({
   glassFinish = 'clear',
   hBars = 0,
   vBars = 0,
+  ironmongery = 'brass',
   position = [0, 0, 0],
 }) {
   const mat = material;
@@ -296,7 +307,7 @@ export default function CasementPanel({
       <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} />
       {handlePos && hingeType !== 'fixed' && (
         <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
-          <WindowCasementHandle rotationDeg={hingeType === 'left' ? -handleDeg : handleDeg} />
+          <WindowCasementHandle rotationDeg={hingeType === 'left' ? -handleDeg : handleDeg} metalColor={handleColors.metalColor} lockColor={handleColors.lockColor} />
         </group>
       )}
     </group>

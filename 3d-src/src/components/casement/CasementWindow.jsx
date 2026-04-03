@@ -356,6 +356,7 @@ export default function CasementWindow({
   brightness = 1.0,
   hBars = 0,
   vBars = 0,
+  ironmongery = 'brass',
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -428,6 +429,7 @@ export default function CasementWindow({
             glassFinish={glassFinish}
             hBars={isFanlight ? 0 : hBars}
             vBars={isFanlight ? 0 : vBars}
+            ironmongery={ironmongery}
             position={[mm(p.x), mm(p.y) + openingCenterY, leafZ]}
           />
         );
