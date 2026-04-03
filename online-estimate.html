@@ -596,6 +596,60 @@
           <p style="font-size:0.7rem;color:#999;margin-top:2px;">Adjust the height of the arch from springing line to peak</p>
         </div>
 
+        <!-- Gothic bar patterns (only for gothic-arch) -->
+        <div class="input-group" id="fix-gothic-bars-group" style="display:none;margin-top:10px;">
+          <label>Gothic Bar Pattern:</label>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+            <label class="layout-option">
+              <input type="radio" name="fix-gothic-bars" value="none" checked>
+              <div class="layout-thumb" title="None">
+                <svg viewBox="0 0 40 60" width="36" height="54">
+                  <path d="M4 56 L4 28 A36 36 0 0 1 20 4 A36 36 0 0 1 36 28 L36 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">None</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="fix-gothic-bars" value="patternA">
+              <div class="layout-thumb" title="Simple Bars">
+                <svg viewBox="0 0 40 60" width="36" height="54">
+                  <path d="M4 56 L4 28 A36 36 0 0 1 20 4 A36 36 0 0 1 36 28 L36 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="4" y1="28" x2="36" y2="28" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="14.7" y1="56" x2="14.7" y2="16" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="25.3" y1="56" x2="25.3" y2="16" stroke="#0a1628" stroke-width="1.2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Simple</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="fix-gothic-bars" value="patternB">
+              <div class="layout-thumb" title="Inner Arch">
+                <svg viewBox="0 0 40 60" width="36" height="54">
+                  <path d="M4 56 L4 28 A36 36 0 0 1 20 4 A36 36 0 0 1 36 28 L36 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="4" y1="28" x2="36" y2="28" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="20" y1="56" x2="20" y2="28" stroke="#0a1628" stroke-width="1.2"/>
+                  <path d="M4 28 A28 28 0 0 1 20 8 A28 28 0 0 1 36 28" fill="none" stroke="#0a1628" stroke-width="1.2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Inner Arch</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="fix-gothic-bars" value="patternC">
+              <div class="layout-thumb" title="Tracery">
+                <svg viewBox="0 0 40 60" width="36" height="54">
+                  <path d="M4 56 L4 28 A36 36 0 0 1 20 4 A36 36 0 0 1 36 28 L36 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="4" y1="28" x2="36" y2="28" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="14.7" y1="56" x2="14.7" y2="28" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="25.3" y1="56" x2="25.3" y2="28" stroke="#0a1628" stroke-width="1.2"/>
+                  <path d="M4 28 A14 18 0 0 1 20 14" fill="none" stroke="#0a1628" stroke-width="1.2"/>
+                  <path d="M36 28 A14 18 0 0 0 20 14" fill="none" stroke="#0a1628" stroke-width="1.2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Tracery</span>
+            </label>
+          </div>
+        </div>
+
         <button class="btn btn-apply" id="apply-fix-frame">Apply</button>
       </div>
 
@@ -3441,6 +3495,8 @@
       var archRiseGroup = document.getElementById('fix-arch-rise-group');
       var archRiseSlider = document.getElementById('fix-arch-rise');
       var archRiseValue = document.getElementById('fix-arch-rise-value');
+      var gothicBarsGroup = document.getElementById('fix-gothic-bars-group');
+      var gothicBarsRadios = document.querySelectorAll('input[name="fix-gothic-bars"]');
       var fixHbars = document.querySelectorAll('input[name="f-hbars"]');
       var fixVbars = document.querySelectorAll('input[name="f-vbars"]');
       var fixColourMode = document.querySelectorAll('input[name="f-colour-mode"]');
@@ -3485,6 +3541,8 @@
           archRiseSlider.max = Math.round(w * 1.2);
           if (archRiseValue) archRiseValue.textContent = defaultRise;
         }
+        // Gothic bars — only for gothic-arch
+        if (gothicBarsGroup) gothicBarsGroup.style.display = (shape === 'gothic-arch') ? '' : 'none';
       }
 
       // Shape change → update 3D directly
@@ -3510,6 +3568,13 @@
           if (window.update3D) window.update3D({ fixArchRise: parseInt(archRiseSlider.value) });
         });
       }
+
+      // Gothic bars pattern
+      gothicBarsRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          if (window.update3D) window.update3D({ fixGothicBars: r.value });
+        });
+      });
 
       // Dimension changes → 3D
       var fixDimTimer = null;

@@ -630,6 +630,7 @@ function Scene({ config, isMobile }) {
                 fixShape={config.fixShape || 'rectangle'}
                 fixType={config.fixType || 'standard'}
                 fixArchRise={config.fixArchRise || 0}
+                fixGothicBars={config.fixGothicBars || 'none'}
               />
             ) : (
               <ParametricSashWindow {...config} />
@@ -728,6 +729,7 @@ export default function App() {
   const [fixShape, setFixShape] = useState('rectangle');
   const [fixType, setFixType] = useState('standard');
   const [fixArchRise, setFixArchRise] = useState(0);
+  const [fixGothicBars, setFixGothicBars] = useState('none');
 
   // ─── State bucket system — isolates state per window type ───
   const categoryRef = useRef('sash');
@@ -741,7 +743,7 @@ export default function App() {
 
   // Capture current state snapshot
   function captureState() {
-    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise };
+    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars };
   }
 
   // Restore state from bucket
@@ -789,6 +791,7 @@ export default function App() {
     if (s.fixShape !== undefined) setFixShape(s.fixShape);
     if (s.fixType !== undefined) setFixType(s.fixType);
     if (s.fixArchRise !== undefined) setFixArchRise(s.fixArchRise);
+    if (s.fixGothicBars !== undefined) setFixGothicBars(s.fixGothicBars);
   }
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
@@ -862,6 +865,7 @@ export default function App() {
       if (cfg.fixShape !== undefined) setFixShape(cfg.fixShape);
       if (cfg.fixType !== undefined) setFixType(cfg.fixType);
       if (cfg.fixArchRise !== undefined) setFixArchRise(cfg.fixArchRise);
+      if (cfg.fixGothicBars !== undefined) setFixGothicBars(cfg.fixGothicBars);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -917,8 +921,9 @@ export default function App() {
       fixShape,
       fixType,
       fixArchRise,
+      fixGothicBars,
     }),
-    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise],
+    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars],
   );
 
   return (

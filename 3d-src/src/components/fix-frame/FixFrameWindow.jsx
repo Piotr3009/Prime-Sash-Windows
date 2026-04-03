@@ -70,7 +70,7 @@ function CircleFrame({ diameter, depth, mat, glassMat }) {
 }
 
 /* ─── Gothic arch — true equilateral pointed arch ─── */
-function GothicArchFrame({ width, height, depth, mat, glassMat }) {
+function GothicArchFrame({ width, height, depth, mat, glassMat, gothicBars = 'none' }) {
   const W = mm(width);
   const H = mm(height);
   const fw = mm(FRAME_FACE);
@@ -80,6 +80,28 @@ function GothicArchFrame({ width, height, depth, mat, glassMat }) {
   const straightWall = Math.max(H - archRise, mm(50));
   const springY = -H / 2 + straightWall;
   const segs = 48;
+  const BAR_W = mm(22);  // bar width
+  const BAR_D = mm(16);  // bar depth
+
+  // Inner contour dimensions (glass area)
+  const iHalfW = halfW - fw;
+  const Ri = W - fw;
+  const iBottom = -H / 2 + fw;
+
+  // Find Y where vertical bar at x hits inner arch
+  function archYAtX(x) {
+    // Right arc (center -halfW, springY) active for x >= 0
+    // Left arc (center halfW, springY) active for x < 0
+    if (x >= 0) {
+      const dx = x - (-halfW);
+      const sq = Ri * Ri - dx * dx;
+      return sq > 0 ? springY + Math.sqrt(sq) : springY;
+    } else {
+      const dx = x - halfW;
+      const sq = Ri * Ri - dx * dx;
+      return sq > 0 ? springY + Math.sqrt(sq) : springY;
+    }
+  }
 
   const frameGeo = useMemo(() => {
     // Right arc: center (-halfW, springY), radius W, from 0 to π/3
@@ -134,10 +156,104 @@ function GothicArchFrame({ width, height, depth, mat, glassMat }) {
     return new THREE.ShapeGeometry(shape, 1);
   }, [W, H, fw, halfW, springY, segs]);
 
+  // Bar material
+  const barMat = mat;
+
+  // Bar geometries per pattern
+  const bars = useMemo(() => {
+    if (gothicBars === 'none') return [];
+    const result = [];
+
+    // Horizontal bar at springing line (all patterns)
+    result.push({ args: [iHalfW * 2, BAR_W, BAR_D], pos: [0, springY, 0] });
+
+    if (gothicBars === 'patternA') {
+      // 2 vertical bars at 1/3 and 2/3, full height clipped at arch
+      const x1 = -iHalfW + (iHalfW * 2) / 3;
+      const x2 = -iHalfW + (iHalfW * 2) * 2 / 3;
+      for (const x of [x1, x2]) {
+        const topY = archYAtX(x) - BAR_W / 2;
+        const barH = topY - iBottom;
+        if (barH > 0) result.push({ args: [BAR_W, barH, BAR_D], pos: [x, iBottom + barH / 2, 0] });
+      }
+    } else if (gothicBars === 'patternB') {
+      // Center vertical bar bottom to springing
+      const barH = springY - iBottom;
+      result.push({ args: [BAR_W, barH, BAR_D], pos: [0, iBottom + barH / 2, 0] });
+    } else if (gothicBars === 'patternC') {
+      // 2 vertical bars bottom to springing
+      const x1 = -iHalfW + (iHalfW * 2) / 3;
+      const x2 = -iHalfW + (iHalfW * 2) * 2 / 3;
+      for (const x of [x1, x2]) {
+        const barH = springY - iBottom;
+        result.push({ args: [BAR_W, barH, BAR_D], pos: [x, iBottom + barH / 2, 0] });
+      }
+    }
+    return result;
+  }, [gothicBars, iHalfW, iBottom, springY, BAR_W, BAR_D]);
+
+  // Pattern B: inner gothic arch bar
+  const innerArchGeo = useMemo(() => {
+    if (gothicBars !== 'patternB') return null;
+    const r = Ri * 0.72;
+    const rArc = arcPoints(-halfW, springY, r, 0, Math.PI / 3, 32);
+    const lArc = arcPoints(halfW, springY, r, 2 * Math.PI / 3, Math.PI, 32);
+    const ri = r - BAR_W;
+    const rArcI = arcPoints(-halfW, springY, ri, 0, Math.PI / 3, 32);
+    const lArcI = arcPoints(halfW, springY, ri, 2 * Math.PI / 3, Math.PI, 32);
+
+    const shape = new THREE.Shape();
+    shape.moveTo(rArc[0][0], rArc[0][1]);
+    for (const p of rArc) shape.lineTo(p[0], p[1]);
+    for (const p of lArc) shape.lineTo(p[0], p[1]);
+    shape.closePath();
+    const hole = new THREE.Path();
+    hole.moveTo(rArcI[0][0], rArcI[0][1]);
+    for (const p of rArcI) hole.lineTo(p[0], p[1]);
+    for (const p of lArcI) hole.lineTo(p[0], p[1]);
+    hole.closePath();
+    shape.holes.push(hole);
+
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: BAR_D, bevelEnabled: false });
+    geo.translate(0, 0, -BAR_D / 2);
+    geo.computeVertexNormals();
+    return geo;
+  }, [gothicBars, Ri, halfW, springY, BAR_W, BAR_D]);
+
+  // Pattern C: tracery — two mini arcs meeting at center
+  const traceryGeo = useMemo(() => {
+    if (gothicBars !== 'patternC') return null;
+    const peakY = archYAtX(0) - BAR_W;
+    const midY = springY + (peakY - springY) * 0.55;
+    const shape = new THREE.Shape();
+    // Outer profile: two curves from frame edges meeting at top
+    shape.moveTo(-iHalfW, springY + BAR_W / 2);
+    shape.quadraticCurveTo(-iHalfW * 0.25, midY + BAR_W, 0, peakY);
+    shape.quadraticCurveTo(iHalfW * 0.25, midY + BAR_W, iHalfW, springY + BAR_W / 2);
+    // Inner profile back
+    shape.lineTo(iHalfW, springY - BAR_W / 2);
+    shape.quadraticCurveTo(iHalfW * 0.25, midY - BAR_W, 0, peakY - BAR_W * 2.5);
+    shape.quadraticCurveTo(-iHalfW * 0.25, midY - BAR_W, -iHalfW, springY - BAR_W / 2);
+    shape.closePath();
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: BAR_D, bevelEnabled: false });
+    geo.translate(0, 0, -BAR_D / 2);
+    geo.computeVertexNormals();
+    return geo;
+  }, [gothicBars, iHalfW, springY, BAR_W, BAR_D]);
+
   return (
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <mesh geometry={glassGeo} castShadow={false} receiveShadow><primitive object={glassMat} attach="material" /></mesh>
+      {/* Gothic bars */}
+      {bars.map((b, i) => (
+        <mesh key={i} position={b.pos} castShadow receiveShadow>
+          <boxGeometry args={b.args} />
+          <primitive object={barMat} attach="material" />
+        </mesh>
+      ))}
+      {innerArchGeo && <mesh geometry={innerArchGeo} castShadow receiveShadow><primitive object={barMat} attach="material" /></mesh>}
+      {traceryGeo && <mesh geometry={traceryGeo} castShadow receiveShadow><primitive object={barMat} attach="material" /></mesh>}
     </group>
   );
 }
@@ -378,6 +494,7 @@ export default function FixFrameWindow({
   fixShape = 'rectangle',
   fixType = 'standard',
   fixArchRise = 0,
+  fixGothicBars = 'none',
 }) {
   const cExt = sameColor ? woodColor : woodColorExt;
   const cInt = sameColor ? woodColor : woodColorInt;
@@ -425,7 +542,7 @@ export default function FixFrameWindow({
   if (fixShape === 'circle') {
     shapeNode = <CircleFrame diameter={width} depth={depth} mat={extMaterial} glassMat={glassMat} />;
   } else if (fixShape === 'gothic-arch') {
-    shapeNode = <GothicArchFrame width={width} height={effectiveH} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+    shapeNode = <GothicArchFrame width={width} height={effectiveH} depth={depth} mat={extMaterial} glassMat={glassMat} gothicBars={fixGothicBars} />;
   } else if (fixShape === 'semi-circle') {
     shapeNode = <SemiCircleFrame width={width} height={effectiveH} depth={depth} mat={extMaterial} glassMat={glassMat} />;
   } else if (fixShape === 'segmental-arch') {
