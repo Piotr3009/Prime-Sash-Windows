@@ -3340,7 +3340,7 @@
               var layout = (document.querySelector('input[name="casement-layout"]:checked') || {}).value || '040L';
               window.update3D({ windowCategory: 'casement', casementLayout: layout });
             } else if (radio.value === 'fix-only') {
-              window.update3D({ windowCategory: 'casement', casementLayout: '010', casementOpening: 0 });
+              window.update3D({ windowCategory: 'fix-only' });
             } else {
               window.update3D({ windowCategory: 'sash' });
             }
@@ -3485,9 +3485,6 @@
         var hb = parseInt((document.querySelector('input[name="f-hbars"]:checked') || {}).value) || 0;
         var vb = parseInt((document.querySelector('input[name="f-vbars"]:checked') || {}).value) || 0;
         window.update3D({
-          windowCategory: 'casement',
-          casementLayout: '010',
-          casementOpening: 0,
           extWidth: w,
           extHeight: h,
           casementHBars: hb,

@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import ParametricSashWindow from './components/ParametricSashWindow';
 import CasementWindow from './components/casement/CasementWindow';
+import FixFrameWindow from './components/fix-frame/FixFrameWindow';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -613,6 +614,20 @@ function Scene({ config, isMobile }) {
                 vBars={config.casementVBars || 0}
                 ironmongery={config.ironmongery}
               />
+            ) : config.windowCategory === 'fix-only' ? (
+              <FixFrameWindow
+                width={config.extWidth}
+                height={config.extHeight}
+                woodColor={config.woodColor}
+                woodColorExt={config.woodColorExt}
+                woodColorInt={config.woodColorInt}
+                sameColor={config.sameColor}
+                spacerColor={config.spacerColor}
+                glassFinish={config.glassFinish || 'clear'}
+                hBars={config.casementHBars || 0}
+                vBars={config.casementVBars || 0}
+                showGuides={config.showGuides}
+              />
             ) : (
               <ParametricSashWindow {...config} />
             )}
@@ -715,6 +730,7 @@ export default function App() {
   const BUCKET_DEFAULTS = {
     sash: { extWidth: 1000, extHeight: 1500, woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', showHorns: true, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3, casementHBars: 0, casementVBars: 0 },
     casement: { extWidth: 800, extHeight: 1200, glassFinish: 'clear', trickleVent: 'none', trickleColour: 'white', sillExtension: 0, sillWider: false, sealColour: 'black', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', showHorns: false, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3, casementHBars: 0, casementVBars: 0 },
+    'fix-only': { extWidth: 600, extHeight: 800, glassFinish: 'clear', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'fixed', boxType: 'standard', showHorns: false, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '010', casementOpening: 0, fanlightRatio: 0.3, casementHBars: 0, casementVBars: 0 },
   };
 
   // Capture current state snapshot
@@ -925,7 +941,7 @@ export default function App() {
                 />
               </div>
             </>
-          ) : (
+          ) : windowCategory === 'fix-only' ? null : (
             <Slider
               label="Opening"
               value={Math.round(casementOpening * 100)}
