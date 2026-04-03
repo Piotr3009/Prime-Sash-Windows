@@ -297,6 +297,24 @@ function CircleFrame({ diameter, depth, mat, glassMat, spacerColor }) {
     return { extLayers, intLayers, spacer };
   }, [barR, segs]);
 
+  // 6 radial spokes from ring to frame
+  const spokes = useMemo(() => {
+    if (barR <= mm(30)) return [];
+    const spokeLen = rInner - barR - mm(2); // gap to avoid overlap
+    const items = [];
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const midR = (barR + rInner) / 2;
+      items.push({
+        x: midR * Math.cos(angle),
+        y: midR * Math.sin(angle),
+        angle: angle,
+        len: spokeLen,
+      });
+    }
+    return items;
+  }, [barR, rInner]);
+
   const spacerBarMat = useMemo(() => new THREE.MeshStandardMaterial({
     color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
     metalness: 0.6, roughness: 0.4
@@ -322,6 +340,15 @@ function CircleFrame({ diameter, depth, mat, glassMat, spacerColor }) {
           <mesh geometry={ringBarGeos.spacer} castShadow receiveShadow>
             <primitive object={spacerBarMat} attach="material" />
           </mesh>
+          {/* 6 radial spokes */}
+          {spokes.map((s, i) => (
+            <group key={`s${i}`} position={[s.x, s.y, 0]} rotation={[0, 0, s.angle]}>
+              <mesh castShadow receiveShadow>
+                <boxGeometry args={[BAR_W, s.len, GU]} />
+                <primitive object={mat} attach="material" />
+              </mesh>
+            </group>
+          ))}
         </group>
       )}
     </group>
