@@ -456,12 +456,12 @@ class EstimateRenderer {
         const sashType = fc.sashType || 'double';
         const headType = fc.headType || 'flat';
         const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
-        const openingType = fc.openingType || openingType || 'both';
+        const openingType = fc.openingType || 'both';
 
         const w = fc.actualFrameWidth || item.width || 1000;
         const h = fc.actualFrameHeight || item.height || 1500;
-        const upperBarsPattern = fc.upperBars || upperBarsPattern || 'none';
-        const lowerBarsPattern = fc.lowerBars || lowerBarsPattern || upperBarsPattern;
+        const upperBarsPattern = fc.upperBars || 'none';
+        const lowerBarsPattern = fc.lowerBars || upperBarsPattern;
         const fixUpperBarsPattern = fc.fixUpperBars || 'none';
         const fixLowerBarsPattern = fc.fixLowerBars || fixUpperBarsPattern;
         const stroke = 'rgba(10,22,40,.7)';
