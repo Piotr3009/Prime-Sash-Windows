@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { Text, Line } from '@react-three/drei';
 import CasementPanel from '../casement/CasementPanel';
 import CasementGlazing, { GLASS_UNIT_DEPTH } from '../casement/CasementGlazing';
+import CurvedProfileBeads from './CurvedProfileBeads';
 
 const mm = (v) => v / 1000;
 
@@ -126,6 +127,7 @@ function CircleFrame({ diameter, depth, mat, glassMat, spacerColor }) {
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      <CurvedProfileBeads innerPts={innerPts} frameDepth={depth} frameMat={mat} />
     </group>
   );
 }
@@ -174,6 +176,7 @@ function GothicArchFrame({ width, height, depth, mat, glassMat, spacerColor, got
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      <CurvedProfileBeads innerPts={innerPts} frameDepth={depth} frameMat={mat} />
       {bars.map((b, i) => (
         <mesh key={i} position={b.pos} castShadow receiveShadow>
           <boxGeometry args={b.args} /><primitive object={mat} attach="material" />
@@ -203,6 +206,7 @@ function SemiCircleFrame({ width, height, depth, mat, glassMat, spacerColor }) {
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      <CurvedProfileBeads innerPts={innerPts} frameDepth={depth} frameMat={mat} />
     </group>
   );
 }
@@ -235,6 +239,7 @@ function SegmentalFrame({ width, height, depth, mat, glassMat, spacerColor, cust
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      <CurvedProfileBeads innerPts={innerPts} frameDepth={depth} frameMat={mat} />
     </group>
   );
 }
@@ -270,6 +275,7 @@ function EllipticalFrame({ width, height, depth, mat, glassMat, spacerColor, cus
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      <CurvedProfileBeads innerPts={innerPts} frameDepth={depth} frameMat={mat} />
     </group>
   );
 }
