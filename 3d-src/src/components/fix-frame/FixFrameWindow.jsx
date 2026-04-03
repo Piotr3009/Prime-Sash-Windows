@@ -2,6 +2,10 @@
  * FixFrameWindow.jsx
  * Fixed frame only — no outer frame, no handles, no opening.
  * Shapes: rectangle, circle, gothic-arch, semi-circle, segmental-arch, elliptical-arch
+ * 
+ * Gothic arch: TRUE equilateral pointed arch — two circular arcs, radius = span,
+ * centers at opposite springing points. Rise = span × √3/2 ≈ 0.866 × span.
+ * Frame is constant 57mm (FRAME_FACE) everywhere.
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
@@ -9,8 +13,8 @@ import CasementPanel from '../casement/CasementPanel';
 
 const mm = (v) => v / 1000;
 
-const FRAME_FACE = { standard: 64, fd30: 64, fd60: 100 };
-const FRAME_DEPTH = 57;
+const FRAME_FACE = 64;   // frame face width mm (constant for all types)
+const FRAME_DEPTH = { standard: 57, fd30: 57, fd60: 100 };
 
 /* ─── Glass material ─── */
 function useGlassMaterial(finish) {
@@ -23,31 +27,33 @@ function useGlassMaterial(finish) {
   }, [finish]);
 }
 
-/* ─── Circle shape helper ─── */
-function makeCirclePath(cx, cy, r, segs = 64) {
+/* ─── Arc point generators ─── */
+function arcPoints(cx, cy, r, startAngle, endAngle, segs) {
   const pts = [];
   for (let i = 0; i <= segs; i++) {
-    const a = (i / segs) * Math.PI * 2;
-    pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    const t = i / segs;
+    const a = startAngle + t * (endAngle - startAngle);
+    pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
   }
   return pts;
 }
 
 /* ─── Circular frame ─── */
-function CircleFrame({ diameter, frameFace, mat, glassMat }) {
+function CircleFrame({ diameter, depth, mat, glassMat }) {
   const R = mm(diameter) / 2;
-  const fw = mm(frameFace);
+  const fw = mm(FRAME_FACE);
   const rInner = Math.max(R - fw, mm(20));
-  const D = mm(FRAME_DEPTH);
+  const D = mm(depth);
 
   const frameGeo = useMemo(() => {
+    const segs = 64;
     const shape = new THREE.Shape();
-    const outer = makeCirclePath(0, 0, R);
+    const outer = arcPoints(0, 0, R, 0, Math.PI * 2, segs);
     shape.moveTo(outer[0][0], outer[0][1]);
     for (let i = 1; i < outer.length; i++) shape.lineTo(outer[i][0], outer[i][1]);
 
     const hole = new THREE.Path();
-    const inner = makeCirclePath(0, 0, rInner);
+    const inner = arcPoints(0, 0, rInner, 0, Math.PI * 2, segs);
     hole.moveTo(inner[0][0], inner[0][1]);
     for (let i = 1; i < inner.length; i++) hole.lineTo(inner[i][0], inner[i][1]);
     shape.holes.push(hole);
@@ -72,65 +78,67 @@ function CircleFrame({ diameter, frameFace, mat, glassMat }) {
   );
 }
 
-/* ─── Arch contour builder ─── */
-function archTopY(x, halfW, wallH, archRise, type) {
-  const nx = halfW > 0 ? x / halfW : 0; // -1..1
-  switch (type) {
-    case 'gothic-arch':
-      return wallH + archRise * Math.pow(1 - Math.abs(nx), 0.6);
-    case 'semi-circle': {
-      const t = 1 - nx * nx;
-      return wallH + archRise * Math.sqrt(Math.max(0, t));
-    }
-    case 'segmental-arch':
-      return wallH + archRise * (1 - nx * nx) * 0.7;
-    case 'elliptical-arch':
-      return wallH + archRise * Math.sqrt(Math.max(0, 1 - nx * nx));
-    default:
-      return wallH + archRise;
-  }
-}
-
-/* ─── Arched frame ─── */
-function ArchFrame({ width, height, archType, frameFace, mat, glassMat }) {
-  const W = mm(width);
-  const H = mm(height);
-  const fw = mm(frameFace);
-  const D = mm(FRAME_DEPTH);
+/* ═══════════════════════════════════════════════════════
+   GOTHIC ARCH — true equilateral pointed arch
+   Two circular arcs, radius = span, centers at opposite
+   springing points. Constant frame width everywhere.
+   ═══════════════════════════════════════════════════════ */
+function GothicArchFrame({ width, height, depth, mat, glassMat }) {
+  const W = mm(width);   // outer width
+  const H = mm(height);  // outer total height
+  const fw = mm(FRAME_FACE);
+  const D = mm(depth);
   const halfW = W / 2;
+
+  // Equilateral gothic: rise = span × √3/2
+  const archRise = W * Math.sqrt(3) / 2;
+  // Springing line (where arches begin, measured from bottom)
+  const straightWall = Math.max(H - archRise, mm(50));
+  // Springing Y in centered coords
+  const springY = -H / 2 + straightWall;
+
   const segs = 48;
-  const wallH = H * 0.55;
-  const archRise = H - wallH;
 
   const frameGeo = useMemo(() => {
-    // Outer contour: bottom-left → bottom-right → arch top (right to left)
+    // ── OUTER contour ──
+    // Right arc: center at LEFT springing point (-halfW, springY), radius W
+    // From angle 0 (right springing) to π/3 (peak)
+    const rightArc = arcPoints(-halfW, springY, W, 0, Math.PI / 3, segs);
+    // Left arc: center at RIGHT springing point (halfW, springY), radius W
+    // From angle 2π/3 (peak) to π (left springing)
+    const leftArc = arcPoints(halfW, springY, W, 2 * Math.PI / 3, Math.PI, segs);
+
     const shape = new THREE.Shape();
-    shape.moveTo(-halfW, -H / 2);
-    shape.lineTo(halfW, -H / 2);
-    shape.lineTo(halfW, -H / 2 + wallH);
-    for (let i = 0; i <= segs; i++) {
-      const x = halfW - (i / segs) * W;
-      const y = archTopY(x, halfW, wallH, archRise, archType) - H / 2;
-      shape.lineTo(x, y);
-    }
-    shape.lineTo(-halfW, -H / 2 + wallH);
+    shape.moveTo(-halfW, -H / 2);          // bottom-left
+    shape.lineTo(halfW, -H / 2);           // bottom-right
+    shape.lineTo(halfW, springY);           // right springing
+    // Right arc up to peak
+    for (let i = 0; i < rightArc.length; i++) shape.lineTo(rightArc[i][0], rightArc[i][1]);
+    // Left arc from peak down to left springing
+    for (let i = 0; i < leftArc.length; i++) shape.lineTo(leftArc[i][0], leftArc[i][1]);
+    shape.lineTo(-halfW, springY);          // left springing
     shape.closePath();
 
-    // Inner hole
-    const iHW = halfW - fw;
-    const iWallH = wallH - fw;
-    const iRise = archRise - fw * 0.5;
+    // ── INNER contour (hole) — offset inward by fw ──
+    const iHalfW = halfW - fw;
+    const iSpringY = springY + fw; // inner springing is fw above outer
+    // Inner arcs: same centers, radius = W - fw
+    const Ri = W - fw;
+    const iRightArc = arcPoints(-halfW, springY, Ri, 0, Math.PI / 3, segs);
+    const iLeftArc = arcPoints(halfW, springY, Ri, 2 * Math.PI / 3, Math.PI, segs);
+
     const hole = new THREE.Path();
-    hole.moveTo(-iHW, -H / 2 + fw);
-    hole.lineTo(iHW, -H / 2 + fw);
-    hole.lineTo(iHW, -H / 2 + fw + iWallH);
-    for (let i = 0; i <= segs; i++) {
-      const xi = iHW - (i / segs) * (iHW * 2);
-      const xOuter = xi * (halfW / Math.max(iHW, 0.001));
-      const y = archTopY(xOuter, halfW, wallH, archRise, archType) - H / 2 - fw;
-      hole.lineTo(xi, Math.max(y, -H / 2 + fw));
-    }
-    hole.lineTo(-iHW, -H / 2 + fw + iWallH);
+    hole.moveTo(-iHalfW, -H / 2 + fw);     // inner bottom-left
+    hole.lineTo(iHalfW, -H / 2 + fw);      // inner bottom-right
+    // Inner right stile up to where arc begins
+    // The inner arc at angle 0: x = -halfW + Ri, y = springY
+    // We need to go up the inner stile to meet the arc
+    hole.lineTo(iHalfW, springY);
+    // Inner right arc
+    for (let i = 0; i < iRightArc.length; i++) hole.lineTo(iRightArc[i][0], iRightArc[i][1]);
+    // Inner left arc
+    for (let i = 0; i < iLeftArc.length; i++) hole.lineTo(iLeftArc[i][0], iLeftArc[i][1]);
+    hole.lineTo(-iHalfW, springY);
     hole.closePath();
     shape.holes.push(hole);
 
@@ -138,29 +146,28 @@ function ArchFrame({ width, height, archType, frameFace, mat, glassMat }) {
     geo.translate(0, 0, -D / 2);
     geo.computeVertexNormals();
     return geo;
-  }, [W, H, fw, D, halfW, wallH, archRise, segs, archType]);
+  }, [W, H, fw, D, halfW, springY, archRise, segs]);
 
-  // Glass — inner contour as flat shape
+  // Glass — inner contour
   const glassGeo = useMemo(() => {
-    const iHW = halfW - fw;
-    const iWallH = wallH - fw;
-    const iRise = archRise - fw * 0.5;
+    const iHalfW = halfW - fw;
+    const Ri = W - fw;
+    const iRightArc = arcPoints(-halfW, springY, Ri, 0, Math.PI / 3, segs);
+    const iLeftArc = arcPoints(halfW, springY, Ri, 2 * Math.PI / 3, Math.PI, segs);
+
     const shape = new THREE.Shape();
-    shape.moveTo(-iHW, -H / 2 + fw);
-    shape.lineTo(iHW, -H / 2 + fw);
-    shape.lineTo(iHW, -H / 2 + fw + iWallH);
-    for (let i = 0; i <= segs; i++) {
-      const xi = iHW - (i / segs) * (iHW * 2);
-      const xOuter = xi * (halfW / Math.max(iHW, 0.001));
-      const y = archTopY(xOuter, halfW, wallH, archRise, archType) - H / 2 - fw;
-      shape.lineTo(xi, Math.max(y, -H / 2 + fw));
-    }
-    shape.lineTo(-iHW, -H / 2 + fw + iWallH);
+    shape.moveTo(-iHalfW, -H / 2 + fw);
+    shape.lineTo(iHalfW, -H / 2 + fw);
+    shape.lineTo(iHalfW, springY);
+    for (let i = 0; i < iRightArc.length; i++) shape.lineTo(iRightArc[i][0], iRightArc[i][1]);
+    for (let i = 0; i < iLeftArc.length; i++) shape.lineTo(iLeftArc[i][0], iLeftArc[i][1]);
+    shape.lineTo(-iHalfW, springY);
     shape.closePath();
+
     const geo = new THREE.ShapeGeometry(shape, 1);
     geo.computeVertexNormals();
     return geo;
-  }, [W, H, fw, halfW, wallH, archRise, segs, archType]);
+  }, [W, H, fw, halfW, springY, segs]);
 
   return (
     <group>
@@ -174,7 +181,218 @@ function ArchFrame({ width, height, archType, frameFace, mat, glassMat }) {
   );
 }
 
-/* ─── Main component ─── */
+/* ═══════════════════════════════════════════════════════
+   SEMI-CIRCLE ARCH — half circle on top of straight walls
+   ═══════════════════════════════════════════════════════ */
+function SemiCircleFrame({ width, height, depth, mat, glassMat }) {
+  const W = mm(width);
+  const H = mm(height);
+  const fw = mm(FRAME_FACE);
+  const D = mm(depth);
+  const halfW = W / 2;
+  const archRise = halfW; // semi-circle rise = radius = half width
+  const straightWall = Math.max(H - archRise, mm(50));
+  const springY = -H / 2 + straightWall;
+  const segs = 48;
+
+  const frameGeo = useMemo(() => {
+    const outerArc = arcPoints(0, springY, halfW, 0, Math.PI, segs);
+    const shape = new THREE.Shape();
+    shape.moveTo(-halfW, -H / 2);
+    shape.lineTo(halfW, -H / 2);
+    shape.lineTo(halfW, springY);
+    for (let i = 0; i < outerArc.length; i++) shape.lineTo(outerArc[i][0], outerArc[i][1]);
+    shape.lineTo(-halfW, springY);
+    shape.closePath();
+
+    const iHalfW = halfW - fw;
+    const innerArc = arcPoints(0, springY, iHalfW, 0, Math.PI, segs);
+    const hole = new THREE.Path();
+    hole.moveTo(-iHalfW, -H / 2 + fw);
+    hole.lineTo(iHalfW, -H / 2 + fw);
+    hole.lineTo(iHalfW, springY);
+    for (let i = 0; i < innerArc.length; i++) hole.lineTo(innerArc[i][0], innerArc[i][1]);
+    hole.lineTo(-iHalfW, springY);
+    hole.closePath();
+    shape.holes.push(hole);
+
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: D, bevelEnabled: false });
+    geo.translate(0, 0, -D / 2);
+    geo.computeVertexNormals();
+    return geo;
+  }, [W, H, fw, D, halfW, springY, segs]);
+
+  const glassGeo = useMemo(() => {
+    const iHalfW = halfW - fw;
+    const innerArc = arcPoints(0, springY, iHalfW, 0, Math.PI, segs);
+    const shape = new THREE.Shape();
+    shape.moveTo(-iHalfW, -H / 2 + fw);
+    shape.lineTo(iHalfW, -H / 2 + fw);
+    shape.lineTo(iHalfW, springY);
+    for (let i = 0; i < innerArc.length; i++) shape.lineTo(innerArc[i][0], innerArc[i][1]);
+    shape.lineTo(-iHalfW, springY);
+    shape.closePath();
+    return new THREE.ShapeGeometry(shape, 1);
+  }, [W, H, fw, halfW, springY, segs]);
+
+  return (
+    <group>
+      <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+      <mesh geometry={glassGeo} castShadow={false} receiveShadow><primitive object={glassMat} attach="material" /></mesh>
+    </group>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   SEGMENTAL ARCH — flatter circular arc (rise ≈ W/4)
+   ═══════════════════════════════════════════════════════ */
+function SegmentalFrame({ width, height, depth, mat, glassMat }) {
+  const W = mm(width);
+  const H = mm(height);
+  const fw = mm(FRAME_FACE);
+  const D = mm(depth);
+  const halfW = W / 2;
+  const rise = halfW * 0.4; // segmental — flatter
+  // Compute radius from chord and rise: R = (rise² + halfW²) / (2 * rise)
+  const R = (rise * rise + halfW * halfW) / (2 * rise);
+  const cy = -H / 2 + (H - rise) - (R - rise); // center Y
+  const springY = -H / 2 + (H - rise);
+  // Start/end angles
+  const startAngle = Math.asin(halfW / R);
+  const segs = 48;
+
+  const frameGeo = useMemo(() => {
+    const outerArc = arcPoints(0, cy, R, Math.PI / 2 + startAngle, Math.PI / 2 - startAngle, segs);
+    // flip to go left-to-right at top
+    const shape = new THREE.Shape();
+    shape.moveTo(-halfW, -H / 2);
+    shape.lineTo(halfW, -H / 2);
+    shape.lineTo(halfW, springY);
+    // Arc from right to left across the top
+    const topArc = arcPoints(0, cy, R, Math.PI / 2 - startAngle, Math.PI / 2 + startAngle, segs);
+    for (const p of topArc) shape.lineTo(p[0], p[1]);
+    shape.lineTo(-halfW, springY);
+    shape.closePath();
+
+    const iHalfW = halfW - fw;
+    const Ri = R - fw;
+    const iStartAngle = Math.asin(Math.min(iHalfW / Ri, 1));
+    const innerArc = arcPoints(0, cy, Ri, Math.PI / 2 - iStartAngle, Math.PI / 2 + iStartAngle, segs);
+    const hole = new THREE.Path();
+    hole.moveTo(-iHalfW, -H / 2 + fw);
+    hole.lineTo(iHalfW, -H / 2 + fw);
+    hole.lineTo(iHalfW, springY);
+    for (const p of innerArc) hole.lineTo(p[0], p[1]);
+    hole.lineTo(-iHalfW, springY);
+    hole.closePath();
+    shape.holes.push(hole);
+
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: D, bevelEnabled: false });
+    geo.translate(0, 0, -D / 2);
+    geo.computeVertexNormals();
+    return geo;
+  }, [W, H, fw, D, halfW, springY, R, cy, startAngle, segs]);
+
+  const glassGeo = useMemo(() => {
+    const iHalfW = halfW - fw;
+    const Ri = R - fw;
+    const iStartAngle = Math.asin(Math.min(iHalfW / Ri, 1));
+    const innerArc = arcPoints(0, cy, Ri, Math.PI / 2 - iStartAngle, Math.PI / 2 + iStartAngle, segs);
+    const shape = new THREE.Shape();
+    shape.moveTo(-iHalfW, -H / 2 + fw);
+    shape.lineTo(iHalfW, -H / 2 + fw);
+    shape.lineTo(iHalfW, springY);
+    for (const p of innerArc) shape.lineTo(p[0], p[1]);
+    shape.lineTo(-iHalfW, springY);
+    shape.closePath();
+    return new THREE.ShapeGeometry(shape, 1);
+  }, [W, H, fw, halfW, springY, R, cy, segs]);
+
+  return (
+    <group>
+      <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+      <mesh geometry={glassGeo} castShadow={false} receiveShadow><primitive object={glassMat} attach="material" /></mesh>
+    </group>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   ELLIPTICAL ARCH — ellipse top
+   ═══════════════════════════════════════════════════════ */
+function EllipticalFrame({ width, height, depth, mat, glassMat }) {
+  const W = mm(width);
+  const H = mm(height);
+  const fw = mm(FRAME_FACE);
+  const D = mm(depth);
+  const halfW = W / 2;
+  const rise = halfW * 0.65; // elliptical rise
+  const straightWall = Math.max(H - rise, mm(50));
+  const springY = -H / 2 + straightWall;
+  const segs = 48;
+
+  function ellipseArc(a, b, cY, segments, invert) {
+    const pts = [];
+    for (let i = 0; i <= segments; i++) {
+      const t = i / segments;
+      const angle = invert ? Math.PI - t * Math.PI : t * Math.PI;
+      pts.push([a * Math.cos(angle), cY + b * Math.sin(angle)]);
+    }
+    return pts;
+  }
+
+  const frameGeo = useMemo(() => {
+    const outerArc = ellipseArc(halfW, rise, springY, segs, false);
+    const shape = new THREE.Shape();
+    shape.moveTo(-halfW, -H / 2);
+    shape.lineTo(halfW, -H / 2);
+    shape.lineTo(halfW, springY);
+    for (const p of outerArc) shape.lineTo(p[0], p[1]);
+    shape.lineTo(-halfW, springY);
+    shape.closePath();
+
+    const iHalfW = halfW - fw;
+    const iRise = Math.max(rise - fw, mm(10));
+    const innerArc = ellipseArc(iHalfW, iRise, springY, segs, false);
+    const hole = new THREE.Path();
+    hole.moveTo(-iHalfW, -H / 2 + fw);
+    hole.lineTo(iHalfW, -H / 2 + fw);
+    hole.lineTo(iHalfW, springY);
+    for (const p of innerArc) hole.lineTo(p[0], p[1]);
+    hole.lineTo(-iHalfW, springY);
+    hole.closePath();
+    shape.holes.push(hole);
+
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: D, bevelEnabled: false });
+    geo.translate(0, 0, -D / 2);
+    geo.computeVertexNormals();
+    return geo;
+  }, [W, H, fw, D, halfW, rise, springY, segs]);
+
+  const glassGeo = useMemo(() => {
+    const iHalfW = halfW - fw;
+    const iRise = Math.max(rise - fw, mm(10));
+    const innerArc = ellipseArc(iHalfW, iRise, springY, segs, false);
+    const shape = new THREE.Shape();
+    shape.moveTo(-iHalfW, -H / 2 + fw);
+    shape.lineTo(iHalfW, -H / 2 + fw);
+    shape.lineTo(iHalfW, springY);
+    for (const p of innerArc) shape.lineTo(p[0], p[1]);
+    shape.lineTo(-iHalfW, springY);
+    shape.closePath();
+    return new THREE.ShapeGeometry(shape, 1);
+  }, [W, H, fw, halfW, rise, springY, segs]);
+
+  return (
+    <group>
+      <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+      <mesh geometry={glassGeo} castShadow={false} receiveShadow><primitive object={glassMat} attach="material" /></mesh>
+    </group>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════════════════ */
 export default function FixFrameWindow({
   width = 600,
   height = 800,
@@ -192,7 +410,7 @@ export default function FixFrameWindow({
 }) {
   const cExt = sameColor ? woodColor : woodColorExt;
   const cInt = sameColor ? woodColor : woodColorInt;
-  const frameFace = FRAME_FACE[fixType] || 64;
+  const depth = FRAME_DEPTH[fixType] || 57;
 
   const extMaterial = useMemo(
     () => new THREE.MeshPhysicalMaterial({ color: cExt, roughness: 0.72, metalness: 0.02, clearcoat: 0.06, clearcoatRoughness: 0.4 }),
@@ -205,15 +423,24 @@ export default function FixFrameWindow({
   const glassMat = useGlassMaterial(glassFinish);
 
   if (fixShape === 'circle') {
-    return (
-      <CircleFrame diameter={width} frameFace={frameFace} mat={extMaterial} matInt={intMaterial} glassMat={glassMat} />
-    );
+    return <CircleFrame diameter={width} depth={depth} mat={extMaterial} glassMat={glassMat} />;
   }
-
-  if (['gothic-arch', 'semi-circle', 'segmental-arch', 'elliptical-arch'].includes(fixShape)) {
-    return (
-      <ArchFrame width={width} height={height} archType={fixShape} frameFace={frameFace} mat={extMaterial} matInt={intMaterial} glassMat={glassMat} />
-    );
+  if (fixShape === 'gothic-arch') {
+    // Auto-calculate min height for equilateral arch
+    const minH = width * Math.sqrt(3) / 2 + 50; // arch rise + min wall
+    const h = Math.max(height, minH);
+    return <GothicArchFrame width={width} height={h} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+  }
+  if (fixShape === 'semi-circle') {
+    const minH = width / 2 + 50;
+    const h = Math.max(height, minH);
+    return <SemiCircleFrame width={width} height={h} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+  }
+  if (fixShape === 'segmental-arch') {
+    return <SegmentalFrame width={width} height={height} depth={depth} mat={extMaterial} glassMat={glassMat} />;
+  }
+  if (fixShape === 'elliptical-arch') {
+    return <EllipticalFrame width={width} height={height} depth={depth} mat={extMaterial} glassMat={glassMat} />;
   }
 
   // Rectangle — reuse CasementPanel fixed
