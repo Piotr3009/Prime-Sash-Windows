@@ -784,6 +784,8 @@ export default function App() {
     if (s.sillExtension !== undefined) setSillExtension(s.sillExtension);
     if (s.sillWider !== undefined) setSillWider(s.sillWider);
     if (s.sealColour !== undefined) setSealColour(s.sealColour);
+    if (s.fixShape !== undefined) setFixShape(s.fixShape);
+    if (s.fixType !== undefined) setFixType(s.fixType);
   }
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
@@ -908,6 +910,8 @@ export default function App() {
       sillExtension,
       sillWider,
       sealColour,
+      fixShape,
+      fixType,
     }),
     [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType],
   );
