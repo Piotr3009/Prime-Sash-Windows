@@ -14,6 +14,14 @@ const FRAME_FACE = 64;
 const FRAME_DEPTH = { standard: 57, fd30: 57, fd60: 100 };
 const GU = mm(GLASS_UNIT_DEPTH);
 
+// ─── Bar dimensions (copied from CasementGlazing) ───
+const BAR_W = mm(22);
+const BAR_TOP = mm(2);
+const BAR_H = mm(16.5);
+const SPACER_BAR_W = mm(18);
+const SPACER_DEPTH = mm(16);
+const glassHalf = GU / 2;
+
 /* ─── Arc helpers ─── */
 function arcPoints(cx, cy, r, startAngle, endAngle, segs) {
   const pts = [];
@@ -61,6 +69,110 @@ function makeFrameGeo(outerPts, innerPts, depth) {
   geo.translate(0, 0, -depth / 2);
   geo.computeVertexNormals();
   return geo;
+}
+
+/* ─── Bar profile shapes (copied from CasementGlazing) ─── */
+function useTrapV() {
+  return useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(-BAR_W/2, 0); s.lineTo(-BAR_TOP/2, BAR_H); s.lineTo(BAR_TOP/2, BAR_H); s.lineTo(BAR_W/2, 0);
+    s.closePath(); return s;
+  }, []);
+}
+function useTrapH() {
+  return useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0, -BAR_W/2); s.lineTo(BAR_H, -BAR_TOP/2); s.lineTo(BAR_H, BAR_TOP/2); s.lineTo(0, BAR_W/2);
+    s.closePath(); return s;
+  }, []);
+}
+function useOvoloV() {
+  return useMemo(() => {
+    const drop = mm(2), sqH = mm(2);
+    const s = new THREE.Shape();
+    s.moveTo(-BAR_W/2, 0);
+    s.quadraticCurveTo(-BAR_W/2, BAR_H-drop-sqH, -BAR_TOP/2, BAR_H-sqH);
+    s.lineTo(-BAR_TOP/2, BAR_H); s.lineTo(BAR_TOP/2, BAR_H); s.lineTo(BAR_TOP/2, BAR_H-sqH);
+    s.quadraticCurveTo(BAR_W/2, BAR_H-drop-sqH, BAR_W/2, 0);
+    s.closePath(); return s;
+  }, []);
+}
+function useOvoloH() {
+  return useMemo(() => {
+    const drop = mm(2), sqH = mm(2);
+    const s = new THREE.Shape();
+    s.moveTo(0, -BAR_W/2);
+    s.quadraticCurveTo(BAR_H-drop-sqH, -BAR_W/2, BAR_H-sqH, -BAR_TOP/2);
+    s.lineTo(BAR_H, -BAR_TOP/2); s.lineTo(BAR_H, BAR_TOP/2); s.lineTo(BAR_H-sqH, BAR_TOP/2);
+    s.quadraticCurveTo(BAR_H-drop-sqH, BAR_W/2, 0, BAR_W/2);
+    s.closePath(); return s;
+  }, []);
+}
+
+/* ─── Profiled bar rendering (3 parts: trap + ovolo + spacer) ─── */
+function FixBars({ barItems, matExt, matInt }) {
+  const trapV = useTrapV();
+  const trapH = useTrapH();
+  const ovoloV = useOvoloV();
+  const ovoloH = useOvoloH();
+
+  const spacerMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#a0a4a8', metalness: 0.6, roughness: 0.4
+  }), []);
+
+  // Pre-build geometries per unique length
+  const geos = useMemo(() => {
+    const map = {};
+    barItems.forEach(b => {
+      const key = `${b.type}_${b.len.toFixed(6)}`;
+      if (map[key]) return;
+      const len = b.len + mm(18); // overshoot like casement
+      if (b.type === 'v') {
+        const vExt = new THREE.ExtrudeGeometry(trapV, { depth: len, bevelEnabled: false });
+        vExt.rotateX(-Math.PI/2); vExt.translate(0, -len/2, 0); vExt.computeVertexNormals();
+        const vInt = new THREE.ExtrudeGeometry(ovoloV, { depth: len, bevelEnabled: false, curveSegments: 32 });
+        vInt.rotateX(-Math.PI/2); vInt.translate(0, -len/2, 0); vInt.computeVertexNormals();
+        map[key] = { ext: vExt, int: vInt };
+      } else {
+        const hExt = new THREE.ExtrudeGeometry(trapH, { depth: b.len + mm(18), bevelEnabled: false });
+        hExt.rotateY(Math.PI/2); hExt.translate(-(b.len + mm(18))/2, 0, 0); hExt.computeVertexNormals();
+        const hInt = new THREE.ExtrudeGeometry(ovoloH, { depth: b.len + mm(18), bevelEnabled: false, curveSegments: 32 });
+        hInt.rotateY(Math.PI/2); hInt.translate(-(b.len + mm(18))/2, 0, 0); hInt.computeVertexNormals();
+        map[key] = { ext: hExt, int: hInt };
+      }
+    });
+    return map;
+  }, [barItems, trapV, trapH, ovoloV, ovoloH]);
+
+  return (
+    <group>
+      {barItems.map((bar, i) => {
+        const key = `${bar.type}_${bar.len.toFixed(6)}`;
+        const g = geos[key];
+        if (!g) return null;
+        return (
+          <group key={i} position={[bar.x, bar.y, 0]}>
+            {/* Exterior — trapezoid */}
+            <mesh geometry={g.ext} position={[0, 0, glassHalf]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
+              <primitive object={matExt} attach="material" />
+            </mesh>
+            {/* Interior — ovolo */}
+            <mesh geometry={g.int} position={[0, 0, -glassHalf]} castShadow receiveShadow>
+              <primitive object={matInt} attach="material" />
+            </mesh>
+            {/* Spacer between panes */}
+            <mesh castShadow receiveShadow>
+              {bar.type === 'v'
+                ? <boxGeometry args={[SPACER_BAR_W, bar.len, SPACER_DEPTH]} />
+                : <boxGeometry args={[bar.len, SPACER_BAR_W, SPACER_DEPTH]} />
+              }
+              <primitive object={spacerMat} attach="material" />
+            </mesh>
+          </group>
+        );
+      })}
+    </group>
+  );
 }
 
 /* ─── Curved glass ─── */
@@ -131,7 +243,6 @@ function GothicArchFrame({ width, height, depth, mat, glassMat, spacerColor, got
   const straightWall = Math.max(H - archRise, mm(50));
   const springY = -H / 2 + straightWall;
   const segs = 48;
-  const BAR_W = mm(22); const BAR_D = mm(16);
   const iHalfW = halfW - fw; const Ri = W - fw; const iBottom = -H / 2 + fw;
 
   function archYAtX(x) {
@@ -152,56 +263,65 @@ function GothicArchFrame({ width, height, depth, mat, glassMat, spacerColor, got
   const bars = useMemo(() => {
     if (gothicBars !== 'patternA') return [];
     const result = [];
-    result.push({ args: [iHalfW * 2, BAR_W, BAR_D], pos: [0, springY, 0] });
+    // Horizontal bar at springing line
+    result.push({ type: 'h', x: 0, y: springY, len: iHalfW * 2 });
+    // 2 vertical bars at 1/3 and 2/3
     const x1 = -iHalfW + (iHalfW * 2) / 3;
     const x2 = -iHalfW + (iHalfW * 2) * 2 / 3;
     for (const x of [x1, x2]) {
       const topY = archYAtX(x) - BAR_W / 2;
       const barH = topY - iBottom;
-      if (barH > 0) result.push({ args: [BAR_W, barH, BAR_D], pos: [x, iBottom + barH / 2, 0] });
+      if (barH > 0) result.push({ type: 'v', x: x, y: iBottom + barH / 2, len: barH });
     }
     return result;
-  }, [gothicBars, iHalfW, iBottom, springY, BAR_W, BAR_D]);
+  }, [gothicBars, iHalfW, iBottom, springY]);
 
   return (
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
-      {bars.map((b, i) => (
-        <mesh key={i} position={b.pos} castShadow receiveShadow>
-          <boxGeometry args={b.args} /><primitive object={mat} attach="material" />
-        </mesh>
-      ))}
+      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={mat} />}
     </group>
   );
 }
 
 /* ═══ SEMI-CIRCLE ═══ */
-function SemiCircleFrame({ width, height, depth, mat, glassMat, spacerColor }) {
+function SemiCircleFrame({ width, height, depth, mat, glassMat, spacerColor, hBars = 0, vBars = 0 }) {
   const W = mm(width); const H = mm(height); const fw = mm(FRAME_FACE);
   const D = mm(depth); const halfW = W / 2;
   const springY = -H / 2 + Math.max(H - halfW, mm(50));
+  const iHalfW = halfW - fw;
+  const iBottom = -H / 2 + fw;
   const segs = 48;
 
   const { frameGeo, innerPts } = useMemo(() => {
     const outerArc = arcPoints(0, springY, halfW, 0, Math.PI, segs);
     const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...outerArc, [-halfW, springY]];
-    const iHalfW = halfW - fw;
     const innerArc = arcPoints(0, springY, iHalfW, 0, Math.PI, segs);
-    const inner = [[-iHalfW, -H/2+fw], [iHalfW, -H/2+fw], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
+    const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
-  }, [W, H, D, halfW, springY]);
+  }, [W, H, D, halfW, springY, iHalfW, iBottom]);
+
+  const bars = useMemo(() => {
+    const items = [];
+    const glassW = iHalfW * 2;
+    const glassH = springY - iBottom;
+    for (let i = 1; i <= (hBars||0); i++) items.push({ type:'h', x:0, y: iBottom + (glassH/(hBars+1))*i, len: glassW });
+    for (let i = 1; i <= (vBars||0); i++) items.push({ type:'v', x: -iHalfW + (glassW/(vBars+1))*i, y: iBottom + glassH/2, len: glassH });
+    return items;
+  }, [hBars, vBars, iHalfW, iBottom, springY]);
 
   return (
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={mat} />}
     </group>
   );
 }
 
 /* ═══ SEGMENTAL ═══ */
-function SegmentalFrame({ width, height, depth, mat, glassMat, spacerColor, customRise = 0 }) {
+function SegmentalFrame({ width, height, depth, mat, glassMat, spacerColor, customRise = 0, hBars = 0, vBars = 0 }) {
   const W = mm(width); const H = mm(height); const fw = mm(FRAME_FACE);
   const D = mm(depth); const halfW = W / 2;
   const rise = customRise > 0 ? mm(customRise) : halfW * 0.4;
@@ -209,35 +329,48 @@ function SegmentalFrame({ width, height, depth, mat, glassMat, spacerColor, cust
   const cy = -H/2 + (H - rise) - (R - rise);
   const springY = -H/2 + (H - rise);
   const startAngle = Math.asin(Math.min(halfW / R, 1));
+  const iHalfW = halfW - fw;
+  const iBottom = -H/2 + fw;
   const segs = 48;
 
   const { frameGeo, innerPts } = useMemo(() => {
     const topArc = arcPoints(0, cy, R, Math.PI/2 - startAngle, Math.PI/2 + startAngle, segs);
     const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...topArc, [-halfW, springY]];
-    const iHalfW = halfW - fw;
     const iRise = Math.max(rise - fw, mm(10));
     const iR = (iRise*iRise + iHalfW*iHalfW) / (2*iRise);
     const iCY = springY - (iR - iRise);
     const iAngle = Math.asin(Math.min(iHalfW / iR, 1));
     const innerArc = arcPoints(0, iCY, iR, Math.PI/2 - iAngle, Math.PI/2 + iAngle, segs);
-    const inner = [[-iHalfW, -H/2+fw], [iHalfW, -H/2+fw], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
+    const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
-  }, [W, H, D, halfW, springY, R, cy, startAngle, rise]);
+  }, [W, H, D, halfW, springY, R, cy, startAngle, rise, iHalfW, iBottom]);
+
+  const bars = useMemo(() => {
+    const items = [];
+    const glassW = iHalfW * 2;
+    const glassH = springY - iBottom;
+    for (let i = 1; i <= (hBars||0); i++) items.push({ type:'h', x:0, y: iBottom + (glassH/(hBars+1))*i, len: glassW });
+    for (let i = 1; i <= (vBars||0); i++) items.push({ type:'v', x: -iHalfW + (glassW/(vBars+1))*i, y: iBottom + glassH/2, len: glassH });
+    return items;
+  }, [hBars, vBars, iHalfW, iBottom, springY]);
 
   return (
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={mat} />}
     </group>
   );
 }
 
 /* ═══ ELLIPTICAL ═══ */
-function EllipticalFrame({ width, height, depth, mat, glassMat, spacerColor, customRise = 0 }) {
+function EllipticalFrame({ width, height, depth, mat, glassMat, spacerColor, customRise = 0, hBars = 0, vBars = 0 }) {
   const W = mm(width); const H = mm(height); const fw = mm(FRAME_FACE);
   const D = mm(depth); const halfW = W / 2;
   const rise = customRise > 0 ? mm(customRise) : halfW * 0.65;
   const springY = -H/2 + Math.max(H - rise, mm(50));
+  const iHalfW = halfW - fw;
+  const iBottom = -H/2 + fw;
   const segs = 48;
 
   function ellipseArc(a, b, cY, segments) {
@@ -252,17 +385,26 @@ function EllipticalFrame({ width, height, depth, mat, glassMat, spacerColor, cus
   const { frameGeo, innerPts } = useMemo(() => {
     const outerArc = ellipseArc(halfW, rise, springY, segs);
     const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...outerArc, [-halfW, springY]];
-    const iHalfW = halfW - fw;
     const iRise = Math.max(rise - fw, mm(10));
     const innerArc = ellipseArc(iHalfW, iRise, springY, segs);
-    const inner = [[-iHalfW, -H/2+fw], [iHalfW, -H/2+fw], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
+    const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
-  }, [W, H, D, halfW, rise, springY]);
+  }, [W, H, D, halfW, rise, springY, iHalfW, iBottom]);
+
+  const bars = useMemo(() => {
+    const items = [];
+    const glassW = iHalfW * 2;
+    const glassH = springY - iBottom;
+    for (let i = 1; i <= (hBars||0); i++) items.push({ type:'h', x:0, y: iBottom + (glassH/(hBars+1))*i, len: glassW });
+    for (let i = 1; i <= (vBars||0); i++) items.push({ type:'v', x: -iHalfW + (glassW/(vBars+1))*i, y: iBottom + glassH/2, len: glassH });
+    return items;
+  }, [hBars, vBars, iHalfW, iBottom, springY]);
 
   return (
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={mat} />}
     </group>
   );
 }
@@ -304,9 +446,9 @@ export default function FixFrameWindow({
   let shapeNode = null;
   if (fixShape === 'circle') shapeNode = <CircleFrame diameter={width} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} />;
   else if (fixShape === 'gothic-arch') shapeNode = <GothicArchFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} gothicBars={fixGothicBars} />;
-  else if (fixShape === 'semi-circle') shapeNode = <SemiCircleFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} />;
-  else if (fixShape === 'segmental-arch') shapeNode = <SegmentalFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} customRise={fixArchRise} />;
-  else if (fixShape === 'elliptical-arch') shapeNode = <EllipticalFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} customRise={fixArchRise} />;
+  else if (fixShape === 'semi-circle') shapeNode = <SemiCircleFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />;
+  else if (fixShape === 'segmental-arch') shapeNode = <SegmentalFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} customRise={fixArchRise} hBars={hBars} vBars={vBars} />;
+  else if (fixShape === 'elliptical-arch') shapeNode = <EllipticalFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} customRise={fixArchRise} hBars={hBars} vBars={vBars} />;
   else shapeNode = <CasementPanel width={width} height={height} hingeType="fixed" opening={0} material={extMat} materialInt={intMat} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} ironmongery="brass" position={[0,0,0]} />;
 
   return (
