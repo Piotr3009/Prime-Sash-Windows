@@ -240,6 +240,8 @@ function CircleFrame({ diameter, depth, mat, glassMat, spacerColor }) {
   const rInner = Math.max(R - fw, mm(20));
   const D = mm(depth);
   const segs = 64;
+  const BAR_OFFSET = mm(200); // offset from frame inner edge
+  const barR = rInner - BAR_OFFSET;
 
   const { frameGeo, innerPts } = useMemo(() => {
     const outer = arcPoints(0, 0, R, 0, Math.PI * 2, segs);
@@ -247,10 +249,81 @@ function CircleFrame({ diameter, depth, mat, glassMat, spacerColor }) {
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
   }, [R, rInner, D]);
 
+  // Circular ring bar — 3 parts like casement bars
+  const ringBarGeos = useMemo(() => {
+    if (barR <= mm(30)) return null; // too small for bar
+
+    function makeRing(outerR, innerR, d) {
+      const shape = new THREE.Shape();
+      const oPts = arcPoints(0, 0, outerR, 0, Math.PI * 2, segs);
+      shape.moveTo(oPts[0][0], oPts[0][1]);
+      for (let i = 1; i < oPts.length; i++) shape.lineTo(oPts[i][0], oPts[i][1]);
+      shape.closePath();
+      const hole = new THREE.Path();
+      const iPts = arcPoints(0, 0, innerR, 0, Math.PI * 2, segs);
+      hole.moveTo(iPts[0][0], iPts[0][1]);
+      for (let i = 1; i < iPts.length; i++) hole.lineTo(iPts[i][0], iPts[i][1]);
+      hole.closePath();
+      shape.holes.push(hole);
+      const g = new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false });
+      g.translate(0, 0, -d / 2);
+      g.computeVertexNormals();
+      return g;
+    }
+
+    // EXT trapezoid: 4 stacked rings, narrowing from BAR_W to BAR_TOP
+    const extLayers = [];
+    const N = 4;
+    const layerD = BAR_H / N;
+    for (let i = 0; i < N; i++) {
+      const t = i / (N - 1);
+      const hw = (BAR_W / 2) * (1 - t) + (BAR_TOP / 2) * t;
+      extLayers.push({ geo: makeRing(barR + hw, barR - hw, layerD), z: glassHalf + (i + 0.5) * layerD });
+    }
+
+    // INT ovolo: 4 stacked rings, narrowing with quarter-circle curve
+    const intLayers = [];
+    for (let i = 0; i < N; i++) {
+      const t = (i + 1) / N;
+      const a = t * (Math.PI / 2);
+      const hw = (BAR_W / 2) * Math.cos(a);
+      const hwSafe = Math.max(hw, BAR_TOP / 2);
+      intLayers.push({ geo: makeRing(barR + hwSafe, barR - hwSafe, layerD), z: -(glassHalf + (i + 0.5) * layerD) });
+    }
+
+    // Spacer between panes
+    const spacer = makeRing(barR + SPACER_BAR_W / 2, barR - SPACER_BAR_W / 2, SPACER_DEPTH);
+
+    return { extLayers, intLayers, spacer };
+  }, [barR, segs]);
+
+  const spacerBarMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
+    metalness: 0.6, roughness: 0.4
+  }), [spacerColor]);
+
   return (
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      {/* Circular ring bar */}
+      {ringBarGeos && (
+        <group>
+          {ringBarGeos.extLayers.map((l, i) => (
+            <mesh key={`e${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
+              <primitive object={mat} attach="material" />
+            </mesh>
+          ))}
+          {ringBarGeos.intLayers.map((l, i) => (
+            <mesh key={`i${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
+              <primitive object={mat} attach="material" />
+            </mesh>
+          ))}
+          <mesh geometry={ringBarGeos.spacer} castShadow receiveShadow>
+            <primitive object={spacerBarMat} attach="material" />
+          </mesh>
+        </group>
+      )}
     </group>
   );
 }
