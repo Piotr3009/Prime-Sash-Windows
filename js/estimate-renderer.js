@@ -78,6 +78,8 @@ class EstimateRenderer {
         let glassFinishText = 'Clear';
         if (glassFinish === 'frosted') {
             glassFinishText = frostedLocation === 'both' ? 'Frosted (Both Sashes)' : 'Frosted (Bottom Only)';
+        } else if (glassFinish === 'obscure') {
+            glassFinishText = 'Obscure';
         }
 
         // HARDWARE FINISH
@@ -206,12 +208,14 @@ class EstimateRenderer {
         const sillExtension = fc.sillExtension || 'none';
         const sillText = sillExtension !== 'none' ? sillExtension + 'mm' : 'None';
         const trickleVent = fc.trickleVent || 'none';
-        const trickleText = trickleVent === 'none' ? 'None' : (trickleVent === 'frame' ? 'On Frame' : 'On Sash');
+        const trickleColour = fc.trickleColour || fc.trickleColor || 'white';
+        const trickleText = trickleVent === 'none' ? 'None' : (trickleVent === 'frame' ? 'On Frame' : 'On Sash') + ' (' + trickleColour + ')';
         const sealColour = fc.sealColour || 'black';
         const safetyGlass = fc.safetyGlass || 'none';
         const safetyGlassText = safetyGlass === 'toughened' ? 'Toughened' : safetyGlass === 'laminate' ? 'Laminate' : 'Standard';
         const glassSpecCasement = fc.glassSpec || 'float';
         const glassSpecCasementText = glassSpecCasement === 'low-e' ? 'Low-E Coated' : 'Float Glass';
+        const fanlightHeight = fc.fanlightHeight || 0;
 
         return {
             fc, spec, windowType, sashType, headType, splitRatio,
@@ -227,9 +231,9 @@ class EstimateRenderer {
             horns, hornsText, pas24,
             ironList, hardwareFinish, quantity,
             casementLayout, casementHBars, casementVBars, casementBarsText,
-            sillExtension, sillText, trickleVent, trickleText,
+            sillExtension, sillText, trickleVent, trickleColour, trickleText,
             sealColour, safetyGlass, safetyGlassText,
-            glassSpecCasement, glassSpecCasementText
+            glassSpecCasement, glassSpecCasementText, fanlightHeight
         };
     }
 
@@ -292,6 +296,7 @@ class EstimateRenderer {
                             ${p.windowType === 'casement' ? `
                             ${R.specRow('Type', 'Casement — Layout ' + p.casementLayout)}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
+                            ${p.fanlightHeight > 0 ? R.specRow('Fanlight Height', p.fanlightHeight + 'mm') : ''}
                             ${R.specRow('Glass', p.glassText)}
                             ${R.specRow('Glass Spec', p.glassSpecCasementText)}
                             ${R.specRow('Glass Finish', p.glassFinishText)}
@@ -453,6 +458,14 @@ class EstimateRenderer {
     static generateWindowSVG(item) {
         const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
         const fc = spec.fullConfig || spec || {};
+
+        // ═══ CASEMENT SVG ═══
+        const windowType = fc.windowType || fc.windowCategory || 'sash';
+        if (windowType === 'casement') {
+            return EstimateRenderer.generateCasementSVG(item, fc);
+        }
+
+        // ═══ SASH SVG (existing code below) ═══
         const sashType = fc.sashType || 'double';
         const headType = fc.headType || 'flat';
         const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
@@ -724,6 +737,337 @@ class EstimateRenderer {
             svg += `<text x="${hDimX + 3}" y="${oy + sh/2 + 2}" ${dimFont} transform="rotate(90,${hDimX + 3},${oy + sh/2})">${h}mm</text>`;
 
             return `<svg width="${svgW}" height="${dimY2 + 18}" viewBox="0 0 ${svgW} ${dimY2 + 18}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
+        }
+    }
+
+    // ═══ CASEMENT SVG GENERATOR ═══
+    static generateCasementSVG(item, fc) {
+        const layout = fc.casementLayout || fc.layout || '040L';
+        const w = fc.width || item.width || 1000;
+        const h = fc.height || item.height || 1200;
+        const hBars = fc.casementHBars || fc.hBars || 0;
+        const vBars = fc.casementVBars || fc.vBars || 0;
+        const fanlightHeight = fc.fanlightHeight || 0;
+        const FR = fanlightHeight > 0 ? fanlightHeight / h : 0.25;
+
+        const stroke = 'rgba(10,22,40,.7)';
+        const light = 'rgba(10,22,40,.25)';
+        const dimColor = 'rgba(10,22,40,.45)';
+        const dimFont = `font-family="Jost,sans-serif" font-size="7" fill="${dimColor}"`;
+        const gold = 'rgba(200,162,78,.5)';
+
+        // SVG coordinate system
+        const svgW = 260, drawW = 200;
+        const scale = drawW / w;
+        const drawH = Math.round(h * scale);
+        const svgH = drawH + 80;
+        const ox = 30, oy = 10;
+
+        // Frame dimensions in mm scaled
+        const frameT = 57, mullW = 68;
+        const fT = Math.max(frameT * scale, 4);
+        const mW = Math.max(mullW * scale, 3);
+
+        // Inner area
+        const ix = ox + fT, iy = oy + fT;
+        const iw = drawW - fT * 2, ih = drawH - fT * 2;
+
+        let svg = '';
+
+        // Outer + inner frame
+        svg += `<rect x="${ox}" y="${oy}" width="${drawW}" height="${drawH}" fill="none" stroke="${stroke}" stroke-width="1.5"/>`;
+        svg += `<rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" fill="none" stroke="${stroke}" stroke-width="0.5"/>`;
+
+        // Get panels for this layout
+        const panels = EstimateRenderer._casementPanels(layout, iw, ih, mW, FR);
+
+        // Draw mullions
+        if (panels.mullions) {
+            panels.mullions.forEach(mx => {
+                const sx = ix + mx;
+                svg += `<rect x="${sx - mW/2}" y="${iy}" width="${mW}" height="${ih}" fill="none" stroke="${stroke}" stroke-width="0.7"/>`;
+            });
+        }
+
+        // Draw transoms
+        if (panels.transoms) {
+            panels.transoms.forEach(t => {
+                const ty = typeof t === 'number' ? t : t.y;
+                const tx = typeof t === 'number' ? 0 : (t.x || 0);
+                const tw = typeof t === 'number' ? iw : (t.w || iw);
+                const sy = iy + ty;
+                svg += `<rect x="${ix + tx}" y="${sy - mW/2}" width="${tw}" height="${mW}" fill="none" stroke="${stroke}" stroke-width="0.7"/>`;
+            });
+        }
+
+        // Draw each panel
+        panels.list.forEach(p => {
+            const px = ix + p.x, py = iy + p.y;
+            const pw = p.w, ph = p.h;
+            const cx = px + pw / 2, cy = py + ph / 2;
+
+            // Opening indicator
+            if (p.hinge === 'fixed') {
+                // X cross
+                svg += `<line x1="${px+2}" y1="${py+2}" x2="${px+pw-2}" y2="${py+ph-2}" stroke="${light}" stroke-width="0.5"/>`;
+                svg += `<line x1="${px+pw-2}" y1="${py+2}" x2="${px+2}" y2="${py+ph-2}" stroke="${light}" stroke-width="0.5"/>`;
+            } else if (p.hinge === 'left') {
+                // Hinge on left, opens right — triangle pointing right
+                svg += `<line x1="${px+2}" y1="${py+2}" x2="${px+pw-2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
+                svg += `<line x1="${px+2}" y1="${py+ph-2}" x2="${px+pw-2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
+            } else if (p.hinge === 'right') {
+                // Hinge on right, opens left — triangle pointing left
+                svg += `<line x1="${px+pw-2}" y1="${py+2}" x2="${px+2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
+                svg += `<line x1="${px+pw-2}" y1="${py+ph-2}" x2="${px+2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
+            } else if (p.hinge === 'top') {
+                // Hinge on top — triangle pointing down
+                svg += `<line x1="${px+2}" y1="${py+2}" x2="${cx}" y2="${py+ph-2}" stroke="${gold}" stroke-width="0.7"/>`;
+                svg += `<line x1="${px+pw-2}" y1="${py+2}" x2="${cx}" y2="${py+ph-2}" stroke="${gold}" stroke-width="0.7"/>`;
+            }
+
+            // Bars (only on non-fanlight panels unless specified)
+            if (hBars > 0 || vBars > 0) {
+                if (!p.fanlight) {
+                    for (let i = 1; i <= hBars; i++) {
+                        const by = py + (ph / (hBars + 1)) * i;
+                        svg += `<line x1="${px+2}" y1="${by}" x2="${px+pw-2}" y2="${by}" stroke="${stroke}" stroke-width="0.4"/>`;
+                    }
+                    for (let i = 1; i <= vBars; i++) {
+                        const bx = px + (pw / (vBars + 1)) * i;
+                        svg += `<line x1="${bx}" y1="${py+2}" x2="${bx}" y2="${py+ph-2}" stroke="${stroke}" stroke-width="0.4"/>`;
+                    }
+                }
+            }
+        });
+
+        // ─── DIMENSIONS ───
+        const dimY = oy + drawH + 8;
+        const tickH = 3;
+
+        // Overall width
+        svg += `<line x1="${ox}" y1="${dimY}" x2="${ox + drawW}" y2="${dimY}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<line x1="${ox}" y1="${dimY - tickH}" x2="${ox}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<line x1="${ox + drawW}" y1="${dimY - tickH}" x2="${ox + drawW}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<text x="${ox + drawW/2}" y="${dimY + 12}" ${dimFont} text-anchor="middle">${w}mm</text>`;
+
+        // Panel widths breakdown
+        if (panels.widthBreakdown && panels.widthBreakdown.length > 1) {
+            const dimY2 = dimY + 18;
+            let cx2 = ox;
+            panels.widthBreakdown.forEach((seg, i) => {
+                const sw = seg.mm * scale;
+                svg += `<line x1="${cx2}" y1="${dimY2 - tickH}" x2="${cx2}" y2="${dimY2 + tickH}" stroke="${dimColor}" stroke-width="0.4"/>`;
+                svg += `<text x="${cx2 + sw/2}" y="${dimY2 + 3}" ${dimFont} text-anchor="middle" font-size="5.5">${seg.mm}</text>`;
+                cx2 += sw;
+            });
+            svg += `<line x1="${cx2}" y1="${dimY2 - tickH}" x2="${cx2}" y2="${dimY2 + tickH}" stroke="${dimColor}" stroke-width="0.4"/>`;
+        }
+
+        // Overall height (right side)
+        const hDimX = ox + drawW + 12;
+        svg += `<line x1="${hDimX}" y1="${oy}" x2="${hDimX}" y2="${oy + drawH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<line x1="${hDimX - tickH}" y1="${oy}" x2="${hDimX + tickH}" y2="${oy}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<line x1="${hDimX - tickH}" y1="${oy + drawH}" x2="${hDimX + tickH}" y2="${oy + drawH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<text x="${hDimX + 3}" y="${oy + drawH/2 + 2}" ${dimFont} transform="rotate(90,${hDimX + 3},${oy + drawH/2})">${h}mm</text>`;
+
+        // Fanlight height annotation (if has transom)
+        if (fanlightHeight > 0 && panels.transoms && panels.transoms.length > 0) {
+            const ty = typeof panels.transoms[0] === 'number' ? panels.transoms[0] : panels.transoms[0].y;
+            const fhDimX = ox - 12;
+            const transomSvgY = iy + ty;
+            svg += `<line x1="${fhDimX}" y1="${transomSvgY}" x2="${fhDimX}" y2="${oy + drawH - fT}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            svg += `<line x1="${fhDimX - tickH}" y1="${transomSvgY}" x2="${fhDimX + tickH}" y2="${transomSvgY}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            svg += `<line x1="${fhDimX - tickH}" y1="${oy + drawH - fT}" x2="${fhDimX + tickH}" y2="${oy + drawH - fT}" stroke="${dimColor}" stroke-width="0.4"/>`;
+        }
+
+        const totalH = dimY + (panels.widthBreakdown && panels.widthBreakdown.length > 1 ? 32 : 18);
+        return `<svg width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
+    }
+
+    // Panel layout definitions for casement SVG
+    static _casementPanels(code, iw, ih, mW, FR) {
+        const half = (iw - mW) / 2;
+        const third = (iw - mW * 2) / 3;
+        const fH = ih * FR;
+        const mainH = ih - mW - fH;
+        const openW40 = iw * 0.4;
+        const fixedW40 = iw - mW - openW40;
+
+        const wbd = (segs) => segs; // width breakdown helper
+
+        switch (code) {
+            case '010T':
+                return { list: [{ x:0,y:0,w:iw,h:ih,hinge:'top' }], widthBreakdown: [{mm:57},{mm:0},{mm:57}] };
+            case '040L':
+                return { list: [{ x:0,y:0,w:iw,h:ih,hinge:'right' }] };
+            case '040R':
+                return { list: [{ x:0,y:0,w:iw,h:ih,hinge:'left' }] };
+            case '040D':
+                return {
+                    mullions: [iw/2],
+                    list: [
+                        { x:0,y:0,w:half,h:ih,hinge:'left' },
+                        { x:half+mW,y:0,w:half,h:ih,hinge:'right' }
+                    ],
+                    widthBreakdown: [{mm:57},{mm:'opening'},{mm:68},{mm:'opening'},{mm:57}]
+                };
+            case '051L':
+                return {
+                    mullions: [iw/2],
+                    list: [
+                        { x:0,y:0,w:half,h:ih,hinge:'left' },
+                        { x:half+mW,y:0,w:half,h:ih,hinge:'fixed' }
+                    ]
+                };
+            case '051R':
+                return {
+                    mullions: [iw/2],
+                    list: [
+                        { x:0,y:0,w:half,h:ih,hinge:'fixed' },
+                        { x:half+mW,y:0,w:half,h:ih,hinge:'right' }
+                    ]
+                };
+            case '180L':
+                return {
+                    mullions: [openW40],
+                    list: [
+                        { x:0,y:0,w:openW40-mW/2,h:ih,hinge:'left' },
+                        { x:openW40+mW/2,y:0,w:fixedW40-mW/2,h:ih,hinge:'fixed' }
+                    ]
+                };
+            case '180R':
+                return {
+                    mullions: [fixedW40],
+                    list: [
+                        { x:0,y:0,w:fixedW40-mW/2,h:ih,hinge:'fixed' },
+                        { x:fixedW40+mW/2,y:0,w:openW40-mW/2,h:ih,hinge:'right' }
+                    ]
+                };
+            case '021':
+                return {
+                    transoms: [ih - fH - mW/2],
+                    list: [
+                        { x:0,y:0,w:iw,h:mainH,hinge:'fixed' },
+                        { x:0,y:mainH+mW,w:iw,h:fH,hinge:'top',fanlight:true }
+                    ]
+                };
+            case '021L':
+                return {
+                    transoms: [ih - fH - mW/2],
+                    list: [
+                        { x:0,y:0,w:iw,h:mainH,hinge:'right' },
+                        { x:0,y:mainH+mW,w:iw,h:fH,hinge:'top',fanlight:true }
+                    ]
+                };
+            case '021R':
+                return {
+                    transoms: [ih - fH - mW/2],
+                    list: [
+                        { x:0,y:0,w:iw,h:mainH,hinge:'left' },
+                        { x:0,y:mainH+mW,w:iw,h:fH,hinge:'top',fanlight:true }
+                    ]
+                };
+            case '031':
+                return {
+                    transoms: [ih - fH - mW/2],
+                    mullions: [iw/2],
+                    list: [
+                        { x:0,y:0,w:iw,h:mainH,hinge:'fixed' },
+                        { x:0,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:half+mW,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true }
+                    ]
+                };
+            case '031L':
+                return {
+                    transoms: [ih - fH - mW/2],
+                    mullions: [iw/2],
+                    list: [
+                        { x:0,y:0,w:iw,h:mainH,hinge:'right' },
+                        { x:0,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:half+mW,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true }
+                    ]
+                };
+            case '031R':
+                return {
+                    transoms: [ih - fH - mW/2],
+                    mullions: [iw/2],
+                    list: [
+                        { x:0,y:0,w:iw,h:mainH,hinge:'left' },
+                        { x:0,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:half+mW,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true }
+                    ]
+                };
+            case '032':
+                return {
+                    transoms: [mainH + mW/2],
+                    mullions: [iw/2],
+                    list: [
+                        { x:0,y:0,w:half,h:mainH,hinge:'left' },
+                        { x:half+mW,y:0,w:half,h:mainH,hinge:'right' },
+                        { x:0,y:mainH+mW,w:iw,h:fH,hinge:'top',fanlight:true }
+                    ]
+                };
+            case '052L':
+                return {
+                    mullions: [iw/2],
+                    transoms: [{ y:mainH+mW/2, x:0, w:half }],
+                    list: [
+                        { x:0,y:0,w:half,h:mainH,hinge:'left' },
+                        { x:0,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:half+mW,y:0,w:half,h:ih,hinge:'right' }
+                    ]
+                };
+            case '052R':
+                return {
+                    mullions: [iw/2],
+                    transoms: [{ y:mainH+mW/2, x:half+mW, w:half }],
+                    list: [
+                        { x:0,y:0,w:half,h:ih,hinge:'left' },
+                        { x:half+mW,y:0,w:half,h:mainH,hinge:'right' },
+                        { x:half+mW,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true }
+                    ]
+                };
+            case '130':
+                return {
+                    mullions: [third, third*2+mW],
+                    list: [
+                        { x:0,y:0,w:third-mW/2,h:ih,hinge:'left' },
+                        { x:third+mW/2,y:0,w:third,h:ih,hinge:'fixed' },
+                        { x:third*2+mW+mW/2,y:0,w:third-mW/2,h:ih,hinge:'right' }
+                    ]
+                };
+            case '131': {
+                const tpW = third;
+                return {
+                    mullions: [third, third*2+mW],
+                    transoms: [{ y:mainH+mW/2, x:third+mW/2, w:tpW }],
+                    list: [
+                        { x:0,y:0,w:third-mW/2,h:ih,hinge:'left' },
+                        { x:third+mW/2,y:0,w:tpW,h:mainH,hinge:'fixed' },
+                        { x:third+mW/2,y:mainH+mW,w:tpW,h:fH,hinge:'top',fanlight:true },
+                        { x:third*2+mW+mW/2,y:0,w:third-mW/2,h:ih,hinge:'right' }
+                    ]
+                };
+            }
+            case '132': {
+                const tpW = third;
+                return {
+                    mullions: [third, third*2+mW],
+                    transoms: [
+                        { y:mainH+mW/2, x:0, w:third-mW/2 },
+                        { y:mainH+mW/2, x:third*2+mW+mW/2, w:third-mW/2 }
+                    ],
+                    list: [
+                        { x:0,y:0,w:third-mW/2,h:mainH,hinge:'left' },
+                        { x:0,y:mainH+mW,w:third-mW/2,h:fH,hinge:'top',fanlight:true },
+                        { x:third+mW/2,y:0,w:tpW,h:ih,hinge:'fixed' },
+                        { x:third*2+mW+mW/2,y:0,w:third-mW/2,h:mainH,hinge:'right' },
+                        { x:third*2+mW+mW/2,y:mainH+mW,w:third-mW/2,h:fH,hinge:'top',fanlight:true }
+                    ]
+                };
+            }
+            default:
+                return { list: [{ x:0,y:0,w:iw,h:ih,hinge:'right' }] };
         }
     }
 
