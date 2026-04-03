@@ -2227,7 +2227,7 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
 /* ============================================================
    23. RESPONSIVE
    ============================================================ */
-/* Tier 1: Spec panel becomes slide-out (tablets landscape) */
+/* Spec panel slide-out ONLY (everything else untouched) */
 @media (max-width: 1400px) {
   .configurator-grid {
     grid-template-columns: 240px 380px 1fr !important;
@@ -2290,8 +2290,8 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   }
 }
 
-/* Tier 2: Full stack layout (tablets portrait + phones) */
-@media (max-width: 1200px) {
+/* Full stack layout (tablets portrait + phones) — ORIGINAL 1024px */
+@media (max-width: 1024px) {
   .configurator-grid {
     grid-template-columns: 1fr !important;
     grid-template-areas:

@@ -327,7 +327,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 /* ============================================================
    RESPONSIVE
    ============================================================ */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   #hero { grid-template-columns: 1fr; min-height: auto; }
   .hero-img { min-height: 20vh; }
   .hero-3d { min-height: 50vh; }
