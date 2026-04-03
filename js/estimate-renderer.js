@@ -757,7 +757,7 @@ class EstimateRenderer {
         const gold = 'rgba(200,162,78,.5)';
 
         // SVG coordinate system
-        const svgW = 260, drawW = 200;
+        const svgW = 290, drawW = 200;
         const scale = drawW / w;
         const drawH = Math.round(h * scale);
         const svgH = drawH + 80;
@@ -843,45 +843,97 @@ class EstimateRenderer {
         // ─── DIMENSIONS ───
         const dimY = oy + drawH + 8;
         const tickH = 3;
+        const bottomFrame = 68; // bottom rail is thicker
 
-        // Overall width
+        // Count mullions and transoms for dimension calculation
+        const nMullions = panels.mullions ? panels.mullions.length : 0;
+        const hasTransom = panels.transoms && panels.transoms.length > 0;
+
+        // === WIDTH BREAKDOWN (bottom) ===
+        // Compute actual mm segments
+        let wSegs = [];
+        if (nMullions === 0) {
+            wSegs = [57, w - 57 - 57, 57];
+        } else if (layout === '180L') {
+            const inner = w - 57 - 57 - 68;
+            const openW = Math.round(inner * 0.4);
+            wSegs = [57, openW, 68, inner - openW, 57];
+        } else if (layout === '180R') {
+            const inner = w - 57 - 57 - 68;
+            const openW = Math.round(inner * 0.4);
+            wSegs = [57, inner - openW, 68, openW, 57];
+        } else if (nMullions === 1) {
+            const panelW = Math.round((w - 57 - 57 - 68) / 2);
+            wSegs = [57, panelW, 68, w - 57 - 57 - 68 - panelW, 57];
+        } else if (nMullions === 2) {
+            const panelW = Math.round((w - 57 - 57 - 68 * 2) / 3);
+            const lastP = w - 57 - 57 - 68 * 2 - panelW * 2;
+            wSegs = [57, panelW, 68, panelW, 68, lastP, 57];
+        }
+
+        // Overall width line
         svg += `<line x1="${ox}" y1="${dimY}" x2="${ox + drawW}" y2="${dimY}" stroke="${dimColor}" stroke-width="0.5"/>`;
         svg += `<line x1="${ox}" y1="${dimY - tickH}" x2="${ox}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
         svg += `<line x1="${ox + drawW}" y1="${dimY - tickH}" x2="${ox + drawW}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
         svg += `<text x="${ox + drawW/2}" y="${dimY + 12}" ${dimFont} text-anchor="middle">${w}mm</text>`;
 
-        // Panel widths breakdown
-        if (panels.widthBreakdown && panels.widthBreakdown.length > 1) {
+        // Width breakdown segments
+        if (wSegs.length > 1) {
             const dimY2 = dimY + 18;
             let cx2 = ox;
-            panels.widthBreakdown.forEach((seg, i) => {
-                const sw = seg.mm * scale;
+            wSegs.forEach(seg => {
+                const sw = seg * scale;
                 svg += `<line x1="${cx2}" y1="${dimY2 - tickH}" x2="${cx2}" y2="${dimY2 + tickH}" stroke="${dimColor}" stroke-width="0.4"/>`;
-                svg += `<text x="${cx2 + sw/2}" y="${dimY2 + 3}" ${dimFont} text-anchor="middle" font-size="5.5">${seg.mm}</text>`;
+                if (sw > 8) {
+                    svg += `<text x="${cx2 + sw/2}" y="${dimY2 + 3}" ${dimFont} text-anchor="middle" font-size="5.5">${seg}</text>`;
+                }
                 cx2 += sw;
             });
             svg += `<line x1="${cx2}" y1="${dimY2 - tickH}" x2="${cx2}" y2="${dimY2 + tickH}" stroke="${dimColor}" stroke-width="0.4"/>`;
         }
 
-        // Overall height (right side)
+        // === HEIGHT BREAKDOWN (right side) ===
+        let hSegs = [];
+        if (hasTransom && fanlightHeight > 0) {
+            const mainH = h - 57 - bottomFrame - 68 - fanlightHeight;
+            hSegs = [57, fanlightHeight, 68, Math.max(mainH, 0), bottomFrame];
+        } else {
+            hSegs = [57, h - 57 - bottomFrame, bottomFrame];
+        }
+
+        // Overall height line
         const hDimX = ox + drawW + 12;
         svg += `<line x1="${hDimX}" y1="${oy}" x2="${hDimX}" y2="${oy + drawH}" stroke="${dimColor}" stroke-width="0.5"/>`;
         svg += `<line x1="${hDimX - tickH}" y1="${oy}" x2="${hDimX + tickH}" y2="${oy}" stroke="${dimColor}" stroke-width="0.5"/>`;
         svg += `<line x1="${hDimX - tickH}" y1="${oy + drawH}" x2="${hDimX + tickH}" y2="${oy + drawH}" stroke="${dimColor}" stroke-width="0.5"/>`;
         svg += `<text x="${hDimX + 3}" y="${oy + drawH/2 + 2}" ${dimFont} transform="rotate(90,${hDimX + 3},${oy + drawH/2})">${h}mm</text>`;
 
-        // Fanlight height annotation (if has transom)
-        if (fanlightHeight > 0 && panels.transoms && panels.transoms.length > 0) {
-            const ty = typeof panels.transoms[0] === 'number' ? panels.transoms[0] : panels.transoms[0].y;
-            const fhDimX = ox - 12;
-            const transomSvgY = iy + ty;
-            // Fanlight is at top: from frame top to transom
-            svg += `<line x1="${fhDimX}" y1="${iy}" x2="${fhDimX}" y2="${transomSvgY}" stroke="${dimColor}" stroke-width="0.4"/>`;
-            svg += `<line x1="${fhDimX - tickH}" y1="${iy}" x2="${fhDimX + tickH}" y2="${iy}" stroke="${dimColor}" stroke-width="0.4"/>`;
-            svg += `<line x1="${fhDimX - tickH}" y1="${transomSvgY}" x2="${fhDimX + tickH}" y2="${transomSvgY}" stroke="${dimColor}" stroke-width="0.4"/>`;
+        // Height breakdown segments
+        if (hSegs.length > 1) {
+            const hDimX2 = hDimX + 16;
+            let cy2 = oy;
+            hSegs.forEach(seg => {
+                const sh = seg * scale;
+                svg += `<line x1="${hDimX2 - tickH}" y1="${cy2}" x2="${hDimX2 + tickH}" y2="${cy2}" stroke="${dimColor}" stroke-width="0.4"/>`;
+                if (sh > 8) {
+                    svg += `<text x="${hDimX2 + 3}" y="${cy2 + sh/2 + 2}" ${dimFont} transform="rotate(90,${hDimX2 + 3},${cy2 + sh/2})" font-size="5.5">${seg}</text>`;
+                }
+                cy2 += sh;
+            });
+            svg += `<line x1="${hDimX2 - tickH}" y1="${cy2}" x2="${hDimX2 + tickH}" y2="${cy2}" stroke="${dimColor}" stroke-width="0.4"/>`;
         }
 
-        const totalH = dimY + (panels.widthBreakdown && panels.widthBreakdown.length > 1 ? 32 : 18);
+        // Fanlight height annotation (left side, if applicable)
+        if (fanlightHeight > 0 && hasTransom) {
+            const fhDimX = ox - 12;
+            const fhScaled = fanlightHeight * scale;
+            svg += `<line x1="${fhDimX}" y1="${iy}" x2="${fhDimX}" y2="${iy + fhScaled}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            svg += `<line x1="${fhDimX - tickH}" y1="${iy}" x2="${fhDimX + tickH}" y2="${iy}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            svg += `<line x1="${fhDimX - tickH}" y1="${iy + fhScaled}" x2="${fhDimX + tickH}" y2="${iy + fhScaled}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            svg += `<text x="${fhDimX - 2}" y="${iy + fhScaled/2 + 2}" ${dimFont} transform="rotate(-90,${fhDimX - 2},${iy + fhScaled/2})" font-size="5.5">${fanlightHeight}</text>`;
+        }
+
+        const totalH = dimY + (wSegs.length > 1 ? 32 : 18);
         return `<svg width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
     }
 
@@ -898,7 +950,7 @@ class EstimateRenderer {
 
         switch (code) {
             case '010T':
-                return { list: [{ x:0,y:0,w:iw,h:ih,hinge:'top' }], widthBreakdown: [{mm:57},{mm:0},{mm:57}] };
+                return { list: [{ x:0,y:0,w:iw,h:ih,hinge:'top' }] };
             case '040L':
                 return { list: [{ x:0,y:0,w:iw,h:ih,hinge:'right' }] };
             case '040R':
@@ -909,8 +961,7 @@ class EstimateRenderer {
                     list: [
                         { x:0,y:0,w:half,h:ih,hinge:'left' },
                         { x:half+mW,y:0,w:half,h:ih,hinge:'right' }
-                    ],
-                    widthBreakdown: [{mm:57},{mm:'opening'},{mm:68},{mm:'opening'},{mm:57}]
+                    ]
                 };
             case '051L':
                 return {
