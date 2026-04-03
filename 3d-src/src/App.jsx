@@ -1,9 +1,10 @@
 import React from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { Bounds, ContactShadows, Html, OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import ParametricSashWindow from './components/ParametricSashWindow';
+import CasementWindow from './components/casement/CasementWindow';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -587,7 +588,33 @@ function Scene({ config, isMobile }) {
 
       <group position={[0, 0.18, 0]}>
           <group onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
-            <ParametricSashWindow {...config} />
+            {config.windowCategory === 'casement' ? (
+              <CasementWindow
+                width={config.extWidth}
+                height={config.extHeight}
+                layout={config.casementLayout}
+                opening={config.casementOpening || 0}
+                fanlightRatio={config.fanlightRatio || 0.3}
+                woodColor={config.woodColor}
+                woodColorExt={config.woodColorExt}
+                woodColorInt={config.woodColorInt}
+                sameColor={config.sameColor}
+                glassType={config.doubleGlazing ? 'double' : 'triple'}
+                spacerColor={config.spacerColor}
+                glassFinish={config.glassFinish || 'clear'}
+                trickleVent={config.trickleVent || 'none'}
+                trickleColour={config.trickleColour || 'white'}
+                sillExtension={config.sillExtension || 0}
+                sillWider={config.sillWider || false}
+                sealColour={config.sealColour || 'black'}
+                showGuides={config.showGuides}
+                brightness={config.brightness}
+                hBars={config.casementHBars || 0}
+                vBars={config.casementVBars || 0}
+              />
+            ) : (
+              <ParametricSashWindow {...config} />
+            )}
           </group>
       </group>
 
@@ -666,11 +693,98 @@ export default function App() {
   const [fixUpperCustomBars, setFixUpperCustomBars] = useState([]);
   const [fixLowerCustomBars, setFixLowerCustomBars] = useState([]);
 
+  // ─── Casement state ───
+  const [windowCategory, setWindowCategory] = useState('sash'); // 'sash' | 'casement' | 'doors' | ...
+  const [casementLayout, setCasementLayout] = useState('040L');
+  const [casementOpening, setCasementOpening] = useState(0);
+  const [fanlightRatio, setFanlightRatio] = useState(0.3);
+  const [casementHBars, setCasementHBars] = useState(0);
+  const [casementVBars, setCasementVBars] = useState(0);
+  const [glassFinish, setGlassFinish] = useState('clear');
+  const [trickleVent, setTrickleVent] = useState('none');
+  const [trickleColour, setTrickleColour] = useState('white');
+  const [sillExtension, setSillExtension] = useState(0);
+  const [sillWider, setSillWider] = useState(false);
+  const [sealColour, setSealColour] = useState('black');
+
+  // ─── State bucket system — isolates state per window type ───
+  const categoryRef = useRef('sash');
+  const buckets = useRef({});
+
+  const BUCKET_DEFAULTS = {
+    sash: { extWidth: 1000, extHeight: 1500, woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', showHorns: true, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3, casementHBars: 0, casementVBars: 0 },
+    casement: { extWidth: 800, extHeight: 1200, glassFinish: 'clear', trickleVent: 'none', trickleColour: 'white', sillExtension: 0, sillWider: false, sealColour: 'black', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', showHorns: false, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3, casementHBars: 0, casementVBars: 0 },
+  };
+
+  // Capture current state snapshot
+  function captureState() {
+    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour };
+  }
+
+  // Restore state from bucket
+  function restoreState(s) {
+    if (!s) return;
+    if (s.extWidth !== undefined) setExtWidth(s.extWidth);
+    if (s.extHeight !== undefined) setExtHeight(s.extHeight);
+    if (s.woodColor !== undefined) { setWoodColor(s.woodColor); setWoodColorExt(s.woodColor); setWoodColorInt(s.woodColor); }
+    if (s.woodColorExt !== undefined) setWoodColorExt(s.woodColorExt);
+    if (s.woodColorInt !== undefined) setWoodColorInt(s.woodColorInt);
+    if (s.sameColor !== undefined) setSameColor(s.sameColor);
+    if (s.spacerColor !== undefined) setSpacerColor(s.spacerColor);
+    if (s.opening !== undefined) setOpening(s.opening);
+    if (s.upperOpening !== undefined) setUpperOpening(s.upperOpening);
+    if (s.openingType !== undefined) setOpeningType(s.openingType);
+    if (s.boxType !== undefined) setBoxType(s.boxType);
+    if (s.showHorns !== undefined) setShowHorns(s.showHorns);
+    if (s.hornType !== undefined) setHornType(s.hornType);
+    if (s.ironmongery !== undefined) setIronmongery(s.ironmongery);
+    if (s.upperGlass !== undefined) setUpperGlass(s.upperGlass);
+    if (s.lowerGlass !== undefined) setLowerGlass(s.lowerGlass);
+    if (s.upperBars !== undefined) setUpperBars(s.upperBars);
+    if (s.lowerBars !== undefined) setLowerBars(s.lowerBars);
+    if (s.sameBars !== undefined) setSameBars(s.sameBars);
+    if (s.upperCustomBars !== undefined) setUpperCustomBars(s.upperCustomBars);
+    if (s.lowerCustomBars !== undefined) setLowerCustomBars(s.lowerCustomBars);
+    if (s.sashType !== undefined) setSashType(s.sashType);
+    if (s.splitRatio !== undefined) setSplitRatio(s.splitRatio);
+    if (s.headType !== undefined) setHeadType(s.headType);
+    if (s.fixUpperBars !== undefined) setFixUpperBars(s.fixUpperBars);
+    if (s.fixLowerBars !== undefined) setFixLowerBars(s.fixLowerBars);
+    if (s.fixUpperCustomBars !== undefined) setFixUpperCustomBars(s.fixUpperCustomBars);
+    if (s.fixLowerCustomBars !== undefined) setFixLowerCustomBars(s.fixLowerCustomBars);
+    if (s.casementLayout !== undefined) setCasementLayout(s.casementLayout);
+    if (s.casementOpening !== undefined) setCasementOpening(s.casementOpening);
+    if (s.fanlightRatio !== undefined) setFanlightRatio(s.fanlightRatio);
+    if (s.casementHBars !== undefined) setCasementHBars(s.casementHBars);
+    if (s.casementVBars !== undefined) setCasementVBars(s.casementVBars);
+    if (s.glassFinish !== undefined) setGlassFinish(s.glassFinish);
+    if (s.trickleVent !== undefined) setTrickleVent(s.trickleVent);
+    if (s.trickleColour !== undefined) setTrickleColour(s.trickleColour);
+    if (s.sillExtension !== undefined) setSillExtension(s.sillExtension);
+    if (s.sillWider !== undefined) setSillWider(s.sillWider);
+    if (s.sealColour !== undefined) setSealColour(s.sealColour);
+  }
+
   const maxSashOpening = Math.max(0, height / 2 - 120);
 
   // Expose update3D function for Online Estimate to call
   React.useEffect(() => {
     window.update3D = (cfg) => {
+      // ─── Category switch: save old state, restore new ───
+      if (cfg.windowCategory !== undefined && cfg.windowCategory !== categoryRef.current) {
+        // Save current state to old category bucket
+        buckets.current[categoryRef.current] = captureState();
+        // Switch category
+        const newCat = cfg.windowCategory;
+        categoryRef.current = newCat;
+        setWindowCategory(newCat);
+        // Restore from saved bucket or defaults
+        const restored = buckets.current[newCat] || BUCKET_DEFAULTS[newCat] || BUCKET_DEFAULTS.sash;
+        restoreState(restored);
+        // Apply any extra values from this update3D call (e.g. casementLayout)
+        delete cfg.windowCategory; // already handled
+      }
+
       if (cfg.extWidth  !== undefined) setExtWidth(cfg.extWidth);
       if (cfg.extHeight !== undefined) setExtHeight(cfg.extHeight);
       if (cfg.upperBars !== undefined) setUpperBars(cfg.upperBars);
@@ -707,6 +821,18 @@ export default function App() {
       if (cfg.fixLowerBars !== undefined) setFixLowerBars(cfg.fixLowerBars);
       if (cfg.fixUpperCustomBars !== undefined) setFixUpperCustomBars(cfg.fixUpperCustomBars);
       if (cfg.fixLowerCustomBars !== undefined) setFixLowerCustomBars(cfg.fixLowerCustomBars);
+      // Casement (windowCategory handled above in bucket system)
+      if (cfg.casementLayout !== undefined) setCasementLayout(cfg.casementLayout);
+      if (cfg.casementOpening !== undefined) setCasementOpening(cfg.casementOpening);
+      if (cfg.fanlightRatio !== undefined) setFanlightRatio(cfg.fanlightRatio);
+      if (cfg.casementHBars !== undefined) setCasementHBars(cfg.casementHBars);
+      if (cfg.casementVBars !== undefined) setCasementVBars(cfg.casementVBars);
+      if (cfg.glassFinish !== undefined) setGlassFinish(cfg.glassFinish);
+      if (cfg.trickleVent !== undefined) setTrickleVent(cfg.trickleVent);
+      if (cfg.trickleColour !== undefined) setTrickleColour(cfg.trickleColour);
+      if (cfg.sillExtension !== undefined) setSillExtension(cfg.sillExtension);
+      if (cfg.sillWider !== undefined) setSillWider(cfg.sillWider);
+      if (cfg.sealColour !== undefined) setSealColour(cfg.sealColour);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -715,6 +841,8 @@ export default function App() {
     () => ({
       width,
       height,
+      extWidth,
+      extHeight,
       opening,
       upperOpening,
       autoRotate,
@@ -737,6 +865,7 @@ export default function App() {
       woodColor,
       woodColorExt: sameColor ? woodColor : woodColorExt,
       woodColorInt: sameColor ? woodColor : woodColorInt,
+      sameColor,
       sashType,
       splitRatio,
       headType,
@@ -744,8 +873,20 @@ export default function App() {
       fixLowerBars,
       fixUpperCustomBars,
       fixLowerCustomBars,
+      windowCategory,
+      casementLayout,
+      casementOpening,
+      fanlightRatio,
+      casementHBars,
+      casementVBars,
+      glassFinish,
+      trickleVent,
+      trickleColour,
+      sillExtension,
+      sillWider,
+      sealColour,
     }),
-    [width, height, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars],
+    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour],
   );
 
   return (
@@ -760,27 +901,41 @@ export default function App() {
           maxWidth: '200px', width: '100%',
           pointerEvents: 'auto'
         }}>
-          <div style={{ opacity: openingType === 'fixed' ? 0.3 : 1, pointerEvents: openingType === 'fixed' ? 'none' : 'auto' }}>
+          {windowCategory === 'sash' ? (
+            <>
+              <div style={{ opacity: openingType === 'fixed' ? 0.3 : 1, pointerEvents: openingType === 'fixed' ? 'none' : 'auto' }}>
+                <Slider
+                  label="Lower sash"
+                  value={opening}
+                  min={0}
+                  max={maxSashOpening}
+                  step={1}
+                  onChange={setOpening}
+                />
+              </div>
+              <div style={{ opacity: (openingType === 'fixed' || openingType === 'bottom') ? 0.3 : 1, pointerEvents: (openingType === 'fixed' || openingType === 'bottom') ? 'none' : 'auto' }}>
+                <Slider
+                  label="Upper sash"
+                  value={upperOpening}
+                  min={0}
+                  max={maxSashOpening}
+                  step={1}
+                  onChange={setUpperOpening}
+                />
+              </div>
+            </>
+          ) : (
             <Slider
-              label="Lower sash"
-              value={opening}
+              label="Opening"
+              value={Math.round(casementOpening * 100)}
               min={0}
-              max={maxSashOpening}
-              step={5}
-              onChange={setOpening}
+              max={100}
+              step={1}
+              suffix="%"
+              onChange={(v) => setCasementOpening(v / 100)}
             />
-          </div>
-          <div style={{ opacity: (openingType === 'fixed' || openingType === 'bottom') ? 0.3 : 1, pointerEvents: (openingType === 'fixed' || openingType === 'bottom') ? 'none' : 'auto' }}>
-            <Slider
-              label="Upper sash"
-              value={upperOpening}
-              min={0}
-              max={maxSashOpening}
-              step={5}
-              onChange={setUpperOpening}
-            />
-          </div>
-          <Slider label="Brightness" value={Math.round((brightness - 1) * 100)} min={-30} max={30} step={5} suffix="%" onChange={(v) => setBrightness(1 + v / 100)} />
+          )}
+          <Slider label="Brightness" value={Math.round((brightness - 1) * 100)} min={-30} max={30} step={1} suffix="%" onChange={(v) => setBrightness(1 + v / 100)} />
         </div>
 
         {/* Floating toggles - bottom left */}

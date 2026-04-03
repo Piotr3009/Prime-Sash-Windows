@@ -742,6 +742,10 @@ class ConfiguratorCore {
   updateAll() {
     if (!this.isInitialized) return;
     
+    // Skip sash price update when casement is active
+    var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
+    if (windowType === 'casement') return;
+    
     // Merge state with currentConfig (currentConfig has color data)
     const stateConfig = this.state.get();
     const config = { ...stateConfig, ...window.currentConfig };
@@ -813,14 +817,28 @@ class ConfiguratorCore {
   }
 
   async addToEstimate() {
-    const validation = this.modules.form.validate();
-    if (!validation.isValid) {
-      alert('Please complete:\n' + validation.errors.join('\n'));
-      return;
+    // Check if casement mode
+    var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
+    
+    let config, priceData;
+    
+    if (windowType === 'casement' && typeof window.getCasementConfig === 'function') {
+      config = window.getCasementConfig();
+      priceData = window.calculatePrice(config);
+    } else {
+      const validation = this.modules.form.validate();
+      if (!validation.isValid) {
+        alert('Please complete:\n' + validation.errors.join('\n'));
+        return;
+      }
+      config = this.state.get();
+      priceData = this.modules.price.calculate(config);
     }
     
-    const config = this.state.get();
-    const priceData = this.modules.price.calculate(config);
+    if (!priceData || !priceData.unitPrice) {
+      alert('Please configure window dimensions first.');
+      return;
+    }
     
     // Capture 3D screenshots before saving
     if (typeof window.captureWindowScreenshots === 'function') {

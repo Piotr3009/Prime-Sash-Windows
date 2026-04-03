@@ -6,6 +6,7 @@
 class IronmongeryGallery {
   constructor() {
     this.overlay = document.getElementById('ironmongeryOverlay');
+    this.setupWindowTypeTabs();
     this.closeBtn = document.getElementById('galleryClose');
     this.confirmBtn = document.getElementById('confirmSelection');
     this.clearBtn = document.getElementById('clearSelection');
@@ -18,8 +19,62 @@ class IronmongeryGallery {
     this.currentFinish = 'all';
     this.currentType = 'standard'; // NEW: standard, pas24, horns
     this.isAdminMode = false;
+    this.windowType = 'sash'; // 'sash' | 'casement'
     
     this.init();
+  }
+
+  setupWindowTypeTabs() {
+    document.querySelectorAll('.wt-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        if (tab.dataset.wt === 'doors') return; // disabled
+        document.querySelectorAll('.wt-tab').forEach(t => {
+          t.classList.remove('active');
+          t.style.background = 'transparent';
+          t.style.color = 'var(--primary-color)';
+        });
+        tab.classList.add('active');
+        tab.style.background = 'var(--primary-color)';
+        tab.style.color = 'white';
+        this.windowType = tab.dataset.wt;
+        this.showTabsForWindowType();
+      });
+    });
+  }
+
+  showTabsForWindowType() {
+    const isCasement = this.windowType === 'casement';
+    
+    // Show/hide category tabs
+    document.querySelectorAll('.category-tab').forEach(tab => {
+      const cat = tab.dataset.category;
+      const isCasementCat = cat && cat.startsWith('casement');
+      tab.style.display = (isCasement === isCasementCat) ? '' : 'none';
+    });
+    
+    // Hide type selector (Standard/PAS24/Horns) for casement
+    const typeSelector = document.querySelector('.type-selector');
+    if (typeSelector) typeSelector.style.display = isCasement ? 'none' : '';
+    
+    // Activate first visible tab
+    const firstVisible = document.querySelector('.category-tab:not([style*="none"])');
+    if (firstVisible) {
+      document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+      firstVisible.classList.add('active');
+      this.currentCategory = firstVisible.dataset.category;
+      this.renderProducts();
+    }
+    
+    // Update window type tab visual
+    document.querySelectorAll('.wt-tab').forEach(t => {
+      if (t.dataset.wt === this.windowType) {
+        t.style.background = 'var(--primary-color)';
+        t.style.color = 'white';
+      } else if (t.dataset.wt !== 'doors') {
+        t.style.background = 'transparent';
+        t.style.color = 'var(--primary-color)';
+      }
+    });
   }
 
   async init() {
@@ -29,6 +84,7 @@ class IronmongeryGallery {
     }
     
     // Close handlers
+    this.setupWindowTypeTabs();
     this.closeBtn?.addEventListener('click', () => this.close());
     this.overlay?.addEventListener('click', (e) => {
       if (e.target === this.overlay) this.close();
@@ -1135,12 +1191,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Function to open gallery (called from configurator)
-async function openIronmongeryGallery() {
+async function openIronmongeryGallery(windowType) {
   if (!window.IronmongeryGallery) {
     window.IronmongeryGallery = new IronmongeryGallery();
   }
   
-  // Load products from database
+  window.IronmongeryGallery.windowType = windowType || 'sash';
   await window.IronmongeryGallery.loadProductsFromDatabase();
   window.IronmongeryGallery.open();
 }

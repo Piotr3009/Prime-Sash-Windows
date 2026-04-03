@@ -194,8 +194,27 @@ class EstimateRenderer {
         // QUANTITY
         const quantity = fc.quantity || item.quantity || 1;
 
+        // ═══ CASEMENT FIELDS ═══
+        const windowType = fc.windowType || fc.windowCategory || 'sash';
+        const casementLayout = fc.casementLayout || fc.layout || '';
+        const casementHBars = fc.casementHBars || fc.hBars || 0;
+        const casementVBars = fc.casementVBars || fc.vBars || 0;
+        let casementBarsText = 'None';
+        if (casementHBars > 0 || casementVBars > 0) {
+            casementBarsText = casementHBars + ' horizontal, ' + casementVBars + ' vertical';
+        }
+        const sillExtension = fc.sillExtension || 'none';
+        const sillText = sillExtension !== 'none' ? sillExtension + 'mm' : 'None';
+        const trickleVent = fc.trickleVent || 'none';
+        const trickleText = trickleVent === 'none' ? 'None' : (trickleVent === 'frame' ? 'On Frame' : 'On Sash');
+        const sealColour = fc.sealColour || 'black';
+        const safetyGlass = fc.safetyGlass || 'none';
+        const safetyGlassText = safetyGlass === 'toughened' ? 'Toughened' : safetyGlass === 'laminate' ? 'Laminate' : 'Standard';
+        const glassSpecCasement = fc.glassSpec || 'float';
+        const glassSpecCasementText = glassSpecCasement === 'low-e' ? 'Low-E Coated' : 'Float Glass';
+
         return {
-            fc, spec, sashType, headType, splitRatio,
+            fc, spec, windowType, sashType, headType, splitRatio,
             width, height, originalWidth, originalHeight, measurementType,
             frameType, frameText,
             openingType, openingText,
@@ -206,7 +225,11 @@ class EstimateRenderer {
             upperBars, lowerBars, barsText,
             fixUpperBars, fixLowerBars, fixBarsText,
             horns, hornsText, pas24,
-            ironList, hardwareFinish, quantity
+            ironList, hardwareFinish, quantity,
+            casementLayout, casementHBars, casementVBars, casementBarsText,
+            sillExtension, sillText, trickleVent, trickleText,
+            sealColour, safetyGlass, safetyGlassText,
+            glassSpecCasement, glassSpecCasementText
         };
     }
 
@@ -266,12 +289,28 @@ class EstimateRenderer {
                     </div>
                     <div style="padding:1.5rem;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
+                            ${p.windowType === 'casement' ? `
+                            ${R.specRow('Type', 'Casement — Layout ' + p.casementLayout)}
+                            ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
+                            ${R.specRow('Glass', p.glassText)}
+                            ${R.specRow('Glass Spec', p.glassSpecCasementText)}
+                            ${R.specRow('Glass Finish', p.glassFinishText)}
+                            ${R.specRow('Spacer Bar', p.spacerText)}
+                            ${R.specRow('Colour', p.colorDisplay)}
+                            ${R.specRow('Bars', p.casementBarsText)}
+                            ${R.specRow('PAS24', p.pas24 ? 'Yes ✓' : 'No')}
+                            ${R.specRow('Safety Glass', p.safetyGlassText)}
+                            ${R.specRow('Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1))}
+                            ${p.sillExtension !== 'none' ? R.specRow('Sill Projection', p.sillText) : ''}
+                            ${p.trickleVent !== 'none' ? R.specRow('Trickle Vent', p.trickleText) : ''}
+                            ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
+                            ` : `
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
                             ${p.sashType === 'triple' ? R.specRow('Split Ratio', p.splitRatio) : ''}
                             ${p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height) 
-                                ? R.specRow('Window Size (Frame)', `${p.width}mm × ${p.height}mm`) + R.specRow('Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`)
-                                : R.specRow('Dimensions', `${p.width}mm × ${p.height}mm`)}
+                                ? R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm') + R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm')
+                                : R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
                             ${R.specRow('Frame', p.frameText)}
                             ${R.specRow('Opening', p.openingText)}
                             ${R.specRow('Glass', p.glassText)}
@@ -284,6 +323,7 @@ class EstimateRenderer {
                             ${R.specRow('PAS24', p.pas24 ? 'Yes ✓' : 'No')}
                             ${R.specRow('Horns', p.hornsText)}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
+                            `}
                         </div>
 
                         ${p.ironList.length > 0 ? `

@@ -12,8 +12,10 @@ const IRONMONGERY_DATA = {
   ],
 
   // Product categories
+  // Window type filter: 'sash' for sash windows, 'casement' for casement
   categories: {
     fingerLifts: {
+      windowType: 'sash',
       name: 'Sash Finger Lifts',
       autoQuantity: 2, // Zawsze 2 sztuki
       mandatory: false, // Opcjonalne ale zalecane
@@ -70,6 +72,7 @@ const IRONMONGERY_DATA = {
     },
 
     locks: {
+      windowType: 'sash',
       name: 'Sash Locks',
       autoQuantity: true, // Ilość wyliczana automatycznie (1 lub 2)
       products: [
@@ -138,6 +141,7 @@ const IRONMONGERY_DATA = {
     },
 
     pullHandles: {
+      windowType: 'sash',
       name: 'Sash Pull Handles',
       autoQuantity: false, // User wybiera ilość
       products: [
@@ -337,7 +341,45 @@ const IRONMONGERY_DATA = {
           description: '75mm traditional sash horn - Always 2 per window'
         }
       ]
-    }
+    },
+    // ═══ CASEMENT CATEGORIES ═══
+    casementHandles: {
+      windowType: 'casement',
+      name: 'Casement Handles',
+      autoQuantity: 1,
+      mandatory: true,
+      products: [
+        { id: 'espag-handle-chrome', name: 'Espagnolette Handle', color: 'chrome', prices: { net: 22.00, vat: 26.40 }, image: 'img/ironmongery/espag-chrome.jpg', description: 'Inline espagnolette handle — standard' },
+        { id: 'espag-handle-satin', name: 'Espagnolette Handle', color: 'satin', prices: { net: 22.00, vat: 26.40 }, image: 'img/ironmongery/espag-satin.jpg', description: 'Inline espagnolette handle — standard' },
+        { id: 'espag-handle-brass', name: 'Espagnolette Handle', color: 'brass', prices: { net: 24.50, vat: 29.40 }, image: 'img/ironmongery/espag-brass.jpg', description: 'Inline espagnolette handle — standard' },
+        { id: 'espag-handle-black', name: 'Espagnolette Handle', color: 'black', prices: { net: 24.50, vat: 29.40 }, image: 'img/ironmongery/espag-black.jpg', description: 'Inline espagnolette handle — standard' },
+        { id: 'espag-handle-white', name: 'Espagnolette Handle', color: 'white', prices: { net: 22.00, vat: 26.40 }, image: 'img/ironmongery/espag-white.jpg', description: 'Inline espagnolette handle — standard' },
+      ]
+    },
+    casementStays: {
+      windowType: 'casement',
+      name: 'Friction Stays / Hinges',
+      autoQuantity: 2,
+      mandatory: true,
+      products: [
+        { id: 'friction-stay-12', name: 'Friction Stay 12"', color: 'chrome', prices: { net: 12.00, vat: 14.40 }, image: 'img/ironmongery/stay-12.jpg', description: 'Standard friction stay 12 inch' },
+        { id: 'friction-stay-16', name: 'Friction Stay 16"', color: 'chrome', prices: { net: 14.00, vat: 16.80 }, image: 'img/ironmongery/stay-16.jpg', description: 'Standard friction stay 16 inch' },
+        { id: 'friction-stay-20', name: 'Friction Stay 20"', color: 'chrome', prices: { net: 16.50, vat: 19.80 }, image: 'img/ironmongery/stay-20.jpg', description: 'Standard friction stay 20 inch' },
+        { id: 'restrictor-stay', name: 'Child Safety Restrictor', color: 'chrome', prices: { net: 8.50, vat: 10.20 }, image: 'img/ironmongery/restrictor.jpg', description: 'Limits opening to 100mm — Building Regs compliant' },
+      ]
+    },
+    casementLocks: {
+      windowType: 'casement',
+      name: 'Casement Locks',
+      autoQuantity: 1,
+      mandatory: false,
+      products: [
+        { id: 'cockspur-chrome', name: 'Cockspur Lock', color: 'chrome', prices: { net: 6.50, vat: 7.80 }, image: 'img/ironmongery/cockspur-chrome.jpg', description: 'Traditional casement lock' },
+        { id: 'cockspur-white', name: 'Cockspur Lock', color: 'white', prices: { net: 6.50, vat: 7.80 }, image: 'img/ironmongery/cockspur-white.jpg', description: 'Traditional casement lock' },
+        { id: 'shootbolt-chrome', name: 'Shootbolt', color: 'chrome', prices: { net: 18.00, vat: 21.60 }, image: 'img/ironmongery/shootbolt-chrome.jpg', description: 'Multi-point casement lock' },
+      ]
+    },
+
   }
 };
 

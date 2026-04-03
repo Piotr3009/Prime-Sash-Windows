@@ -756,6 +756,25 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   margin-bottom: 8px;
 }
 
+/* Casement dual color layout */
+#c-dual-color-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+#c-dual-color-selector > .dual-color-section {
+  flex: 1;
+  min-width: 250px;
+}
+#c-dual-color-selector > .dual-color-section > label {
+  display: block;
+  font-size: 0.65rem !important;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--secondary-color);
+  margin-bottom: 8px;
+}
+
 .color-options {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
@@ -2289,6 +2308,29 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   .btn-confirm-selection { width: 100%; }
 
   .bar-pattern-buttons { justify-content: center; }
+}
+
+/* ═══ Casement Layout Selector ═══ */
+.layout-option {
+  cursor: pointer;
+  display: block;
+}
+.layout-option input { display: none; }
+.layout-thumb {
+  border: 2px solid rgba(158,158,144,.2);
+  border-radius: 3px;
+  padding: 6px;
+  text-align: center;
+  transition: all .2s;
+  background: rgba(255,255,255,.5);
+}
+.layout-option input:checked + .layout-thumb {
+  border-color: var(--navy, #0a1628);
+  background: rgba(10,22,40,.04);
+  box-shadow: 0 0 0 1px var(--navy, #0a1628);
+}
+.layout-thumb:hover {
+  border-color: var(--gold, #c8a24e);
 }
 
 @media (max-width: 680px) {
