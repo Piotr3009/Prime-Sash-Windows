@@ -495,7 +495,7 @@ class IronmongeryGallery {
              alt="${product.name}"
              class="product-card-image"
              title="Click to zoom"
-             onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\"><rect fill=\"%23f0f0f0\" width=\"200\" height=\"200\"/><text x=\"50%25\" y=\"50%25\" text-anchor=\"middle\" dy=\".3em\" fill=\"%23999\" font-size=\"14\">No Image</text></svg>'">
+             onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22>No Image</text></svg>'">
         <div class="product-card-name">${product.name}</div>
         <div class="product-card-price">£${price.toFixed(2)}</div>
         ${isSelected ? `
@@ -652,7 +652,7 @@ class IronmongeryGallery {
         <button class="izm-close">&times;</button>
         <div class="izm-body">
           <div class="izm-image-wrap">
-            <img src="${imgSrc}" alt="${product.name}" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\"><rect fill=\"%23f0f0f0\" width=\"200\" height=\"200\"/><text x=\"50%25\" y=\"50%25\" text-anchor=\"middle\" dy=\".3em\" fill=\"%23999\" font-size=\"14\">No Image</text></svg>'">
+            <img src="${imgSrc}" alt="${product.name}" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22>No Image</text></svg>'">
           </div>
           <div class="izm-details">
             <h2 class="izm-title">${product.name}</h2>
@@ -831,7 +831,7 @@ class IronmongeryGallery {
           <img src="${product.image || product.image_url || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22>No Image</text></svg>'}" 
                alt="${product.name}"
                style="width: 100%; height: 60px; object-fit: cover; border-radius: 4px; margin-bottom: 5px;"
-               onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\"><rect fill=\"%23f0f0f0\" width=\"200\" height=\"200\"/><text x=\"50%25\" y=\"50%25\" text-anchor=\"middle\" dy=\".3em\" fill=\"%23999\" font-size=\"14\">No Image</text></svg>'">
+               onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22>No Image</text></svg>'">
           <div style="font-size: 0.75rem; color: #666; margin-bottom: 3px;">${categoryName} (${quantity}x)</div>
           <div style="font-size: 0.85rem; font-weight: 600; color: var(--primary-color);">£${itemTotal.toFixed(2)}</div>
         </div>
