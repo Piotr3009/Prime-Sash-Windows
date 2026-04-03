@@ -726,6 +726,18 @@ class IronmongeryGallery {
       stoppers: this.selectedProducts['stoppers'] ? {
         ...this.selectedProducts['stoppers'].product,
         quantity: this.selectedProducts['stoppers'].quantity
+      } : null,
+      casementHandles: this.selectedProducts['casementHandles'] ? {
+        ...this.selectedProducts['casementHandles'].product,
+        quantity: this.selectedProducts['casementHandles'].quantity
+      } : null,
+      casementStays: this.selectedProducts['casementStays'] ? {
+        ...this.selectedProducts['casementStays'].product,
+        quantity: this.selectedProducts['casementStays'].quantity
+      } : null,
+      casementLocks: this.selectedProducts['casementLocks'] ? {
+        ...this.selectedProducts['casementLocks'].product,
+        quantity: this.selectedProducts['casementLocks'].quantity
       } : null
     };
 
@@ -773,21 +785,24 @@ class IronmongeryGallery {
   updateMainPageDisplay() {
     const displayContainer = document.getElementById('ironmongery-selection-display');
     const gridContainer = document.getElementById('selected-products-grid');
+    const casementGrid = document.getElementById('c-selected-products-grid');
     const totalElement = document.getElementById('ironmongery-total');
 
-    if (!displayContainer || !gridContainer || !totalElement) return;
+    // Need at least one grid to update
+    if (!gridContainer && !casementGrid) return;
 
     // Count items
     const itemCount = Object.keys(this.selectedProducts).length;
 
     // If no products selected, hide the display
     if (itemCount === 0) {
-      displayContainer.style.display = 'none';
+      if (displayContainer) displayContainer.style.display = 'none';
+      if (casementGrid) casementGrid.innerHTML = '';
       return;
     }
 
     // Show the display
-    displayContainer.style.display = 'block';
+    if (displayContainer) displayContainer.style.display = 'block';
 
     // Generate miniatures
     let html = '';
@@ -805,7 +820,10 @@ class IronmongeryGallery {
         fingerLifts: 'Lifts',
         pullHandles: 'Handle',
         stoppers: 'Stopper',
-        horns: 'Horns'
+        horns: 'Horns',
+        casementHandles: 'Handle',
+        casementStays: 'Stay',
+        casementLocks: 'Lock'
       }[category] || category;
 
       html += `
@@ -820,8 +838,13 @@ class IronmongeryGallery {
       `;
     });
 
-    gridContainer.innerHTML = html;
-    totalElement.textContent = `£${total.toFixed(2)}`;
+    if (gridContainer) gridContainer.innerHTML = html;
+    if (totalElement) totalElement.textContent = `£${total.toFixed(2)}`;
+
+    // Also populate casement grid if it exists
+    if (casementGrid) {
+      casementGrid.innerHTML = html;
+    }
     
     // PREVIEW pod przyciskiem (Gemini style)
     const previewElement = document.getElementById('ironmongery-summary-preview');

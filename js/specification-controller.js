@@ -1106,6 +1106,9 @@ class SpecificationController {
     if (gallerySelection.pullHandles) selectedProducts.push({...gallerySelection.pullHandles, category: 'Handle'});
     if (gallerySelection.stoppers) selectedProducts.push({...gallerySelection.stoppers, category: 'Stopper'});
     if (gallerySelection.horns) selectedProducts.push({...gallerySelection.horns, category: 'Horns'});
+    if (gallerySelection.casementHandles) selectedProducts.push({...gallerySelection.casementHandles, category: 'Handle'});
+    if (gallerySelection.casementStays) selectedProducts.push({...gallerySelection.casementStays, category: 'Stay'});
+    if (gallerySelection.casementLocks) selectedProducts.push({...gallerySelection.casementLocks, category: 'Lock'});
 
     const hasIronmongery = selectedProducts.length > 0;
     
