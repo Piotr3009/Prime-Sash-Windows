@@ -442,7 +442,7 @@ function ScreenshotHelper() {
     window.captureWindowScreenshots = async () => {
       return new Promise((resolve) => {
         const target = new THREE.Vector3(0, 0.18, 0);
-        const distance = 3.5;
+        const distance = 2.0;
 
         // Save current camera state
         const savedPos = camera.position.clone();
