@@ -812,17 +812,17 @@ class EstimateRenderer {
                 svg += `<line x1="${px+2}" y1="${py+2}" x2="${px+pw-2}" y2="${py+ph-2}" stroke="${light}" stroke-width="0.5"/>`;
                 svg += `<line x1="${px+pw-2}" y1="${py+2}" x2="${px+2}" y2="${py+ph-2}" stroke="${light}" stroke-width="0.5"/>`;
             } else if (p.hinge === 'left') {
-                // Hinge on left, opens right — triangle pointing right
-                svg += `<line x1="${px+2}" y1="${py+2}" x2="${px+pw-2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
-                svg += `<line x1="${px+2}" y1="${py+ph-2}" x2="${px+pw-2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
-            } else if (p.hinge === 'right') {
-                // Hinge on right, opens left — triangle pointing left
+                // Hinge on left — point at LEFT center, lines from right corners
                 svg += `<line x1="${px+pw-2}" y1="${py+2}" x2="${px+2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
                 svg += `<line x1="${px+pw-2}" y1="${py+ph-2}" x2="${px+2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
+            } else if (p.hinge === 'right') {
+                // Hinge on right — point at RIGHT center, lines from left corners
+                svg += `<line x1="${px+2}" y1="${py+2}" x2="${px+pw-2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
+                svg += `<line x1="${px+2}" y1="${py+ph-2}" x2="${px+pw-2}" y2="${cy}" stroke="${gold}" stroke-width="0.7"/>`;
             } else if (p.hinge === 'top') {
-                // Hinge on top — triangle pointing down
-                svg += `<line x1="${px+2}" y1="${py+2}" x2="${cx}" y2="${py+ph-2}" stroke="${gold}" stroke-width="0.7"/>`;
-                svg += `<line x1="${px+pw-2}" y1="${py+2}" x2="${cx}" y2="${py+ph-2}" stroke="${gold}" stroke-width="0.7"/>`;
+                // Hinge on top — point at TOP center, lines from bottom corners
+                svg += `<line x1="${px+2}" y1="${py+ph-2}" x2="${cx}" y2="${py+2}" stroke="${gold}" stroke-width="0.7"/>`;
+                svg += `<line x1="${px+pw-2}" y1="${py+ph-2}" x2="${cx}" y2="${py+2}" stroke="${gold}" stroke-width="0.7"/>`;
             }
 
             // Bars (only on non-fanlight panels unless specified)
@@ -875,9 +875,10 @@ class EstimateRenderer {
             const ty = typeof panels.transoms[0] === 'number' ? panels.transoms[0] : panels.transoms[0].y;
             const fhDimX = ox - 12;
             const transomSvgY = iy + ty;
-            svg += `<line x1="${fhDimX}" y1="${transomSvgY}" x2="${fhDimX}" y2="${oy + drawH - fT}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            // Fanlight is at top: from frame top to transom
+            svg += `<line x1="${fhDimX}" y1="${iy}" x2="${fhDimX}" y2="${transomSvgY}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            svg += `<line x1="${fhDimX - tickH}" y1="${iy}" x2="${fhDimX + tickH}" y2="${iy}" stroke="${dimColor}" stroke-width="0.4"/>`;
             svg += `<line x1="${fhDimX - tickH}" y1="${transomSvgY}" x2="${fhDimX + tickH}" y2="${transomSvgY}" stroke="${dimColor}" stroke-width="0.4"/>`;
-            svg += `<line x1="${fhDimX - tickH}" y1="${oy + drawH - fT}" x2="${fhDimX + tickH}" y2="${oy + drawH - fT}" stroke="${dimColor}" stroke-width="0.4"/>`;
         }
 
         const totalH = dimY + (panels.widthBreakdown && panels.widthBreakdown.length > 1 ? 32 : 18);
@@ -945,86 +946,86 @@ class EstimateRenderer {
                 };
             case '021':
                 return {
-                    transoms: [ih - fH - mW/2],
+                    transoms: [fH + mW/2],
                     list: [
-                        { x:0,y:0,w:iw,h:mainH,hinge:'fixed' },
-                        { x:0,y:mainH+mW,w:iw,h:fH,hinge:'top',fanlight:true }
+                        { x:0,y:0,w:iw,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:iw,h:mainH,hinge:'fixed' }
                     ]
                 };
             case '021L':
                 return {
-                    transoms: [ih - fH - mW/2],
+                    transoms: [fH + mW/2],
                     list: [
-                        { x:0,y:0,w:iw,h:mainH,hinge:'right' },
-                        { x:0,y:mainH+mW,w:iw,h:fH,hinge:'top',fanlight:true }
+                        { x:0,y:0,w:iw,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:iw,h:mainH,hinge:'right' }
                     ]
                 };
             case '021R':
                 return {
-                    transoms: [ih - fH - mW/2],
+                    transoms: [fH + mW/2],
                     list: [
-                        { x:0,y:0,w:iw,h:mainH,hinge:'left' },
-                        { x:0,y:mainH+mW,w:iw,h:fH,hinge:'top',fanlight:true }
+                        { x:0,y:0,w:iw,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:iw,h:mainH,hinge:'left' }
                     ]
                 };
             case '031':
                 return {
-                    transoms: [ih - fH - mW/2],
+                    transoms: [fH + mW/2],
                     mullions: [iw/2],
                     list: [
-                        { x:0,y:0,w:iw,h:mainH,hinge:'fixed' },
-                        { x:0,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true },
-                        { x:half+mW,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true }
+                        { x:0,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:half+mW,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:iw,h:mainH,hinge:'fixed' }
                     ]
                 };
             case '031L':
                 return {
-                    transoms: [ih - fH - mW/2],
+                    transoms: [fH + mW/2],
                     mullions: [iw/2],
                     list: [
-                        { x:0,y:0,w:iw,h:mainH,hinge:'right' },
-                        { x:0,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true },
-                        { x:half+mW,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true }
+                        { x:0,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:half+mW,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:iw,h:mainH,hinge:'right' }
                     ]
                 };
             case '031R':
                 return {
-                    transoms: [ih - fH - mW/2],
+                    transoms: [fH + mW/2],
                     mullions: [iw/2],
                     list: [
-                        { x:0,y:0,w:iw,h:mainH,hinge:'left' },
-                        { x:0,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true },
-                        { x:half+mW,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true }
+                        { x:0,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:half+mW,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:iw,h:mainH,hinge:'left' }
                     ]
                 };
             case '032':
                 return {
-                    transoms: [mainH + mW/2],
+                    transoms: [fH + mW/2],
                     mullions: [iw/2],
                     list: [
-                        { x:0,y:0,w:half,h:mainH,hinge:'left' },
-                        { x:half+mW,y:0,w:half,h:mainH,hinge:'right' },
-                        { x:0,y:mainH+mW,w:iw,h:fH,hinge:'top',fanlight:true }
+                        { x:0,y:0,w:iw,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:half,h:mainH,hinge:'left' },
+                        { x:half+mW,y:fH+mW,w:half,h:mainH,hinge:'right' }
                     ]
                 };
             case '052L':
                 return {
                     mullions: [iw/2],
-                    transoms: [{ y:mainH+mW/2, x:0, w:half }],
+                    transoms: [{ y:fH+mW/2, x:0, w:half }],
                     list: [
-                        { x:0,y:0,w:half,h:mainH,hinge:'left' },
-                        { x:0,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:half,h:mainH,hinge:'left' },
                         { x:half+mW,y:0,w:half,h:ih,hinge:'right' }
                     ]
                 };
             case '052R':
                 return {
                     mullions: [iw/2],
-                    transoms: [{ y:mainH+mW/2, x:half+mW, w:half }],
+                    transoms: [{ y:fH+mW/2, x:half+mW, w:half }],
                     list: [
                         { x:0,y:0,w:half,h:ih,hinge:'left' },
-                        { x:half+mW,y:0,w:half,h:mainH,hinge:'right' },
-                        { x:half+mW,y:mainH+mW,w:half,h:fH,hinge:'top',fanlight:true }
+                        { x:half+mW,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:half+mW,y:fH+mW,w:half,h:mainH,hinge:'right' }
                     ]
                 };
             case '130':
@@ -1040,11 +1041,11 @@ class EstimateRenderer {
                 const tpW = third;
                 return {
                     mullions: [third, third*2+mW],
-                    transoms: [{ y:mainH+mW/2, x:third+mW/2, w:tpW }],
+                    transoms: [{ y:fH+mW/2, x:third+mW/2, w:tpW }],
                     list: [
                         { x:0,y:0,w:third-mW/2,h:ih,hinge:'left' },
-                        { x:third+mW/2,y:0,w:tpW,h:mainH,hinge:'fixed' },
-                        { x:third+mW/2,y:mainH+mW,w:tpW,h:fH,hinge:'top',fanlight:true },
+                        { x:third+mW/2,y:0,w:tpW,h:fH,hinge:'top',fanlight:true },
+                        { x:third+mW/2,y:fH+mW,w:tpW,h:mainH,hinge:'fixed' },
                         { x:third*2+mW+mW/2,y:0,w:third-mW/2,h:ih,hinge:'right' }
                     ]
                 };
@@ -1054,15 +1055,15 @@ class EstimateRenderer {
                 return {
                     mullions: [third, third*2+mW],
                     transoms: [
-                        { y:mainH+mW/2, x:0, w:third-mW/2 },
-                        { y:mainH+mW/2, x:third*2+mW+mW/2, w:third-mW/2 }
+                        { y:fH+mW/2, x:0, w:third-mW/2 },
+                        { y:fH+mW/2, x:third*2+mW+mW/2, w:third-mW/2 }
                     ],
                     list: [
-                        { x:0,y:0,w:third-mW/2,h:mainH,hinge:'left' },
-                        { x:0,y:mainH+mW,w:third-mW/2,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:0,w:third-mW/2,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:third-mW/2,h:mainH,hinge:'left' },
                         { x:third+mW/2,y:0,w:tpW,h:ih,hinge:'fixed' },
-                        { x:third*2+mW+mW/2,y:0,w:third-mW/2,h:mainH,hinge:'right' },
-                        { x:third*2+mW+mW/2,y:mainH+mW,w:third-mW/2,h:fH,hinge:'top',fanlight:true }
+                        { x:third*2+mW+mW/2,y:0,w:third-mW/2,h:fH,hinge:'top',fanlight:true },
+                        { x:third*2+mW+mW/2,y:fH+mW,w:third-mW/2,h:mainH,hinge:'right' }
                     ]
                 };
             }
