@@ -243,7 +243,7 @@ function CurvedGlass({ innerPts, glassMat, spacerColor }) {
 /* ═══ CONTOUR BEADS — chamfer (EXT) + ovolo (INT) for any contour shape ═══ */
 function ContourBeads({ innerPts, D, matExt, matInt }) {
   const halfD = D / 2;
-  const STEPS = 20;
+  const STEPS = 64;
   const CHAMFER_TOP = mm(1);
 
   // Centroid for inward offset direction (same approach as CurvedGlass spacer)
