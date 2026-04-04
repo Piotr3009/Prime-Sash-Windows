@@ -2692,34 +2692,93 @@
       <!-- ═══════ FIX FRAME: Colour ═══════ -->
       <div class="config-section" data-for="fix-only" data-category="colour" style="display:none;">
         <h3>Frame Colour</h3>
-        <div class="input-group">
-          <label>Colour Scheme:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="f-col-same" name="f-colour-mode" value="same" checked><label for="f-col-same" class="radio-label">Same Both Sides</label></div>
-            <div class="radio-option"><input type="radio" id="f-col-dual" name="f-colour-mode" value="dual"><label for="f-col-dual" class="radio-label">Dual Colour</label></div>
+
+        <div class="radio-group" style="margin-bottom:10px;">
+          <div class="radio-option">
+            <input type="radio" id="f-col-same" name="f-colour-mode" value="same" checked>
+            <label for="f-col-same" class="radio-label">Single Color</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="f-col-dual" name="f-colour-mode" value="dual">
+            <label for="f-col-dual" class="radio-label">Dual Color +15%</label>
           </div>
         </div>
-        <div class="input-group">
-          <label id="f-ext-label">Colour:</label>
-          <select id="f-ext-colour" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
-              <optgroup label="Standard"><option value="#F6F6F6" selected>Pure White</option><option value="#FAF0E6">Cream White</option><option value="#C8B898">Light Oak</option><option value="#8B7355">Dark Oak</option><option value="#2C2C2C">Anthracite Grey</option><option value="#1A1A1A">Black</option></optgroup>
-              <optgroup label="Whites"><option value="#fbf8f4">All White 2005</option><option value="#eee9e7">Wevet 273</option><option value="#f2f0e8">Strong White 2001</option><option value="#ede8dc">Great White 2006</option><option value="#f0ece0">Wimborne White 239</option><option value="#fdfeec">Pointing 2003</option><option value="#f3f0e1">James White 2010</option><option value="#ede6d5">White Tie 2002</option><option value="#ede3ce">Slipper Satin 2004</option><option value="#f4f0e5">School House White 291</option><option value="#eceae5">Blackened 2011</option><option value="#ecf0e0">Cabbage White 269</option><option value="#dfe6e4">Borrowed Light 235</option><option value="#eae4d6">Shadow White 282</option><option value="#f0e4d4">Dimity 2008</option><option value="#f0e4c8">Matchstick 2013</option></optgroup>
-              <optgroup label="Neutrals"><option value="#e8e2d0">Skimming Stone 241</option><option value="#c8b898">Stony Ground 211</option><option value="#a09880">London Stone 6</option><option value="#ccbfb3">Elephant&#39;s Breath 229</option><option value="#d0ccc4">Ammonite 274</option><option value="#c8c4b8">Cornforth White 228</option></optgroup>
-              <optgroup label="Greys"><option value="#d0ccc8">Dimpse 277</option><option value="#a8a8a0">Pavilion Gray 242</option><option value="#9c9c98">Lamp Room Gray 88</option><option value="#949088">Manor House Gray 265</option><option value="#8c887c">Charleston Gray 243</option><option value="#787470">Plummett 272</option></optgroup>
-              <optgroup label="Greens"><option value="#7a8868">Saxon Green 80</option><option value="#73806e">Card Room Green 79</option><option value="#5a6850">Calke Green 34</option><option value="#384030">Studio Green 93</option></optgroup>
-              <optgroup label="Blues"><option value="#a0aab0">Blue Gray 91</option><option value="#708888">Green Blue 84</option><option value="#384858">Hague Blue 30</option><option value="#253040">Stiffkey Blue 281</option></optgroup>
-          </select>
+
+        <!-- SINGLE COLOR -->
+        <div id="f-single-color-selector">
+          <label>Select Color (both inside and outside):</label>
+          <div class="color-options">
+            <div class="color-option-wrapper"><div class="color-option f-color-option selected" style="background-color: #FAFAFA;" data-color="white" data-name="Pure White" data-ral="RAL 9016"></div><span class="color-name">Pure White</span></div>
+            <div class="color-option-wrapper"><div class="color-option f-color-option" style="background-color: #0A0A0A;" data-color="black" data-name="Jet Black" data-ral="RAL 9005"></div><span class="color-name">Jet Black</span></div>
+            <div class="color-option-wrapper"><div class="color-option f-color-option" style="background-color: #293133;" data-color="anthracite" data-name="Anthracite Grey" data-ral="RAL 7016"></div><span class="color-name">Anthracite Grey</span></div>
+            <div class="color-option-wrapper"><div class="color-option f-color-option" style="background-color: #424632;" data-color="olive" data-name="Olive Green" data-ral="RAL 6003"></div><span class="color-name">Olive Green</span></div>
+            <div class="color-option-wrapper"><div class="color-option f-color-option" style="background-color: #F7F9F5;" data-color="offwhite" data-name="Off-White" data-ral="RAL 9010"></div><span class="color-name">Off-White</span></div>
+            <div class="color-option-wrapper"><div class="color-option f-color-option" style="background-color: #F1EFDC;" data-color="cream" data-name="Cream" data-ral="RAL 9001"></div><span class="color-name">Cream</span></div>
+            <div class="color-option-wrapper"><div class="color-option f-color-option" style="background-color: #5E2028;" data-color="burgundy" data-name="Burgundy Red" data-ral="RAL 3005"></div><span class="color-name">Burgundy Red</span></div>
+            <div class="color-option-wrapper"><div class="color-option f-color-option" style="background-color: #222D5A;" data-color="royal" data-name="Royal Blue" data-ral="RAL 5002"></div><span class="color-name">Royal Blue</span></div>
+            <div class="color-option-wrapper"><div class="color-option f-color-option f-custom-color-btn" style="background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #ffe66d, #95e1d3); position: relative;" data-color="custom" data-name="Custom Color" data-ral="Custom RAL"><span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; color: #333; text-shadow: 0 0 3px white;">+</span></div><span class="color-name">Custom</span></div>
+          </div>
+          <div class="color-dropdown-row">
+            <select id="f-single-ral-select" class="color-ral-dropdown"><option value="">— RAL —</option><optgroup label="Whites &amp; Creams"><option value="#FFFFFF">9010 Pure White</option><option value="#F6F6F6">9016 Traffic White</option><option value="#F4F4F4">9003 Signal White</option><option value="#FDF4E3">9001 Cream White</option><option value="#E7EBDA">9002 Grey White</option><option value="#E6D690">1015 Light Ivory</option><option value="#C2B078">1001 Beige</option><option value="#C6A664">1002 Sand Yellow</option></optgroup><optgroup label="Greys"><option value="#D7D7D7">7035 Light Grey</option><option value="#B5B8B1">7038 Agate Grey</option><option value="#8D948D">7042 Traffic Grey A</option><option value="#7D7F7D">7037 Dusty Grey</option><option value="#78858B">7000 Squirrel Grey</option><option value="#9EA0A1">7004 Signal Grey</option><option value="#6C7059">7005 Mouse Grey</option><option value="#474A51">7024 Graphite Grey</option><option value="#293133">7016 Anthracite Grey</option><option value="#23282B">7021 Black Grey</option><option value="#434750">7015 Slate Grey</option><option value="#4E5754">7012 Basalt Grey</option></optgroup><optgroup label="Blacks"><option value="#0A0A0A">9005 Jet Black</option><option value="#1C2023">9011 Graphite Black</option><option value="#1E1E1E">9017 Traffic Black</option><option value="#282828">9004 Signal Black</option></optgroup><optgroup label="Greens"><option value="#31372B">6009 Fir Green</option><option value="#2F4538">6005 Moss Green</option><option value="#343B29">6007 Bottle Green</option><option value="#1F3A3D">6004 Blue Green</option><option value="#4A4F3B">6003 Olive Green</option><option value="#587246">6011 Reseda Green</option><option value="#35682D">6010 Grass Green</option><option value="#1E5945">6016 Turquoise Green</option></optgroup><optgroup label="Blues"><option value="#1E2460">5002 Ultramarine Blue</option><option value="#1D1E33">5004 Black Blue</option><option value="#1B2A4A">5011 Steel Blue</option><option value="#2271B3">5015 Sky Blue</option><option value="#063971">5017 Traffic Blue</option><option value="#3B83BD">5012 Light Blue</option><option value="#354D73">5000 Violet Blue</option><option value="#49678D">5023 Distant Blue</option></optgroup><optgroup label="Reds"><option value="#AF2B1E">3000 Flame Red</option><option value="#9B111E">3003 Ruby Red</option><option value="#75151E">3004 Purple Red</option><option value="#5E2129">3005 Wine Red</option><option value="#D53032">3018 Strawberry Red</option><option value="#CC0605">3020 Traffic Red</option></optgroup><optgroup label="Browns"><option value="#955F20">8001 Ochre Brown</option><option value="#6F4F28">8008 Olive Brown</option><option value="#6F3B2A">8011 Nut Brown</option><option value="#4E3B31">8028 Terra Brown</option><option value="#45322E">8017 Chocolate Brown</option><option value="#382C1E">8014 Sepia Brown</option></optgroup><optgroup label="Yellows &amp; Oranges"><option value="#E5BE01">1003 Signal Yellow</option><option value="#F4A900">1028 Melon Yellow</option><option value="#ED760E">2000 Yellow Orange</option><option value="#FF7514">2003 Pastel Orange</option></optgroup></select>
+            <select id="f-single-fb-select" class="color-fb-dropdown"><option value="">— F&amp;B —</option><optgroup label="Whites"><option value="#fbf8f4">All White 2005</option><option value="#eee9e7">Wevet 273</option><option value="#f2f0e8">Strong White 2001</option><option value="#ede8dc">Great White 2006</option><option value="#f0ece0">Wimborne White 239</option><option value="#fdfeec">Pointing 2003</option><option value="#f3f0e1">James White 2010</option><option value="#ede6d5">White Tie 2002</option><option value="#ede3ce">Slipper Satin 2004</option><option value="#f4f0e5">School House White 291</option><option value="#eceae5">Blackened 2011</option><option value="#ecf0e0">Cabbage White 269</option><option value="#dfe6e4">Borrowed Light 235</option><option value="#eae4d6">Shadow White 282</option><option value="#f0e4d4">Dimity 2008</option><option value="#f0e4c8">Matchstick 2013</option></optgroup><optgroup label="Creams &amp; Yellows"><option value="#eee8d8">New White 59</option><option value="#f0e8c8">Tallow 203</option><option value="#f0deb8">Farrow's Cream 67</option><option value="#f4e4ba">Dorset Cream 68</option><option value="#ede4b8">Pale Hound 71</option><option value="#dac586">Hay 37</option><option value="#c89830">Sudbury Yellow 51</option><option value="#ce923c">India Yellow 66</option><option value="#e8b830">Babouche 223</option><option value="#ece0a0">Yellow Ground 218</option><option value="#f0e0a0">Dayroom Yellow 233</option><option value="#d8d498">Citron 74</option><option value="#c07030">Charlotte's Locks 268</option></optgroup><optgroup label="Neutrals &amp; Stones"><option value="#e8e2d0">Skimming Stone 241</option><option value="#c8b898">Stony Ground 211</option><option value="#b8b0a0">Joa's White 226</option><option value="#c8b898">Oxford Stone 264</option><option value="#a09880">London Stone 6</option><option value="#ccbfb3">Elephant's Breath 229</option><option value="#d0ccc4">Ammonite 274</option><option value="#c8c4b8">Cornforth White 228</option><option value="#c0b8a8">Purbeck Stone 275</option><option value="#c8bca8">Drop Cloth 283</option><option value="#c0b498">Jitney 293</option><option value="#d8ccae">String 8</option><option value="#d6c39e">Cord 16</option><option value="#deccb0">Bone 15</option><option value="#ccc8c1">Shaded White 201</option><option value="#b8a888">Stirabout 300</option><option value="#e8ddc8">Old White 4</option><option value="#f2ecd8">Lime White 1</option><option value="#e4dcca">Off-White 3</option><option value="#c8c0ae">Hardwick White 5</option></optgroup><optgroup label="Greys"><option value="#d0ccc8">Dimpse 277</option><option value="#c8ccc0">Cromarty 285</option><option value="#b9beaa">Pigeon 25</option><option value="#a8a8a0">Pavilion Gray 242</option><option value="#9c9c98">Lamp Room Gray 88</option><option value="#8c8880">Worsted 284</option><option value="#949088">Manor House Gray 265</option><option value="#8c887c">Charleston Gray 243</option><option value="#9d9088">Mole's Breath 276</option><option value="#8c7c68">Mouse's Back 40</option><option value="#c8c0ae">Light Gray 17</option><option value="#b8b0a0">French Gray 18</option><option value="#787470">Plummett 272</option><option value="#b0b8a0">Mizzle 266</option><option value="#a0aab0">Blue Gray 91</option><option value="#b0a8a0">Dove Tale 267</option><option value="#a8a0a0">Tailor Tack 302</option></optgroup><optgroup label="Pinks &amp; Reds"><option value="#f0d8c8">Pink Ground 202</option><option value="#e8c8b8">Setting Plaster 231</option><option value="#e8c8c0">Calamine 230</option><option value="#e8c8b8">Nancy's Blushes 278</option><option value="#cdb8b0">Peignoir 286</option><option value="#d08880">Cinder Rose 246</option><option value="#c09090">Sulking Room Pink 295</option><option value="#c89888">Templeton Pink 303</option><option value="#c8a898">Dead Salmon 28</option><option value="#b8a0a0">Calluna 270</option><option value="#6a1820">Incarnadine 248</option><option value="#8c182b">Rectory Red 217</option><option value="#a82830">Eating Room Red 43</option><option value="#c84848">Picture Gallery Red 42</option><option value="#7a2830">Preference Red 297</option><option value="#6c2838">Radicchio 96</option><option value="#a05838">Red Earth 64</option><option value="#c07868">Whirlybird 309</option></optgroup><optgroup label="Greens"><option value="#bbbe9f">Vert de Terre 234</option><option value="#b0c0a8">Teresa's Green 236</option><option value="#a0a888">Lichen 19</option><option value="#7a8868">Saxon Green 80</option><option value="#73806e">Card Room Green 79</option><option value="#5a6850">Calke Green 34</option><option value="#636f65">Green Smoke 47</option><option value="#98a878">Breakfast Room Green 81</option><option value="#b0b898">Ball Green 75</option><option value="#97a07a">Cooking Apple Green 32</option><option value="#748860">Yeabridge Green 287</option><option value="#808870">Treron 292</option><option value="#4a5040">Bancha 298</option><option value="#384030">Studio Green 93</option><option value="#485840">Arsenic 214</option><option value="#586048">Beverly 310</option><option value="#788050">Sap Green 199</option><option value="#708888">Green Blue 84</option></optgroup><optgroup label="Blues"><option value="#6888a0">Lulworth Blue 89</option><option value="#8898a8">Parma Gray 27</option><option value="#759194">Stone Blue 86</option><option value="#a0b8c8">Light Blue 22</option><option value="#2c3437">Hague Blue 30</option><option value="#2c3a48">Stiffkey Blue 281</option><option value="#586768">Inchyra Blue 289</option><option value="#7898a0">Dix Blue 82</option><option value="#507898">Cooks Blue 237</option><option value="#7888a0">Oval Room Blue 85</option><option value="#c0d0d8">Skylight 205</option><option value="#8098a8">Kittiwake 307</option><option value="#485060">Selvedge 304</option><option value="#6a7c80">De Nimes 299</option><option value="#7890a0">Eddy 301</option></optgroup><optgroup label="Darks &amp; Blacks"><option value="#3c3d42">Down Pipe 26</option><option value="#45484b">Railings 31</option><option value="#313639">Off-Black 57</option><option value="#292820">Pitch Black 256</option><option value="#483830">Tanner's Brown 255</option><option value="#482838">Brinjal 222</option><option value="#3a2830">Paean Black 294</option><option value="#4a3030">Mahogany 36</option><option value="#504838">Hopper Head 305</option><option value="#2a5058">Vardo 288</option><option value="#4a2028">Wine Dark 308</option><option value="#5a5038">Broccoli Brown 198</option><option value="#584858">Brassica 271</option></optgroup><optgroup label="New 2025"><option value="#984838">Etruscan Red 56</option><option value="#e8d8c8">Scallop 311</option><option value="#485838">Dibber 312</option><option value="#606850">Reduced Green 313</option><option value="#c8c0a8">Sizing 314</option><option value="#e8d8b8">Naperon 315</option><option value="#b87838">Marmelo 316</option><option value="#889068">Kakelugn 317</option><option value="#9c9880">Douter 318</option><option value="#b8a880">Duster 319</option></optgroup></select>
+          </div>
+          <div class="ral-input-row">
+            <input type="text" id="f-single-ral-input" placeholder="RAL e.g. 7016">
+            <button type="button" id="f-single-ral-apply">Apply</button>
+            <span class="ral-error" id="f-single-ral-error"></span>
+          </div>
+          <div class="color-preview-info" id="f-single-color-preview-info">
+            <div class="preview-item"><span class="preview-label">Selected Color:</span><span class="preview-value" id="f-single-preview-name">Pure White</span></div>
+            <div class="preview-item"><span class="preview-label">Code:</span><span class="preview-value" id="f-single-preview-ral">#FAFAFA</span></div>
+          </div>
         </div>
-        <div class="input-group" id="f-int-colour-group" style="display:none;">
-          <label>Interior Colour:</label>
-          <select id="f-int-colour" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
-              <optgroup label="Standard"><option value="#F6F6F6" selected>Pure White</option><option value="#FAF0E6">Cream White</option><option value="#C8B898">Light Oak</option><option value="#8B7355">Dark Oak</option><option value="#2C2C2C">Anthracite Grey</option><option value="#1A1A1A">Black</option></optgroup>
-              <optgroup label="Whites"><option value="#fbf8f4">All White 2005</option><option value="#eee9e7">Wevet 273</option><option value="#f2f0e8">Strong White 2001</option><option value="#ede8dc">Great White 2006</option><option value="#f0ece0">Wimborne White 239</option><option value="#fdfeec">Pointing 2003</option><option value="#f3f0e1">James White 2010</option><option value="#ede6d5">White Tie 2002</option><option value="#ede3ce">Slipper Satin 2004</option><option value="#f4f0e5">School House White 291</option><option value="#eceae5">Blackened 2011</option><option value="#ecf0e0">Cabbage White 269</option><option value="#dfe6e4">Borrowed Light 235</option><option value="#eae4d6">Shadow White 282</option><option value="#f0e4d4">Dimity 2008</option><option value="#f0e4c8">Matchstick 2013</option></optgroup>
-              <optgroup label="Neutrals"><option value="#e8e2d0">Skimming Stone 241</option><option value="#c8b898">Stony Ground 211</option><option value="#a09880">London Stone 6</option><option value="#ccbfb3">Elephant&#39;s Breath 229</option><option value="#d0ccc4">Ammonite 274</option><option value="#c8c4b8">Cornforth White 228</option></optgroup>
-              <optgroup label="Greys"><option value="#d0ccc8">Dimpse 277</option><option value="#a8a8a0">Pavilion Gray 242</option><option value="#9c9c98">Lamp Room Gray 88</option><option value="#949088">Manor House Gray 265</option><option value="#8c887c">Charleston Gray 243</option><option value="#787470">Plummett 272</option></optgroup>
-              <optgroup label="Greens"><option value="#7a8868">Saxon Green 80</option><option value="#73806e">Card Room Green 79</option><option value="#5a6850">Calke Green 34</option><option value="#384030">Studio Green 93</option></optgroup>
-              <optgroup label="Blues"><option value="#a0aab0">Blue Gray 91</option><option value="#708888">Green Blue 84</option><option value="#384858">Hague Blue 30</option><option value="#253040">Stiffkey Blue 281</option></optgroup>
-          </select>
+
+        <!-- DUAL COLOR -->
+        <div id="f-dual-colour-section" style="display:none;">
+          <div id="f-dual-color-selector">
+            <div class="dual-color-section">
+              <label>Interior Color:</label>
+              <div class="color-options">
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-interior-color selected" style="background-color: #FAFAFA;" data-color="white" data-name="Pure White" data-ral="RAL 9016"></div><span class="color-name">Pure White</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-interior-color" style="background-color: #0A0A0A;" data-color="black" data-name="Jet Black" data-ral="RAL 9005"></div><span class="color-name">Jet Black</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-interior-color" style="background-color: #293133;" data-color="anthracite" data-name="Anthracite Grey" data-ral="RAL 7016"></div><span class="color-name">Anthracite Grey</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-interior-color" style="background-color: #424632;" data-color="olive" data-name="Olive Green" data-ral="RAL 6003"></div><span class="color-name">Olive Green</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-interior-color" style="background-color: #F7F9F5;" data-color="offwhite" data-name="Off-White" data-ral="RAL 9010"></div><span class="color-name">Off-White</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-interior-color" style="background-color: #F1EFDC;" data-color="cream" data-name="Cream" data-ral="RAL 9001"></div><span class="color-name">Cream</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-interior-color" style="background-color: #5E2028;" data-color="burgundy" data-name="Burgundy Red" data-ral="RAL 3005"></div><span class="color-name">Burgundy Red</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-interior-color" style="background-color: #222D5A;" data-color="royal" data-name="Royal Blue" data-ral="RAL 5002"></div><span class="color-name">Royal Blue</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-interior-color f-custom-color-btn" style="background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #ffe66d, #95e1d3); position: relative;" data-color="custom" data-name="Custom Color" data-ral="Custom RAL"><span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; color: #333; text-shadow: 0 0 3px white;">+</span></div><span class="color-name">Custom</span></div>
+              </div>
+              <div class="color-dropdown-row">
+                <select id="f-int-ral-select" class="color-ral-dropdown"><option value="">— RAL —</option><optgroup label="Whites &amp; Creams"><option value="#FFFFFF">9010 Pure White</option><option value="#F6F6F6">9016 Traffic White</option><option value="#F4F4F4">9003 Signal White</option><option value="#FDF4E3">9001 Cream White</option><option value="#E7EBDA">9002 Grey White</option><option value="#E6D690">1015 Light Ivory</option><option value="#C2B078">1001 Beige</option><option value="#C6A664">1002 Sand Yellow</option></optgroup><optgroup label="Greys"><option value="#D7D7D7">7035 Light Grey</option><option value="#B5B8B1">7038 Agate Grey</option><option value="#8D948D">7042 Traffic Grey A</option><option value="#7D7F7D">7037 Dusty Grey</option><option value="#78858B">7000 Squirrel Grey</option><option value="#9EA0A1">7004 Signal Grey</option><option value="#6C7059">7005 Mouse Grey</option><option value="#474A51">7024 Graphite Grey</option><option value="#293133">7016 Anthracite Grey</option><option value="#23282B">7021 Black Grey</option><option value="#434750">7015 Slate Grey</option><option value="#4E5754">7012 Basalt Grey</option></optgroup><optgroup label="Blacks"><option value="#0A0A0A">9005 Jet Black</option><option value="#1C2023">9011 Graphite Black</option><option value="#1E1E1E">9017 Traffic Black</option><option value="#282828">9004 Signal Black</option></optgroup><optgroup label="Greens"><option value="#31372B">6009 Fir Green</option><option value="#2F4538">6005 Moss Green</option><option value="#343B29">6007 Bottle Green</option><option value="#1F3A3D">6004 Blue Green</option><option value="#4A4F3B">6003 Olive Green</option><option value="#587246">6011 Reseda Green</option><option value="#35682D">6010 Grass Green</option><option value="#1E5945">6016 Turquoise Green</option></optgroup><optgroup label="Blues"><option value="#1E2460">5002 Ultramarine Blue</option><option value="#1D1E33">5004 Black Blue</option><option value="#1B2A4A">5011 Steel Blue</option><option value="#2271B3">5015 Sky Blue</option><option value="#063971">5017 Traffic Blue</option><option value="#3B83BD">5012 Light Blue</option><option value="#354D73">5000 Violet Blue</option><option value="#49678D">5023 Distant Blue</option></optgroup><optgroup label="Reds"><option value="#AF2B1E">3000 Flame Red</option><option value="#9B111E">3003 Ruby Red</option><option value="#75151E">3004 Purple Red</option><option value="#5E2129">3005 Wine Red</option><option value="#D53032">3018 Strawberry Red</option><option value="#CC0605">3020 Traffic Red</option></optgroup><optgroup label="Browns"><option value="#955F20">8001 Ochre Brown</option><option value="#6F4F28">8008 Olive Brown</option><option value="#6F3B2A">8011 Nut Brown</option><option value="#4E3B31">8028 Terra Brown</option><option value="#45322E">8017 Chocolate Brown</option><option value="#382C1E">8014 Sepia Brown</option></optgroup><optgroup label="Yellows &amp; Oranges"><option value="#E5BE01">1003 Signal Yellow</option><option value="#F4A900">1028 Melon Yellow</option><option value="#ED760E">2000 Yellow Orange</option><option value="#FF7514">2003 Pastel Orange</option></optgroup></select>
+                <select id="f-int-fb-select" class="color-fb-dropdown"><option value="">— F&amp;B —</option><optgroup label="Whites"><option value="#fbf8f4">All White 2005</option><option value="#eee9e7">Wevet 273</option><option value="#f2f0e8">Strong White 2001</option><option value="#ede8dc">Great White 2006</option><option value="#f0ece0">Wimborne White 239</option><option value="#fdfeec">Pointing 2003</option><option value="#f3f0e1">James White 2010</option><option value="#ede6d5">White Tie 2002</option><option value="#ede3ce">Slipper Satin 2004</option><option value="#f4f0e5">School House White 291</option><option value="#eceae5">Blackened 2011</option><option value="#ecf0e0">Cabbage White 269</option><option value="#dfe6e4">Borrowed Light 235</option><option value="#eae4d6">Shadow White 282</option><option value="#f0e4d4">Dimity 2008</option><option value="#f0e4c8">Matchstick 2013</option></optgroup><optgroup label="Creams &amp; Yellows"><option value="#eee8d8">New White 59</option><option value="#f0e8c8">Tallow 203</option><option value="#f0deb8">Farrow's Cream 67</option><option value="#f4e4ba">Dorset Cream 68</option><option value="#ede4b8">Pale Hound 71</option><option value="#dac586">Hay 37</option><option value="#c89830">Sudbury Yellow 51</option><option value="#ce923c">India Yellow 66</option><option value="#e8b830">Babouche 223</option><option value="#ece0a0">Yellow Ground 218</option><option value="#f0e0a0">Dayroom Yellow 233</option><option value="#d8d498">Citron 74</option><option value="#c07030">Charlotte's Locks 268</option></optgroup><optgroup label="Neutrals &amp; Stones"><option value="#e8e2d0">Skimming Stone 241</option><option value="#c8b898">Stony Ground 211</option><option value="#b8b0a0">Joa's White 226</option><option value="#c8b898">Oxford Stone 264</option><option value="#a09880">London Stone 6</option><option value="#ccbfb3">Elephant's Breath 229</option><option value="#d0ccc4">Ammonite 274</option><option value="#c8c4b8">Cornforth White 228</option><option value="#c0b8a8">Purbeck Stone 275</option><option value="#c8bca8">Drop Cloth 283</option><option value="#c0b498">Jitney 293</option><option value="#d8ccae">String 8</option><option value="#d6c39e">Cord 16</option><option value="#deccb0">Bone 15</option><option value="#ccc8c1">Shaded White 201</option><option value="#b8a888">Stirabout 300</option><option value="#e8ddc8">Old White 4</option><option value="#f2ecd8">Lime White 1</option><option value="#e4dcca">Off-White 3</option><option value="#c8c0ae">Hardwick White 5</option></optgroup><optgroup label="Greys"><option value="#d0ccc8">Dimpse 277</option><option value="#c8ccc0">Cromarty 285</option><option value="#b9beaa">Pigeon 25</option><option value="#a8a8a0">Pavilion Gray 242</option><option value="#9c9c98">Lamp Room Gray 88</option><option value="#8c8880">Worsted 284</option><option value="#949088">Manor House Gray 265</option><option value="#8c887c">Charleston Gray 243</option><option value="#9d9088">Mole's Breath 276</option><option value="#8c7c68">Mouse's Back 40</option><option value="#c8c0ae">Light Gray 17</option><option value="#b8b0a0">French Gray 18</option><option value="#787470">Plummett 272</option><option value="#b0b8a0">Mizzle 266</option><option value="#a0aab0">Blue Gray 91</option><option value="#b0a8a0">Dove Tale 267</option><option value="#a8a0a0">Tailor Tack 302</option></optgroup><optgroup label="Pinks &amp; Reds"><option value="#f0d8c8">Pink Ground 202</option><option value="#e8c8b8">Setting Plaster 231</option><option value="#e8c8c0">Calamine 230</option><option value="#e8c8b8">Nancy's Blushes 278</option><option value="#cdb8b0">Peignoir 286</option><option value="#d08880">Cinder Rose 246</option><option value="#c09090">Sulking Room Pink 295</option><option value="#c89888">Templeton Pink 303</option><option value="#c8a898">Dead Salmon 28</option><option value="#b8a0a0">Calluna 270</option><option value="#6a1820">Incarnadine 248</option><option value="#8c182b">Rectory Red 217</option><option value="#a82830">Eating Room Red 43</option><option value="#c84848">Picture Gallery Red 42</option><option value="#7a2830">Preference Red 297</option><option value="#6c2838">Radicchio 96</option><option value="#a05838">Red Earth 64</option><option value="#c07868">Whirlybird 309</option></optgroup><optgroup label="Greens"><option value="#bbbe9f">Vert de Terre 234</option><option value="#b0c0a8">Teresa's Green 236</option><option value="#a0a888">Lichen 19</option><option value="#7a8868">Saxon Green 80</option><option value="#73806e">Card Room Green 79</option><option value="#5a6850">Calke Green 34</option><option value="#636f65">Green Smoke 47</option><option value="#98a878">Breakfast Room Green 81</option><option value="#b0b898">Ball Green 75</option><option value="#97a07a">Cooking Apple Green 32</option><option value="#748860">Yeabridge Green 287</option><option value="#808870">Treron 292</option><option value="#4a5040">Bancha 298</option><option value="#384030">Studio Green 93</option><option value="#485840">Arsenic 214</option><option value="#586048">Beverly 310</option><option value="#788050">Sap Green 199</option><option value="#708888">Green Blue 84</option></optgroup><optgroup label="Blues"><option value="#6888a0">Lulworth Blue 89</option><option value="#8898a8">Parma Gray 27</option><option value="#759194">Stone Blue 86</option><option value="#a0b8c8">Light Blue 22</option><option value="#2c3437">Hague Blue 30</option><option value="#2c3a48">Stiffkey Blue 281</option><option value="#586768">Inchyra Blue 289</option><option value="#7898a0">Dix Blue 82</option><option value="#507898">Cooks Blue 237</option><option value="#7888a0">Oval Room Blue 85</option><option value="#c0d0d8">Skylight 205</option><option value="#8098a8">Kittiwake 307</option><option value="#485060">Selvedge 304</option><option value="#6a7c80">De Nimes 299</option><option value="#7890a0">Eddy 301</option></optgroup><optgroup label="Darks &amp; Blacks"><option value="#3c3d42">Down Pipe 26</option><option value="#45484b">Railings 31</option><option value="#313639">Off-Black 57</option><option value="#292820">Pitch Black 256</option><option value="#483830">Tanner's Brown 255</option><option value="#482838">Brinjal 222</option><option value="#3a2830">Paean Black 294</option><option value="#4a3030">Mahogany 36</option><option value="#504838">Hopper Head 305</option><option value="#2a5058">Vardo 288</option><option value="#4a2028">Wine Dark 308</option><option value="#5a5038">Broccoli Brown 198</option><option value="#584858">Brassica 271</option></optgroup><optgroup label="New 2025"><option value="#984838">Etruscan Red 56</option><option value="#e8d8c8">Scallop 311</option><option value="#485838">Dibber 312</option><option value="#606850">Reduced Green 313</option><option value="#c8c0a8">Sizing 314</option><option value="#e8d8b8">Naperon 315</option><option value="#b87838">Marmelo 316</option><option value="#889068">Kakelugn 317</option><option value="#9c9880">Douter 318</option><option value="#b8a880">Duster 319</option></optgroup></select>
+              </div>
+              <div class="ral-input-row"><input type="text" id="f-int-ral-input" placeholder="RAL e.g. 7016"><button type="button" id="f-int-ral-apply">Apply</button><span class="ral-error" id="f-int-ral-error"></span></div>
+            </div>
+            <div class="dual-color-section">
+              <label>Exterior Color:</label>
+              <div class="color-options">
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-exterior-color selected" style="background-color: #FAFAFA;" data-color="white" data-name="Pure White" data-ral="RAL 9016"></div><span class="color-name">Pure White</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-exterior-color" style="background-color: #0A0A0A;" data-color="black" data-name="Jet Black" data-ral="RAL 9005"></div><span class="color-name">Jet Black</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-exterior-color" style="background-color: #293133;" data-color="anthracite" data-name="Anthracite Grey" data-ral="RAL 7016"></div><span class="color-name">Anthracite Grey</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-exterior-color" style="background-color: #424632;" data-color="olive" data-name="Olive Green" data-ral="RAL 6003"></div><span class="color-name">Olive Green</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-exterior-color" style="background-color: #F7F9F5;" data-color="offwhite" data-name="Off-White" data-ral="RAL 9010"></div><span class="color-name">Off-White</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-exterior-color" style="background-color: #F1EFDC;" data-color="cream" data-name="Cream" data-ral="RAL 9001"></div><span class="color-name">Cream</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-exterior-color" style="background-color: #5E2028;" data-color="burgundy" data-name="Burgundy Red" data-ral="RAL 3005"></div><span class="color-name">Burgundy Red</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-exterior-color" style="background-color: #222D5A;" data-color="royal" data-name="Royal Blue" data-ral="RAL 5002"></div><span class="color-name">Royal Blue</span></div>
+                <div class="color-option-wrapper"><div class="color-option f-color-option f-exterior-color f-custom-color-btn" style="background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #ffe66d, #95e1d3); position: relative;" data-color="custom" data-name="Custom Color" data-ral="Custom RAL"><span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; color: #333; text-shadow: 0 0 3px white;">+</span></div><span class="color-name">Custom</span></div>
+              </div>
+              <div class="color-dropdown-row">
+                <select id="f-ext-ral-select" class="color-ral-dropdown"><option value="">— RAL —</option><optgroup label="Whites &amp; Creams"><option value="#FFFFFF">9010 Pure White</option><option value="#F6F6F6">9016 Traffic White</option><option value="#F4F4F4">9003 Signal White</option><option value="#FDF4E3">9001 Cream White</option><option value="#E7EBDA">9002 Grey White</option><option value="#E6D690">1015 Light Ivory</option><option value="#C2B078">1001 Beige</option><option value="#C6A664">1002 Sand Yellow</option></optgroup><optgroup label="Greys"><option value="#D7D7D7">7035 Light Grey</option><option value="#B5B8B1">7038 Agate Grey</option><option value="#8D948D">7042 Traffic Grey A</option><option value="#7D7F7D">7037 Dusty Grey</option><option value="#78858B">7000 Squirrel Grey</option><option value="#9EA0A1">7004 Signal Grey</option><option value="#6C7059">7005 Mouse Grey</option><option value="#474A51">7024 Graphite Grey</option><option value="#293133">7016 Anthracite Grey</option><option value="#23282B">7021 Black Grey</option><option value="#434750">7015 Slate Grey</option><option value="#4E5754">7012 Basalt Grey</option></optgroup><optgroup label="Blacks"><option value="#0A0A0A">9005 Jet Black</option><option value="#1C2023">9011 Graphite Black</option><option value="#1E1E1E">9017 Traffic Black</option><option value="#282828">9004 Signal Black</option></optgroup><optgroup label="Greens"><option value="#31372B">6009 Fir Green</option><option value="#2F4538">6005 Moss Green</option><option value="#343B29">6007 Bottle Green</option><option value="#1F3A3D">6004 Blue Green</option><option value="#4A4F3B">6003 Olive Green</option><option value="#587246">6011 Reseda Green</option><option value="#35682D">6010 Grass Green</option><option value="#1E5945">6016 Turquoise Green</option></optgroup><optgroup label="Blues"><option value="#1E2460">5002 Ultramarine Blue</option><option value="#1D1E33">5004 Black Blue</option><option value="#1B2A4A">5011 Steel Blue</option><option value="#2271B3">5015 Sky Blue</option><option value="#063971">5017 Traffic Blue</option><option value="#3B83BD">5012 Light Blue</option><option value="#354D73">5000 Violet Blue</option><option value="#49678D">5023 Distant Blue</option></optgroup><optgroup label="Reds"><option value="#AF2B1E">3000 Flame Red</option><option value="#9B111E">3003 Ruby Red</option><option value="#75151E">3004 Purple Red</option><option value="#5E2129">3005 Wine Red</option><option value="#D53032">3018 Strawberry Red</option><option value="#CC0605">3020 Traffic Red</option></optgroup><optgroup label="Browns"><option value="#955F20">8001 Ochre Brown</option><option value="#6F4F28">8008 Olive Brown</option><option value="#6F3B2A">8011 Nut Brown</option><option value="#4E3B31">8028 Terra Brown</option><option value="#45322E">8017 Chocolate Brown</option><option value="#382C1E">8014 Sepia Brown</option></optgroup><optgroup label="Yellows &amp; Oranges"><option value="#E5BE01">1003 Signal Yellow</option><option value="#F4A900">1028 Melon Yellow</option><option value="#ED760E">2000 Yellow Orange</option><option value="#FF7514">2003 Pastel Orange</option></optgroup></select>
+                <select id="f-ext-fb-select" class="color-fb-dropdown"><option value="">— F&amp;B —</option><optgroup label="Whites"><option value="#fbf8f4">All White 2005</option><option value="#eee9e7">Wevet 273</option><option value="#f2f0e8">Strong White 2001</option><option value="#ede8dc">Great White 2006</option><option value="#f0ece0">Wimborne White 239</option><option value="#fdfeec">Pointing 2003</option><option value="#f3f0e1">James White 2010</option><option value="#ede6d5">White Tie 2002</option><option value="#ede3ce">Slipper Satin 2004</option><option value="#f4f0e5">School House White 291</option><option value="#eceae5">Blackened 2011</option><option value="#ecf0e0">Cabbage White 269</option><option value="#dfe6e4">Borrowed Light 235</option><option value="#eae4d6">Shadow White 282</option><option value="#f0e4d4">Dimity 2008</option><option value="#f0e4c8">Matchstick 2013</option></optgroup><optgroup label="Creams &amp; Yellows"><option value="#eee8d8">New White 59</option><option value="#f0e8c8">Tallow 203</option><option value="#f0deb8">Farrow's Cream 67</option><option value="#f4e4ba">Dorset Cream 68</option><option value="#ede4b8">Pale Hound 71</option><option value="#dac586">Hay 37</option><option value="#c89830">Sudbury Yellow 51</option><option value="#ce923c">India Yellow 66</option><option value="#e8b830">Babouche 223</option><option value="#ece0a0">Yellow Ground 218</option><option value="#f0e0a0">Dayroom Yellow 233</option><option value="#d8d498">Citron 74</option><option value="#c07030">Charlotte's Locks 268</option></optgroup><optgroup label="Neutrals &amp; Stones"><option value="#e8e2d0">Skimming Stone 241</option><option value="#c8b898">Stony Ground 211</option><option value="#b8b0a0">Joa's White 226</option><option value="#c8b898">Oxford Stone 264</option><option value="#a09880">London Stone 6</option><option value="#ccbfb3">Elephant's Breath 229</option><option value="#d0ccc4">Ammonite 274</option><option value="#c8c4b8">Cornforth White 228</option><option value="#c0b8a8">Purbeck Stone 275</option><option value="#c8bca8">Drop Cloth 283</option><option value="#c0b498">Jitney 293</option><option value="#d8ccae">String 8</option><option value="#d6c39e">Cord 16</option><option value="#deccb0">Bone 15</option><option value="#ccc8c1">Shaded White 201</option><option value="#b8a888">Stirabout 300</option><option value="#e8ddc8">Old White 4</option><option value="#f2ecd8">Lime White 1</option><option value="#e4dcca">Off-White 3</option><option value="#c8c0ae">Hardwick White 5</option></optgroup><optgroup label="Greys"><option value="#d0ccc8">Dimpse 277</option><option value="#c8ccc0">Cromarty 285</option><option value="#b9beaa">Pigeon 25</option><option value="#a8a8a0">Pavilion Gray 242</option><option value="#9c9c98">Lamp Room Gray 88</option><option value="#8c8880">Worsted 284</option><option value="#949088">Manor House Gray 265</option><option value="#8c887c">Charleston Gray 243</option><option value="#9d9088">Mole's Breath 276</option><option value="#8c7c68">Mouse's Back 40</option><option value="#c8c0ae">Light Gray 17</option><option value="#b8b0a0">French Gray 18</option><option value="#787470">Plummett 272</option><option value="#b0b8a0">Mizzle 266</option><option value="#a0aab0">Blue Gray 91</option><option value="#b0a8a0">Dove Tale 267</option><option value="#a8a0a0">Tailor Tack 302</option></optgroup><optgroup label="Pinks &amp; Reds"><option value="#f0d8c8">Pink Ground 202</option><option value="#e8c8b8">Setting Plaster 231</option><option value="#e8c8c0">Calamine 230</option><option value="#e8c8b8">Nancy's Blushes 278</option><option value="#cdb8b0">Peignoir 286</option><option value="#d08880">Cinder Rose 246</option><option value="#c09090">Sulking Room Pink 295</option><option value="#c89888">Templeton Pink 303</option><option value="#c8a898">Dead Salmon 28</option><option value="#b8a0a0">Calluna 270</option><option value="#6a1820">Incarnadine 248</option><option value="#8c182b">Rectory Red 217</option><option value="#a82830">Eating Room Red 43</option><option value="#c84848">Picture Gallery Red 42</option><option value="#7a2830">Preference Red 297</option><option value="#6c2838">Radicchio 96</option><option value="#a05838">Red Earth 64</option><option value="#c07868">Whirlybird 309</option></optgroup><optgroup label="Greens"><option value="#bbbe9f">Vert de Terre 234</option><option value="#b0c0a8">Teresa's Green 236</option><option value="#a0a888">Lichen 19</option><option value="#7a8868">Saxon Green 80</option><option value="#73806e">Card Room Green 79</option><option value="#5a6850">Calke Green 34</option><option value="#636f65">Green Smoke 47</option><option value="#98a878">Breakfast Room Green 81</option><option value="#b0b898">Ball Green 75</option><option value="#97a07a">Cooking Apple Green 32</option><option value="#748860">Yeabridge Green 287</option><option value="#808870">Treron 292</option><option value="#4a5040">Bancha 298</option><option value="#384030">Studio Green 93</option><option value="#485840">Arsenic 214</option><option value="#586048">Beverly 310</option><option value="#788050">Sap Green 199</option><option value="#708888">Green Blue 84</option></optgroup><optgroup label="Blues"><option value="#6888a0">Lulworth Blue 89</option><option value="#8898a8">Parma Gray 27</option><option value="#759194">Stone Blue 86</option><option value="#a0b8c8">Light Blue 22</option><option value="#2c3437">Hague Blue 30</option><option value="#2c3a48">Stiffkey Blue 281</option><option value="#586768">Inchyra Blue 289</option><option value="#7898a0">Dix Blue 82</option><option value="#507898">Cooks Blue 237</option><option value="#7888a0">Oval Room Blue 85</option><option value="#c0d0d8">Skylight 205</option><option value="#8098a8">Kittiwake 307</option><option value="#485060">Selvedge 304</option><option value="#6a7c80">De Nimes 299</option><option value="#7890a0">Eddy 301</option></optgroup><optgroup label="Darks &amp; Blacks"><option value="#3c3d42">Down Pipe 26</option><option value="#45484b">Railings 31</option><option value="#313639">Off-Black 57</option><option value="#292820">Pitch Black 256</option><option value="#483830">Tanner's Brown 255</option><option value="#482838">Brinjal 222</option><option value="#3a2830">Paean Black 294</option><option value="#4a3030">Mahogany 36</option><option value="#504838">Hopper Head 305</option><option value="#2a5058">Vardo 288</option><option value="#4a2028">Wine Dark 308</option><option value="#5a5038">Broccoli Brown 198</option><option value="#584858">Brassica 271</option></optgroup><optgroup label="New 2025"><option value="#984838">Etruscan Red 56</option><option value="#e8d8c8">Scallop 311</option><option value="#485838">Dibber 312</option><option value="#606850">Reduced Green 313</option><option value="#c8c0a8">Sizing 314</option><option value="#e8d8b8">Naperon 315</option><option value="#b87838">Marmelo 316</option><option value="#889068">Kakelugn 317</option><option value="#9c9880">Douter 318</option><option value="#b8a880">Duster 319</option></optgroup></select>
+              </div>
+              <div class="ral-input-row"><input type="text" id="f-ext-ral-input" placeholder="RAL e.g. 7016"><button type="button" id="f-ext-ral-apply">Apply</button><span class="ral-error" id="f-ext-ral-error"></span></div>
+            </div>
+            <div class="color-preview-info" id="f-dual-color-preview-info" style="display:none;">
+              <div class="preview-item"><span class="preview-label">Interior:</span><span class="preview-value" id="f-dual-preview-interior">Pure White (RAL 9016)</span></div>
+              <div class="preview-item"><span class="preview-label">Exterior:</span><span class="preview-value" id="f-dual-preview-exterior">Pure White (RAL 9016)</span></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -3597,8 +3656,6 @@
       var fixHbars = document.querySelectorAll('input[name="f-hbars"]');
       var fixVbars = document.querySelectorAll('input[name="f-vbars"]');
       var fixColourMode = document.querySelectorAll('input[name="f-colour-mode"]');
-      var fixIntGroup = document.getElementById('f-int-colour-group');
-      var fixExtLabel = document.getElementById('f-ext-label');
 
       function getFixType() { return (document.querySelector('input[name="fix-type"]:checked') || {}).value || 'standard'; }
       function getFixShape() { return (document.querySelector('input[name="fix-shape"]:checked') || {}).value || 'rectangle'; }
@@ -3718,9 +3775,6 @@
       var fGlazRadios = document.querySelectorAll('input[name="f-glazing"]');
       var fFinishRadios = document.querySelectorAll('input[name="f-glass-finish"]');
       var fSpacerRadios = document.querySelectorAll('input[name="f-spacer"]');
-      var fExtColour = document.getElementById('f-ext-colour');
-      var fIntColour = document.getElementById('f-int-colour');
-      var fExtLabel = document.getElementById('f-ext-label');
 
       fGlazRadios.forEach(function(r) { r.addEventListener('change', function() {
         // Visual: no change. For spec/pricing only.
@@ -3734,34 +3788,192 @@
         if (window.update3D) window.update3D({ spacerColor: r.value });
       }); });
 
-      if (fExtColour) fExtColour.addEventListener('change', function() {
-        var dual = (document.querySelector('input[name="f-colour-mode"]:checked') || {}).value === 'dual';
-        if (dual) {
-          window.update3D && window.update3D({ woodColorExt: fExtColour.value, sameColor: false });
-        } else {
-          window.update3D && window.update3D({ woodColor: fExtColour.value, sameColor: true });
+      // ── Fix-Frame Colour Controller (swatch-based) ──
+      var fixColourState = { sameColor: true, woodColor: '#FAFAFA', woodColorInt: '#FAFAFA', woodColorExt: '#FAFAFA' };
+
+      var FIX_RAL = {
+        '1000':'#BEBD7F','1001':'#C2B078','1002':'#C6A664','1003':'#E5BE01','1004':'#CDA434',
+        '1005':'#A98307','1006':'#E4A010','1007':'#DC9D00','1011':'#8A6642','1012':'#C7B446',
+        '1013':'#EAE6CA','1014':'#E1CC4F','1015':'#E6D690','1016':'#EDFF21','1017':'#F5D033',
+        '1018':'#F8F32B','1019':'#9E9764','1020':'#999950','1021':'#F3DA0B','1023':'#FAD201',
+        '1024':'#AEA04B','1026':'#FFFF00','1027':'#9D9101','1028':'#F4A900','1032':'#D6AE01',
+        '1033':'#F3A505','1034':'#EFA94A','2000':'#ED760E','2001':'#C93C20','2002':'#CB2821',
+        '2003':'#FF7514','2004':'#F44611','3000':'#AF2B1E','3001':'#A52019','3002':'#A2231D',
+        '3003':'#9B111E','3004':'#75151E','3005':'#5E2129','3007':'#412227','3009':'#642424',
+        '3011':'#781F19','3012':'#C1876B','3013':'#A12312','3014':'#D36E70','3015':'#EA899A',
+        '3016':'#B32821','3017':'#E63244','3018':'#D53032','3020':'#CC0605','3022':'#D95030',
+        '3027':'#C51D34','3031':'#B32428','4001':'#6D3F5B','4002':'#922B3E','4003':'#DE4C8A',
+        '4004':'#641C34','4005':'#6C4675','4006':'#A03472','4007':'#4A192C','4008':'#924E7D',
+        '5000':'#354D73','5001':'#1F3438','5002':'#1E2460','5003':'#1D1E33','5004':'#18171C',
+        '5005':'#1E2460','5007':'#3E5F8A','5008':'#26252D','5009':'#025669','5010':'#0E4243',
+        '5011':'#1B2A4A','5012':'#3B83BD','5013':'#1E213D','5014':'#606E8C','5015':'#2271B3',
+        '5017':'#063971','5018':'#3F888F','5019':'#1B5583','5020':'#1D334A','5021':'#256D7B',
+        '5022':'#252850','5023':'#49678D','5024':'#5D9B9B','6000':'#316650','6001':'#287233',
+        '6002':'#2D572C','6003':'#424632','6004':'#1F3A3D','6005':'#2F4538','6006':'#3E3B32',
+        '6007':'#343B29','6008':'#39352A','6009':'#31372B','6010':'#35682D','6011':'#587246',
+        '6012':'#343E40','6013':'#6C7156','6014':'#47402E','6016':'#1E5945','7000':'#78858B',
+        '7001':'#8A9597','7002':'#817F68','7003':'#7D7F7D','7004':'#9EA0A1','7005':'#6C7059',
+        '7006':'#756F61','7008':'#6A5F31','7011':'#434B4D','7012':'#4E5754','7015':'#434750',
+        '7016':'#293133','7021':'#23282B','7022':'#332F2C','7023':'#8B8C7A','7024':'#474A51',
+        '7030':'#8B8B7A','7031':'#474B4E','7032':'#B8B799','7033':'#7D8471','7034':'#8F8B66',
+        '7035':'#D7D7D7','7036':'#7F7679','7037':'#7D7F7D','7038':'#B5B8B1','7039':'#6C6960',
+        '7040':'#9DA1AA','7042':'#8D948D','7043':'#4E5452','7044':'#CAC4B0','7045':'#909090',
+        '7046':'#82898F','7047':'#D0D0D0','8000':'#826C34','8001':'#955F20','8002':'#6C3B2A',
+        '8003':'#734222','8004':'#8E402A','8007':'#59351F','8008':'#6F4F28','8011':'#6F3B2A',
+        '8014':'#382C1E','8017':'#45322E','8019':'#403A3A','8022':'#212121','8024':'#79553D',
+        '8025':'#755C48','8028':'#4E3B31','9001':'#FDF4E3','9002':'#E7EBDA','9003':'#F4F4F4',
+        '9004':'#282828','9005':'#0A0A0A','9006':'#A5A5A5','9007':'#8F8F8F','9010':'#FFFFFF',
+        '9011':'#1C2023','9016':'#F6F6F6','9017':'#1E1E1E','9018':'#D7D7D7'
+      };
+
+      function fRgbToHex(rgb) {
+        if (!rgb || rgb.charAt(0) === '#') return rgb;
+        var m = rgb.match(/\d+/g);
+        if (!m || m.length < 3) return '#F6F6F6';
+        return '#' + ((1 << 24) + (parseInt(m[0]) << 16) + (parseInt(m[1]) << 8) + parseInt(m[2])).toString(16).slice(1).toUpperCase();
+      }
+
+      function fApplyColour(hex, target) {
+        if (typeof window.update3D !== 'function') return;
+        if (target === 'single') {
+          fixColourState.sameColor = true;
+          fixColourState.woodColor = hex;
+          fixColourState.woodColorInt = hex;
+          fixColourState.woodColorExt = hex;
+        } else if (target === 'interior') {
+          fixColourState.sameColor = false;
+          fixColourState.woodColorInt = hex;
+        } else if (target === 'exterior') {
+          fixColourState.sameColor = false;
+          fixColourState.woodColorExt = hex;
         }
+        window.update3D({
+          sameColor: fixColourState.sameColor,
+          woodColor: fixColourState.woodColor,
+          woodColorInt: fixColourState.woodColorInt,
+          woodColorExt: fixColourState.woodColorExt
+        });
+      }
+
+      function fUpdatePreview(target, name, code) {
+        if (target === 'single') {
+          var pn = document.getElementById('f-single-preview-name');
+          var pr = document.getElementById('f-single-preview-ral');
+          if (pn) pn.textContent = name;
+          if (pr) pr.textContent = code;
+        } else if (target === 'interior') {
+          var pi = document.getElementById('f-dual-preview-interior');
+          if (pi) pi.textContent = name + ' (' + code + ')';
+        } else if (target === 'exterior') {
+          var pe = document.getElementById('f-dual-preview-exterior');
+          if (pe) pe.textContent = name + ' (' + code + ')';
+        }
+      }
+
+      function fSwitchToCustom(target) {
+        var sel = target === 'single' ? '#f-single-color-selector .f-color-option' :
+                  target === 'interior' ? '.f-interior-color' : '.f-exterior-color';
+        document.querySelectorAll(sel).forEach(function(t) { t.classList.remove('selected'); });
+        var cb = target === 'single' ? document.querySelector('#f-single-color-selector .f-custom-color-btn') :
+                 target === 'interior' ? document.querySelector('.f-interior-color.f-custom-color-btn') :
+                 document.querySelector('.f-exterior-color.f-custom-color-btn');
+        if (cb) cb.classList.add('selected');
+      }
+
+      function fSetupTileClicks(selector, target) {
+        document.querySelectorAll(selector).forEach(function(tile) {
+          tile.addEventListener('click', function() {
+            tile.closest('.color-options').querySelectorAll('.f-color-option').forEach(function(t) { t.classList.remove('selected'); });
+            tile.classList.add('selected');
+            if (tile.dataset.color === 'custom') return;
+            var hex = fRgbToHex(tile.style.backgroundColor) || '#F6F6F6';
+            var name = tile.dataset.name || '';
+            var ral = tile.dataset.ral || '';
+            fUpdatePreview(target, name, ral);
+            fApplyColour(hex, target);
+          });
+        });
+      }
+
+      function fSetupRalInput(inputId, btnId, errorId, target) {
+        var input = document.getElementById(inputId);
+        var btn = document.getElementById(btnId);
+        var err = document.getElementById(errorId);
+        if (!input || !btn) return;
+        var apply = function() {
+          var key = input.value.trim().replace(/^ral\s*/i, '');
+          var hex = FIX_RAL[key];
+          if (hex) {
+            fSwitchToCustom(target);
+            fUpdatePreview(target, 'RAL ' + key, hex);
+            fApplyColour(hex, target);
+            if (err) err.textContent = '';
+          } else {
+            if (err) err.textContent = 'RAL not found';
+          }
+        };
+        btn.addEventListener('click', apply);
+        input.addEventListener('keydown', function(e) { if (e.key === 'Enter') apply(); });
+      }
+
+      // Tile clicks
+      fSetupTileClicks('#f-single-color-selector .f-color-option', 'single');
+      fSetupTileClicks('.f-interior-color', 'interior');
+      fSetupTileClicks('.f-exterior-color', 'exterior');
+
+      // RAL/FB dropdowns
+      ['f-single-ral-select', 'f-single-fb-select', 'f-int-ral-select', 'f-int-fb-select', 'f-ext-ral-select', 'f-ext-fb-select'].forEach(function(id) {
+        var sel = document.getElementById(id);
+        if (!sel) return;
+        sel.addEventListener('change', function() {
+          var hex = sel.value;
+          if (!hex) return;
+          var target = id.indexOf('int-') > -1 ? 'interior' : id.indexOf('ext-') > -1 ? 'exterior' : 'single';
+          fSwitchToCustom(target);
+          var text = sel.options[sel.selectedIndex].text;
+          fUpdatePreview(target, text, hex);
+          fApplyColour(hex, target);
+          var row = sel.closest('.color-dropdown-row');
+          if (row) row.querySelectorAll('select').forEach(function(s) { if (s !== sel) s.value = ''; });
+        });
       });
 
-      if (fIntColour) fIntColour.addEventListener('change', function() {
-        window.update3D && window.update3D({ woodColorInt: fIntColour.value, sameColor: false });
-      });
+      // RAL text inputs
+      fSetupRalInput('f-single-ral-input', 'f-single-ral-apply', 'f-single-ral-error', 'single');
+      fSetupRalInput('f-int-ral-input', 'f-int-ral-apply', 'f-int-ral-error', 'interior');
+      fSetupRalInput('f-ext-ral-input', 'f-ext-ral-apply', 'f-ext-ral-error', 'exterior');
 
-      // Colour mode toggle
+      // Colour mode toggle (same/dual)
       fixColourMode.forEach(function(r) {
         r.addEventListener('change', function() {
           var dual = r.value === 'dual';
-          fixIntGroup.style.display = dual ? '' : 'none';
-          if (fExtLabel) fExtLabel.textContent = dual ? 'Exterior Colour:' : 'Colour:';
+          var singleSel = document.getElementById('f-single-color-selector');
+          var dualSec = document.getElementById('f-dual-colour-section');
+          var singlePrev = document.getElementById('f-single-color-preview-info');
+          var dualPrev = document.getElementById('f-dual-color-preview-info');
+          if (singleSel) singleSel.style.display = dual ? 'none' : '';
+          if (dualSec) dualSec.style.display = dual ? '' : 'none';
+          if (singlePrev) singlePrev.style.display = dual ? 'none' : '';
+          if (dualPrev) dualPrev.style.display = dual ? '' : 'none';
           if (dual) {
-            window.update3D && window.update3D({ sameColor: false, woodColorExt: fExtColour.value, woodColorInt: fIntColour.value });
+            fixColourState.sameColor = false;
           } else {
-            window.update3D && window.update3D({ sameColor: true, woodColor: fExtColour.value });
+            fixColourState.sameColor = true;
+            fixColourState.woodColorInt = fixColourState.woodColor;
+            fixColourState.woodColorExt = fixColourState.woodColor;
+          }
+          if (typeof window.update3D === 'function') {
+            window.update3D({
+              sameColor: fixColourState.sameColor,
+              woodColor: fixColourState.woodColor,
+              woodColorInt: fixColourState.woodColorInt,
+              woodColorExt: fixColourState.woodColorExt
+            });
           }
         });
       });
 
-      // FD30/FD60 → show single glass option
+            // FD30/FD60 → show single glass option
       var fixTypeRadios = document.querySelectorAll('input[name="fix-type"]');
       var fSingleOption = document.getElementById('f-single-option');
       fixTypeRadios.forEach(function(r) {
