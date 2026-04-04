@@ -636,12 +636,32 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
   }, [W, H, D, halfW, springY, iHalfW, iBottom]);
 
+  // archYAtX: inner semi-circle arch Y at given X
+  function semiArchY(x) {
+    const sq = iHalfW * iHalfW - x * x;
+    return sq > 0 ? springY + Math.sqrt(sq) : springY;
+  }
+
   const bars = useMemo(() => {
     const items = [];
     const glassW = iHalfW * 2;
-    const glassH = springY - iBottom;
-    for (let i = 1; i <= (hBars||0); i++) items.push({ type:'h', x:0, y: iBottom + (glassH/(hBars+1))*i, len: glassW });
-    for (let i = 1; i <= (vBars||0); i++) items.push({ type:'v', x: -iHalfW + (glassW/(vBars+1))*i, y: iBottom + glassH/2, len: glassH });
+    const topY = semiArchY(0);
+    const fullH = topY - iBottom;
+    for (let i = 1; i <= (hBars||0); i++) {
+      const y = iBottom + (fullH / (hBars + 1)) * i;
+      let len = glassW;
+      if (y > springY) {
+        const sq = iHalfW * iHalfW - (y - springY) * (y - springY);
+        if (sq > 0) len = 2 * Math.sqrt(sq); else continue;
+      }
+      items.push({ type:'h', x:0, y, len });
+    }
+    for (let i = 1; i <= (vBars||0); i++) {
+      const x = -iHalfW + (glassW / (vBars + 1)) * i;
+      const barTop = semiArchY(x) - BAR_W / 2;
+      const barH = barTop - iBottom;
+      if (barH > 0) items.push({ type:'v', x, y: iBottom + barH / 2, len: barH });
+    }
     return items;
   }, [hBars, vBars, iHalfW, iBottom, springY]);
 
@@ -681,14 +701,38 @@ function SegmentalFrame({ width, height, depth, mat, matInt, glassMat, spacerCol
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
   }, [W, H, D, halfW, springY, R, cy, startAngle, rise, iHalfW, iBottom]);
 
+  // Inner arch params for bar clipping
+  const iRise = Math.max(rise - fw, mm(10));
+  const iR = (iRise * iRise + iHalfW * iHalfW) / (2 * iRise);
+  const iCY = springY - (iR - iRise);
+
+  function segArchY(x) {
+    const sq = iR * iR - x * x;
+    return sq > 0 ? iCY + Math.sqrt(sq) : springY;
+  }
+
   const bars = useMemo(() => {
     const items = [];
     const glassW = iHalfW * 2;
-    const glassH = springY - iBottom;
-    for (let i = 1; i <= (hBars||0); i++) items.push({ type:'h', x:0, y: iBottom + (glassH/(hBars+1))*i, len: glassW });
-    for (let i = 1; i <= (vBars||0); i++) items.push({ type:'v', x: -iHalfW + (glassW/(vBars+1))*i, y: iBottom + glassH/2, len: glassH });
+    const topY = segArchY(0);
+    const fullH = topY - iBottom;
+    for (let i = 1; i <= (hBars||0); i++) {
+      const y = iBottom + (fullH / (hBars + 1)) * i;
+      let len = glassW;
+      if (y > springY) {
+        const sq = iR * iR - (y - iCY) * (y - iCY);
+        if (sq > 0) len = 2 * Math.sqrt(sq); else continue;
+      }
+      items.push({ type:'h', x:0, y, len });
+    }
+    for (let i = 1; i <= (vBars||0); i++) {
+      const x = -iHalfW + (glassW / (vBars + 1)) * i;
+      const barTop = segArchY(x) - BAR_W / 2;
+      const barH = barTop - iBottom;
+      if (barH > 0) items.push({ type:'v', x, y: iBottom + barH / 2, len: barH });
+    }
     return items;
-  }, [hBars, vBars, iHalfW, iBottom, springY]);
+  }, [hBars, vBars, iHalfW, iBottom, springY, iR, iCY]);
 
   return (
     <group>
@@ -728,14 +772,37 @@ function EllipticalFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
   }, [W, H, D, halfW, rise, springY, iHalfW, iBottom]);
 
+  const iRise = Math.max(rise - fw, mm(10));
+
+  function ellArchY(x) {
+    const t = x / iHalfW;
+    const sq = 1 - t * t;
+    return sq > 0 ? springY + iRise * Math.sqrt(sq) : springY;
+  }
+
   const bars = useMemo(() => {
     const items = [];
     const glassW = iHalfW * 2;
-    const glassH = springY - iBottom;
-    for (let i = 1; i <= (hBars||0); i++) items.push({ type:'h', x:0, y: iBottom + (glassH/(hBars+1))*i, len: glassW });
-    for (let i = 1; i <= (vBars||0); i++) items.push({ type:'v', x: -iHalfW + (glassW/(vBars+1))*i, y: iBottom + glassH/2, len: glassH });
+    const topY = ellArchY(0);
+    const fullH = topY - iBottom;
+    for (let i = 1; i <= (hBars||0); i++) {
+      const y = iBottom + (fullH / (hBars + 1)) * i;
+      let len = glassW;
+      if (y > springY) {
+        const t = (y - springY) / iRise;
+        const sq = 1 - t * t;
+        if (sq > 0) len = 2 * iHalfW * Math.sqrt(sq); else continue;
+      }
+      items.push({ type:'h', x:0, y, len });
+    }
+    for (let i = 1; i <= (vBars||0); i++) {
+      const x = -iHalfW + (glassW / (vBars + 1)) * i;
+      const barTop = ellArchY(x) - BAR_W / 2;
+      const barH = barTop - iBottom;
+      if (barH > 0) items.push({ type:'v', x, y: iBottom + barH / 2, len: barH });
+    }
     return items;
-  }, [hBars, vBars, iHalfW, iBottom, springY]);
+  }, [hBars, vBars, iHalfW, iBottom, springY, iRise]);
 
   return (
     <group>

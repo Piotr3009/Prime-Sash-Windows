@@ -553,6 +553,17 @@
     setupDimSelect('c-height-select', 'c-height-custom', 'c-height');
     setupLayoutChange();
     // Colour now handled by ColorModule (js/color-module.js)
+    if (typeof window.ColorModule === 'function' && document.getElementById('casement-color-container')) {
+      window.casementColorModule = new ColorModule({
+        containerId: 'casement-color-container',
+        prefix: 'cm',
+        onColorChange: function(state) {
+          if (typeof window.update3D === 'function') window.update3D(state);
+          updateSpecPanel();
+          updateCasementPrice();
+        }
+      });
+    }
     // Seal colour listener (was inside old setupColour)
     document.querySelectorAll('input[name="c-seal-colour"]').forEach(function(r) {
       r.addEventListener('change', updateCasement3D);

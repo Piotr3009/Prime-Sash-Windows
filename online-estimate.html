@@ -2868,6 +2868,7 @@
 <script src="js/details-controller.js"></script>
 <script src="js/specification-controller.js"></script>
 <script src="js/configurator-core.js"></script>
+<script src="js/color-module.js"></script>
 <script src="js/casement-controller.js"></script>
 
 <!-- Authentication Integration -->
@@ -3908,20 +3909,10 @@
       })();
     })();
   </script>
-    <script src="js/color-module.js"></script>
     <script>
-    // ── Initialize shared ColorModule for casement + fix-frame ──
+    // Fix-frame colour: initialized on DOMContentLoaded
     document.addEventListener('DOMContentLoaded', function() {
-      if (document.getElementById('casement-color-container')) {
-        window.casementColorModule = new ColorModule({
-          containerId: 'casement-color-container',
-          prefix: 'cm',
-          onColorChange: function(state) {
-            if (typeof window.update3D === 'function') window.update3D(state);
-          }
-        });
-      }
-      if (document.getElementById('fix-color-container')) {
+      if (typeof window.ColorModule === 'function' && document.getElementById('fix-color-container')) {
         window.fixColorModule = new ColorModule({
           containerId: 'fix-color-container',
           prefix: 'fx',
