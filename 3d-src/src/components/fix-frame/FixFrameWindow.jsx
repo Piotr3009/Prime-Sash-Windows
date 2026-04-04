@@ -360,17 +360,17 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
 
   return (
     <group>
-      <mesh geometry={frameGeo} castShadow receiveShadow><meshPhysicalMaterial color="#aabbcc" transparent opacity={0.25} side={THREE.DoubleSide} /></mesh>
+      <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
       {/* Frame beads — chamfer EXT + ovolo INT */}
       {chamferLayers.map((l, i) => (
         <mesh key={`ch${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
-          <meshBasicMaterial color="red" />
+          <primitive object={mat} attach="material" />
         </mesh>
       ))}
       {ovoloLayers.map((l, i) => (
         <mesh key={`ov${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
-          <meshBasicMaterial color="green" />
+          <primitive object={mi} attach="material" />
         </mesh>
       ))}
       {/* Sunburst bars */}
