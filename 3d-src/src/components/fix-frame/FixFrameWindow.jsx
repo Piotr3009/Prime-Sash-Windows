@@ -661,58 +661,48 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     g.translate(0, 0, -SPACER_DEPTH / 2); g.computeVertexNormals(); return g;
   }, [curvedBarShape]);
 
-  // ── Intersecting pattern: true gothic arcs that cross ──
+  // ── Intersecting pattern: true gothic arcs with trap/ovolo beading ──
+  const CURVE_STEPS = 64;
   const intersectingData = useMemo(() => {
     if (gothicBars !== 'intersecting') return null;
 
-    // Number of mullions based on width
     const widthMm = iHalfW * 2 / mm(1);
     const nMullions = Math.max(2, Math.min(4, Math.round(widthMm / 450)));
-
-    // Mullion X positions (evenly spaced)
     const mullionXs = [];
     for (let i = 1; i <= nMullions; i++) mullionXs.push(-iHalfW + (iHalfW * 2 / (nMullions + 1)) * i);
 
-    // Straight bars: each mullion from iBottom to springY
+    // Straight mullions: bottom to springY
     const straightBars = mullionXs.map(x => ({
       type: 'v', x, y: iBottom + (springY - iBottom) / 2, len: springY - iBottom
     }));
 
-    // Gothic arch centers (same as main arch)
-    const cRightX = -halfW; // right arc center X
-    const cLeftX = halfW;   // left arc center X
-    const cY = springY;     // both centers at springing Y
+    // Gothic arch centers
+    const cRX = -halfW, cLX = halfW, cY = springY;
 
-    // Generate arc points from a center, clipped to frame boundary
-    function gothicArcPts(cx, mulX, segs) {
-      const r = Math.abs(mulX - cx); // radius = distance from center to mullion
-      if (r < mm(20)) return [];
-      // Find start angle (at springing line where y = springY)
+    // Generate arc centerline points, clipped to inner frame boundary
+    function gothicArcPts(cx, mulX) {
+      const r = Math.abs(mulX - cx);
+      if (r < mm(30)) return [];
       const startAngle = Math.acos(Math.min(1, Math.max(-1, (mulX - cx) / r)));
-      // Arc goes upward: for right center, angles increase; for left center, angles decrease
-      const goingRight = cx < 0; // right center = going from mullion toward right
+      const goingRight = cx < 0;
       const pts = [];
-      const steps = segs || 32;
-      // Sweep from startAngle toward π/2 (top)
-      const sweepRange = goingRight ? Math.PI / 3 : Math.PI / 3;
-      for (let i = 0; i <= steps; i++) {
-        const t = i / steps;
-        const angle = goingRight
-          ? startAngle + t * sweepRange
-          : startAngle - t * sweepRange;
+      for (let i = 0; i <= 48; i++) {
+        const t = i / 48;
+        const angle = goingRight ? startAngle + t * (Math.PI / 2) : startAngle - t * (Math.PI / 2);
         const px = cx + r * Math.cos(angle);
         const py = cY + r * Math.sin(angle);
-        // Clip: must be inside frame (within iHalfW and below main arch)
-        if (Math.abs(px) > iHalfW + mm(2)) break;
-        if (py > archYAtX(px) + mm(2)) break;
-        if (py < springY - mm(5)) continue;
+        if (py < springY - mm(2)) continue;
+        // Stop at frame boundary (arch curve)
+        const limit = archYAtX(Math.max(-iHalfW, Math.min(iHalfW, px)));
+        if (py > limit - BAR_W * 0.3) break;
+        if (Math.abs(px) > iHalfW - BAR_W * 0.3) break;
         pts.push([px, py]);
       }
       return pts;
     }
 
-    // Build bar strip shape from centerline points
-    function ptsToStrip(pts) {
+    // Build strip shape from centerline with given halfWidth
+    function ptsToStrip(pts, hw) {
       if (pts.length < 3) return null;
       const leftEdge = [], rightEdge = [];
       for (let i = 0; i < pts.length; i++) {
@@ -720,8 +710,7 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
         const next = pts[Math.min(pts.length-1, i+1)];
         const dx = next[0] - prev[0], dy = next[1] - prev[1];
         const len = Math.sqrt(dx*dx + dy*dy) || 1;
-        const nx = -dy / len * (BAR_W / 2);
-        const ny = dx / len * (BAR_W / 2);
+        const nx = -dy / len * hw, ny = dx / len * hw;
         leftEdge.push([pts[i][0] + nx, pts[i][1] + ny]);
         rightEdge.push([pts[i][0] - nx, pts[i][1] - ny]);
       }
@@ -733,32 +722,55 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       return shape;
     }
 
-    // Generate curves: each mullion sends one arc to each gothic center
-    const curveShapes = [];
-    const allPositions = [-iHalfW, ...mullionXs, iHalfW];
-
-    for (const x of allPositions) {
-      // Right-curving arc (from right center)
-      const rPts = gothicArcPts(cRightX, x, 32);
-      const rShape = ptsToStrip(rPts);
-      if (rShape) curveShapes.push(rShape);
-      // Left-curving arc (from left center)
-      const lPts = gothicArcPts(cLeftX, x, 32);
-      const lShape = ptsToStrip(lPts);
-      if (lShape) curveShapes.push(lShape);
+    // Collect all arc centerlines (only from mullions, not frame edges)
+    const arcCenterlines = [];
+    for (const x of mullionXs) {
+      const rPts = gothicArcPts(cRX, x);
+      if (rPts.length >= 3) arcCenterlines.push(rPts);
+      const lPts = gothicArcPts(cLX, x);
+      if (lPts.length >= 3) arcCenterlines.push(lPts);
     }
 
-    // Create geometries
-    const extGeos = curveShapes.map(s => {
-      const g = new THREE.ExtrudeGeometry(s, { depth: BAR_H, bevelEnabled: false });
-      g.translate(0, 0, -BAR_H / 2); g.computeVertexNormals(); return g;
-    });
-    const spacerGeos = curveShapes.map(s => {
-      const g = new THREE.ExtrudeGeometry(s, { depth: SPACER_DEPTH, bevelEnabled: false });
-      g.translate(0, 0, -SPACER_DEPTH / 2); g.computeVertexNormals(); return g;
+    // For each arc centerline, create 64-layer trap EXT + 64-layer ovolo INT + spacer
+    const layerD_ext = BAR_H / CURVE_STEPS;
+    const layerD_int = BAR_H / CURVE_STEPS;
+    const curves = arcCenterlines.map(pts => {
+      // EXT trapezoid layers
+      const extLayers = [];
+      for (let i = 0; i < CURVE_STEPS; i++) {
+        const t = i / (CURVE_STEPS - 1);
+        const hw = (BAR_W / 2) * (1 - t) + (BAR_TOP / 2) * t;
+        const s = ptsToStrip(pts, hw);
+        if (!s) continue;
+        const g = new THREE.ExtrudeGeometry(s, { depth: layerD_ext, bevelEnabled: false });
+        g.translate(0, 0, glassHalf + i * layerD_ext);
+        g.computeVertexNormals();
+        extLayers.push(g);
+      }
+      // INT ovolo layers
+      const intLayers = [];
+      for (let i = 0; i < CURVE_STEPS; i++) {
+        const t = (i + 1) / CURVE_STEPS;
+        const hw = Math.max((BAR_W / 2) * Math.cos(t * Math.PI / 2), BAR_TOP / 2);
+        const s = ptsToStrip(pts, hw);
+        if (!s) continue;
+        const g = new THREE.ExtrudeGeometry(s, { depth: layerD_int, bevelEnabled: false });
+        g.translate(0, 0, -(glassHalf + (i + 1) * layerD_int));
+        g.computeVertexNormals();
+        intLayers.push(g);
+      }
+      // Spacer
+      const ss = ptsToStrip(pts, SPACER_BAR_W / 2);
+      let spacerGeo = null;
+      if (ss) {
+        spacerGeo = new THREE.ExtrudeGeometry(ss, { depth: SPACER_DEPTH, bevelEnabled: false });
+        spacerGeo.translate(0, 0, -SPACER_DEPTH / 2);
+        spacerGeo.computeVertexNormals();
+      }
+      return { extLayers, intLayers, spacerGeo };
     });
 
-    return { straightBars, extGeos, spacerGeos };
+    return { straightBars, curves };
   }, [gothicBars, halfW, iHalfW, iBottom, springY, Ri]);
 
   return (
@@ -786,20 +798,16 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       {/* Intersecting pattern */}
       {intersectingData && (
         <group>
-          {/* Straight mullions */}
           {intersectingData.straightBars.length > 0 && <FixBars barItems={intersectingData.straightBars} matExt={mat} matInt={matInt || mat} />}
-          {/* Curved tracery */}
-          {intersectingData.extGeos.map((g, i) => (
-            <group key={'ic' + i}>
-              <mesh geometry={g} position={[0, 0, glassHalf + BAR_H / 2]} castShadow receiveShadow>
-                <primitive object={mat} attach="material" />
-              </mesh>
-              <mesh geometry={g} position={[0, 0, -(glassHalf + BAR_H / 2)]} castShadow receiveShadow>
-                <primitive object={matInt || mat} attach="material" />
-              </mesh>
-              <mesh geometry={intersectingData.spacerGeos[i]} castShadow receiveShadow>
-                <primitive object={mat} attach="material" />
-              </mesh>
+          {intersectingData.curves.map((curve, ci) => (
+            <group key={'ic' + ci}>
+              {curve.extLayers.map((g, i) => (
+                <mesh key={'ce' + i} geometry={g} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+              ))}
+              {curve.intLayers.map((g, i) => (
+                <mesh key={'ci' + i} geometry={g} castShadow receiveShadow><primitive object={matInt || mat} attach="material" /></mesh>
+              ))}
+              {curve.spacerGeo && <mesh geometry={curve.spacerGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>}
             </group>
           ))}
         </group>
