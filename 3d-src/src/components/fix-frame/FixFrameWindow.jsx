@@ -661,6 +661,83 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     g.translate(0, 0, -SPACER_DEPTH / 2); g.computeVertexNormals(); return g;
   }, [curvedBarShape]);
 
+  // ── Intersecting pattern ──
+  const intersectingData = useMemo(() => {
+    if (gothicBars !== 'intersecting') return null;
+
+    // Number of mullions based on width
+    const widthMm = iHalfW * 2 / mm(1);
+    const nMullions = Math.max(2, Math.min(4, Math.round(widthMm / 450)));
+
+    // Mullion X positions (evenly spaced)
+    const mullionXs = [];
+    for (let i = 1; i <= nMullions; i++) mullionXs.push(-iHalfW + (iHalfW * 2 / (nMullions + 1)) * i);
+
+    // Straight bars: each mullion from iBottom to springY
+    const straightBars = mullionXs.map(x => ({
+      type: 'v', x, y: iBottom + (springY - iBottom) / 2, len: springY - iBottom
+    }));
+
+    // Curved tracery: for each space between positions, create lancet arch
+    const positions = [-iHalfW, ...mullionXs, iHalfW]; // all positions including frame edges
+    const curveShapes = [];
+
+    function makeCurveShape(startX, startY, peakX, peakY) {
+      // Quadratic bezier from (startX, startY) to (peakX, peakY)
+      const cpX = startX + (peakX - startX) * 0.15;
+      const cpY = peakY - (peakY - startY) * 0.1;
+      const N = 24;
+      const pts = [];
+      for (let i = 0; i <= N; i++) {
+        const t = i / N;
+        const x = (1-t)*(1-t)*startX + 2*(1-t)*t*cpX + t*t*peakX;
+        const y = (1-t)*(1-t)*startY + 2*(1-t)*t*cpY + t*t*peakY;
+        pts.push([x, y]);
+      }
+      // Build bar strip with width
+      const leftEdge = [], rightEdge = [];
+      for (let i = 0; i < pts.length; i++) {
+        const prev = pts[Math.max(0, i-1)];
+        const next = pts[Math.min(pts.length-1, i+1)];
+        const dx = next[0] - prev[0], dy = next[1] - prev[1];
+        const len = Math.sqrt(dx*dx + dy*dy) || 1;
+        const nx = -dy / len * (BAR_W / 2);
+        const ny = dx / len * (BAR_W / 2);
+        leftEdge.push([pts[i][0] + nx, pts[i][1] + ny]);
+        rightEdge.push([pts[i][0] - nx, pts[i][1] - ny]);
+      }
+      const shape = new THREE.Shape();
+      shape.moveTo(leftEdge[0][0], leftEdge[0][1]);
+      for (let i = 1; i < leftEdge.length; i++) shape.lineTo(leftEdge[i][0], leftEdge[i][1]);
+      for (let i = rightEdge.length - 1; i >= 0; i--) shape.lineTo(rightEdge[i][0], rightEdge[i][1]);
+      shape.closePath();
+      return shape;
+    }
+
+    for (let i = 0; i < positions.length - 1; i++) {
+      const xL = positions[i];
+      const xR = positions[i + 1];
+      const peakX = (xL + xR) / 2;
+      const peakY = archYAtX(peakX) - BAR_W / 2;
+      // Left curve: from left position up to peak
+      curveShapes.push(makeCurveShape(xL, springY, peakX, peakY));
+      // Right curve: from right position up to peak
+      curveShapes.push(makeCurveShape(xR, springY, peakX, peakY));
+    }
+
+    // Create geometries for curves
+    const extGeos = curveShapes.map(s => {
+      const g = new THREE.ExtrudeGeometry(s, { depth: BAR_H, bevelEnabled: false });
+      g.translate(0, 0, -BAR_H / 2); g.computeVertexNormals(); return g;
+    });
+    const spacerGeos = curveShapes.map(s => {
+      const g = new THREE.ExtrudeGeometry(s, { depth: SPACER_DEPTH, bevelEnabled: false });
+      g.translate(0, 0, -SPACER_DEPTH / 2); g.computeVertexNormals(); return g;
+    });
+
+    return { straightBars, extGeos, spacerGeos };
+  }, [gothicBars, iHalfW, iBottom, springY]);
+
   return (
     <group>
       <FrameMesh geometry={frameGeo} matExt={mat} matInt={matInt} />
@@ -681,6 +758,27 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
           <mesh geometry={curvedBarSpacer} castShadow receiveShadow>
             <primitive object={mat} attach="material" />
           </mesh>
+        </group>
+      )}
+      {/* Intersecting pattern */}
+      {intersectingData && (
+        <group>
+          {/* Straight mullions */}
+          {intersectingData.straightBars.length > 0 && <FixBars barItems={intersectingData.straightBars} matExt={mat} matInt={matInt || mat} />}
+          {/* Curved tracery */}
+          {intersectingData.extGeos.map((g, i) => (
+            <group key={'ic' + i}>
+              <mesh geometry={g} position={[0, 0, glassHalf + BAR_H / 2]} castShadow receiveShadow>
+                <primitive object={mat} attach="material" />
+              </mesh>
+              <mesh geometry={g} position={[0, 0, -(glassHalf + BAR_H / 2)]} castShadow receiveShadow>
+                <primitive object={matInt || mat} attach="material" />
+              </mesh>
+              <mesh geometry={intersectingData.spacerGeos[i]} castShadow receiveShadow>
+                <primitive object={mat} attach="material" />
+              </mesh>
+            </group>
+          ))}
         </group>
       )}
     </group>

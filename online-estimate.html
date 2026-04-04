@@ -2420,7 +2420,7 @@
         <!-- Special bars (shape-specific) -->
         <div class="input-group" id="fix-gothic-bars-design" style="display:none;margin-top:10px;">
           <label>Gothic Bar Pattern:</label>
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
             <label class="layout-option">
               <input type="radio" name="f-gothic-bars" value="none" checked>
               <div class="layout-thumb" title="None">
@@ -2441,6 +2441,23 @@
                 </svg>
               </div>
               <span style="font-size:10px;color:#666;">Simple</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="f-gothic-bars" value="intersecting">
+              <div class="layout-thumb" title="Intersecting">
+                <svg viewBox="0 0 40 60" width="36" height="54">
+                  <path d="M4 56 L4 28 A36 36 0 0 1 20 4 A36 36 0 0 1 36 28 L36 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="15" y1="56" x2="15" y2="28" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="25" y1="56" x2="25" y2="28" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M4 28 Q4 10 12 6" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M15 28 Q15 12 12 6" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M15 28 Q15 10 20 5" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M25 28 Q25 10 20 5" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M25 28 Q25 12 28 6" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M36 28 Q36 10 28 6" fill="none" stroke="#0a1628" stroke-width="1"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Intersecting</span>
             </label>
           </div>
         </div>
