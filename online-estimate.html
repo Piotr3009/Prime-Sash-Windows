@@ -2420,7 +2420,7 @@
         <!-- Special bars (shape-specific) -->
         <div class="input-group" id="fix-gothic-bars-design" style="display:none;margin-top:10px;">
           <label>Gothic Bar Pattern:</label>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
             <label class="layout-option">
               <input type="radio" name="f-gothic-bars" value="none" checked>
               <div class="layout-thumb" title="None">
@@ -2429,18 +2429,6 @@
                 </svg>
               </div>
               <span style="font-size:10px;color:#666;">None</span>
-            </label>
-            <label class="layout-option">
-              <input type="radio" name="f-gothic-bars" value="patternA">
-              <div class="layout-thumb" title="Simple Bars">
-                <svg viewBox="0 0 40 60" width="36" height="54">
-                  <path d="M4 56 L4 28 A36 36 0 0 1 20 4 A36 36 0 0 1 36 28 L36 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
-                  <line x1="4" y1="28" x2="36" y2="28" stroke="#0a1628" stroke-width="1.2"/>
-                  <line x1="14.7" y1="56" x2="14.7" y2="16" stroke="#0a1628" stroke-width="1.2"/>
-                  <line x1="25.3" y1="56" x2="25.3" y2="16" stroke="#0a1628" stroke-width="1.2"/>
-                </svg>
-              </div>
-              <span style="font-size:10px;color:#666;">Simple</span>
             </label>
             <label class="layout-option">
               <input type="radio" name="f-gothic-bars" value="intersecting">
@@ -2458,6 +2446,57 @@
                 </svg>
               </div>
               <span style="font-size:10px;color:#666;">Intersecting</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="input-group" id="fix-semi-bars-design" style="display:none;margin-top:10px;">
+          <label>Semi-Circle Bar Pattern:</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+            <label class="layout-option">
+              <input type="radio" name="f-semi-bars" value="none" checked>
+              <div class="layout-thumb" title="None">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">None</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="f-semi-bars" value="hub-spoke">
+              <div class="layout-thumb" title="Hub & Spoke">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="18" y1="38" x2="18" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="32" y1="38" x2="32" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M18 20 A8 8 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="25" y1="12" x2="25" y2="0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18" y1="20" x2="8" y2="4" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="32" y1="20" x2="42" y2="4" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Hub & Spoke</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="f-semi-bars" value="double-hub-spoke">
+              <div class="layout-thumb" title="Double Hub & Spoke">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="13" y1="38" x2="13" y2="20" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="25" y1="38" x2="25" y2="20" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="37" y1="38" x2="37" y2="20" stroke="#0a1628" stroke-width="0.8"/>
+                  <path d="M18 20 A8 8 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="0.8"/>
+                  <path d="M10 20 A16 16 0 0 1 40 20" fill="none" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="25" y1="12" x2="25" y2="0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="13" y1="20" x2="6" y2="3" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="37" y1="20" x2="44" y2="3" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18" y1="20" x2="10" y2="6" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="32" y1="20" x2="40" y2="6" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Double Hub</span>
             </label>
           </div>
         </div>
@@ -2512,8 +2551,8 @@
           <label>Glazing Type:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="f-glaz-double" name="f-glazing" value="double" checked><label for="f-glaz-double" class="radio-label">Double Glazing (U-value: 1.4)</label></div>
-            <div class="radio-option"><input type="radio" id="f-glaz-triple" name="f-glazing" value="triple"><label for="f-glaz-triple" class="radio-label">Triple Glazing (U-value: 0.8)</label></div>
-            <div class="radio-option"><input type="radio" id="f-glaz-passive" name="f-glazing" value="passive"><label for="f-glaz-passive" class="radio-label">Passive Glass (U-value: 0.5)</label></div>
+            <div class="radio-option"><input type="radio" id="f-glaz-triple" name="f-glazing" value="triple"><label for="f-glaz-triple" class="radio-label">Triple Glazing (U-value: 1.2)</label></div>
+            <div class="radio-option"><input type="radio" id="f-glaz-passive" name="f-glazing" value="passive"><label for="f-glaz-passive" class="radio-label">Passive Glass (U-value: 0.8)</label></div>
             <div class="radio-option" id="f-single-option" style="display:none;"><input type="radio" id="f-glaz-single" name="f-glazing" value="single"><label for="f-glaz-single" class="radio-label">Single Glazed (10mm)</label></div>
           </div>
         </div>
@@ -3564,9 +3603,11 @@
       // ── Design: shape-specific bars visibility ──
       var fGothicDesign = document.getElementById('fix-gothic-bars-design');
       var fCircleDesign = document.getElementById('fix-circle-bars-design');
+      var fSemiDesign = document.getElementById('fix-semi-bars-design');
       var fCircleOffsetDesign = document.getElementById('fix-circle-offset-design');
       var fGothicRadios = document.querySelectorAll('input[name="f-gothic-bars"]');
       var fCircleRadios = document.querySelectorAll('input[name="f-circle-bars"]');
+      var fSemiRadios = document.querySelectorAll('input[name="f-semi-bars"]');
       var fCircleOffsetSlider = document.getElementById('f-circle-offset');
       var fCircleOffsetVal = document.getElementById('f-circle-offset-val');
 
@@ -3574,6 +3615,7 @@
         var shape = getFixShape();
         if (fGothicDesign) fGothicDesign.style.display = (shape === 'gothic-arch') ? '' : 'none';
         if (fCircleDesign) fCircleDesign.style.display = (shape === 'circle') ? '' : 'none';
+        if (fSemiDesign) fSemiDesign.style.display = (shape === 'semi-circle') ? '' : 'none';
         var circlePattern = (document.querySelector('input[name="f-circle-bars"]:checked') || {}).value || 'none';
         if (fCircleOffsetDesign) fCircleOffsetDesign.style.display = (shape === 'circle' && circlePattern === 'sunburst') ? '' : 'none';
       }
@@ -3602,6 +3644,12 @@
           if (window.update3D) window.update3D({ fixCircleBarOffset: parseInt(fCircleOffsetSlider.value) });
         });
       }
+
+      fSemiRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          if (window.update3D) window.update3D({ fixSemiBarPattern: r.value });
+        });
+      });
 
       function update3DFix() {
         if (!window.update3D) return;

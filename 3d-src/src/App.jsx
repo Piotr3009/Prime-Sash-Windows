@@ -633,6 +633,7 @@ function Scene({ config, isMobile }) {
                 fixGothicBars={config.fixGothicBars || 'none'}
                 fixCircleBarPattern={config.fixCircleBarPattern || 'none'}
                 fixCircleBarOffset={config.fixCircleBarOffset || 200}
+                fixSemiBarPattern={config.fixSemiBarPattern || 'none'}
               />
             ) : (
               <ParametricSashWindow {...config} />
@@ -734,6 +735,7 @@ export default function App() {
   const [fixGothicBars, setFixGothicBars] = useState('none');
   const [fixCircleBarPattern, setFixCircleBarPattern] = useState('none');
   const [fixCircleBarOffset, setFixCircleBarOffset] = useState(200);
+  const [fixSemiBarPattern, setFixSemiBarPattern] = useState('none');
 
   // ─── State bucket system — isolates state per window type ───
   const categoryRef = useRef('sash');
@@ -747,7 +749,7 @@ export default function App() {
 
   // Capture current state snapshot
   function captureState() {
-    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset };
+    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern };
   }
 
   // Restore state from bucket
@@ -798,6 +800,7 @@ export default function App() {
     if (s.fixGothicBars !== undefined) setFixGothicBars(s.fixGothicBars);
     if (s.fixCircleBarPattern !== undefined) setFixCircleBarPattern(s.fixCircleBarPattern);
     if (s.fixCircleBarOffset !== undefined) setFixCircleBarOffset(s.fixCircleBarOffset);
+    if (s.fixSemiBarPattern !== undefined) setFixSemiBarPattern(s.fixSemiBarPattern);
   }
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
@@ -874,6 +877,7 @@ export default function App() {
       if (cfg.fixGothicBars !== undefined) setFixGothicBars(cfg.fixGothicBars);
       if (cfg.fixCircleBarPattern !== undefined) setFixCircleBarPattern(cfg.fixCircleBarPattern);
       if (cfg.fixCircleBarOffset !== undefined) setFixCircleBarOffset(cfg.fixCircleBarOffset);
+      if (cfg.fixSemiBarPattern !== undefined) setFixSemiBarPattern(cfg.fixSemiBarPattern);
     };
     return () => { delete window.update3D; };
   }, []);

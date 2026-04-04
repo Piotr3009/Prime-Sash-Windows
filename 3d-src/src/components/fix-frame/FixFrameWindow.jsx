@@ -823,7 +823,7 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
 }
 
 /* ═══ SEMI-CIRCLE ═══ */
-function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerColor, hBars = 0, vBars = 0 }) {
+function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerColor, hBars = 0, vBars = 0, semiBarPattern = 'none' }) {
   const W = mm(width); const H = mm(height); const fw = mm(FRAME_FACE);
   const D = mm(depth); const halfW = W / 2;
   const springY = -H / 2 + Math.max(H - halfW, mm(50));
@@ -839,44 +839,202 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
   }, [W, H, D, halfW, springY, iHalfW, iBottom]);
 
-  // archYAtX: inner semi-circle arch Y at given X
   function semiArchY(x) {
     const sq = iHalfW * iHalfW - x * x;
     return sq > 0 ? springY + Math.sqrt(sq) : springY;
   }
 
+  const isHub = semiBarPattern === 'hub-spoke' || semiBarPattern === 'double-hub-spoke';
+
   const bars = useMemo(() => {
     const items = [];
     const glassW = iHalfW * 2;
-    const topY = semiArchY(0);
-    const fullH = topY - iBottom;
-    for (let i = 1; i <= (hBars||0); i++) {
-      const y = iBottom + (fullH / (hBars + 1)) * i;
-      let len = glassW;
-      if (y > springY) {
-        const sq = iHalfW * iHalfW - (y - springY) * (y - springY);
-        if (sq > 0) len = 2 * Math.sqrt(sq); else continue;
+    if (isHub) {
+      items.push({ type: 'h', x: 0, y: springY, len: glassW });
+      const belowH = springY - iBottom;
+      for (let i = 1; i <= (vBars || 0); i++) {
+        const x = -iHalfW + (glassW / (vBars + 1)) * i;
+        if (belowH > 0) items.push({ type: 'v', x, y: iBottom + belowH / 2, len: belowH });
       }
-      items.push({ type:'h', x:0, y, len });
-    }
-    for (let i = 1; i <= (vBars||0); i++) {
-      const x = -iHalfW + (glassW / (vBars + 1)) * i;
-      const barTop = semiArchY(x) - BAR_W / 2;
-      const barH = barTop - iBottom;
-      if (barH > 0) items.push({ type:'v', x, y: iBottom + barH / 2, len: barH });
+      for (let i = 1; i <= (hBars || 0); i++) {
+        const y = iBottom + (belowH / (hBars + 1)) * i;
+        if (y < springY) items.push({ type: 'h', x: 0, y, len: glassW });
+      }
+    } else {
+      const topY = semiArchY(0);
+      const fullH = topY - iBottom;
+      for (let i = 1; i <= (hBars || 0); i++) {
+        const y = iBottom + (fullH / (hBars + 1)) * i;
+        let len = glassW;
+        if (y > springY) {
+          const sq = iHalfW * iHalfW - (y - springY) * (y - springY);
+          if (sq > 0) len = 2 * Math.sqrt(sq); else continue;
+        }
+        items.push({ type: 'h', x: 0, y, len });
+      }
+      for (let i = 1; i <= (vBars || 0); i++) {
+        const x = -iHalfW + (glassW / (vBars + 1)) * i;
+        const barTop = semiArchY(x) - BAR_W / 2;
+        const barH = barTop - iBottom;
+        if (barH > 0) items.push({ type: 'v', x, y: iBottom + barH / 2, len: barH });
+      }
     }
     return items;
-  }, [hBars, vBars, iHalfW, iBottom, springY]);
+  }, [hBars, vBars, iHalfW, iBottom, springY, isHub]);
+
+  // ── Hub & Spoke ──
+  const HUB_STEPS = 64;
+  const hubData = useMemo(() => {
+    if (!isHub) return null;
+    const isDouble = semiBarPattern === 'double-hub-spoke';
+    const hubR1 = iHalfW * 0.3;
+    const hubR2 = isDouble ? iHalfW * 0.6 : null;
+    const nSpokes = isDouble ? Math.max(7, Math.round(iHalfW / mm(1) / 70)) : Math.max(5, Math.round(iHalfW / mm(1) / 90));
+
+    const spokeAngles = [];
+    for (let i = 0; i <= nSpokes - 1; i++) spokeAngles.push((i / (nSpokes - 1)) * Math.PI);
+
+    function makeHalfRing(outerR, innerR, d) {
+      const shape = new THREE.Shape();
+      const oPts = arcPoints(0, springY, outerR, 0, Math.PI, 32);
+      shape.moveTo(oPts[0][0], oPts[0][1]);
+      for (let i = 1; i < oPts.length; i++) shape.lineTo(oPts[i][0], oPts[i][1]);
+      const iPts = arcPoints(0, springY, innerR, 0, Math.PI, 32);
+      for (let i = iPts.length - 1; i >= 0; i--) shape.lineTo(iPts[i][0], iPts[i][1]);
+      shape.closePath();
+      const g = new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false });
+      g.computeVertexNormals();
+      return g;
+    }
+
+    function buildRingLayers(hubR) {
+      const layerD = BAR_H / HUB_STEPS;
+      const extLayers = [];
+      for (let i = 0; i < HUB_STEPS; i++) {
+        const t = i / (HUB_STEPS - 1);
+        const hw = (BAR_W / 2) * (1 - t) + (BAR_TOP / 2) * t;
+        const g = makeHalfRing(hubR + hw, hubR - hw, layerD);
+        g.translate(0, 0, glassHalf + i * layerD);
+        extLayers.push(g);
+      }
+      const intLayers = [];
+      for (let i = 0; i < HUB_STEPS; i++) {
+        const t = (i + 1) / HUB_STEPS;
+        const hw = Math.max((BAR_W / 2) * Math.cos(t * Math.PI / 2), BAR_TOP / 2);
+        const g = makeHalfRing(hubR + hw, hubR - hw, layerD);
+        g.translate(0, 0, -(glassHalf + (i + 1) * layerD));
+        intLayers.push(g);
+      }
+      const spacerG = makeHalfRing(hubR + SPACER_BAR_W / 2, hubR - SPACER_BAR_W / 2, SPACER_DEPTH);
+      spacerG.translate(0, 0, -SPACER_DEPTH / 2);
+      return { extLayers, intLayers, spacerG };
+    }
+
+    const ring1 = buildRingLayers(hubR1);
+    const ring2 = isDouble ? buildRingLayers(hubR2) : null;
+
+    // Spoke profiles
+    const trapV = new THREE.Shape();
+    trapV.moveTo(0, -BAR_W / 2); trapV.lineTo(BAR_H, -BAR_TOP / 2);
+    trapV.lineTo(BAR_H, BAR_TOP / 2); trapV.lineTo(0, BAR_W / 2); trapV.closePath();
+    const ovoloV = new THREE.Shape();
+    const drop = mm(2), sqH = mm(2);
+    ovoloV.moveTo(0, -BAR_W / 2);
+    ovoloV.quadraticCurveTo(BAR_H - drop - sqH, -BAR_W / 2, BAR_H - sqH, -BAR_TOP / 2);
+    ovoloV.lineTo(BAR_H, -BAR_TOP / 2); ovoloV.lineTo(BAR_H, BAR_TOP / 2); ovoloV.lineTo(BAR_H - sqH, BAR_TOP / 2);
+    ovoloV.quadraticCurveTo(BAR_H - drop - sqH, BAR_W / 2, 0, BAR_W / 2);
+    ovoloV.closePath();
+
+    const spokes = spokeAngles.map(angle => {
+      const startR = hubR1 + BAR_W * 0.6;
+      const endR = isDouble ? (hubR2 - BAR_W * 0.6) : (iHalfW - BAR_W * 0.4);
+      const spokeLen = endR - startR;
+      if (spokeLen < mm(20)) return null;
+      const midR = (startR + endR) / 2;
+      const cx = midR * Math.cos(angle);
+      const cy = springY + midR * Math.sin(angle);
+      const extG = new THREE.ExtrudeGeometry(trapV, { depth: spokeLen + mm(10), bevelEnabled: false });
+      extG.rotateX(-Math.PI / 2); extG.translate(0, -(spokeLen + mm(10)) / 2, 0); extG.computeVertexNormals();
+      const intG = new THREE.ExtrudeGeometry(ovoloV, { depth: spokeLen + mm(10), bevelEnabled: false, curveSegments: 16 });
+      intG.rotateX(-Math.PI / 2); intG.translate(0, -(spokeLen + mm(10)) / 2, 0); intG.computeVertexNormals();
+      return { extG, intG, len: spokeLen, cx, cy, angle };
+    }).filter(Boolean);
+
+    let outerSpokes = [];
+    if (isDouble) {
+      outerSpokes = spokeAngles.map(angle => {
+        const startR = hubR2 + BAR_W * 0.6;
+        const endR = iHalfW - BAR_W * 0.4;
+        const spokeLen = endR - startR;
+        if (spokeLen < mm(20)) return null;
+        const midR = (startR + endR) / 2;
+        const cx = midR * Math.cos(angle);
+        const cy = springY + midR * Math.sin(angle);
+        const extG = new THREE.ExtrudeGeometry(trapV, { depth: spokeLen + mm(10), bevelEnabled: false });
+        extG.rotateX(-Math.PI / 2); extG.translate(0, -(spokeLen + mm(10)) / 2, 0); extG.computeVertexNormals();
+        const intG = new THREE.ExtrudeGeometry(ovoloV, { depth: spokeLen + mm(10), bevelEnabled: false, curveSegments: 16 });
+        intG.rotateX(-Math.PI / 2); intG.translate(0, -(spokeLen + mm(10)) / 2, 0); intG.computeVertexNormals();
+        return { extG, intG, len: spokeLen, cx, cy, angle };
+      }).filter(Boolean);
+    }
+
+    return { ring1, ring2, spokes, outerSpokes };
+  }, [semiBarPattern, iHalfW, springY, isHub]);
+
+  const spacerBarMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
+    metalness: 0.6, roughness: 0.4
+  }), [spacerColor]);
+
+  function renderRing(ring, key) {
+    return (
+      <group key={key}>
+        {ring.extLayers.map((g, i) => (
+          <mesh key={'re' + i} geometry={g} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+        ))}
+        {ring.intLayers.map((g, i) => (
+          <mesh key={'ri' + i} geometry={g} castShadow receiveShadow><primitive object={matInt || mat} attach="material" /></mesh>
+        ))}
+        <mesh geometry={ring.spacerG} castShadow receiveShadow><primitive object={spacerBarMat} attach="material" /></mesh>
+      </group>
+    );
+  }
+
+  function renderSpokes(spokes, keyPrefix) {
+    return spokes.map((s, i) => (
+      <group key={keyPrefix + i} position={[s.cx, s.cy, 0]} rotation={[0, 0, s.angle - Math.PI / 2]}>
+        <mesh geometry={s.extG} position={[0, 0, glassHalf]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
+          <primitive object={mat} attach="material" />
+        </mesh>
+        <mesh geometry={s.intG} position={[0, 0, -glassHalf]} castShadow receiveShadow>
+          <primitive object={matInt || mat} attach="material" />
+        </mesh>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[SPACER_BAR_W, s.len, SPACER_DEPTH]} />
+          <primitive object={spacerBarMat} attach="material" />
+        </mesh>
+      </group>
+    ));
+  }
 
   return (
     <group>
       <FrameMesh geometry={frameGeo} matExt={mat} matInt={matInt} />
-      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />
+      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} />
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
       {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />}
+      {hubData && (
+        <group>
+          {renderRing(hubData.ring1, 'r1')}
+          {hubData.ring2 && renderRing(hubData.ring2, 'r2')}
+          {renderSpokes(hubData.spokes, 'sp')}
+          {hubData.outerSpokes.length > 0 && renderSpokes(hubData.outerSpokes, 'osp')}
+        </group>
+      )}
     </group>
   );
 }
+
 
 /* ═══ SEGMENTAL ═══ */
 function SegmentalFrame({ width, height, depth, mat, matInt, glassMat, spacerColor, customRise = 0, hBars = 0, vBars = 0 }) {
@@ -1033,6 +1191,7 @@ export default function FixFrameWindow({
   fixShape = 'rectangle', fixType = 'standard',
   fixArchRise = 0, fixGothicBars = 'none',
   fixCircleBarPattern = 'none', fixCircleBarOffset = 200,
+  fixSemiBarPattern = 'none',
 }) {
   const cExt = sameColor ? woodColor : woodColorExt;
   const cInt = sameColor ? woodColor : woodColorInt;
@@ -1055,7 +1214,7 @@ export default function FixFrameWindow({
   let shapeNode = null;
   if (fixShape === 'circle') shapeNode = <CircleFrame diameter={width} depth={depth} mat={extMat} matInt={intMat} glassMat={glassMat} spacerColor={spacerColor} circleBarPattern={fixCircleBarPattern} circleBarOffset={fixCircleBarOffset} hBars={hBars} vBars={vBars} />;
   else if (fixShape === 'gothic-arch') shapeNode = <GothicArchFrame width={width} height={effectiveH} depth={depth} mat={extMat} matInt={intMat} glassMat={glassMat} spacerColor={spacerColor} gothicBars={fixGothicBars} hBars={hBars} vBars={vBars} />;
-  else if (fixShape === 'semi-circle') shapeNode = <SemiCircleFrame width={width} height={effectiveH} depth={depth} mat={extMat} matInt={intMat} glassMat={glassMat} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />;
+  else if (fixShape === 'semi-circle') shapeNode = <SemiCircleFrame width={width} height={effectiveH} depth={depth} mat={extMat} matInt={intMat} glassMat={glassMat} spacerColor={spacerColor} hBars={hBars} vBars={vBars} semiBarPattern={fixSemiBarPattern} />;
   else if (fixShape === 'segmental-arch') shapeNode = <SegmentalFrame width={width} height={effectiveH} depth={depth} mat={extMat} matInt={intMat} glassMat={glassMat} spacerColor={spacerColor} customRise={fixArchRise} hBars={hBars} vBars={vBars} />;
   else if (fixShape === 'elliptical-arch') shapeNode = <EllipticalFrame width={width} height={effectiveH} depth={depth} mat={extMat} matInt={intMat} glassMat={glassMat} spacerColor={spacerColor} customRise={fixArchRise} hBars={hBars} vBars={vBars} />;
   else shapeNode = <CasementPanel width={width} height={height} hingeType="fixed" opening={0} material={extMat} materialInt={intMat} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} ironmongery="brass" position={[0,0,0]} />;
