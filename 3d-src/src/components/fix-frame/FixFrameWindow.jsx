@@ -694,8 +694,8 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
         if (py < springY - mm(2)) continue;
         // Stop at frame boundary (arch curve)
         const limit = archYAtX(Math.max(-iHalfW, Math.min(iHalfW, px)));
-        if (py > limit - BAR_W * 0.3) break;
-        if (Math.abs(px) > iHalfW - BAR_W * 0.3) break;
+        if (py > limit - BAR_W * 0.05) break;
+        if (Math.abs(px) > iHalfW - BAR_W * 0.05) break;
         pts.push([px, py]);
       }
       return pts;
@@ -773,6 +773,11 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     return { straightBars, curves };
   }, [gothicBars, halfW, iHalfW, iBottom, springY, Ri]);
 
+  const spacerBarMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
+    metalness: 0.6, roughness: 0.4
+  }), [spacerColor]);
+
   return (
     <group>
       <FrameMesh geometry={frameGeo} matExt={mat} matInt={matInt} />
@@ -791,7 +796,7 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
           </mesh>
           {/* Spacer between panes */}
           <mesh geometry={curvedBarSpacer} castShadow receiveShadow>
-            <primitive object={mat} attach="material" />
+            <primitive object={spacerBarMat} attach="material" />
           </mesh>
         </group>
       )}
@@ -807,7 +812,7 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
               {curve.intLayers.map((g, i) => (
                 <mesh key={'ci' + i} geometry={g} castShadow receiveShadow><primitive object={matInt || mat} attach="material" /></mesh>
               ))}
-              {curve.spacerGeo && <mesh geometry={curve.spacerGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>}
+              {curve.spacerGeo && <mesh geometry={curve.spacerGeo} castShadow receiveShadow><primitive object={spacerBarMat} attach="material" /></mesh>}
             </group>
           ))}
         </group>
