@@ -27,7 +27,7 @@ const EBW = mm(9);    // ext chamfer width (inward from glass edge)
 const EBD = mm(15);   // ext chamfer depth (along Z)
 const IBW = mm(18);   // int ovolo max width
 const IBD = mm(14);   // int ovolo depth (along Z)
-const OVOLO_STEPS = 32; // enough steps for smooth curve
+const OVOLO_STEPS = 64; // enough steps for smooth curve
 
 /* ─── Arc helpers ─── */
 function arcPoints(cx, cy, r, startAngle, endAngle, segs) {
@@ -281,7 +281,7 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
   // ── FRAME BEADS (always visible) ──
   // Chamfer: stepped trapezoid rings on EXT face — like bar trapezoid profile
   // Wide (9mm) at frame face, narrow (1mm) at glass edge
-  const CHAMFER_STEPS = 32;
+  const CHAMFER_STEPS = 64;
   const CHAMFER_TOP = mm(1); // narrow end width
   const chamferLayers = useMemo(() => {
     const layers = [];
@@ -303,7 +303,7 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
     const layerD = IBD / OVOLO_STEPS;
     for (let i = 0; i < OVOLO_STEPS; i++) {
       const t = (i + 1) / OVOLO_STEPS;
-      const w = IBW * Math.sin(t * Math.PI / 2);
+      const w = EBW * Math.sin(t * Math.PI / 2);
       layers.push({
         geo: makeRing(rInner, rInner - w, layerD),
         z: -halfD + (i + 0.5) * layerD,
