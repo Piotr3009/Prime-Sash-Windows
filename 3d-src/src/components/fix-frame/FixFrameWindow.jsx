@@ -132,15 +132,16 @@ function useOvoloH() {
 }
 
 /* ─── Profiled bar rendering (3 parts: trap + ovolo + spacer) ─── */
-function FixBars({ barItems, matExt, matInt }) {
+function FixBars({ barItems, matExt, matInt, spacerColor = 'silver' }) {
   const trapV = useTrapV();
   const trapH = useTrapH();
   const ovoloV = useOvoloV();
   const ovoloH = useOvoloH();
 
   const spacerMat = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#a0a4a8', metalness: 0.6, roughness: 0.4
-  }), []);
+    color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
+    metalness: 0.6, roughness: 0.4
+  }), [spacerColor]);
 
   // Pre-build geometries per unique length
   const geos = useMemo(() => {
@@ -534,7 +535,7 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
         </group>
       )}
       {/* Straight h/v bars */}
-      {straightBars.length > 0 && <FixBars barItems={straightBars} matExt={mat} matInt={mi} />}
+      {straightBars.length > 0 && <FixBars barItems={straightBars} matExt={mat} matInt={mi} spacerColor={spacerColor} />}
     </group>
   );
 }
@@ -694,8 +695,8 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
         if (py < springY - mm(2)) continue;
         // Stop at frame boundary (arch curve)
         const limit = archYAtX(Math.max(-iHalfW, Math.min(iHalfW, px)));
-        if (py > limit - BAR_W * 0.05) break;
-        if (Math.abs(px) > iHalfW - BAR_W * 0.05) break;
+        if (py > limit) break;
+        if (Math.abs(px) > iHalfW) break;
         pts.push([px, py]);
       }
       return pts;
@@ -781,9 +782,9 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
   return (
     <group>
       <FrameMesh geometry={frameGeo} matExt={mat} matInt={matInt} />
-      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} />
+      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
-      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} />}
+      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />}
       {curvedBarExt && (
         <group>
           {/* EXT face */}
@@ -803,7 +804,7 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       {/* Intersecting pattern */}
       {intersectingData && (
         <group>
-          {intersectingData.straightBars.length > 0 && <FixBars barItems={intersectingData.straightBars} matExt={mat} matInt={matInt || mat} />}
+          {intersectingData.straightBars.length > 0 && <FixBars barItems={intersectingData.straightBars} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />}
           {intersectingData.curves.map((curve, ci) => (
             <group key={'ic' + ci}>
               {curve.extLayers.map((g, i) => (
@@ -870,9 +871,9 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
   return (
     <group>
       <FrameMesh geometry={frameGeo} matExt={mat} matInt={matInt} />
-      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} />
+      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
-      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} />}
+      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />}
     </group>
   );
 }
@@ -939,9 +940,9 @@ function SegmentalFrame({ width, height, depth, mat, matInt, glassMat, spacerCol
   return (
     <group>
       <FrameMesh geometry={frameGeo} matExt={mat} matInt={matInt} />
-      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} />
+      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
-      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} />}
+      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />}
     </group>
   );
 }
@@ -1009,9 +1010,9 @@ function EllipticalFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
   return (
     <group>
       <FrameMesh geometry={frameGeo} matExt={mat} matInt={matInt} />
-      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} />
+      <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
-      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} />}
+      {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />}
     </group>
   );
 }
