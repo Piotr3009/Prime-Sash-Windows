@@ -409,26 +409,48 @@ function GothicArchFrame({ width, height, depth, mat, glassMat, spacerColor, got
     return result;
   }, [gothicBars, iHalfW, iBottom, springY]);
 
-  // Curved bar: from (0, springY) following RIGHT inner arc to (x2, archYAtX(x2))
+  // Curved bar: bezier from (0, springY) curving up toward peak, then to right bar top
   const curvedBarGeo = useMemo(() => {
     if (gothicBars !== 'patternA') return null;
     const x2 = -iHalfW + (iHalfW * 2) * 2 / 3;
-    // Right arc: center (-halfW, springY), radius Ri
-    const angleAtCenter = Math.acos(Math.min(halfW / Ri, 1));
-    const angleAtX2 = Math.acos(Math.min((x2 + halfW) / Ri, 1));
-    // Arc band: outer edge (Ri + BAR_W/2), inner edge (Ri - BAR_W/2)
-    const outerArc = arcPoints(-halfW, springY, Ri + BAR_W / 2, angleAtX2, angleAtCenter, 24);
-    const innerArc = arcPoints(-halfW, springY, Ri - BAR_W / 2, angleAtCenter, angleAtX2, 24);
+    const topY = archYAtX(x2) - BAR_W / 2;
+    const peakY = archYAtX(0);
+    // Control point: between center and right, near peak height
+    const cpX = x2 * 0.35;
+    const cpY = peakY - mm(30);
+    // Sample bezier curve
+    const N = 32;
+    const pts = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const x = (1-t)*(1-t)*0 + 2*(1-t)*t*cpX + t*t*x2;
+      const y = (1-t)*(1-t)*springY + 2*(1-t)*t*cpY + t*t*topY;
+      pts.push([x, y]);
+    }
+    // Build strip: offset each point perpendicular to curve by BAR_W/2
+    const leftEdge = [];
+    const rightEdge = [];
+    for (let i = 0; i < pts.length; i++) {
+      const prev = pts[Math.max(0, i-1)];
+      const next = pts[Math.min(pts.length-1, i+1)];
+      const dx = next[0] - prev[0];
+      const dy = next[1] - prev[1];
+      const len = Math.sqrt(dx*dx + dy*dy) || 1;
+      const nx = -dy / len * (BAR_W / 2);
+      const ny = dx / len * (BAR_W / 2);
+      leftEdge.push([pts[i][0] + nx, pts[i][1] + ny]);
+      rightEdge.push([pts[i][0] - nx, pts[i][1] - ny]);
+    }
     const shape = new THREE.Shape();
-    shape.moveTo(outerArc[0][0], outerArc[0][1]);
-    for (let i = 1; i < outerArc.length; i++) shape.lineTo(outerArc[i][0], outerArc[i][1]);
-    for (let i = 0; i < innerArc.length; i++) shape.lineTo(innerArc[i][0], innerArc[i][1]);
+    shape.moveTo(leftEdge[0][0], leftEdge[0][1]);
+    for (let i = 1; i < leftEdge.length; i++) shape.lineTo(leftEdge[i][0], leftEdge[i][1]);
+    for (let i = rightEdge.length - 1; i >= 0; i--) shape.lineTo(rightEdge[i][0], rightEdge[i][1]);
     shape.closePath();
     const g = new THREE.ExtrudeGeometry(shape, { depth: GU, bevelEnabled: false });
     g.translate(0, 0, -GU / 2);
     g.computeVertexNormals();
     return g;
-  }, [gothicBars, iHalfW, halfW, Ri, springY]);
+  }, [gothicBars, iHalfW, springY]);
 
   return (
     <group>
