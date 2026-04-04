@@ -288,7 +288,7 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
     const layerD = EBD / CHAMFER_STEPS;
     for (let i = 0; i < CHAMFER_STEPS; i++) {
       const t = i / (CHAMFER_STEPS - 1); // 0 = at frame face, 1 = at glass edge
-      const w = EBW * (1 - t) + CHAMFER_TOP * t; // 9mm → 1mm
+      const w = CHAMFER_TOP * (1 - t) + EBW * t; // 1mm at frame face → 9mm at glass edge
       layers.push({
         geo: makeRing(rInner, rInner - w, layerD),
         z: halfD - (i + 0.5) * layerD,
