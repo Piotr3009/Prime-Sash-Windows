@@ -347,7 +347,7 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
 
   return (
     <group>
-      <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+      <mesh geometry={frameGeo} castShadow receiveShadow><meshPhysicalMaterial color="#aabbcc" transparent opacity={0.25} side={THREE.DoubleSide} /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
       {/* Frame beads — chamfer EXT + ovolo INT */}
       <mesh geometry={chamferGeo} position={[0, 0, -(halfD - EBD / 2)]} castShadow receiveShadow>
