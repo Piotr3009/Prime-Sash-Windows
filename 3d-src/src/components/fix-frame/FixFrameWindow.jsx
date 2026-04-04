@@ -403,6 +403,11 @@ function GothicArchFrame({ width, height, depth, mat, glassMat, spacerColor, got
       const barH = topY - iBottom;
       if (barH > 0) result.push({ type: 'v', x: x, y: iBottom + barH / 2, len: barH });
     }
+    // Center vertical bar: bottom to 100mm before peak
+    const peakY = archYAtX(0);
+    const centerTopY = peakY - mm(100);
+    const centerH = centerTopY - iBottom;
+    if (centerH > 0) result.push({ type: 'v', x: 0, y: iBottom + centerH / 2, len: centerH });
     return result;
   }, [gothicBars, iHalfW, iBottom, springY]);
 
