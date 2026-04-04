@@ -624,6 +624,44 @@
           </div>
         </div>
 
+        <!-- Circle bar pattern (only for circle) -->
+        <div class="input-group" id="fix-circle-bars-group" style="display:none;margin-top:10px;">
+          <label>Circle Bar Pattern:</label>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+            <label class="layout-option">
+              <input type="radio" name="fix-circle-bars" value="none" checked>
+              <div class="layout-thumb" title="None">
+                <svg viewBox="0 0 50 50" width="40" height="40">
+                  <circle cx="25" cy="25" r="22" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">None</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="fix-circle-bars" value="sunburst">
+              <div class="layout-thumb" title="Sunburst">
+                <svg viewBox="0 0 50 50" width="40" height="40">
+                  <circle cx="25" cy="25" r="22" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <circle cx="25" cy="25" r="10" fill="none" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="25" y1="3" x2="25" y2="15" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="25" y1="35" x2="25" y2="47" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="3" y1="25" x2="15" y2="25" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="35" y1="25" x2="47" y2="25" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="9.4" y1="9.4" x2="17.9" y2="17.9" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="32.1" y1="32.1" x2="40.6" y2="40.6" stroke="#0a1628" stroke-width="1.2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Sunburst</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Circle bar offset (only for circle + sunburst) -->
+        <div class="input-group" id="fix-circle-offset-group" style="display:none;margin-top:10px;">
+          <label>Ring Offset: <span id="fix-circle-offset-value">200</span> mm</label>
+          <input type="range" id="fix-circle-offset" min="50" max="400" value="200" step="10">
+        </div>
+
         <button class="btn btn-apply" id="apply-fix-frame">Apply</button>
       </div>
 
@@ -3471,6 +3509,11 @@
       var archRiseValue = document.getElementById('fix-arch-rise-value');
       var gothicBarsGroup = document.getElementById('fix-gothic-bars-group');
       var gothicBarsRadios = document.querySelectorAll('input[name="fix-gothic-bars"]');
+      var circleBarsGroup = document.getElementById('fix-circle-bars-group');
+      var circleBarsRadios = document.querySelectorAll('input[name="fix-circle-bars"]');
+      var circleOffsetGroup = document.getElementById('fix-circle-offset-group');
+      var circleOffsetSlider = document.getElementById('fix-circle-offset');
+      var circleOffsetValue = document.getElementById('fix-circle-offset-value');
       var fixHbars = document.querySelectorAll('input[name="f-hbars"]');
       var fixVbars = document.querySelectorAll('input[name="f-vbars"]');
       var fixColourMode = document.querySelectorAll('input[name="f-colour-mode"]');
@@ -3517,6 +3560,11 @@
         }
         // Gothic bars — only for gothic-arch
         if (gothicBarsGroup) gothicBarsGroup.style.display = (shape === 'gothic-arch') ? '' : 'none';
+        // Circle bars — only for circle
+        if (circleBarsGroup) circleBarsGroup.style.display = (shape === 'circle') ? '' : 'none';
+        // Circle offset — only for circle + sunburst
+        var circlePattern = (document.querySelector('input[name="fix-circle-bars"]:checked') || {}).value || 'none';
+        if (circleOffsetGroup) circleOffsetGroup.style.display = (shape === 'circle' && circlePattern === 'sunburst') ? '' : 'none';
       }
 
       // Shape change → update 3D directly
@@ -3554,6 +3602,23 @@
           if (window.update3D) window.update3D({ fixGothicBars: r.value });
         });
       });
+
+      // Circle bars pattern
+      circleBarsRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          if (window.update3D) window.update3D({ fixCircleBarPattern: r.value });
+          // Show/hide offset slider
+          if (circleOffsetGroup) circleOffsetGroup.style.display = (r.value === 'sunburst') ? '' : 'none';
+        });
+      });
+
+      // Circle bar offset slider
+      if (circleOffsetSlider) {
+        circleOffsetSlider.addEventListener('input', function() {
+          if (circleOffsetValue) circleOffsetValue.textContent = circleOffsetSlider.value;
+          if (window.update3D) window.update3D({ fixCircleBarOffset: parseInt(circleOffsetSlider.value) });
+        });
+      }
 
       // Dimension changes → 3D
       var fixDimTimer = null;

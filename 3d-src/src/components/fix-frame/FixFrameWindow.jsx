@@ -234,14 +234,15 @@ function CurvedGlass({ innerPts, glassMat, spacerColor }) {
 }
 
 /* ═══ CIRCLE ═══ */
-function CircleFrame({ diameter, depth, mat, glassMat, spacerColor }) {
+function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circleBarPattern = 'none', circleBarOffset = 200 }) {
   const R = mm(diameter) / 2;
   const fw = mm(FRAME_FACE);
   const rInner = Math.max(R - fw, mm(20));
   const D = mm(depth);
   const segs = 64;
-  const BAR_OFFSET = mm(200); // offset from frame inner edge
-  const barR = rInner - BAR_OFFSET;
+  const barR = rInner - mm(circleBarOffset);
+  const showBars = circleBarPattern === 'sunburst' && barR > mm(30);
+  const mi = matInt || mat;
 
   const { frameGeo, innerPts } = useMemo(() => {
     const outer = arcPoints(0, 0, R, 0, Math.PI * 2, segs);
@@ -249,106 +250,115 @@ function CircleFrame({ diameter, depth, mat, glassMat, spacerColor }) {
     return { frameGeo: makeFrameGeo(outer, inner, D), innerPts: inner };
   }, [R, rInner, D]);
 
-  // Circular ring bar — 3 parts like casement bars
-  const ringBarGeos = useMemo(() => {
-    if (barR <= mm(30)) return null; // too small for bar
+  // Helper: make annulus ring
+  function makeRing(outerR, innerR, d) {
+    const shape = new THREE.Shape();
+    const oPts = arcPoints(0, 0, outerR, 0, Math.PI * 2, segs);
+    shape.moveTo(oPts[0][0], oPts[0][1]);
+    for (let i = 1; i < oPts.length; i++) shape.lineTo(oPts[i][0], oPts[i][1]);
+    shape.closePath();
+    const hole = new THREE.Path();
+    const iPts = arcPoints(0, 0, innerR, 0, Math.PI * 2, segs);
+    hole.moveTo(iPts[0][0], iPts[0][1]);
+    for (let i = 1; i < iPts.length; i++) hole.lineTo(iPts[i][0], iPts[i][1]);
+    hole.closePath();
+    shape.holes.push(hole);
+    const g = new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false });
+    g.translate(0, 0, -d / 2);
+    g.computeVertexNormals();
+    return g;
+  }
 
-    function makeRing(outerR, innerR, d) {
-      const shape = new THREE.Shape();
-      const oPts = arcPoints(0, 0, outerR, 0, Math.PI * 2, segs);
-      shape.moveTo(oPts[0][0], oPts[0][1]);
-      for (let i = 1; i < oPts.length; i++) shape.lineTo(oPts[i][0], oPts[i][1]);
-      shape.closePath();
-      const hole = new THREE.Path();
-      const iPts = arcPoints(0, 0, innerR, 0, Math.PI * 2, segs);
-      hole.moveTo(iPts[0][0], iPts[0][1]);
-      for (let i = 1; i < iPts.length; i++) hole.lineTo(iPts[i][0], iPts[i][1]);
-      hole.closePath();
-      shape.holes.push(hole);
-      const g = new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false });
-      g.translate(0, 0, -d / 2);
-      g.computeVertexNormals();
-      return g;
-    }
-
-    // EXT trapezoid: 4 stacked rings, narrowing from BAR_W to BAR_TOP
-    const extLayers = [];
-    const N = 4;
+  // Ring bar: trapezoid EXT + ovolo INT + spacer
+  const ringGeos = useMemo(() => {
+    if (!showBars) return null;
+    const N = 6;
     const layerD = BAR_H / N;
+    // EXT trapezoid layers
+    const ext = [];
     for (let i = 0; i < N; i++) {
       const t = i / (N - 1);
       const hw = (BAR_W / 2) * (1 - t) + (BAR_TOP / 2) * t;
-      extLayers.push({ geo: makeRing(barR + hw, barR - hw, layerD), z: glassHalf + (i + 0.5) * layerD });
+      ext.push({ geo: makeRing(barR + hw, barR - hw, layerD), z: glassHalf + (i + 0.5) * layerD });
     }
-
-    // INT ovolo: 4 stacked rings, narrowing with quarter-circle curve
-    const intLayers = [];
+    // INT ovolo layers
+    const int = [];
     for (let i = 0; i < N; i++) {
       const t = (i + 1) / N;
-      const a = t * (Math.PI / 2);
-      const hw = (BAR_W / 2) * Math.cos(a);
-      const hwSafe = Math.max(hw, BAR_TOP / 2);
-      intLayers.push({ geo: makeRing(barR + hwSafe, barR - hwSafe, layerD), z: -(glassHalf + (i + 0.5) * layerD) });
+      const hw = Math.max((BAR_W / 2) * Math.cos(t * Math.PI / 2), BAR_TOP / 2);
+      int.push({ geo: makeRing(barR + hw, barR - hw, layerD), z: -(glassHalf + (i + 0.5) * layerD) });
     }
-
-    // Spacer between panes
+    // Spacer
     const spacer = makeRing(barR + SPACER_BAR_W / 2, barR - SPACER_BAR_W / 2, SPACER_DEPTH);
+    return { ext, int, spacer };
+  }, [showBars, barR]);
 
-    return { extLayers, intLayers, spacer };
-  }, [barR, segs]);
+  // Spoke profiles (reuse bar profile shapes)
+  const trapV = useTrapV();
+  const ovoloV = useOvoloV();
 
-  // 6 radial spokes from ring to frame
-  const spokes = useMemo(() => {
-    if (barR <= mm(30)) return [];
-    const spokeLen = rInner - barR - mm(2); // gap to avoid overlap
-    const items = [];
-    for (let i = 0; i < 6; i++) {
-      const angle = (i / 6) * Math.PI * 2;
-      const midR = (barR + rInner) / 2;
-      items.push({
-        x: midR * Math.cos(angle),
-        y: midR * Math.sin(angle),
-        angle: angle,
-        len: spokeLen,
-      });
-    }
-    return items;
-  }, [barR, rInner]);
+  // 6 spoke geometries
+  const spokeGeos = useMemo(() => {
+    if (!showBars) return null;
+    const spokeLen = rInner - barR;
+    const extG = new THREE.ExtrudeGeometry(trapV, { depth: spokeLen + mm(18), bevelEnabled: false });
+    extG.rotateX(-Math.PI / 2); extG.translate(0, -(spokeLen + mm(18)) / 2, 0); extG.computeVertexNormals();
+    const intG = new THREE.ExtrudeGeometry(ovoloV, { depth: spokeLen + mm(18), bevelEnabled: false, curveSegments: 32 });
+    intG.rotateX(-Math.PI / 2); intG.translate(0, -(spokeLen + mm(18)) / 2, 0); intG.computeVertexNormals();
+    return { ext: extG, int: intG, len: spokeLen };
+  }, [showBars, rInner, barR, trapV, ovoloV]);
 
   const spacerBarMat = useMemo(() => new THREE.MeshStandardMaterial({
     color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
     metalness: 0.6, roughness: 0.4
   }), [spacerColor]);
 
+  const spokeMidR = (barR + rInner) / 2;
+
   return (
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
-      {/* Circular ring bar */}
-      {ringBarGeos && (
+      {/* Sunburst bars */}
+      {showBars && ringGeos && spokeGeos && (
         <group>
-          {ringBarGeos.extLayers.map((l, i) => (
-            <mesh key={`e${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
+          {/* Ring EXT trapezoid */}
+          {ringGeos.ext.map((l, i) => (
+            <mesh key={`re${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
               <primitive object={mat} attach="material" />
             </mesh>
           ))}
-          {ringBarGeos.intLayers.map((l, i) => (
-            <mesh key={`i${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
-              <primitive object={mat} attach="material" />
+          {/* Ring INT ovolo */}
+          {ringGeos.int.map((l, i) => (
+            <mesh key={`ri${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
+              <primitive object={mi} attach="material" />
             </mesh>
           ))}
-          <mesh geometry={ringBarGeos.spacer} castShadow receiveShadow>
+          {/* Ring spacer */}
+          <mesh geometry={ringGeos.spacer} castShadow receiveShadow>
             <primitive object={spacerBarMat} attach="material" />
           </mesh>
-          {/* 6 radial spokes */}
-          {spokes.map((s, i) => (
-            <group key={`s${i}`} position={[s.x, s.y, 0]} rotation={[0, 0, s.angle]}>
-              <mesh castShadow receiveShadow>
-                <boxGeometry args={[BAR_W, s.len, GU]} />
-                <primitive object={mat} attach="material" />
-              </mesh>
-            </group>
-          ))}
+          {/* 6 spokes */}
+          {[0, 1, 2, 3, 4, 5].map((i) => {
+            const angle = (i / 6) * Math.PI * 2;
+            return (
+              <group key={`sp${i}`} position={[spokeMidR * Math.cos(angle), spokeMidR * Math.sin(angle), 0]} rotation={[0, 0, angle]}>
+                {/* EXT trapezoid */}
+                <mesh geometry={spokeGeos.ext} position={[0, 0, glassHalf]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
+                  <primitive object={mat} attach="material" />
+                </mesh>
+                {/* INT ovolo */}
+                <mesh geometry={spokeGeos.int} position={[0, 0, -glassHalf]} castShadow receiveShadow>
+                  <primitive object={mi} attach="material" />
+                </mesh>
+                {/* Spacer */}
+                <mesh castShadow receiveShadow>
+                  <boxGeometry args={[SPACER_BAR_W, spokeGeos.len, SPACER_DEPTH]} />
+                  <primitive object={spacerBarMat} attach="material" />
+                </mesh>
+              </group>
+            );
+          })}
         </group>
       )}
     </group>
@@ -545,6 +555,7 @@ export default function FixFrameWindow({
   hBars = 0, vBars = 0, showGuides = true,
   fixShape = 'rectangle', fixType = 'standard',
   fixArchRise = 0, fixGothicBars = 'none',
+  fixCircleBarPattern = 'none', fixCircleBarOffset = 200,
 }) {
   const cExt = sameColor ? woodColor : woodColorExt;
   const cInt = sameColor ? woodColor : woodColorInt;
@@ -565,7 +576,7 @@ export default function FixFrameWindow({
   const springY = -H/2 + H * springYFrac;
 
   let shapeNode = null;
-  if (fixShape === 'circle') shapeNode = <CircleFrame diameter={width} depth={depth} mat={extMat} glassMat={glassMat} />;
+  if (fixShape === 'circle') shapeNode = <CircleFrame diameter={width} depth={depth} mat={extMat} matInt={intMat} glassMat={glassMat} spacerColor={spacerColor} circleBarPattern={fixCircleBarPattern} circleBarOffset={fixCircleBarOffset} />;
   else if (fixShape === 'gothic-arch') shapeNode = <GothicArchFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} gothicBars={fixGothicBars} />;
   else if (fixShape === 'semi-circle') shapeNode = <SemiCircleFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} hBars={hBars} vBars={vBars} />;
   else if (fixShape === 'segmental-arch') shapeNode = <SegmentalFrame width={width} height={effectiveH} depth={depth} mat={extMat} glassMat={glassMat} spacerColor={spacerColor} customRise={fixArchRise} hBars={hBars} vBars={vBars} />;
