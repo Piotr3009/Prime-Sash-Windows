@@ -403,19 +403,43 @@ function GothicArchFrame({ width, height, depth, mat, glassMat, spacerColor, got
       const barH = topY - iBottom;
       if (barH > 0) result.push({ type: 'v', x: x, y: iBottom + barH / 2, len: barH });
     }
-    // Center vertical bar: bottom to 100mm before peak
-    const peakY = archYAtX(0);
-    const centerTopY = peakY - mm(100);
-    const centerH = centerTopY - iBottom;
+    // Center vertical bar: bottom to springing line
+    const centerH = springY - iBottom;
     if (centerH > 0) result.push({ type: 'v', x: 0, y: iBottom + centerH / 2, len: centerH });
     return result;
   }, [gothicBars, iHalfW, iBottom, springY]);
+
+  // Curved bar: from (0, springY) following RIGHT inner arc to (x2, archYAtX(x2))
+  const curvedBarGeo = useMemo(() => {
+    if (gothicBars !== 'patternA') return null;
+    const x2 = -iHalfW + (iHalfW * 2) * 2 / 3;
+    // Right arc: center (-halfW, springY), radius Ri
+    const angleAtCenter = Math.acos(Math.min(halfW / Ri, 1));
+    const angleAtX2 = Math.acos(Math.min((x2 + halfW) / Ri, 1));
+    // Arc band: outer edge (Ri + BAR_W/2), inner edge (Ri - BAR_W/2)
+    const outerArc = arcPoints(-halfW, springY, Ri + BAR_W / 2, angleAtX2, angleAtCenter, 24);
+    const innerArc = arcPoints(-halfW, springY, Ri - BAR_W / 2, angleAtCenter, angleAtX2, 24);
+    const shape = new THREE.Shape();
+    shape.moveTo(outerArc[0][0], outerArc[0][1]);
+    for (let i = 1; i < outerArc.length; i++) shape.lineTo(outerArc[i][0], outerArc[i][1]);
+    for (let i = 0; i < innerArc.length; i++) shape.lineTo(innerArc[i][0], innerArc[i][1]);
+    shape.closePath();
+    const g = new THREE.ExtrudeGeometry(shape, { depth: GU, bevelEnabled: false });
+    g.translate(0, 0, -GU / 2);
+    g.computeVertexNormals();
+    return g;
+  }, [gothicBars, iHalfW, halfW, Ri, springY]);
 
   return (
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
       {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={mat} />}
+      {curvedBarGeo && (
+        <mesh geometry={curvedBarGeo} castShadow receiveShadow>
+          <primitive object={mat} attach="material" />
+        </mesh>
+      )}
     </group>
   );
 }
