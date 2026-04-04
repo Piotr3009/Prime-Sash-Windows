@@ -342,7 +342,7 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
           {[0, 1, 2, 3, 4, 5].map((i) => {
             const angle = (i / 6) * Math.PI * 2;
             return (
-              <group key={`sp${i}`} position={[spokeMidR * Math.cos(angle), spokeMidR * Math.sin(angle), 0]} rotation={[0, 0, angle]}>
+              <group key={`sp${i}`} position={[spokeMidR * Math.cos(angle), spokeMidR * Math.sin(angle), 0]} rotation={[0, 0, angle - Math.PI / 2]}>
                 {/* EXT trapezoid */}
                 <mesh geometry={spokeGeos.ext} position={[0, 0, glassHalf]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
                   <primitive object={mat} attach="material" />
