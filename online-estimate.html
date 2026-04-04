@@ -2583,6 +2583,76 @@
             <div class="radio-option"><input type="radio" id="f-vbars-3" name="f-vbars" value="3"><label for="f-vbars-3" class="radio-label">3</label></div>
           </div>
         </div>
+
+        <!-- Special bars (shape-specific) -->
+        <div class="input-group" id="fix-gothic-bars-design" style="display:none;margin-top:10px;">
+          <label>Gothic Bar Pattern:</label>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+            <label class="layout-option">
+              <input type="radio" name="f-gothic-bars" value="none" checked>
+              <div class="layout-thumb" title="None">
+                <svg viewBox="0 0 40 60" width="36" height="54">
+                  <path d="M4 56 L4 28 A36 36 0 0 1 20 4 A36 36 0 0 1 36 28 L36 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">None</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="f-gothic-bars" value="patternA">
+              <div class="layout-thumb" title="Simple Bars">
+                <svg viewBox="0 0 40 60" width="36" height="54">
+                  <path d="M4 56 L4 28 A36 36 0 0 1 20 4 A36 36 0 0 1 36 28 L36 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="4" y1="28" x2="36" y2="28" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="14.7" y1="56" x2="14.7" y2="16" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="25.3" y1="56" x2="25.3" y2="16" stroke="#0a1628" stroke-width="1.2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Simple</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="input-group" id="fix-circle-bars-design" style="display:none;margin-top:10px;">
+          <label>Circle Bar Pattern:</label>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+            <label class="layout-option">
+              <input type="radio" name="f-circle-bars" value="none" checked>
+              <div class="layout-thumb" title="None">
+                <svg viewBox="0 0 50 50" width="40" height="40">
+                  <circle cx="25" cy="25" r="22" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">None</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="f-circle-bars" value="sunburst">
+              <div class="layout-thumb" title="Sunburst">
+                <svg viewBox="0 0 50 50" width="40" height="40">
+                  <circle cx="25" cy="25" r="22" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <circle cx="25" cy="25" r="10" fill="none" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="25" y1="3" x2="25" y2="15" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="25" y1="35" x2="25" y2="47" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="3" y1="25" x2="15" y2="25" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="35" y1="25" x2="47" y2="25" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="9.4" y1="9.4" x2="17.9" y2="17.9" stroke="#0a1628" stroke-width="1.2"/>
+                  <line x1="32.1" y1="32.1" x2="40.6" y2="40.6" stroke="#0a1628" stroke-width="1.2"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Sunburst</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="input-group" id="fix-circle-offset-design" style="display:none;margin-top:10px;">
+          <label>Ring Offset: <span id="f-circle-offset-val">200</span> mm</label>
+          <input type="range" id="f-circle-offset" min="50" max="400" value="200" step="10">
+        </div>
+      </div>
+
+      <!-- ═══════ FIX FRAME: Opening ═══════ -->
+      <div class="config-section" data-for="fix-only" data-category="dim-design" style="display:none;">
+        <h3>Opening Mechanism</h3>
+        <p style="font-size:0.85rem;color:#999;">Fixed window — no opening mechanism</p>
       </div>
 
       <!-- ═══════ FIX FRAME: Glass ═══════ -->
@@ -2591,8 +2661,10 @@
         <div class="input-group" id="fix-glazing-group">
           <label>Glazing Type:</label>
           <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="f-glaz-double" name="f-glazing" value="double" checked><label for="f-glaz-double" class="radio-label">Double Glazed</label></div>
-            <div class="radio-option" id="f-single-option" style="display:none;"><input type="radio" id="f-glaz-single" name="f-glazing" value="single"><label for="f-glaz-single" class="radio-label">Single Glazed</label></div>
+            <div class="radio-option"><input type="radio" id="f-glaz-double" name="f-glazing" value="double" checked><label for="f-glaz-double" class="radio-label">Double Glazing (U-value: 1.4)</label></div>
+            <div class="radio-option"><input type="radio" id="f-glaz-triple" name="f-glazing" value="triple"><label for="f-glaz-triple" class="radio-label">Triple Glazing (U-value: 0.8)</label></div>
+            <div class="radio-option"><input type="radio" id="f-glaz-passive" name="f-glazing" value="passive"><label for="f-glaz-passive" class="radio-label">Passive Glass (U-value: 0.5)</label></div>
+            <div class="radio-option" id="f-single-option" style="display:none;"><input type="radio" id="f-glaz-single" name="f-glazing" value="single"><label for="f-glaz-single" class="radio-label">Single Glazed (10mm)</label></div>
           </div>
         </div>
         <div class="input-group">
@@ -2626,27 +2698,31 @@
         <div class="input-group">
           <label id="f-ext-label">Colour:</label>
           <select id="f-ext-colour" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
-            <option value="#F6F6F6" selected>Pure White</option>
-            <option value="#FAF0E6">Cream White</option>
-            <option value="#C8B898">Light Oak</option>
-            <option value="#8B7355">Dark Oak</option>
-            <option value="#2C2C2C">Anthracite Grey</option>
-            <option value="#1A1A1A">Black</option>
-            <option value="custom">F&B / RAL Custom</option>
+              <optgroup label="Standard"><option value="#F6F6F6" selected>Pure White</option><option value="#FAF0E6">Cream White</option><option value="#C8B898">Light Oak</option><option value="#8B7355">Dark Oak</option><option value="#2C2C2C">Anthracite Grey</option><option value="#1A1A1A">Black</option></optgroup>
+              <optgroup label="Whites"><option value="#fbf8f4">All White 2005</option><option value="#eee9e7">Wevet 273</option><option value="#f2f0e8">Strong White 2001</option><option value="#ede8dc">Great White 2006</option><option value="#f0ece0">Wimborne White 239</option><option value="#fdfeec">Pointing 2003</option><option value="#f3f0e1">James White 2010</option><option value="#ede6d5">White Tie 2002</option><option value="#ede3ce">Slipper Satin 2004</option><option value="#f4f0e5">School House White 291</option><option value="#eceae5">Blackened 2011</option><option value="#ecf0e0">Cabbage White 269</option><option value="#dfe6e4">Borrowed Light 235</option><option value="#eae4d6">Shadow White 282</option><option value="#f0e4d4">Dimity 2008</option><option value="#f0e4c8">Matchstick 2013</option></optgroup>
+              <optgroup label="Neutrals"><option value="#e8e2d0">Skimming Stone 241</option><option value="#c8b898">Stony Ground 211</option><option value="#a09880">London Stone 6</option><option value="#ccbfb3">Elephant&#39;s Breath 229</option><option value="#d0ccc4">Ammonite 274</option><option value="#c8c4b8">Cornforth White 228</option></optgroup>
+              <optgroup label="Greys"><option value="#d0ccc8">Dimpse 277</option><option value="#a8a8a0">Pavilion Gray 242</option><option value="#9c9c98">Lamp Room Gray 88</option><option value="#949088">Manor House Gray 265</option><option value="#8c887c">Charleston Gray 243</option><option value="#787470">Plummett 272</option></optgroup>
+              <optgroup label="Greens"><option value="#7a8868">Saxon Green 80</option><option value="#73806e">Card Room Green 79</option><option value="#5a6850">Calke Green 34</option><option value="#384030">Studio Green 93</option></optgroup>
+              <optgroup label="Blues"><option value="#a0aab0">Blue Gray 91</option><option value="#708888">Green Blue 84</option><option value="#384858">Hague Blue 30</option><option value="#253040">Stiffkey Blue 281</option></optgroup>
           </select>
         </div>
         <div class="input-group" id="f-int-colour-group" style="display:none;">
           <label>Interior Colour:</label>
           <select id="f-int-colour" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
-            <option value="#F6F6F6" selected>Pure White</option>
-            <option value="#FAF0E6">Cream White</option>
-            <option value="#C8B898">Light Oak</option>
-            <option value="#8B7355">Dark Oak</option>
-            <option value="#2C2C2C">Anthracite Grey</option>
-            <option value="#1A1A1A">Black</option>
-            <option value="custom">F&B / RAL Custom</option>
+              <optgroup label="Standard"><option value="#F6F6F6" selected>Pure White</option><option value="#FAF0E6">Cream White</option><option value="#C8B898">Light Oak</option><option value="#8B7355">Dark Oak</option><option value="#2C2C2C">Anthracite Grey</option><option value="#1A1A1A">Black</option></optgroup>
+              <optgroup label="Whites"><option value="#fbf8f4">All White 2005</option><option value="#eee9e7">Wevet 273</option><option value="#f2f0e8">Strong White 2001</option><option value="#ede8dc">Great White 2006</option><option value="#f0ece0">Wimborne White 239</option><option value="#fdfeec">Pointing 2003</option><option value="#f3f0e1">James White 2010</option><option value="#ede6d5">White Tie 2002</option><option value="#ede3ce">Slipper Satin 2004</option><option value="#f4f0e5">School House White 291</option><option value="#eceae5">Blackened 2011</option><option value="#ecf0e0">Cabbage White 269</option><option value="#dfe6e4">Borrowed Light 235</option><option value="#eae4d6">Shadow White 282</option><option value="#f0e4d4">Dimity 2008</option><option value="#f0e4c8">Matchstick 2013</option></optgroup>
+              <optgroup label="Neutrals"><option value="#e8e2d0">Skimming Stone 241</option><option value="#c8b898">Stony Ground 211</option><option value="#a09880">London Stone 6</option><option value="#ccbfb3">Elephant&#39;s Breath 229</option><option value="#d0ccc4">Ammonite 274</option><option value="#c8c4b8">Cornforth White 228</option></optgroup>
+              <optgroup label="Greys"><option value="#d0ccc8">Dimpse 277</option><option value="#a8a8a0">Pavilion Gray 242</option><option value="#9c9c98">Lamp Room Gray 88</option><option value="#949088">Manor House Gray 265</option><option value="#8c887c">Charleston Gray 243</option><option value="#787470">Plummett 272</option></optgroup>
+              <optgroup label="Greens"><option value="#7a8868">Saxon Green 80</option><option value="#73806e">Card Room Green 79</option><option value="#5a6850">Calke Green 34</option><option value="#384030">Studio Green 93</option></optgroup>
+              <optgroup label="Blues"><option value="#a0aab0">Blue Gray 91</option><option value="#708888">Green Blue 84</option><option value="#384858">Hague Blue 30</option><option value="#253040">Stiffkey Blue 281</option></optgroup>
           </select>
         </div>
+      </div>
+
+      <!-- ═══════ FIX FRAME: Hardware ═══════ -->
+      <div class="config-section" data-for="fix-only" data-category="colour" style="display:none;">
+        <h3>Hardware</h3>
+        <p style="font-size:0.85rem;color:#999;">No hardware — fixed window</p>
       </div>
 
       <div class="config-section estimate-selector-section" data-category="finalise">
@@ -3558,13 +3634,11 @@
           archRiseSlider.max = Math.round(w * 1.2);
           if (archRiseValue) archRiseValue.textContent = defaultRise;
         }
-        // Gothic bars — only for gothic-arch
-        if (gothicBarsGroup) gothicBarsGroup.style.display = (shape === 'gothic-arch') ? '' : 'none';
-        // Circle bars — only for circle
-        if (circleBarsGroup) circleBarsGroup.style.display = (shape === 'circle') ? '' : 'none';
-        // Circle offset — only for circle + sunburst
-        var circlePattern = (document.querySelector('input[name="fix-circle-bars"]:checked') || {}).value || 'none';
-        if (circleOffsetGroup) circleOffsetGroup.style.display = (shape === 'circle' && circlePattern === 'sunburst') ? '' : 'none';
+        // Gothic bars — now in Design section, hide old Product Range ones
+        if (gothicBarsGroup) gothicBarsGroup.style.display = 'none';
+        // Circle bars — now in Design section
+        if (circleBarsGroup) circleBarsGroup.style.display = 'none';
+        if (circleOffsetGroup) circleOffsetGroup.style.display = 'none';
       }
 
       // Shape change → update 3D directly
@@ -3636,14 +3710,108 @@
       fixHbars.forEach(function(r) { r.addEventListener('change', update3DFix); });
       fixVbars.forEach(function(r) { r.addEventListener('change', update3DFix); });
 
+      // ── Glass/Spacer/Colour listeners ──
+      var fGlazRadios = document.querySelectorAll('input[name="f-glazing"]');
+      var fFinishRadios = document.querySelectorAll('input[name="f-glass-finish"]');
+      var fSpacerRadios = document.querySelectorAll('input[name="f-spacer"]');
+      var fExtColour = document.getElementById('f-ext-colour');
+      var fIntColour = document.getElementById('f-int-colour');
+      var fExtLabel = document.getElementById('f-ext-label');
+
+      fGlazRadios.forEach(function(r) { r.addEventListener('change', function() {
+        // Visual: no change. For spec/pricing only.
+      }); });
+
+      fFinishRadios.forEach(function(r) { r.addEventListener('change', function() {
+        if (window.update3D) window.update3D({ glassFinish: r.value });
+      }); });
+
+      fSpacerRadios.forEach(function(r) { r.addEventListener('change', function() {
+        if (window.update3D) window.update3D({ spacerColor: r.value });
+      }); });
+
+      if (fExtColour) fExtColour.addEventListener('change', function() {
+        var dual = (document.querySelector('input[name="f-colour-mode"]:checked') || {}).value === 'dual';
+        if (dual) {
+          window.update3D && window.update3D({ woodColorExt: fExtColour.value, sameColor: false });
+        } else {
+          window.update3D && window.update3D({ woodColor: fExtColour.value, sameColor: true });
+        }
+      });
+
+      if (fIntColour) fIntColour.addEventListener('change', function() {
+        window.update3D && window.update3D({ woodColorInt: fIntColour.value, sameColor: false });
+      });
+
       // Colour mode toggle
       fixColourMode.forEach(function(r) {
         r.addEventListener('change', function() {
           var dual = r.value === 'dual';
           fixIntGroup.style.display = dual ? '' : 'none';
-          fixExtLabel.textContent = dual ? 'Exterior Colour:' : 'Colour:';
+          if (fExtLabel) fExtLabel.textContent = dual ? 'Exterior Colour:' : 'Colour:';
+          if (dual) {
+            window.update3D && window.update3D({ sameColor: false, woodColorExt: fExtColour.value, woodColorInt: fIntColour.value });
+          } else {
+            window.update3D && window.update3D({ sameColor: true, woodColor: fExtColour.value });
+          }
         });
       });
+
+      // FD30/FD60 → show single glass option
+      var fixTypeRadios = document.querySelectorAll('input[name="fix-type"]');
+      var fSingleOption = document.getElementById('f-single-option');
+      fixTypeRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          var isFD = r.value === 'fd30' || r.value === 'fd60';
+          if (fSingleOption) fSingleOption.style.display = isFD ? '' : 'none';
+          if (!isFD) {
+            var dblRadio = document.getElementById('f-glaz-double');
+            if (dblRadio) dblRadio.checked = true;
+          }
+        });
+      });
+
+      // ── Design: shape-specific bars visibility ──
+      var fGothicDesign = document.getElementById('fix-gothic-bars-design');
+      var fCircleDesign = document.getElementById('fix-circle-bars-design');
+      var fCircleOffsetDesign = document.getElementById('fix-circle-offset-design');
+      var fGothicRadios = document.querySelectorAll('input[name="f-gothic-bars"]');
+      var fCircleRadios = document.querySelectorAll('input[name="f-circle-bars"]');
+      var fCircleOffsetSlider = document.getElementById('f-circle-offset');
+      var fCircleOffsetVal = document.getElementById('f-circle-offset-val');
+
+      function updateDesignBarsVisibility() {
+        var shape = getFixShape();
+        if (fGothicDesign) fGothicDesign.style.display = (shape === 'gothic-arch') ? '' : 'none';
+        if (fCircleDesign) fCircleDesign.style.display = (shape === 'circle') ? '' : 'none';
+        var circlePattern = (document.querySelector('input[name="f-circle-bars"]:checked') || {}).value || 'none';
+        if (fCircleOffsetDesign) fCircleOffsetDesign.style.display = (shape === 'circle' && circlePattern === 'sunburst') ? '' : 'none';
+      }
+
+      // Wire shape radios to update design bars visibility
+      fixShapeRadios.forEach(function(r) {
+        r.addEventListener('change', function() { updateDesignBarsVisibility(); });
+      });
+
+      fGothicRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          if (window.update3D) window.update3D({ fixGothicBars: r.value });
+        });
+      });
+
+      fCircleRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          if (window.update3D) window.update3D({ fixCircleBarPattern: r.value });
+          if (fCircleOffsetDesign) fCircleOffsetDesign.style.display = (r.value === 'sunburst') ? '' : 'none';
+        });
+      });
+
+      if (fCircleOffsetSlider) {
+        fCircleOffsetSlider.addEventListener('input', function() {
+          if (fCircleOffsetVal) fCircleOffsetVal.textContent = fCircleOffsetSlider.value;
+          if (window.update3D) window.update3D({ fixCircleBarOffset: parseInt(fCircleOffsetSlider.value) });
+        });
+      }
 
       function update3DFix() {
         if (!window.update3D) return;
