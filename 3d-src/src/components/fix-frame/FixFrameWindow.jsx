@@ -661,7 +661,7 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     g.translate(0, 0, -SPACER_DEPTH / 2); g.computeVertexNormals(); return g;
   }, [curvedBarShape]);
 
-  // ── Intersecting pattern ──
+  // ── Intersecting pattern: true gothic arcs that cross ──
   const intersectingData = useMemo(() => {
     if (gothicBars !== 'intersecting') return null;
 
@@ -678,23 +678,42 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       type: 'v', x, y: iBottom + (springY - iBottom) / 2, len: springY - iBottom
     }));
 
-    // Curved tracery: for each space between positions, create lancet arch
-    const positions = [-iHalfW, ...mullionXs, iHalfW]; // all positions including frame edges
-    const curveShapes = [];
+    // Gothic arch centers (same as main arch)
+    const cRightX = -halfW; // right arc center X
+    const cLeftX = halfW;   // left arc center X
+    const cY = springY;     // both centers at springing Y
 
-    function makeCurveShape(startX, startY, peakX, peakY) {
-      // Quadratic bezier from (startX, startY) to (peakX, peakY)
-      const cpX = startX + (peakX - startX) * 0.15;
-      const cpY = peakY - (peakY - startY) * 0.1;
-      const N = 24;
+    // Generate arc points from a center, clipped to frame boundary
+    function gothicArcPts(cx, mulX, segs) {
+      const r = Math.abs(mulX - cx); // radius = distance from center to mullion
+      if (r < mm(20)) return [];
+      // Find start angle (at springing line where y = springY)
+      const startAngle = Math.acos(Math.min(1, Math.max(-1, (mulX - cx) / r)));
+      // Arc goes upward: for right center, angles increase; for left center, angles decrease
+      const goingRight = cx < 0; // right center = going from mullion toward right
       const pts = [];
-      for (let i = 0; i <= N; i++) {
-        const t = i / N;
-        const x = (1-t)*(1-t)*startX + 2*(1-t)*t*cpX + t*t*peakX;
-        const y = (1-t)*(1-t)*startY + 2*(1-t)*t*cpY + t*t*peakY;
-        pts.push([x, y]);
+      const steps = segs || 32;
+      // Sweep from startAngle toward π/2 (top)
+      const sweepRange = goingRight ? Math.PI / 3 : Math.PI / 3;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const angle = goingRight
+          ? startAngle + t * sweepRange
+          : startAngle - t * sweepRange;
+        const px = cx + r * Math.cos(angle);
+        const py = cY + r * Math.sin(angle);
+        // Clip: must be inside frame (within iHalfW and below main arch)
+        if (Math.abs(px) > iHalfW + mm(2)) break;
+        if (py > archYAtX(px) + mm(2)) break;
+        if (py < springY - mm(5)) continue;
+        pts.push([px, py]);
       }
-      // Build bar strip with width
+      return pts;
+    }
+
+    // Build bar strip shape from centerline points
+    function ptsToStrip(pts) {
+      if (pts.length < 3) return null;
       const leftEdge = [], rightEdge = [];
       for (let i = 0; i < pts.length; i++) {
         const prev = pts[Math.max(0, i-1)];
@@ -714,18 +733,22 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       return shape;
     }
 
-    for (let i = 0; i < positions.length - 1; i++) {
-      const xL = positions[i];
-      const xR = positions[i + 1];
-      const peakX = (xL + xR) / 2;
-      const peakY = archYAtX(peakX) - BAR_W / 2;
-      // Left curve: from left position up to peak
-      curveShapes.push(makeCurveShape(xL, springY, peakX, peakY));
-      // Right curve: from right position up to peak
-      curveShapes.push(makeCurveShape(xR, springY, peakX, peakY));
+    // Generate curves: each mullion sends one arc to each gothic center
+    const curveShapes = [];
+    const allPositions = [-iHalfW, ...mullionXs, iHalfW];
+
+    for (const x of allPositions) {
+      // Right-curving arc (from right center)
+      const rPts = gothicArcPts(cRightX, x, 32);
+      const rShape = ptsToStrip(rPts);
+      if (rShape) curveShapes.push(rShape);
+      // Left-curving arc (from left center)
+      const lPts = gothicArcPts(cLeftX, x, 32);
+      const lShape = ptsToStrip(lPts);
+      if (lShape) curveShapes.push(lShape);
     }
 
-    // Create geometries for curves
+    // Create geometries
     const extGeos = curveShapes.map(s => {
       const g = new THREE.ExtrudeGeometry(s, { depth: BAR_H, bevelEnabled: false });
       g.translate(0, 0, -BAR_H / 2); g.computeVertexNormals(); return g;
@@ -736,7 +759,7 @@ function GothicArchFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     });
 
     return { straightBars, extGeos, spacerGeos };
-  }, [gothicBars, iHalfW, iBottom, springY]);
+  }, [gothicBars, halfW, iHalfW, iBottom, springY, Ri]);
 
   return (
     <group>
