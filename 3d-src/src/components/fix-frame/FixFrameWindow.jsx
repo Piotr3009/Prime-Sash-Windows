@@ -22,6 +22,13 @@ const SPACER_BAR_W = mm(18);
 const SPACER_DEPTH = mm(16);
 const glassHalf = GU / 2;
 
+// ─── Bead dimensions (from CasementPanel) ───
+const EBW = mm(9);    // ext chamfer width (inward from glass edge)
+const EBD = mm(15);   // ext chamfer depth (along Z)
+const IBW = mm(18);   // int ovolo max width
+const IBD = mm(14);   // int ovolo depth (along Z)
+const OVOLO_STEPS = 32; // enough steps for smooth curve
+
 /* ─── Arc helpers ─── */
 function arcPoints(cx, cy, r, startAngle, endAngle, segs) {
   const pts = [];
@@ -269,6 +276,29 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
     return g;
   }
 
+  const halfD = D / 2;
+
+  // ── FRAME BEADS (always visible) ──
+  // Chamfer: one flat ring on EXT face
+  const chamferGeo = useMemo(() => {
+    return makeRing(rInner, rInner - EBW, EBD);
+  }, [rInner]);
+
+  // Ovolo: 32 stepped rings on INT face, quarter-circle curve
+  const ovoloLayers = useMemo(() => {
+    const layers = [];
+    const layerD = IBD / OVOLO_STEPS;
+    for (let i = 0; i < OVOLO_STEPS; i++) {
+      const t = (i + 1) / OVOLO_STEPS;
+      const w = IBW * Math.sin(t * Math.PI / 2);
+      layers.push({
+        geo: makeRing(rInner, rInner - w, layerD),
+        z: -halfD + (i + 0.5) * layerD,
+      });
+    }
+    return layers;
+  }, [rInner, halfD]);
+
   // Ring bar: trapezoid EXT + ovolo INT + spacer
   const ringGeos = useMemo(() => {
     if (!showBars) return null;
@@ -319,6 +349,15 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
+      {/* Frame beads — chamfer EXT + ovolo INT */}
+      <mesh geometry={chamferGeo} position={[0, 0, halfD - EBD / 2]} castShadow receiveShadow>
+        <primitive object={mat} attach="material" />
+      </mesh>
+      {ovoloLayers.map((l, i) => (
+        <mesh key={`ov${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
+          <primitive object={mi} attach="material" />
+        </mesh>
+      ))}
       {/* Sunburst bars */}
       {showBars && ringGeos && spokeGeos && (
         <group>
