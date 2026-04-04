@@ -279,10 +279,23 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
   const halfD = D / 2;
 
   // ── FRAME BEADS (always visible) ──
-  // Chamfer: one flat ring on EXT face
-  const chamferGeo = useMemo(() => {
-    return makeRing(rInner, rInner - EBW, EBD);
-  }, [rInner]);
+  // Chamfer: stepped trapezoid rings on EXT face — like bar trapezoid profile
+  // Wide (9mm) at frame face, narrow (1mm) at glass edge
+  const CHAMFER_STEPS = 32;
+  const CHAMFER_TOP = mm(1); // narrow end width
+  const chamferLayers = useMemo(() => {
+    const layers = [];
+    const layerD = EBD / CHAMFER_STEPS;
+    for (let i = 0; i < CHAMFER_STEPS; i++) {
+      const t = i / (CHAMFER_STEPS - 1); // 0 = at frame face, 1 = at glass edge
+      const w = EBW * (1 - t) + CHAMFER_TOP * t; // 9mm → 1mm
+      layers.push({
+        geo: makeRing(rInner, rInner - w, layerD),
+        z: halfD - (i + 0.5) * layerD,
+      });
+    }
+    return layers;
+  }, [rInner, halfD]);
 
   // Ovolo: 32 stepped rings on INT face, quarter-circle curve
   const ovoloLayers = useMemo(() => {
@@ -350,9 +363,11 @@ function CircleFrame({ diameter, depth, mat, matInt, glassMat, spacerColor, circ
       <mesh geometry={frameGeo} castShadow receiveShadow><meshPhysicalMaterial color="#aabbcc" transparent opacity={0.25} side={THREE.DoubleSide} /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
       {/* Frame beads — chamfer EXT + ovolo INT */}
-      <mesh geometry={chamferGeo} position={[0, 0, halfD - EBD / 2]} castShadow receiveShadow>
-        <meshBasicMaterial color="red" />
-      </mesh>
+      {chamferLayers.map((l, i) => (
+        <mesh key={`ch${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
+          <meshBasicMaterial color="red" />
+        </mesh>
+      ))}
       {ovoloLayers.map((l, i) => (
         <mesh key={`ov${i}`} geometry={l.geo} position={[0, 0, l.z]} castShadow receiveShadow>
           <meshBasicMaterial color="green" />
