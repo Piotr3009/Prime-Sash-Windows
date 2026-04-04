@@ -410,15 +410,13 @@ function GothicArchFrame({ width, height, depth, mat, glassMat, spacerColor, got
   }, [gothicBars, iHalfW, iBottom, springY]);
 
   // Curved bar: bezier from (0, springY) curving up toward peak, then to right bar top
-  const curvedBarGeo = useMemo(() => {
+  const curvedBarShape = useMemo(() => {
     if (gothicBars !== 'patternA') return null;
     const x2 = -iHalfW + (iHalfW * 2) * 2 / 3;
     const topY = archYAtX(x2) - BAR_W / 2;
     const peakY = archYAtX(0);
-    // Control point: between center and right, near peak height
     const cpX = x2 * 0.35;
     const cpY = peakY - mm(30);
-    // Sample bezier curve
     const N = 32;
     const pts = [];
     for (let i = 0; i <= N; i++) {
@@ -427,7 +425,6 @@ function GothicArchFrame({ width, height, depth, mat, glassMat, spacerColor, got
       const y = (1-t)*(1-t)*springY + 2*(1-t)*t*cpY + t*t*topY;
       pts.push([x, y]);
     }
-    // Build strip: offset each point perpendicular to curve by BAR_W/2
     const leftEdge = [];
     const rightEdge = [];
     for (let i = 0; i < pts.length; i++) {
@@ -446,21 +443,41 @@ function GothicArchFrame({ width, height, depth, mat, glassMat, spacerColor, got
     for (let i = 1; i < leftEdge.length; i++) shape.lineTo(leftEdge[i][0], leftEdge[i][1]);
     for (let i = rightEdge.length - 1; i >= 0; i--) shape.lineTo(rightEdge[i][0], rightEdge[i][1]);
     shape.closePath();
-    const g = new THREE.ExtrudeGeometry(shape, { depth: GU, bevelEnabled: false });
-    g.translate(0, 0, -GU / 2);
-    g.computeVertexNormals();
-    return g;
+    return shape;
   }, [gothicBars, iHalfW, springY]);
+
+  const curvedBarExt = useMemo(() => {
+    if (!curvedBarShape) return null;
+    const g = new THREE.ExtrudeGeometry(curvedBarShape, { depth: BAR_H, bevelEnabled: false });
+    g.translate(0, 0, -BAR_H / 2); g.computeVertexNormals(); return g;
+  }, [curvedBarShape]);
+
+  const curvedBarSpacer = useMemo(() => {
+    if (!curvedBarShape) return null;
+    const g = new THREE.ExtrudeGeometry(curvedBarShape, { depth: SPACER_DEPTH, bevelEnabled: false });
+    g.translate(0, 0, -SPACER_DEPTH / 2); g.computeVertexNormals(); return g;
+  }, [curvedBarShape]);
 
   return (
     <group>
       <mesh geometry={frameGeo} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
       {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={mat} />}
-      {curvedBarGeo && (
-        <mesh geometry={curvedBarGeo} castShadow receiveShadow>
-          <primitive object={mat} attach="material" />
-        </mesh>
+      {curvedBarExt && (
+        <group>
+          {/* EXT face */}
+          <mesh geometry={curvedBarExt} position={[0, 0, glassHalf + BAR_H / 2]} castShadow receiveShadow>
+            <primitive object={mat} attach="material" />
+          </mesh>
+          {/* INT face */}
+          <mesh geometry={curvedBarExt} position={[0, 0, -(glassHalf + BAR_H / 2)]} castShadow receiveShadow>
+            <primitive object={mat} attach="material" />
+          </mesh>
+          {/* Spacer between panes */}
+          <mesh geometry={curvedBarSpacer} castShadow receiveShadow>
+            <primitive object={mat} attach="material" />
+          </mesh>
+        </group>
       )}
     </group>
   );
