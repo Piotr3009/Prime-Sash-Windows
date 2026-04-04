@@ -72,20 +72,23 @@ function makeFrameGeo(outerPts, innerPts, depth) {
   for (let i = 1; i < innerPts.length; i++) hole.lineTo(innerPts[i][0], innerPts[i][1]);
   hole.closePath();
   shape.holes.push(hole);
-  const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false });
-  geo.translate(0, 0, -depth / 2);
-  geo.computeVertexNormals();
-  return geo;
+  const halfD = depth / 2;
+  // EXT half: z = 0 → halfD (front side)
+  const ext = new THREE.ExtrudeGeometry(shape, { depth: halfD, bevelEnabled: false });
+  ext.computeVertexNormals();
+  // INT half: z = -halfD → 0 (back side)
+  const int = new THREE.ExtrudeGeometry(shape, { depth: halfD, bevelEnabled: false });
+  int.translate(0, 0, -halfD);
+  int.computeVertexNormals();
+  return { ext, int };
 }
 
-/* ─── Frame mesh with dual-color support (EXT front, INT back) ─── */
+/* ─── Frame mesh with dual-color support (split geometry) ─── */
 function FrameMesh({ geometry, matExt, matInt }) {
-  const extSide = useMemo(() => { const m = matExt.clone(); m.side = THREE.FrontSide; return m; }, [matExt]);
-  const intSide = useMemo(() => { const m = (matInt || matExt).clone(); m.side = THREE.BackSide; return m; }, [matInt, matExt]);
   return (
     <group>
-      <mesh geometry={geometry} castShadow receiveShadow><primitive object={extSide} attach="material" /></mesh>
-      <mesh geometry={geometry} castShadow receiveShadow><primitive object={intSide} attach="material" /></mesh>
+      <mesh geometry={geometry.ext} castShadow receiveShadow><primitive object={matExt} attach="material" /></mesh>
+      <mesh geometry={geometry.int} castShadow receiveShadow><primitive object={matInt || matExt} attach="material" /></mesh>
     </group>
   );
 }
