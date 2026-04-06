@@ -873,7 +873,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1500">1200 mm</option>
+              <option value="1200">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -1105,7 +1105,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1500">1200 mm</option>
+              <option value="1200">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -1833,7 +1833,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1500">1200 mm</option>
+              <option value="1200">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -3724,23 +3724,23 @@
           var isArched = r.value === 'arched';
           if (casStandardDiv) casStandardDiv.style.display = isArched ? 'none' : '';
           if (casArchedDiv) casArchedDiv.style.display = isArched ? '' : 'none';
-          if (window.update3D) window.update3D({ casementType: r.value });
-          if (window.updateCasementSpec) window.updateCasementSpec();
-          if (window.updateFixSpec) window.updateFixSpec();
           // Min dimensions: 300 for arched (same as fix), 400 for standard
           var cw = document.getElementById('c-width');
           var ch = document.getElementById('c-height');
           if (cw) cw.min = isArched ? '300' : '400';
           if (ch) ch.min = isArched ? '300' : '400';
-          // Starting dimensions: 1000x1500 for arched (same as fix-frame)
+          // Starting dimensions: 1000x1500 for arched (BEFORE spec/price update)
           if (isArched) {
             var cwSel = document.getElementById('c-width-select');
             var chSel = document.getElementById('c-height-select');
             if (cwSel) cwSel.value = '1000';
             if (chSel) chSel.value = '1500';
-            if (cw) { cw.value = '1000'; cw.dispatchEvent(new Event('input')); }
-            if (ch) { ch.value = '1500'; ch.dispatchEvent(new Event('input')); }
+            if (cw) cw.value = '1000';
+            if (ch) ch.value = '1500';
           }
+          if (window.update3D) window.update3D({ casementType: r.value, extWidth: parseInt(cw.value), extHeight: parseInt(ch.value) });
+          if (window.updateCasementSpec) window.updateCasementSpec();
+          if (window.updateFixSpec) window.updateFixSpec();
         });
       });
 
