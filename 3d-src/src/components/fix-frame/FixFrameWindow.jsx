@@ -1023,6 +1023,13 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} />
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
       {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />}
+      {/* Debug: show green box when hub pattern active */}
+      {isHub && (
+        <mesh position={[0, springY + iHalfW * 0.5, 0.05]}>
+          <boxGeometry args={[0.03, 0.03, 0.03]} />
+          <meshStandardMaterial color="lime" />
+        </mesh>
+      )}
       {hubData && (
         <group>
           {renderRing(hubData.ring1, 'r1')}
