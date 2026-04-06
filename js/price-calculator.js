@@ -57,7 +57,16 @@ class PriceCalculator {
     
     // ═══ CASEMENT PRICING ═══
     if (configuration.windowType === 'casement' && this.pricing.casement) {
+      // Arched casement uses separate pricing
+      if (configuration.casementType === 'arched') {
+        return this.calculateArchedCasement(configuration, sqm, frameWidth, frameHeight);
+      }
       return this.calculateCasement(configuration, sqm, frameWidth, frameHeight);
+    }
+
+    // ═══ FIX-ONLY PRICING ═══
+    if (configuration.windowType === 'fix-only') {
+      return this.calculateFixOnly(configuration, sqm, frameWidth, frameHeight);
     }
 
     // 1. CENA BAZOWA (SASH)
@@ -387,6 +396,179 @@ class PriceCalculator {
         mullions: layoutData.mullions,
         transoms: layoutData.transoms,
         sashes: layoutData.sashes,
+        barsPrice: barsPrice.toFixed(2),
+        additionalOptions: additionalPrice,
+        subtotal: subtotal.toFixed(2),
+        quantity: quantity,
+        discount: (discount * 100) + '%',
+        discountAmount: discountAmount.toFixed(2),
+        unitPrice: unitPrice.toFixed(2),
+        totalPrice: totalPrice.toFixed(2),
+        vatAmount: (totalPrice * this.pricing.vatRate).toFixed(2),
+        totalWithVat: (totalPrice * (1 + this.pricing.vatRate)).toFixed(2)
+      }
+    };
+  }
+
+  // ═══ FIX-ONLY PRICING ═══
+  calculateFixOnly(configuration, sqm, frameWidth, frameHeight) {
+    const shape = configuration.fixShape || 'rectangle';
+    const type = configuration.fixType || 'standard';
+
+    console.log('=== FIX-ONLY PRICING ===');
+    console.log('Shape:', shape, 'Type:', type, 'SQM:', sqm.toFixed(2));
+
+    // Base price per sqm by shape
+    let basePricePerSqm = 900; // arch shapes default
+    if (shape === 'rectangle') basePricePerSqm = 450;
+    else if (shape === 'circle') basePricePerSqm = 1200;
+
+    let basePrice = sqm * basePricePerSqm;
+    console.log('Base:', sqm.toFixed(2), '×', basePricePerSqm, '= £' + basePrice.toFixed(2));
+
+    // FD30/FD60 premium
+    if (type === 'fd30') { basePrice += sqm * 150; console.log('FD30: +£' + (sqm * 150).toFixed(2)); }
+    else if (type === 'fd60') { basePrice += sqm * 300; console.log('FD60: +£' + (sqm * 300).toFixed(2)); }
+
+    // Pattern premium
+    let patternPrice = 0;
+    const semiPat = configuration.fixSemiBarPattern || 'none';
+    const gothPat = configuration.fixGothicBars || 'none';
+    const circlePat = configuration.fixCircleBarPattern || 'none';
+    const patternPrices = { 'intersecting': 250, 'half-hub': 150, 'hub-spoke': 210, 'double-hub-spoke': 270, 'triple-hub-spoke': 320, 'sunburst': 300 };
+    if (semiPat !== 'none' && patternPrices[semiPat]) patternPrice = patternPrices[semiPat];
+    if (gothPat !== 'none' && patternPrices[gothPat]) patternPrice = patternPrices[gothPat];
+    if (circlePat !== 'none' && patternPrices[circlePat]) patternPrice = patternPrices[circlePat];
+    if (patternPrice > 0) console.log('Pattern: +£' + patternPrice);
+
+    // Bars
+    const hBars = configuration.casementHBars || 0;
+    const vBars = configuration.casementVBars || 0;
+    const totalBars = hBars + vBars;
+    const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
+    const barsPrice = totalBars * barRate;
+    if (barsPrice > 0) console.log('Bars:', totalBars, '× £' + barRate, '= £' + barsPrice);
+
+    // Additional options (glass, sill)
+    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
+
+    let subtotal = basePrice + patternPrice + barsPrice + additionalPrice;
+
+    // Colour surcharges
+    if (configuration.colorType === 'dual') {
+      const surcharge = subtotal * 0.15;
+      console.log('Dual colour: +£' + surcharge.toFixed(2));
+      subtotal += surcharge;
+    } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
+      const surcharge = subtotal * 0.10;
+      console.log('Single colour (non-white): +£' + surcharge.toFixed(2));
+      subtotal += surcharge;
+    }
+
+    const quantity = configuration.quantity || 1;
+    const discount = this.getQuantityDiscount(quantity);
+    const discountAmount = subtotal * discount;
+    const unitPrice = subtotal - discountAmount;
+    const totalPrice = unitPrice * quantity;
+
+    console.log('Subtotal: £' + subtotal.toFixed(2), 'Unit: £' + unitPrice.toFixed(2));
+    console.log('=========================');
+
+    return {
+      unitPrice: Math.round(unitPrice * 100) / 100,
+      totalPrice: Math.round(totalPrice * 100) / 100,
+      breakdown: {
+        windowType: 'fix-only',
+        shape: shape,
+        frameType: type,
+        frameWidth: frameWidth,
+        frameHeight: frameHeight,
+        sqm: sqm.toFixed(2),
+        basePricePerSqm: basePricePerSqm,
+        basePrice: basePrice.toFixed(2),
+        patternPrice: patternPrice,
+        barsPrice: barsPrice.toFixed(2),
+        additionalOptions: additionalPrice,
+        subtotal: subtotal.toFixed(2),
+        quantity: quantity,
+        discount: (discount * 100) + '%',
+        discountAmount: discountAmount.toFixed(2),
+        unitPrice: unitPrice.toFixed(2),
+        totalPrice: totalPrice.toFixed(2),
+        vatAmount: (totalPrice * this.pricing.vatRate).toFixed(2),
+        totalWithVat: (totalPrice * (1 + this.pricing.vatRate)).toFixed(2)
+      }
+    };
+  }
+
+  // ═══ ARCHED CASEMENT PRICING ═══
+  calculateArchedCasement(configuration, sqm, frameWidth, frameHeight) {
+    const shape = configuration.casArchShape || 'semi-circle';
+
+    console.log('=== ARCHED CASEMENT PRICING ===');
+    console.log('Shape:', shape, 'SQM:', sqm.toFixed(2));
+
+    // Base: £1400/sqm
+    let basePrice = sqm * 1400;
+    console.log('Base:', sqm.toFixed(2), '× 1400 = £' + basePrice.toFixed(2));
+
+    // Sash (1 leaf): +£50
+    basePrice += 50;
+    console.log('Sash: +£50');
+
+    // Pattern premium (same as fix)
+    let patternPrice = 0;
+    const semiPat = configuration.fixSemiBarPattern || 'none';
+    const gothPat = configuration.fixGothicBars || 'none';
+    const patternPrices = { 'intersecting': 250, 'half-hub': 150, 'hub-spoke': 210, 'double-hub-spoke': 270, 'triple-hub-spoke': 320 };
+    if (semiPat !== 'none' && patternPrices[semiPat]) patternPrice = patternPrices[semiPat];
+    if (gothPat !== 'none' && patternPrices[gothPat]) patternPrice = patternPrices[gothPat];
+    if (patternPrice > 0) console.log('Pattern: +£' + patternPrice);
+
+    // Bars
+    const hBars = configuration.casementHBars || 0;
+    const vBars = configuration.casementVBars || 0;
+    const totalBars = hBars + vBars;
+    const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
+    const barsPrice = totalBars * barRate;
+    if (barsPrice > 0) console.log('Bars:', totalBars, '× £' + barRate, '= £' + barsPrice);
+
+    // Additional options (glass, sill)
+    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
+
+    let subtotal = basePrice + patternPrice + barsPrice + additionalPrice;
+
+    // Colour surcharges
+    if (configuration.colorType === 'dual') {
+      const surcharge = subtotal * 0.15;
+      console.log('Dual colour: +£' + surcharge.toFixed(2));
+      subtotal += surcharge;
+    } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
+      const surcharge = subtotal * 0.10;
+      console.log('Single colour (non-white): +£' + surcharge.toFixed(2));
+      subtotal += surcharge;
+    }
+
+    const quantity = configuration.quantity || 1;
+    const discount = this.getQuantityDiscount(quantity);
+    const discountAmount = subtotal * discount;
+    const unitPrice = subtotal - discountAmount;
+    const totalPrice = unitPrice * quantity;
+
+    console.log('Subtotal: £' + subtotal.toFixed(2), 'Unit: £' + unitPrice.toFixed(2));
+    console.log('=========================');
+
+    return {
+      unitPrice: Math.round(unitPrice * 100) / 100,
+      totalPrice: Math.round(totalPrice * 100) / 100,
+      breakdown: {
+        windowType: 'arched-casement',
+        shape: shape,
+        frameWidth: frameWidth,
+        frameHeight: frameHeight,
+        sqm: sqm.toFixed(2),
+        basePrice: basePrice.toFixed(2),
+        patternPrice: patternPrice,
         barsPrice: barsPrice.toFixed(2),
         additionalOptions: additionalPrice,
         subtotal: subtotal.toFixed(2),

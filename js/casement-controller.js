@@ -523,9 +523,13 @@
 
   // ─── Store casement config (parallel to window.currentConfig for sash) ───
   function getCasementConfig() {
+    var isArched = checked('casement-type') === 'arched';
     return {
       windowType: 'casement',
       windowCategory: 'casement',
+      casementType: checked('casement-type') || 'standard',
+      casArchShape: isArched ? (checked('cas-arch-shape') || 'semi-circle') : null,
+      casArchHinge: isArched ? (checked('cas-arch-opening') || 'right') : null,
       measurementType: 'frame',
       casementLayout: checked('casement-layout') || '040L',
       layout: checked('casement-layout') || '040L',
@@ -557,6 +561,8 @@
       sillExtension: checked('c-sill-ext') || 'none',
       trickleVent: checked('c-trickle-vent') || 'none',
       quantity: parseInt(val('c-quantity')) || 1,
+      fixSemiBarPattern: isArched ? (checked('f-semi-bars') || 'none') : 'none',
+      fixGothicBars: isArched ? (checked('f-gothic-bars') || 'none') : 'none',
     };
   }
 

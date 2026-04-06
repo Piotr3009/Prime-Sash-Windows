@@ -825,6 +825,9 @@ class ConfiguratorCore {
     if (windowType === 'casement' && typeof window.getCasementConfig === 'function') {
       config = window.getCasementConfig();
       priceData = window.calculatePrice(config);
+    } else if (windowType === 'fix-only' && typeof window.getFixConfig === 'function') {
+      config = window.getFixConfig();
+      priceData = window.calculatePrice(config);
     } else {
       const validation = this.modules.form.validate();
       if (!validation.isValid) {

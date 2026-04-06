@@ -3866,6 +3866,7 @@
           fixType: getFixType()
         });
         updateFixSpec();
+        updateFixPrice();
       }
 
       // ── Fix-Only Specification Panel ──
@@ -3996,8 +3997,55 @@
         if (specDetails) specDetails.style.display = 'none';
         if (hornsItem) hornsItem.style.display = 'none';
         if (ironItem) ironItem.style.display = 'none';
+
+        // Update price
+        if (typeof updateFixPrice === 'function') updateFixPrice();
       }
       window.updateFixSpec = updateFixSpec;
+
+      // ── Fix-Only Configuration for Pricing ──
+      function getFixConfig() {
+        var shape = getFixShape();
+        var type = getFixType();
+        var w = (fixWidth && parseInt(fixWidth.value)) || 1000;
+        var h = (fixHeight && parseInt(fixHeight.value)) || 1500;
+        return {
+          windowType: 'fix-only',
+          fixShape: shape,
+          fixType: type,
+          width: w,
+          height: h,
+          casementHBars: parseInt((document.querySelector('input[name="f-hbars"]:checked') || {}).value) || 0,
+          casementVBars: parseInt((document.querySelector('input[name="f-vbars"]:checked') || {}).value) || 0,
+          fixSemiBarPattern: (document.querySelector('input[name="f-semi-bars"]:checked') || {}).value || 'none',
+          fixGothicBars: (document.querySelector('input[name="f-gothic-bars"]:checked') || {}).value || 'none',
+          fixCircleBarPattern: (document.querySelector('input[name="f-circle-bars"]:checked') || {}).value || 'none',
+          glassType: (document.querySelector('input[name="f-glazing"]:checked') || {}).value || 'double',
+          glassFinish: (document.querySelector('input[name="f-glass-finish"]:checked') || {}).value || 'clear',
+          spacer: (document.querySelector('input[name="f-spacer"]:checked') || {}).value || 'silver',
+          colorType: (document.querySelector('input[name="fx-colour-mode"]:checked') || {}).value || 'same',
+          colorSingle: (function() {
+            var pn = document.getElementById('fx-single-preview-name');
+            var name = pn ? pn.textContent.trim().toLowerCase() : 'white';
+            return name.indexOf('white') > -1 ? 'white' : name || 'white';
+          })(),
+          quantity: 1,
+        };
+      }
+      window.getFixConfig = getFixConfig;
+
+      // ── Fix-Only Live Price Update ──
+      function updateFixPrice() {
+        if (typeof window.calculatePrice !== 'function') return;
+        var config = getFixConfig();
+        var priceData = window.calculatePrice(config);
+        if (!priceData) return;
+        var priceEl = document.getElementById('sidebar-total-price');
+        if (priceEl && priceData.unitPrice > 0) {
+          priceEl.textContent = '£' + priceData.unitPrice.toFixed(2);
+        }
+      }
+      window.updateFixPrice = updateFixPrice;
     })();
 
     // ── Sash Type Toggle + Fix Bars Manager ──
