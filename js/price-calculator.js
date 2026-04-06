@@ -493,7 +493,7 @@ class PriceCalculator {
         frameWidth: frameWidth,
         frameHeight: frameHeight,
         sqm: sqm.toFixed(2),
-        basePricePerSqm: basePricePerSqm,
+        basePricePerSqm: (shape === 'rectangle') ? 450 : (shape === 'circle') ? 1200 : '800+400',
         basePrice: basePrice.toFixed(2),
         patternPrice: patternPrice,
         barsPrice: barsPrice.toFixed(2),
