@@ -372,6 +372,18 @@
       <!-- ═══ CASEMENT LAYOUT ═══ -->
       <div class="config-section" data-category="product-range" data-for="casement" id="casement-layout-section" style="display:none;">
         <h3>Casement Layout</h3>
+
+        <!-- Casement Type: Standard / Arched -->
+        <div class="input-group" style="margin-bottom:12px;">
+          <label>Casement Type:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="cas-type-standard" name="casement-type" value="standard" checked><label for="cas-type-standard" class="radio-label">Standard</label></div>
+            <div class="radio-option"><input type="radio" id="cas-type-arched" name="casement-type" value="arched"><label for="cas-type-arched" class="radio-label">Arched</label></div>
+          </div>
+        </div>
+
+        <!-- Standard casement layouts (existing, untouched) -->
+        <div id="casement-standard-layouts">
         <div class="input-group">
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
             <label class="layout-option">
@@ -498,6 +510,61 @@
         </div>
 
         <button class="btn btn-apply" id="apply-casement-layout">Apply</button>
+        </div><!-- /casement-standard-layouts -->
+
+        <!-- Arched casement options -->
+        <div id="casement-arched-options" style="display:none;">
+          <div class="input-group">
+            <label>Arch Shape:</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+              <label class="layout-option">
+                <input type="radio" name="cas-arch-shape" value="gothic-arch" checked>
+                <div class="layout-thumb" title="Gothic Arch">
+                  <svg viewBox="0 0 40 60" width="36" height="54">
+                    <path d="M4 56 L4 28 A36 36 0 0 1 20 4 A36 36 0 0 1 36 28 L36 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span style="font-size:10px;color:#666;">Gothic</span>
+              </label>
+              <label class="layout-option">
+                <input type="radio" name="cas-arch-shape" value="semi-circle">
+                <div class="layout-thumb" title="Semi-Circle">
+                  <svg viewBox="0 0 50 60" width="36" height="54">
+                    <path d="M3 56 L3 30 A22 22 0 0 1 47 30 L47 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span style="font-size:10px;color:#666;">Semi-Circle</span>
+              </label>
+              <label class="layout-option">
+                <input type="radio" name="cas-arch-shape" value="segmental-arch">
+                <div class="layout-thumb" title="Segmental Arch">
+                  <svg viewBox="0 0 50 60" width="36" height="54">
+                    <path d="M3 56 L3 20 Q25 2 47 20 L47 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span style="font-size:10px;color:#666;">Segmental</span>
+              </label>
+              <label class="layout-option">
+                <input type="radio" name="cas-arch-shape" value="elliptical-arch">
+                <div class="layout-thumb" title="Elliptical Arch">
+                  <svg viewBox="0 0 50 60" width="36" height="54">
+                    <path d="M3 56 L3 24 C3 8 47 8 47 24 L47 56 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span style="font-size:10px;color:#666;">Elliptical</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="input-group" style="margin-top:10px;">
+            <label>Opening Direction:</label>
+            <div class="radio-group">
+              <div class="radio-option"><input type="radio" id="cas-arch-open-left" name="cas-arch-opening" value="left" checked><label for="cas-arch-open-left" class="radio-label">Left Hinge</label></div>
+              <div class="radio-option"><input type="radio" id="cas-arch-open-right" name="cas-arch-opening" value="right"><label for="cas-arch-open-right" class="radio-label">Right Hinge</label></div>
+            </div>
+          </div>
+        </div><!-- /casement-arched-options -->
+
       </div>
 
       <!-- ═══════ FIX FRAME: Type ═══════ -->
@@ -3455,6 +3522,18 @@
           }
         });
       }
+
+      // ── Casement Type: Standard / Arched toggle ──
+      var casTypeRadios = document.querySelectorAll('input[name="casement-type"]');
+      var casStandardDiv = document.getElementById('casement-standard-layouts');
+      var casArchedDiv = document.getElementById('casement-arched-options');
+      casTypeRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          var isArched = r.value === 'arched';
+          if (casStandardDiv) casStandardDiv.style.display = isArched ? 'none' : '';
+          if (casArchedDiv) casArchedDiv.style.display = isArched ? '' : 'none';
+        });
+      });
 
       // Fix Frame Apply
       var applyFixBtn = document.getElementById('apply-fix-frame');
