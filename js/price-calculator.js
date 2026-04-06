@@ -421,13 +421,19 @@ class PriceCalculator {
     console.log('=== FIX-ONLY PRICING ===');
     console.log('Shape:', shape, 'Type:', type, 'SQM:', sqm.toFixed(2));
 
-    // Base price per sqm by shape
-    let basePricePerSqm = 900; // arch shapes default
-    if (shape === 'rectangle') basePricePerSqm = 450;
-    else if (shape === 'circle') basePricePerSqm = 1200;
-
-    let basePrice = sqm * basePricePerSqm;
-    console.log('Base:', sqm.toFixed(2), '×', basePricePerSqm, '= £' + basePrice.toFixed(2));
+    // Base price by shape
+    let basePrice;
+    if (shape === 'rectangle') {
+      basePrice = sqm * 450;
+      console.log('Base (rectangle):', sqm.toFixed(2), '× £450 = £' + basePrice.toFixed(2));
+    } else if (shape === 'circle') {
+      basePrice = sqm * 1200;
+      console.log('Base (circle):', sqm.toFixed(2), '× £1200 = £' + basePrice.toFixed(2));
+    } else {
+      // Arch shapes: £800 first sqm + £400 per additional
+      basePrice = 800 + Math.max(0, sqm - 1) * 400;
+      console.log('Base (arch): £800 + ' + Math.max(0, sqm - 1).toFixed(2) + ' × £400 = £' + basePrice.toFixed(2));
+    }
 
     // FD30/FD60 premium
     if (type === 'fd30') { basePrice += sqm * 150; console.log('FD30: +£' + (sqm * 150).toFixed(2)); }
@@ -511,9 +517,9 @@ class PriceCalculator {
     console.log('=== ARCHED CASEMENT PRICING ===');
     console.log('Shape:', shape, 'SQM:', sqm.toFixed(2));
 
-    // Base: £1400/sqm
-    let basePrice = sqm * 1400;
-    console.log('Base:', sqm.toFixed(2), '× 1400 = £' + basePrice.toFixed(2));
+    // Base: £1200 first sqm + £600 per additional sqm
+    let basePrice = 1200 + Math.max(0, sqm - 1) * 600;
+    console.log('Base: £1200 + ' + Math.max(0, sqm - 1).toFixed(2) + ' × £600 = £' + basePrice.toFixed(2));
 
     // Sash (1 leaf): +£50
     basePrice += 50;
