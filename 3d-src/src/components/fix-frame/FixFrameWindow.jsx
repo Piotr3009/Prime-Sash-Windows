@@ -848,7 +848,7 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
 
   // Spoke positions: calculated once, shared by bars and hubData
   const isDouble = semiBarPattern === 'double-hub-spoke';
-  const spokeCount = isDouble ? Math.max(7, Math.round(iHalfW / mm(1) / 70)) : Math.max(5, Math.round(iHalfW / mm(1) / 90));
+  const spokeCount = isDouble ? 6 : 4;
   const spokeAngles = useMemo(() => {
     if (!isHub) return [];
     const angles = [];
@@ -860,13 +860,12 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     const items = [];
     const glassW = iHalfW * 2;
     if (isHub) {
-      // V bars = automatic from spoke angles (continuation below springing)
+      // V bars: hub=2, double=4 — evenly spaced, matching spoke sectors
       const belowH = springY - iBottom;
+      const nBars = isDouble ? 4 : 2;
       if (belowH > 0) {
-        for (const angle of spokeAngles) {
-          // Skip frame edge spokes (0° and 180°) — they're at frame edge
-          if (angle < 0.05 || angle > Math.PI - 0.05) continue;
-          const x = iHalfW * Math.cos(angle);
+        for (let i = 1; i <= nBars; i++) {
+          const x = -iHalfW + (iHalfW * 2 / (nBars + 1)) * i;
           items.push({ type: 'v', x, y: iBottom + belowH / 2, len: belowH });
         }
       }
