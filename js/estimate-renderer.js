@@ -769,6 +769,10 @@ class EstimateRenderer {
 
     // ═══ CASEMENT SVG GENERATOR ═══
     static generateCasementSVG(item, fc) {
+        // Route arched casement to dedicated renderer
+        if (fc.casementType === 'arched') {
+            return EstimateRenderer.generateArchedCasementSVG(item, fc);
+        }
         const layout = fc.casementLayout || fc.layout || '040L';
         const w = fc.width || item.width || 1000;
         const h = fc.height || item.height || 1200;
@@ -964,6 +968,171 @@ class EstimateRenderer {
         }
 
         const totalH = dimY + (wSegs.length > 1 ? 32 : 18);
+        return `<svg width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
+    }
+
+    // ─── Arched Casement SVG ───
+    static generateArchedCasementSVG(item, fc) {
+        const w = fc.width || item.width || 1000;
+        const h = fc.height || item.height || 1500;
+        const shape = fc.casArchShape || 'semi-circle';
+        const hinge = fc.casArchHinge || 'right';
+        const hBars = fc.casementHBars || fc.hBars || 0;
+        const vBars = fc.casementVBars || fc.vBars || 0;
+        const semiPat = fc.fixSemiBarPattern || 'none';
+        const gothPat = fc.fixGothicBars || 'none';
+
+        const stroke = 'rgba(10,22,40,.7)';
+        const light = 'rgba(10,22,40,.25)';
+        const barStroke = 'rgba(10,22,40,.5)';
+        const dimColor = 'rgba(10,22,40,.45)';
+        const dimFont = `font-family="Jost,sans-serif" font-size="7" fill="${dimColor}"`;
+        const gold = 'rgba(200,162,78,.5)';
+
+        const svgW = 260, drawW = 160;
+        const scale = drawW / w;
+        const drawH = Math.round(h * scale);
+        const ox = 50, oy = 10;
+        const fT = Math.max(57 * scale, 4);
+
+        // Arch geometry
+        const archR = drawW / 2; // outer radius
+        const centerX = ox + drawW / 2;
+        const springY = oy + archR; // springing line
+        const innerR = archR - fT;
+
+        // Inner boundaries
+        const ix = ox + fT;
+        const ixR = ox + drawW - fT;
+        const iBottom = oy + drawH - fT;
+
+        let svg = '';
+
+        // ── Outer frame path ──
+        svg += `<path d="M ${ox} ${oy + drawH} L ${ox} ${springY} A ${archR} ${archR} 0 0 1 ${ox + drawW} ${springY} L ${ox + drawW} ${oy + drawH} Z" fill="none" stroke="${stroke}" stroke-width="1.5"/>`;
+
+        // ── Inner frame path ──
+        svg += `<path d="M ${ix} ${iBottom} L ${ix} ${springY} A ${innerR} ${innerR} 0 0 1 ${ixR} ${springY} L ${ixR} ${iBottom} Z" fill="none" stroke="${stroke}" stroke-width="0.5"/>`;
+
+        // ── Pattern: Hub & Spoke ──
+        const isHub = semiPat === 'half-hub' || semiPat === 'hub-spoke' || semiPat === 'double-hub-spoke' || semiPat === 'triple-hub-spoke';
+        const isHalf = semiPat === 'half-hub';
+        const isDouble = semiPat === 'double-hub-spoke';
+        const isTriple = semiPat === 'triple-hub-spoke';
+
+        if (isHub && shape === 'semi-circle') {
+            const spokeCount = isTriple ? 8 : isDouble ? 6 : 4;
+            const hubR1 = innerR * 0.3;
+            const hubR2 = (isDouble || isTriple) ? innerR * 0.6 : null;
+            const hubR3 = isTriple ? innerR * 0.8 : null;
+
+            // Spokes
+            for (let i = 0; i < spokeCount; i++) {
+                const a = (i / (spokeCount - 1)) * Math.PI;
+                const ex = centerX - innerR * Math.cos(a);
+                const ey = springY - innerR * Math.sin(a);
+                svg += `<line x1="${centerX}" y1="${springY}" x2="${ex}" y2="${ey}" stroke="${barStroke}" stroke-width="0.6"/>`;
+            }
+
+            // Hub ring 1
+            const r1lx = centerX - hubR1, r1rx = centerX + hubR1;
+            svg += `<path d="M ${r1lx} ${springY} A ${hubR1} ${hubR1} 0 0 1 ${r1rx} ${springY}" fill="none" stroke="${barStroke}" stroke-width="0.6"/>`;
+
+            // Hub ring 2
+            if (hubR2) {
+                const r2lx = centerX - hubR2, r2rx = centerX + hubR2;
+                svg += `<path d="M ${r2lx} ${springY} A ${hubR2} ${hubR2} 0 0 1 ${r2rx} ${springY}" fill="none" stroke="${barStroke}" stroke-width="0.6"/>`;
+            }
+
+            // Hub ring 3
+            if (hubR3) {
+                const r3lx = centerX - hubR3, r3rx = centerX + hubR3;
+                svg += `<path d="M ${r3lx} ${springY} A ${hubR3} ${hubR3} 0 0 1 ${r3rx} ${springY}" fill="none" stroke="${barStroke}" stroke-width="0.6"/>`;
+            }
+
+            // Vertical bars below springing from ring intersections
+            if (!isHalf) {
+                const belowTop = springY;
+                [hubR1, hubR2, hubR3].forEach(r => {
+                    if (!r) return;
+                    svg += `<line x1="${centerX - r}" y1="${belowTop}" x2="${centerX - r}" y2="${iBottom}" stroke="${barStroke}" stroke-width="0.4"/>`;
+                    svg += `<line x1="${centerX + r}" y1="${belowTop}" x2="${centerX + r}" y2="${iBottom}" stroke="${barStroke}" stroke-width="0.4"/>`;
+                });
+            }
+
+            // Half hub: horizontal bar at springing
+            if (isHalf) {
+                svg += `<line x1="${ix}" y1="${springY}" x2="${ixR}" y2="${springY}" stroke="${barStroke}" stroke-width="0.6"/>`;
+            }
+        }
+
+        // ── Pattern: Gothic Intersecting ──
+        if (gothPat === 'intersecting' && shape === 'gothic-arch') {
+            // Simplified gothic tracery lines
+            const midX = centerX;
+            const topY = oy + fT;
+            svg += `<line x1="${ix}" y1="${iBottom}" x2="${midX}" y2="${topY}" stroke="${barStroke}" stroke-width="0.5"/>`;
+            svg += `<line x1="${ixR}" y1="${iBottom}" x2="${midX}" y2="${topY}" stroke="${barStroke}" stroke-width="0.5"/>`;
+            svg += `<line x1="${midX}" y1="${springY}" x2="${midX}" y2="${iBottom}" stroke="${barStroke}" stroke-width="0.4"/>`;
+        }
+
+        // ── Regular bars (below springing, non-hub) ──
+        if (!isHub) {
+            const belowH = iBottom - springY;
+            if (belowH > 0) {
+                for (let i = 1; i <= hBars; i++) {
+                    const by = springY + (belowH / (hBars + 1)) * i;
+                    svg += `<line x1="${ix}" y1="${by}" x2="${ixR}" y2="${by}" stroke="${barStroke}" stroke-width="0.4"/>`;
+                }
+                for (let i = 1; i <= vBars; i++) {
+                    const bx = ix + ((ixR - ix) / (vBars + 1)) * i;
+                    // Bar extends from bottom to arch curve
+                    let barTop = springY;
+                    if (shape === 'semi-circle') {
+                        const dx = bx - centerX;
+                        const sq = innerR * innerR - dx * dx;
+                        if (sq > 0) barTop = springY - Math.sqrt(sq);
+                    }
+                    svg += `<line x1="${bx}" y1="${barTop}" x2="${bx}" y2="${iBottom}" stroke="${barStroke}" stroke-width="0.4"/>`;
+                }
+            }
+        }
+
+        // ── Hinge indicator ──
+        const hingeSide = hinge === 'right' ? 'left' : 'right'; // value is swapped
+        const hx = hingeSide === 'left' ? ix + 2 : ixR - 2;
+        const hxOpp = hingeSide === 'left' ? ixR - 2 : ix + 2;
+        const hMidY = springY + (iBottom - springY) / 2;
+        svg += `<line x1="${hxOpp}" y1="${springY + 2}" x2="${hx}" y2="${hMidY}" stroke="${gold}" stroke-width="0.7"/>`;
+        svg += `<line x1="${hxOpp}" y1="${iBottom - 2}" x2="${hx}" y2="${hMidY}" stroke="${gold}" stroke-width="0.7"/>`;
+
+        // ── Dimensions ──
+        const dimY = oy + drawH + 8;
+        const tickH = 3;
+
+        // Width (bottom)
+        svg += `<line x1="${ox}" y1="${dimY}" x2="${ox + drawW}" y2="${dimY}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<line x1="${ox}" y1="${dimY - tickH}" x2="${ox}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<line x1="${ox + drawW}" y1="${dimY - tickH}" x2="${ox + drawW}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<text x="${ox + drawW / 2}" y="${dimY + 12}" ${dimFont} text-anchor="middle">${w}mm</text>`;
+
+        // Height (right)
+        const hDimX = ox + drawW + 8;
+        svg += `<line x1="${hDimX}" y1="${oy}" x2="${hDimX}" y2="${oy + drawH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<line x1="${hDimX - tickH}" y1="${oy}" x2="${hDimX + tickH}" y2="${oy}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<line x1="${hDimX - tickH}" y1="${oy + drawH}" x2="${hDimX + tickH}" y2="${oy + drawH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+        svg += `<text x="${hDimX + 3}" y="${oy + drawH / 2 + 2}" ${dimFont} transform="rotate(-90,${hDimX + 3},${oy + drawH / 2})">${h}mm</text>`;
+
+        // Arch rise (left)
+        const archRiseMm = Math.round(w / 2);
+        const riseH = archR;
+        const riseDimX = ox - 8;
+        svg += `<line x1="${riseDimX}" y1="${oy}" x2="${riseDimX}" y2="${springY}" stroke="${dimColor}" stroke-width="0.4"/>`;
+        svg += `<line x1="${riseDimX - tickH}" y1="${oy}" x2="${riseDimX + tickH}" y2="${oy}" stroke="${dimColor}" stroke-width="0.4"/>`;
+        svg += `<line x1="${riseDimX - tickH}" y1="${springY}" x2="${riseDimX + tickH}" y2="${springY}" stroke="${dimColor}" stroke-width="0.4"/>`;
+        svg += `<text x="${riseDimX - 2}" y="${oy + riseH / 2 + 2}" ${dimFont} transform="rotate(-90,${riseDimX - 2},${oy + riseH / 2})" font-size="5.5">${archRiseMm}</text>`;
+
+        const totalH = dimY + 18;
         return `<svg width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
     }
 
