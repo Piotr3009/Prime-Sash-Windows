@@ -430,6 +430,9 @@
             woodColorExt: casementColourState.woodColorExt
           });
         }
+        updateSpecPanel();
+        window.currentConfig = getCasementConfig();
+        updateCasementPrice();
       });
     });
 
@@ -541,6 +544,8 @@
       woodColorExt: casementColourState.woodColorExt
     });
     updateSpecPanel();
+    window.currentConfig = getCasementConfig();
+    updateCasementPrice();
   }
 
   function updatePreview(target, name, code) {
@@ -738,6 +743,15 @@
         updateSpecPanel();
       });
     });
+
+    // Quantity
+    var qtyInput = $('c-quantity');
+    if (qtyInput) {
+      qtyInput.addEventListener('input', function() {
+        window.currentConfig = getCasementConfig();
+        updateCasementPrice();
+      });
+    }
   }
 
   // ─── Store casement config (parallel to window.currentConfig for sash) ───

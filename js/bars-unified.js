@@ -461,6 +461,7 @@ class BarsController {
       // Wyłącz tryb dodawania
       canvas.style.cursor = 'default';
       canvas.removeEventListener('click', clickHandler);
+      this.updatePrice();
     };
 
     canvas.addEventListener('click', clickHandler, { once: true });
@@ -477,6 +478,7 @@ class BarsController {
       this.state.lower.bars = { horizontal: [], vertical: [] };
       this.drawPreviewCanvas('lower');
     }
+    this.updatePrice();
   }
 
   applyCustomPattern() {
