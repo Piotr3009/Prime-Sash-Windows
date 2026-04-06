@@ -5,6 +5,7 @@
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
+import { Text, Line } from '@react-three/drei';
 import { FRAME_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, BOTTOM_FACE, GASKET_W, GASKET_T, mm } from './CasementFrame';
 import { SASH_RAIL } from './CasementPanel';
 import WindowCasementHandle from './WindowCasementHandle';
@@ -389,7 +390,17 @@ export default function ArchedCasementWindow({
   }
 
   // ── Sill dimensions (same as CasementWindow) ──
+  // ── Dimensions for guides ──
   const W = mm(width);
+  let outerEffH = height;
+  let archRiseMm = 0;
+  if (archShape === 'gothic-arch') { archRiseMm = Math.round(width * Math.sqrt(3) / 2); outerEffH = Math.max(height, archRiseMm + 50); }
+  else if (archShape === 'semi-circle') { archRiseMm = Math.round(width / 2); outerEffH = Math.max(height, archRiseMm + 50); }
+  else if (archShape === 'segmental-arch') { archRiseMm = Math.round(width * 0.2); }
+  else if (archShape === 'elliptical-arch') { archRiseMm = Math.round(width * 0.325); }
+  const H = mm(outerEffH);
+  const springY = archRiseMm > 0 ? -H / 2 + (H - mm(archRiseMm)) : H / 2;
+
   const sillProj = mm(sillExtension);
   const sillExtra = sillWider ? mm(50) : 0;
   const sillW = W + sillExtra * 2;
@@ -418,7 +429,7 @@ export default function ArchedCasementWindow({
 
       {/* Sill extension */}
       {sillExtension > 0 && (
-        <mesh position={[0, -mm(height) / 2 + sillH_size / 2, halfD + sillProj / 2]} castShadow receiveShadow>
+        <mesh position={[0, -H / 2 + sillH_size / 2, halfD + sillProj / 2]} castShadow receiveShadow>
           <boxGeometry args={[sillW, sillH_size, sillProj]} />
           <primitive object={extMat} attach="material" />
         </mesh>
@@ -426,6 +437,34 @@ export default function ArchedCasementWindow({
 
       {/* Leaf with pivot */}
       {leafNode}
+
+      {/* Dimension guides */}
+      {showGuides && (
+        <group>
+          <DimensionGuide from={[-W/2, H/2 + mm(80), 0]} to={[W/2, H/2 + mm(80), 0]} label={`${width} mm`} offset={[0, 0.05, 0]} />
+          <DimensionGuide from={[W/2 + mm(130), -H/2, 0]} to={[W/2 + mm(130), H/2, 0]} label={`${outerEffH} mm`} offset={[0.07, 0, 0]} />
+          {archRiseMm > 0 && <DimensionGuide from={[-W/2 - mm(130), springY, 0]} to={[-W/2 - mm(130), H/2, 0]} label={`↑ ${archRiseMm} mm`} offset={[-0.07, 0, 0]} />}
+        </group>
+      )}
+    </group>
+  );
+}
+
+// ── Dimension guide (same as CasementWindow / FixFrameWindow) ──
+function DimensionGuide({ from, to, label, offset = [0, 0, 0] }) {
+  const mid = [
+    (from[0] + to[0]) / 2 + offset[0],
+    (from[1] + to[1]) / 2 + offset[1],
+    (from[2] + to[2]) / 2 + offset[2],
+  ];
+  const points = [from, to].map((p) => new THREE.Vector3(p[0], p[1], p[2]));
+  return (
+    <group>
+      <Line points={points} color="#22324a" lineWidth={1.25} transparent opacity={0.9} />
+      <Text position={mid} fontSize={0.06} color="#22324a" anchorX="center" anchorY="middle"
+        outlineColor="#f5f2ec" outlineWidth={0.008}>
+        {label}
+      </Text>
     </group>
   );
 }
