@@ -3175,7 +3175,7 @@
         if (casBarsSec) casBarsSec.style.display = 'none';
         if (fixBarsSec) fixBarsSec.style.display = 'block';
         // Also trigger shape-specific bar pattern visibility
-        if (typeof updateDesignBarsVisibility === 'function') updateDesignBarsVisibility();
+        if (typeof window.updateDesignBarsVisibility === 'function') window.updateDesignBarsVisibility();
       } else if (isCasement) {
         if (fixBarsSec) fixBarsSec.style.display = 'none';
       }
@@ -3785,6 +3785,7 @@
       }
 
       // Wire shape radios to update design bars visibility
+      window.updateDesignBarsVisibility = updateDesignBarsVisibility;
       fixShapeRadios.forEach(function(r) {
         r.addEventListener('change', function() { updateDesignBarsVisibility(); });
       });
