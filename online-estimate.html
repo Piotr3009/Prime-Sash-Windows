@@ -3647,7 +3647,7 @@
 
       fSemiRadios.forEach(function(r) {
         r.addEventListener('change', function() {
-          if (window.update3D) window.update3D({ fixSemiBarPattern: r.value });
+          console.log('SEMI BAR PATTERN:', r.value); if (window.update3D) window.update3D({ fixSemiBarPattern: r.value });
         });
       });
 

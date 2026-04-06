@@ -845,6 +845,7 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
   }
 
   const isHub = semiBarPattern === 'hub-spoke' || semiBarPattern === 'double-hub-spoke';
+  console.log('SEMI: semiBarPattern=', semiBarPattern, 'isHub=', isHub);
 
   const bars = useMemo(() => {
     const items = [];
@@ -885,9 +886,11 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
   // ── Hub & Spoke ──
 
   const hubData = useMemo(() => {
-    if (!isHub) return null;
+    if (!isHub) { console.log('SEMI HUB: isHub false, returning null'); return null; }
+    console.log('SEMI HUB: building hub data, semiBarPattern=', semiBarPattern);
     const isDouble = semiBarPattern === 'double-hub-spoke';
     const hubR1 = iHalfW * 0.3;
+    console.log('SEMI HUB: hubR1=', hubR1, 'iHalfW=', iHalfW, 'springY=', springY);
     const hubR2 = isDouble ? iHalfW * 0.6 : null;
     const nSpokes = isDouble ? Math.max(7, Math.round(iHalfW / mm(1) / 70)) : Math.max(5, Math.round(iHalfW / mm(1) / 90));
 
