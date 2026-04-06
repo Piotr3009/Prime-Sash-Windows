@@ -48,14 +48,14 @@ function makeFrameGeo(outerPts, innerPts, innerRebatedPts) {
   const extD = mm(EXT_DEPTH);
   const intD = mm(INT_DEPTH);
 
-  // EXT layer: outer → inner, positioned at front
-  const extShape = makeShapeWithHole(outerPts, innerPts);
+  // EXT layer (front): outer → innerRebated (36mm face = wider opening)
+  const extShape = makeShapeWithHole(outerPts, innerRebatedPts);
   const ext = new THREE.ExtrudeGeometry(extShape, { depth: extD, bevelEnabled: false });
   ext.translate(0, 0, halfD - extD);
   ext.computeVertexNormals();
 
-  // INT layer: outer → innerRebated (larger opening), positioned at back
-  const intShape = makeShapeWithHole(outerPts, innerRebatedPts);
+  // INT layer (back): outer → inner (57mm face = narrower opening = rebate ledge)
+  const intShape = makeShapeWithHole(outerPts, innerPts);
   const intGeo = new THREE.ExtrudeGeometry(intShape, { depth: intD, bevelEnabled: false });
   intGeo.translate(0, 0, -halfD);
   intGeo.computeVertexNormals();
