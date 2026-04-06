@@ -3870,6 +3870,8 @@
 
       // ── Fix-Only Specification Panel ──
       function updateFixSpec() {
+        var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+        if (windowType !== 'fix-only') return;
         var shape = getFixShape();
         var type = getFixType();
         var w = (fixWidth && parseInt(fixWidth.value)) || 1000;
