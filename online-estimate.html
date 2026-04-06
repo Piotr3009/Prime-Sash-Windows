@@ -873,7 +873,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1200">1200 mm</option>
+              <option value="1500">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -1105,7 +1105,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1200">1200 mm</option>
+              <option value="1500">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -1833,7 +1833,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1200">1200 mm</option>
+              <option value="1500">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -2104,7 +2104,7 @@
               <option value="1170">1170 mm</option>
               <option value="1180">1180 mm</option>
               <option value="1190">1190 mm</option>
-              <option value="1200" selected>1200 mm</option>
+              <option value="1200">1200 mm</option>
               <option value="1210">1210 mm</option>
               <option value="1220">1220 mm</option>
               <option value="1230">1230 mm</option>
@@ -2134,7 +2134,7 @@
               <option value="1470">1470 mm</option>
               <option value="1480">1480 mm</option>
               <option value="1490">1490 mm</option>
-              <option value="1500">1500 mm</option>
+              <option value="1500" selected>1500 mm</option>
               <option value="1510">1510 mm</option>
               <option value="1520">1520 mm</option>
               <option value="1530">1530 mm</option>
@@ -2484,110 +2484,6 @@
           </div>
         </div>
 </div>
-
-      <!-- C-STEP 4: GLASS TYPE -->
-      <div class="config-section" data-for="casement" data-category="glass" style="display:none;">
-        <h3>Step 4: Glass Type</h3>
-        <div class="input-group">
-          <label>Glazing:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="c-glass-double" name="c-glass-type" value="double" checked><label for="c-glass-double" class="radio-label">Double Glazing<br><span style="font-size:0.65rem;color:var(--secondary-color);">(U-value: 1.4)</span></label></div>
-            <div class="radio-option"><input type="radio" id="c-glass-triple" name="c-glass-type" value="triple"><label for="c-glass-triple" class="radio-label">Triple Glazing<br><span style="font-size:0.65rem;color:var(--secondary-color);">(U-value: 1.2)</span></label></div>
-            <div class="radio-option"><input type="radio" id="c-glass-passive" name="c-glass-type" value="passive"><label for="c-glass-passive" class="radio-label">Passive Glass<br><span style="font-size:0.65rem;color:var(--secondary-color);">(U-value: 0.8)</span></label></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- C-STEP 5: GLASS SPECIFICATION -->
-      <div class="config-section" data-for="casement" data-category="glass" style="display:none;">
-        <h3>Step 5: Glass Specification</h3>
-        <div class="input-group">
-          <label>Glass Type:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="c-spec-float" name="c-glass-spec" value="float" checked><label for="c-spec-float" class="radio-label">Float Glass</label></div>
-            <div class="radio-option"><input type="radio" id="c-spec-lowe" name="c-glass-spec" value="low-e"><label for="c-spec-lowe" class="radio-label">Low-E Glass</label></div>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>Glass Finish:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="c-finish-clear" name="c-glass-finish" value="clear" checked><label for="c-finish-clear" class="radio-label">Clear</label></div>
-            <div class="radio-option"><input type="radio" id="c-finish-obscure" name="c-glass-finish" value="obscure"><label for="c-finish-obscure" class="radio-label">Obscure</label></div>
-            <div class="radio-option"><input type="radio" id="c-finish-frosted" name="c-glass-finish" value="frosted"><label for="c-finish-frosted" class="radio-label">Frosted</label></div>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>Spacer Bar:</label>
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="c-spacer-silver" name="c-spacer-color" value="silver" checked>
-              <label for="c-spacer-silver" class="radio-label">Silver</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="c-spacer-white" name="c-spacer-color" value="white">
-              <label for="c-spacer-white" class="radio-label">White</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="c-spacer-black" name="c-spacer-color" value="black">
-              <label for="c-spacer-black" class="radio-label">Black</label>
-            </div>
-          </div>
-        </div>
-
-
-      </div>
-
-      <!-- C-STEP 6: SECURITY & VENTILATION -->
-      <div class="config-section" data-for="casement" data-category="opening" style="display:none;">
-        <h3>Step 6: Security & Ventilation</h3>
-        <div class="input-group">
-          <label>PAS 24 Enhanced Security:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="c-pas24-no" name="c-pas24" value="no" checked><label for="c-pas24-no" class="radio-label">No</label></div>
-            <div class="radio-option"><input type="radio" id="c-pas24-yes" name="c-pas24" value="yes"><label for="c-pas24-yes" class="radio-label">Yes</label></div>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>Safety Glass:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="c-safety-none" name="c-safety-glass" value="none" checked><label for="c-safety-none" class="radio-label">Standard</label></div>
-            <div class="radio-option"><input type="radio" id="c-safety-toughened" name="c-safety-glass" value="toughened"><label for="c-safety-toughened" class="radio-label">Toughened</label></div>
-            <div class="radio-option"><input type="radio" id="c-safety-laminate" name="c-safety-glass" value="laminate"><label for="c-safety-laminate" class="radio-label">Laminate (Extra Security)</label></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- C-STEP 6B: OPENING PREVIEW -->
-      <div class="config-section" data-for="casement" data-category="opening" style="display:none;">
-        <h3>Opening Preview</h3>
-        <div class="input-group">
-          <label for="c-opening">Opening: <span id="c-opening-value">0</span>%</label>
-          <input type="range" id="c-opening" min="0" max="100" value="0" step="1" style="width:100%;">
-          <p style="font-size:0.7rem; color:var(--secondary-color); margin-top:4px;">Drag to preview window opening in 3D. This is for visualisation only — does not affect the quote.</p>
-        </div>
-      </div>
-
-
-      <!-- C-STEP 6C: TRICKLE VENT -->
-      <div class="config-section" data-for="casement" data-category="opening" style="display:none;">
-        <h3>Trickle Ventilation</h3>
-
-        <div class="input-group">
-          <label>Trickle Vent:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="c-trickle-none" name="c-trickle-vent" value="none" checked><label for="c-trickle-none" class="radio-label">None</label></div>
-            <div class="radio-option"><input type="radio" id="c-trickle-frame" name="c-trickle-vent" value="frame"><label for="c-trickle-frame" class="radio-label">On Frame (head rail)</label></div>
-            <div class="radio-option"><input type="radio" id="c-trickle-sash" name="c-trickle-vent" value="sash"><label for="c-trickle-sash" class="radio-label">On Sash (top rail)</label></div>
-          </div>
-        </div>
-        <div class="input-group" id="c-trickle-colour-row" style="display:none;">
-          <label>Trickle Vent Colour:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="c-trickle-white" name="c-trickle-colour" value="white" checked><label for="c-trickle-white" class="radio-label">White</label></div>
-            <div class="radio-option"><input type="radio" id="c-trickle-brown" name="c-trickle-colour" value="brown"><label for="c-trickle-brown" class="radio-label">Brown</label></div>
-          </div>
-        </div>
-      </div>
 
 
       <!-- C-STEP 4: GLASS TYPE -->
