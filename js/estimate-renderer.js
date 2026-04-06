@@ -243,6 +243,32 @@ class EstimateRenderer {
         const glassSpecCasementText = glassSpecCasement === 'low-e' ? 'Low-E Coated' : 'Float Glass';
         const fanlightHeight = fc.fanlightHeight || 0;
 
+        // ═══ FIX-ONLY FIELDS ═══
+        const fixShape = fc.fixShape || 'rectangle';
+        const fixType = fc.fixType || 'standard';
+        const fixCircleBarPattern = fc.fixCircleBarPattern || 'none';
+        const fixShapeNames = { 'rectangle': 'Rectangle', 'gothic-arch': 'Gothic Arch', 'semi-circle': 'Semi-Circle', 'segmental-arch': 'Segmental Arch', 'elliptical-arch': 'Elliptical Arch', 'circle': 'Circle' };
+        const fixTypeNames = { 'standard': 'Standard', 'fd30': 'FD30 Fire Rated', 'fd60': 'FD60 Fire Rated' };
+        const fixTypeText = 'Fix Frame — ' + (fixShapeNames[fixShape] || fixShape) + ' (' + (fixTypeNames[fixType] || fixType) + ')';
+
+        // Fix bars with ALL patterns
+        let fixBarsFull = 'None';
+        const fxH = casementHBars, fxV = casementVBars;
+        if (fxH > 0 || fxV > 0) fixBarsFull = fxH + ' horizontal, ' + fxV + ' vertical';
+        let fxPattern = '';
+        const fxPatNames = { 'half-hub': 'Half Hub', 'hub-spoke': 'Hub & Spoke', 'double-hub-spoke': 'Double Hub', 'triple-hub-spoke': 'Triple Hub', 'intersecting': 'Intersecting', 'sunburst': 'Sunburst' };
+        if (fixSemiBarPattern !== 'none' && fxPatNames[fixSemiBarPattern]) fxPattern = ' + ' + fxPatNames[fixSemiBarPattern];
+        if (fixGothicBars !== 'none' && fxPatNames[fixGothicBars]) fxPattern = ' + ' + fxPatNames[fixGothicBars];
+        if (fixCircleBarPattern !== 'none' && fxPatNames[fixCircleBarPattern]) fxPattern = ' + ' + fxPatNames[fixCircleBarPattern];
+        if (fxPattern) {
+            fixBarsFull = (fixBarsFull === 'None' ? '' : fixBarsFull) + fxPattern;
+            if (fixBarsFull.startsWith(' + ')) fixBarsFull = fixBarsFull.substring(3);
+        }
+
+        // Fix spacer (uses 'spacer' key not 'spacerColor')
+        const fixSpacer = fc.spacer || fc.spacerColor || 'silver';
+        const fixSpacerText = fixSpacer === 'black' ? 'Black' : fixSpacer === 'white' ? 'White' : 'Silver (Stainless Steel)';
+
         return {
             fc, spec, windowType, sashType, headType, splitRatio,
             width, height, originalWidth, originalHeight, measurementType,
@@ -260,7 +286,8 @@ class EstimateRenderer {
             casementHBars, casementVBars, casementBarsText,
             sillExtension, sillText, trickleVent, trickleColour, trickleText,
             sealColour, safetyGlass, safetyGlassText,
-            glassSpecCasement, glassSpecCasementText, fanlightHeight
+            glassSpecCasement, glassSpecCasementText, fanlightHeight,
+            fixShape, fixType, fixCircleBarPattern, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText
         };
     }
 
@@ -336,6 +363,14 @@ class EstimateRenderer {
                             ${p.sillExtension !== 'none' ? R.specRow('Sill Projection', p.sillText) : ''}
                             ${R.specRow('Trickle Vent', p.trickleText)}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
+                            ` : p.windowType === 'fix-only' ? `
+                            ${R.specRow('Type', p.fixTypeText)}
+                            ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
+                            ${R.specRow('Glass', p.glassText)}
+                            ${R.specRow('Spacer Bar', p.fixSpacerText)}
+                            ${R.specRow('Glass Finish', p.glassFinishText)}
+                            ${R.specRow('Colour', p.colorDisplay)}
+                            ${R.specRow('Bars', p.fixBarsFull)}
                             ` : `
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
@@ -490,6 +525,11 @@ class EstimateRenderer {
         const windowType = fc.windowType || fc.windowCategory || 'sash';
         if (windowType === 'casement') {
             return EstimateRenderer.generateCasementSVG(item, fc);
+        }
+
+        // ═══ FIX-ONLY SVG ═══
+        if (windowType === 'fix-only') {
+            return EstimateRenderer.generateFixFrameSVG(item, fc);
         }
 
         // ═══ SASH SVG (existing code below) ═══
@@ -1208,6 +1248,127 @@ class EstimateRenderer {
         const totalH = dimY + 18;
         return `<svg width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
     }
+    // ─── Fix Frame SVG ───
+    static generateFixFrameSVG(item, fc) {
+        const w = fc.width || item.width || 1000;
+        const h = fc.height || item.height || 1500;
+        const shape = fc.fixShape || 'rectangle';
+        const hBars = fc.casementHBars || 0;
+        const vBars = fc.casementVBars || 0;
+        const semiPat = fc.fixSemiBarPattern || 'none';
+        const gothPat = fc.fixGothicBars || 'none';
+        const circlePat = fc.fixCircleBarPattern || 'none';
+
+        // Arch shapes → reuse arched casement SVG (no hinge)
+        if (shape === 'gothic-arch' || shape === 'semi-circle' || shape === 'segmental-arch' || shape === 'elliptical-arch') {
+            const fakeFc = Object.assign({}, fc, { casArchShape: shape, casArchHinge: null, casementHBars: hBars, casementVBars: vBars });
+            return EstimateRenderer.generateArchedCasementSVG(item, fakeFc);
+        }
+
+        const stroke = 'rgba(10,22,40,.7)';
+        const barStroke = 'rgba(10,22,40,.5)';
+        const dimColor = 'rgba(10,22,40,.45)';
+        const dimFont = `font-family="Jost,sans-serif" font-size="7" fill="${dimColor}"`;
+
+        const svgW = 260, drawW = 160;
+        const scale = drawW / w;
+        const drawH = Math.round(h * scale);
+        const ox = 50, oy = 10;
+        const fT = Math.max(57 * scale, 4);
+        const centerX = ox + drawW / 2;
+        const centerY = oy + drawH / 2;
+
+        let svg = '';
+
+        if (shape === 'circle') {
+            // ── Circle frame ──
+            const outerR = drawW / 2;
+            const innerR = outerR - fT;
+            const cy = oy + outerR; // center Y (circle fits in width)
+
+            svg += `<circle cx="${centerX}" cy="${cy}" r="${outerR}" fill="none" stroke="${stroke}" stroke-width="1.5"/>`;
+            svg += `<circle cx="${centerX}" cy="${cy}" r="${innerR}" fill="none" stroke="${stroke}" stroke-width="0.5"/>`;
+
+            // Sunburst pattern
+            if (circlePat === 'sunburst') {
+                const spokeCount = 12;
+                for (let i = 0; i < spokeCount; i++) {
+                    const a = (i / spokeCount) * Math.PI * 2;
+                    const ex = centerX + innerR * Math.cos(a);
+                    const ey = cy + innerR * Math.sin(a);
+                    svg += `<line x1="${centerX}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="${barStroke}" stroke-width="0.5"/>`;
+                }
+                // Inner ring
+                const ringR = innerR * 0.4;
+                svg += `<circle cx="${centerX}" cy="${cy}" r="${ringR}" fill="none" stroke="${barStroke}" stroke-width="0.5"/>`;
+            }
+
+            // Regular bars (cross pattern)
+            if (circlePat === 'none') {
+                for (let i = 1; i <= hBars; i++) {
+                    const by = cy - innerR + (2 * innerR / (hBars + 1)) * i;
+                    const dx = Math.sqrt(Math.max(0, innerR * innerR - (by - cy) * (by - cy)));
+                    svg += `<line x1="${centerX - dx}" y1="${by}" x2="${centerX + dx}" y2="${by}" stroke="${barStroke}" stroke-width="0.4"/>`;
+                }
+                for (let i = 1; i <= vBars; i++) {
+                    const bx = centerX - innerR + (2 * innerR / (vBars + 1)) * i;
+                    const dy = Math.sqrt(Math.max(0, innerR * innerR - (bx - centerX) * (bx - centerX)));
+                    svg += `<line x1="${bx}" y1="${cy - dy}" x2="${bx}" y2="${cy + dy}" stroke="${barStroke}" stroke-width="0.4"/>`;
+                }
+            }
+
+            // Dimensions
+            const dimY = oy + outerR * 2 + 8;
+            const tickH = 3;
+            svg += `<line x1="${ox}" y1="${dimY}" x2="${ox + drawW}" y2="${dimY}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${ox}" y1="${dimY - tickH}" x2="${ox}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${ox + drawW}" y1="${dimY - tickH}" x2="${ox + drawW}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<text x="${centerX}" y="${dimY + 12}" ${dimFont} text-anchor="middle">${w}mm</text>`;
+
+            const totalH = dimY + 18;
+            return `<svg width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
+
+        } else {
+            // ── Rectangle frame ──
+            const ix = ox + fT, iy = oy + fT;
+            const iw = drawW - fT * 2, ih = drawH - fT * 2;
+
+            svg += `<rect x="${ox}" y="${oy}" width="${drawW}" height="${drawH}" fill="none" stroke="${stroke}" stroke-width="1.5"/>`;
+            svg += `<rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" fill="none" stroke="${stroke}" stroke-width="0.5"/>`;
+
+            // X cross (fixed window indicator)
+            svg += `<line x1="${ix + 2}" y1="${iy + 2}" x2="${ix + iw - 2}" y2="${iy + ih - 2}" stroke="rgba(10,22,40,.15)" stroke-width="0.5"/>`;
+            svg += `<line x1="${ix + iw - 2}" y1="${iy + 2}" x2="${ix + 2}" y2="${iy + ih - 2}" stroke="rgba(10,22,40,.15)" stroke-width="0.5"/>`;
+
+            // Bars
+            for (let i = 1; i <= hBars; i++) {
+                const by = iy + (ih / (hBars + 1)) * i;
+                svg += `<line x1="${ix}" y1="${by}" x2="${ix + iw}" y2="${by}" stroke="${barStroke}" stroke-width="0.4"/>`;
+            }
+            for (let i = 1; i <= vBars; i++) {
+                const bx = ix + (iw / (vBars + 1)) * i;
+                svg += `<line x1="${bx}" y1="${iy}" x2="${bx}" y2="${iy + ih}" stroke="${barStroke}" stroke-width="0.4"/>`;
+            }
+
+            // Dimensions
+            const dimY = oy + drawH + 8;
+            const tickH = 3;
+            svg += `<line x1="${ox}" y1="${dimY}" x2="${ox + drawW}" y2="${dimY}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${ox}" y1="${dimY - tickH}" x2="${ox}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${ox + drawW}" y1="${dimY - tickH}" x2="${ox + drawW}" y2="${dimY + tickH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<text x="${centerX}" y="${dimY + 12}" ${dimFont} text-anchor="middle">${w}mm</text>`;
+
+            const hDimX = ox + drawW + 8;
+            svg += `<line x1="${hDimX}" y1="${oy}" x2="${hDimX}" y2="${oy + drawH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${hDimX - tickH}" y1="${oy}" x2="${hDimX + tickH}" y2="${oy}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<line x1="${hDimX - tickH}" y1="${oy + drawH}" x2="${hDimX + tickH}" y2="${oy + drawH}" stroke="${dimColor}" stroke-width="0.5"/>`;
+            svg += `<text x="${hDimX + 3}" y="${oy + drawH / 2 + 2}" ${dimFont} transform="rotate(-90,${hDimX + 3},${oy + drawH / 2})">${h}mm</text>`;
+
+            const totalH = dimY + 18;
+            return `<svg width="${svgW}" height="${totalH}" viewBox="0 0 ${svgW} ${totalH}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
+        }
+    }
+
     // Panel layout definitions for casement SVG
     static _casementPanels(code, iw, ih, mW, FR) {
         const half = (iw - mW) / 2;
@@ -1601,6 +1762,14 @@ class EstimateRenderer {
                     if (p.sillExtension !== 'none') specs.push(['Sill Projection', p.sillText]);
                     specs.push(['Trickle Vent', p.trickleText]);
                     if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                } else if (p.windowType === 'fix-only') {
+                    specs.push(['Type', p.fixTypeText]);
+                    specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+                    specs.push(['Glass', p.glassText]);
+                    specs.push(['Spacer Bar', p.fixSpacerText]);
+                    specs.push(['Glass Finish', p.glassFinishText]);
+                    specs.push(['Colour', p.colorDisplay]);
+                    specs.push(['Bars', p.fixBarsFull]);
                 } else {
                     if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
                     if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
@@ -1636,7 +1805,7 @@ class EstimateRenderer {
                     </div>
                 `).join('');
 
-                const typeLabel = p.windowType === 'casement' ? 'Casement' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+                const typeLabel = p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
                 const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
 
                 blocks.push(`
@@ -1767,6 +1936,14 @@ class EstimateRenderer {
                 if (p.sillExtension !== 'none') specs.push(['Sill Projection', p.sillText]);
                 specs.push(['Trickle Vent', p.trickleText]);
                 if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+            } else if (p.windowType === 'fix-only') {
+                specs.push(['Type', p.fixTypeText]);
+                specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+                specs.push(['Glass', p.glassText]);
+                specs.push(['Spacer Bar', p.fixSpacerText]);
+                specs.push(['Glass Finish', p.glassFinishText]);
+                specs.push(['Colour', p.colorDisplay]);
+                specs.push(['Bars', p.fixBarsFull]);
             } else {
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
@@ -1802,7 +1979,7 @@ class EstimateRenderer {
                 </div>
             `).join('');
 
-            const typeLabel = p.windowType === 'casement' ? 'Casement' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+            const typeLabel = p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
             const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
 
             return `
@@ -1899,7 +2076,7 @@ class EstimateRenderer {
 
             estimate.estimate_items?.forEach(item => {
                 const p = R.parseItemForExport(item);
-                const typeLabel = p.windowType === 'casement' ? 'Casement' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+                const typeLabel = p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
                 const headLabel = p.headType !== 'flat' ? ` (${p.headType})` : '';
                 wsData.push([
                     item.window_number,
