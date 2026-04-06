@@ -860,12 +860,13 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     const items = [];
     const glassW = iHalfW * 2;
     if (isHub) {
-      // V bars: hub=2, double=4 — evenly spaced, matching spoke sectors
+      // V bars at X positions matching where spokes meet the arch (frame edge)
       const belowH = springY - iBottom;
-      const nBars = isDouble ? 4 : 2;
       if (belowH > 0) {
-        for (let i = 1; i <= nBars; i++) {
-          const x = -iHalfW + (iHalfW * 2 / (nBars + 1)) * i;
+        for (const angle of spokeAngles) {
+          // Skip frame edge spokes (0° and 180°)
+          if (angle < 0.05 || angle > Math.PI - 0.05) continue;
+          const x = iHalfW * Math.cos(angle);
           items.push({ type: 'v', x, y: iBottom + belowH / 2, len: belowH });
         }
       }
