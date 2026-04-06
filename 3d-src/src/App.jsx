@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import ParametricSashWindow from './components/ParametricSashWindow';
 import CasementWindow from './components/casement/CasementWindow';
+import ArchedCasementWindow from './components/casement/ArchedCasementWindow';
 import FixFrameWindow from './components/fix-frame/FixFrameWindow';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -589,7 +590,29 @@ function Scene({ config, isMobile }) {
 
       <group position={[0, 0.18, 0]}>
           <group onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
-            {config.windowCategory === 'casement' ? (
+            {config.windowCategory === 'casement' && config.casementType === 'arched' ? (
+              <ArchedCasementWindow
+                width={config.extWidth}
+                height={config.extHeight}
+                archShape={config.casArchShape || 'semi-circle'}
+                hingeDirection={config.casArchHinge || 'left'}
+                opening={config.casementOpening || 0}
+                woodColor={config.woodColor}
+                woodColorExt={config.woodColorExt}
+                woodColorInt={config.woodColorInt}
+                sameColor={config.sameColor}
+                spacerColor={config.spacerColor}
+                glassFinish={config.glassFinish || 'clear'}
+                hBars={config.casementHBars || 0}
+                vBars={config.casementVBars || 0}
+                showGuides={config.showGuides}
+                brightness={config.brightness}
+                ironmongery={config.ironmongery}
+                sealColour={config.sealColour || 'black'}
+                fixSemiBarPattern={config.fixSemiBarPattern || 'none'}
+                fixGothicBars={config.fixGothicBars || 'none'}
+              />
+            ) : config.windowCategory === 'casement' ? (
               <CasementWindow
                 width={config.extWidth}
                 height={config.extHeight}
@@ -720,6 +743,9 @@ export default function App() {
   const [windowCategory, setWindowCategory] = useState('sash'); // 'sash' | 'casement' | 'doors' | ...
   const [casementLayout, setCasementLayout] = useState('040L');
   const [casementOpening, setCasementOpening] = useState(0);
+  const [casementType, setCasementType] = useState('standard'); // standard / arched
+  const [casArchShape, setCasArchShape] = useState('semi-circle');
+  const [casArchHinge, setCasArchHinge] = useState('left');
   const [fanlightRatio, setFanlightRatio] = useState(0.3);
   const [casementHBars, setCasementHBars] = useState(0);
   const [casementVBars, setCasementVBars] = useState(0);
@@ -749,7 +775,7 @@ export default function App() {
 
   // Capture current state snapshot
   function captureState() {
-    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern };
+    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge };
   }
 
   // Restore state from bucket
@@ -878,6 +904,9 @@ export default function App() {
       if (cfg.fixCircleBarPattern !== undefined) setFixCircleBarPattern(cfg.fixCircleBarPattern);
       if (cfg.fixCircleBarOffset !== undefined) setFixCircleBarOffset(cfg.fixCircleBarOffset);
       if (cfg.fixSemiBarPattern !== undefined) setFixSemiBarPattern(cfg.fixSemiBarPattern);
+      if (cfg.casementType !== undefined) setCasementType(cfg.casementType);
+      if (cfg.casArchShape !== undefined) setCasArchShape(cfg.casArchShape);
+      if (cfg.casArchHinge !== undefined) setCasArchHinge(cfg.casArchHinge);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -937,8 +966,11 @@ export default function App() {
       fixCircleBarPattern,
       fixCircleBarOffset,
       fixSemiBarPattern,
+      casementType,
+      casArchShape,
+      casArchHinge,
     }),
-    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern],
+    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge],
   );
 
   return (

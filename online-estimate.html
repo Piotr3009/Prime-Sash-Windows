@@ -3532,6 +3532,21 @@
           var isArched = r.value === 'arched';
           if (casStandardDiv) casStandardDiv.style.display = isArched ? 'none' : '';
           if (casArchedDiv) casArchedDiv.style.display = isArched ? '' : 'none';
+          if (window.update3D) window.update3D({ casementType: r.value });
+        });
+      });
+
+      // ── Arched casement: shape + hinge ──
+      var casArchShapeRadios = document.querySelectorAll('input[name="cas-arch-shape"]');
+      casArchShapeRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          if (window.update3D) window.update3D({ casArchShape: r.value });
+        });
+      });
+      var casArchOpenRadios = document.querySelectorAll('input[name="cas-arch-opening"]');
+      casArchOpenRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          if (window.update3D) window.update3D({ casArchHinge: r.value });
         });
       });
 
