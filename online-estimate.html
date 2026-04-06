@@ -4117,6 +4117,12 @@
         var patNames = { 'half-hub': 'Half Hub', 'hub-spoke': 'Hub & Spoke', 'double-hub-spoke': 'Double Hub', 'triple-hub-spoke': 'Triple Hub', 'intersecting': 'Intersecting' };
         if (shape === 'semi-circle' && semiPat && semiPat !== 'none') patternText = ' + ' + (patNames[semiPat] || semiPat);
         if (shape === 'gothic-arch' && gothPat && gothPat !== 'none') patternText = ' + ' + (patNames[gothPat] || gothPat);
+        var circlePat = (document.querySelector('input[name="f-circle-bars"]:checked') || {}).value;
+        if (shape === 'circle' && circlePat && circlePat !== 'none') {
+          patternText = ' + Sunburst';
+          var circleOffset = document.getElementById('f-circle-offset');
+          if (circleOffset) patternText += ' (Offset: ' + circleOffset.value + 'mm)';
+        }
 
         var specBars = document.getElementById('spec-bars');
         if (specBars) {
@@ -4126,7 +4132,8 @@
             if (upperLabel) {
               var labelEl = upperLabel.previousElementSibling;
               if (labelEl) labelEl.textContent = 'Bars:';
-              upperLabel.textContent = hb + ' horizontal, ' + vb + ' vertical' + patternText;
+              var barsLabel = (hb > 0 || vb > 0) ? hb + ' horizontal, ' + vb + ' vertical' : '';
+              upperLabel.textContent = barsLabel ? barsLabel + patternText : patternText.replace(/^ \+ /, '');
             }
             var lowerItem = document.getElementById('spec-lower-bars');
             if (lowerItem) lowerItem.parentElement.style.display = 'none';
