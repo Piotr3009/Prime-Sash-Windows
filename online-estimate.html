@@ -3546,6 +3546,11 @@
           if (casStandardDiv) casStandardDiv.style.display = isArched ? 'none' : '';
           if (casArchedDiv) casArchedDiv.style.display = isArched ? '' : 'none';
           if (window.update3D) window.update3D({ casementType: r.value });
+          // Min dimensions: 300 for arched (same as fix), 400 for standard
+          var cw = document.getElementById('c-width');
+          var ch = document.getElementById('c-height');
+          if (cw) cw.min = isArched ? '300' : '400';
+          if (ch) ch.min = isArched ? '300' : '400';
         });
       });
 

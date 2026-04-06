@@ -259,21 +259,24 @@ export default function ArchedCasementWindow({
     if (!pts) return null;
     const frameGeo = makeFrameGeo(pts.outer, pts.inner, pts.innerRebated);
 
-    // Gasket: thin strip on rebate face (inner boundary offset 19mm inward)
-    // Compute gasket inner by offsetting inner points toward centroid
-    const gInner = pts.inner;
+    // Gasket: strip ON rebate step surface (same as CasementFrame)
+    // Outer edge = innerRebated (36mm offset = rebate boundary)
+    // Inner edge = inward by GASKET_W (19mm)
+    const gOuter = pts.innerRebated;
     let cx = 0, cy = 0;
-    for (const p of gInner) { cx += p[0]; cy += p[1]; }
-    cx /= gInner.length; cy /= gInner.length;
+    for (const p of gOuter) { cx += p[0]; cy += p[1]; }
+    cx /= gOuter.length; cy /= gOuter.length;
     const gw = mm(GASKET_W);
-    const gasketInnerPts = gInner.map(p => {
+    const gasketInnerPts = gOuter.map(p => {
       const dx = p[0] - cx, dy = p[1] - cy;
       const len = Math.sqrt(dx * dx + dy * dy) || 1;
       return [p[0] - dx / len * gw, p[1] - dy / len * gw];
     });
-    const gasketShape = makeShapeWithHole(gInner, gasketInnerPts);
-    const gasketGeo = new THREE.ExtrudeGeometry(gasketShape, { depth: mm(GASKET_T), bevelEnabled: false });
-    const gZ = mm(FRAME_DEPTH) / 2 - mm(EXT_DEPTH);
+    const gasketShape = makeShapeWithHole(gOuter, gasketInnerPts);
+    const gt = mm(GASKET_T);
+    const gasketGeo = new THREE.ExtrudeGeometry(gasketShape, { depth: gt, bevelEnabled: false });
+    // Z: sits on rebate face, projects toward exterior (same as CasementFrame gZ)
+    const gZ = mm(FRAME_DEPTH) / 2 - mm(EXT_DEPTH) - gt / 2;
     gasketGeo.translate(0, 0, gZ);
     gasketGeo.computeVertexNormals();
 
