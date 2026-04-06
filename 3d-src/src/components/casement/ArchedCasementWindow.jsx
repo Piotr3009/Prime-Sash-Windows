@@ -5,7 +5,7 @@
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import { FRAME_FACE, FRAME_DEPTH, EXT_DEPTH, REBATE_STEP, BOTTOM_FACE, GASKET_T, mm } from './CasementFrame';
+import { FRAME_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, BOTTOM_FACE, GASKET_T, mm } from './CasementFrame';
 import FixFrameWindow from '../fix-frame/FixFrameWindow';
 
 const LEAF_GAP = 4; // mm gap between leaf and frame
@@ -23,8 +23,14 @@ function arcPoints(cx, cy, r, startAngle, endAngle, segs) {
   return pts;
 }
 
-// ── Frame geometry from outer + inner point arrays ──
-function makeFrameGeo(outerPts, innerPts, depth) {
+// ── Frame geometry with REBATE (2 layers like CasementFrame) ──
+// EXT layer: outer → inner (FRAME_FACE offset), depth = EXT_DEPTH
+// INT layer: outer → innerRebated (EXT_FACE offset = less inset = larger opening), depth = INT_DEPTH
+// This creates the rebate step where leaf sits
+const EXT_FACE_W = FRAME_FACE - REBATE_STEP; // 36mm
+const BOTTOM_INNER = BOTTOM_FACE - REBATE_STEP; // 47mm
+
+function makeShapeWithHole(outerPts, innerPts) {
   const shape = new THREE.Shape();
   shape.moveTo(outerPts[0][0], outerPts[0][1]);
   for (let i = 1; i < outerPts.length; i++) shape.lineTo(outerPts[i][0], outerPts[i][1]);
@@ -34,58 +40,87 @@ function makeFrameGeo(outerPts, innerPts, depth) {
   for (let i = 1; i < innerPts.length; i++) hole.lineTo(innerPts[i][0], innerPts[i][1]);
   hole.closePath();
   shape.holes.push(hole);
+  return shape;
+}
 
-  // Two half-depth geometries for dual color
-  const halfD = depth / 2;
-  const ext = new THREE.ExtrudeGeometry(shape, { depth: halfD, bevelEnabled: false });
-  ext.translate(0, 0, 0);
+function makeFrameGeo(outerPts, innerPts, innerRebatedPts) {
+  const halfD = mm(FRAME_DEPTH) / 2;
+  const extD = mm(EXT_DEPTH);
+  const intD = mm(INT_DEPTH);
+
+  // EXT layer: outer → inner, positioned at front
+  const extShape = makeShapeWithHole(outerPts, innerPts);
+  const ext = new THREE.ExtrudeGeometry(extShape, { depth: extD, bevelEnabled: false });
+  ext.translate(0, 0, halfD - extD);
   ext.computeVertexNormals();
-  const int = new THREE.ExtrudeGeometry(shape, { depth: halfD, bevelEnabled: false });
-  int.translate(0, 0, -halfD);
-  int.computeVertexNormals();
-  return { ext, int };
+
+  // INT layer: outer → innerRebated (larger opening), positioned at back
+  const intShape = makeShapeWithHole(outerPts, innerRebatedPts);
+  const intGeo = new THREE.ExtrudeGeometry(intShape, { depth: intD, bevelEnabled: false });
+  intGeo.translate(0, 0, -halfD);
+  intGeo.computeVertexNormals();
+
+  return { ext, int: intGeo };
 }
 
 // ── Arch shape point generators for OUTER FRAME ──
 // Copied from FixFrameWindow shape logic, using CasementFrame dims (FRAME_FACE=57, BOTTOM_FACE=68)
 function semiCirclePoints(width, height) {
   const W = mm(width), H = mm(height), fw = mm(FRAME_FACE), bw = mm(BOTTOM_FACE);
+  const fwr = mm(EXT_FACE_W), bwr = mm(BOTTOM_INNER);
   const halfW = W / 2;
   const springY = -H / 2 + Math.max(H - halfW, mm(50));
+  // EXT inner (FRAME_FACE offset)
   const iHalfW = halfW - fw;
   const iBottom = -H / 2 + bw;
+  // INT inner (EXT_FACE offset = less inset = larger opening for rebate)
+  const rHalfW = halfW - fwr;
+  const rBottom = -H / 2 + bwr;
+
   const outerArc = arcPoints(0, springY, halfW, 0, Math.PI, SEGS);
   const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...outerArc, [-halfW, springY]];
   const innerArc = arcPoints(0, springY, iHalfW, 0, Math.PI, SEGS);
   const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
-  return { outer, inner };
+  const rebatedArc = arcPoints(0, springY, rHalfW, 0, Math.PI, SEGS);
+  const innerRebated = [[-rHalfW, rBottom], [rHalfW, rBottom], [rHalfW, springY], ...rebatedArc, [-rHalfW, springY]];
+  return { outer, inner, innerRebated };
 }
 
 function gothicPoints(width, height) {
   const W = mm(width), H = mm(height), fw = mm(FRAME_FACE), bw = mm(BOTTOM_FACE);
+  const fwr = mm(EXT_FACE_W), bwr = mm(BOTTOM_INNER);
   const halfW = W / 2;
   const archRise = W * Math.sqrt(3) / 2;
   const effectiveH = Math.max(H, mm(Math.round(width * Math.sqrt(3) / 2)) + mm(50));
   const straightWall = Math.max(effectiveH - archRise, mm(50));
   const springY = -effectiveH / 2 + straightWall;
-  const iHalfW = halfW - fw;
-  const Ri = W - fw;
-  const iBottom = -effectiveH / 2 + bw;
 
-  // Exact same arc logic as GothicArchFrame
   const rightArc = arcPoints(-halfW, springY, W, 0, Math.PI / 3, SEGS);
   const leftArc = arcPoints(halfW, springY, W, 2 * Math.PI / 3, Math.PI, SEGS);
   const outer = [[-halfW, -effectiveH/2], [halfW, -effectiveH/2], [halfW, springY], ...rightArc, ...leftArc, [-halfW, springY]];
 
+  // EXT inner
+  const iHalfW = halfW - fw;
+  const Ri = W - fw;
+  const iBottom = -effectiveH / 2 + bw;
   const iRightArc = arcPoints(-halfW, springY, Ri, 0, Math.PI / 3, SEGS);
   const iLeftArc = arcPoints(halfW, springY, Ri, 2 * Math.PI / 3, Math.PI, SEGS);
   const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...iRightArc, ...iLeftArc, [-iHalfW, springY]];
 
-  return { outer, inner };
+  // INT innerRebated (larger opening)
+  const rHalfW = halfW - fwr;
+  const Rr = W - fwr;
+  const rBottom = -effectiveH / 2 + bwr;
+  const rRightArc = arcPoints(-halfW, springY, Rr, 0, Math.PI / 3, SEGS);
+  const rLeftArc = arcPoints(halfW, springY, Rr, 2 * Math.PI / 3, Math.PI, SEGS);
+  const innerRebated = [[-rHalfW, rBottom], [rHalfW, rBottom], [rHalfW, springY], ...rRightArc, ...rLeftArc, [-rHalfW, springY]];
+
+  return { outer, inner, innerRebated };
 }
 
 function segmentalPoints(width, height) {
   const W = mm(width), H = mm(height), fw = mm(FRAME_FACE), bw = mm(BOTTOM_FACE);
+  const fwr = mm(EXT_FACE_W), bwr = mm(BOTTOM_INNER);
   const halfW = W / 2;
   const rise = halfW * 0.4;
   const R = (rise * rise + halfW * halfW) / (2 * rise);
@@ -96,6 +131,7 @@ function segmentalPoints(width, height) {
   const topArc = arcPoints(0, cy, R, Math.PI / 2 - startAngle, Math.PI / 2 + startAngle, SEGS);
   const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...topArc, [-halfW, springY]];
 
+  // EXT inner
   const iHalfW = halfW - fw;
   const iBottom = -H / 2 + bw;
   const iRise = Math.max(rise - fw, mm(10));
@@ -105,16 +141,25 @@ function segmentalPoints(width, height) {
   const innerArc = arcPoints(0, iCY, iR, Math.PI / 2 - iAngle, Math.PI / 2 + iAngle, SEGS);
   const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
 
-  return { outer, inner };
+  // INT innerRebated
+  const rHalfW = halfW - fwr;
+  const rBottom = -H / 2 + bwr;
+  const rRise = Math.max(rise - fwr, mm(10));
+  const rR = (rRise * rRise + rHalfW * rHalfW) / (2 * rRise);
+  const rCY = springY - (rR - rRise);
+  const rAngle = Math.asin(Math.min(rHalfW / rR, 1));
+  const rebatedArc = arcPoints(0, rCY, rR, Math.PI / 2 - rAngle, Math.PI / 2 + rAngle, SEGS);
+  const innerRebated = [[-rHalfW, rBottom], [rHalfW, rBottom], [rHalfW, springY], ...rebatedArc, [-rHalfW, springY]];
+
+  return { outer, inner, innerRebated };
 }
 
 function ellipticalPoints(width, height) {
   const W = mm(width), H = mm(height), fw = mm(FRAME_FACE), bw = mm(BOTTOM_FACE);
+  const fwr = mm(EXT_FACE_W), bwr = mm(BOTTOM_INNER);
   const halfW = W / 2;
   const rise = halfW * 0.65;
   const springY = -H / 2 + Math.max(H - rise, mm(50));
-  const iHalfW = halfW - fw;
-  const iBottom = -H / 2 + bw;
 
   function ellipseArc(a, b, cY, segments) {
     const pts = [];
@@ -127,11 +172,22 @@ function ellipticalPoints(width, height) {
 
   const outerArc = ellipseArc(halfW, rise, springY, SEGS);
   const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...outerArc, [-halfW, springY]];
+
+  // EXT inner
+  const iHalfW = halfW - fw;
+  const iBottom = -H / 2 + bw;
   const iRise = Math.max(rise - fw, mm(10));
   const innerArc = ellipseArc(iHalfW, iRise, springY, SEGS);
   const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
 
-  return { outer, inner };
+  // INT innerRebated
+  const rHalfW = halfW - fwr;
+  const rBottom = -H / 2 + bwr;
+  const rRise = Math.max(rise - fwr, mm(10));
+  const rebatedArc = ellipseArc(rHalfW, rRise, springY, SEGS);
+  const innerRebated = [[-rHalfW, rBottom], [rHalfW, rBottom], [rHalfW, springY], ...rebatedArc, [-rHalfW, springY]];
+
+  return { outer, inner, innerRebated };
 }
 
 // ── Main component ──
@@ -180,8 +236,8 @@ export default function ArchedCasementWindow({
     else if (archShape === 'elliptical-arch') pts = ellipticalPoints(width, height);
     else return null;
     if (!pts) return null;
-    return makeFrameGeo(pts.outer, pts.inner, D);
-  }, [archShape, width, height, D]);
+    return makeFrameGeo(pts.outer, pts.inner, pts.innerRebated);
+  }, [archShape, width, height]);
 
   // ── Leaf dimensions ──
   // Leaf = inner opening + rebate overlap - gap
