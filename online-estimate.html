@@ -2263,7 +2263,7 @@
       </div>
 
       <!-- C-STEP 2: GEORGIAN BARS -->
-      <div class="config-section" data-for="casement" data-category="dim-design" style="display:none;">
+      <div class="config-section" data-for="casement" data-category="dim-design" id="casement-bars-section" style="display:none;">
         <h3>Step 2: Georgian Bars</h3>
         <p style="font-size:0.75rem; color:var(--secondary-color); margin-bottom:10px;">Bars apply to main (large) panes only. Fanlights have no bars.</p>
         <div class="input-group">
@@ -2459,7 +2459,7 @@
       </div>
 
       <!-- ═══════ FIX FRAME: Bars ═══════ -->
-      <div class="config-section" data-for="fix-only" data-category="dim-design" style="display:none;">
+      <div class="config-section" data-for="fix-only" data-category="dim-design" id="fix-bars-design-section" style="display:none;">
         <h3>Step 2: Georgian Bars</h3>
         <div class="input-group">
           <label>Horizontal Bars:</label>
@@ -3166,6 +3166,19 @@
       var isTriple = !isCasement && (document.querySelector('input[name="sash-type"]:checked') || {}).value === 'triple';
       var fbs = document.getElementById('fix-bars-section');
       if (fbs) fbs.style.display = isTriple ? 'block' : 'none';
+
+      // Arched casement: show fix-frame bars instead of casement bars
+      var isArched = isCasement && (document.querySelector('input[name="casement-type"]:checked') || {}).value === 'arched';
+      var casBarsSec = document.getElementById('casement-bars-section');
+      var fixBarsSec = document.getElementById('fix-bars-design-section');
+      if (isArched) {
+        if (casBarsSec) casBarsSec.style.display = 'none';
+        if (fixBarsSec) fixBarsSec.style.display = 'block';
+        // Also trigger shape-specific bar pattern visibility
+        if (typeof updateDesignBarsVisibility === 'function') updateDesignBarsVisibility();
+      } else if (isCasement) {
+        if (fixBarsSec) fixBarsSec.style.display = 'none';
+      }
     }
   }
   
@@ -3541,6 +3554,7 @@
       casArchShapeRadios.forEach(function(r) {
         r.addEventListener('change', function() {
           if (window.update3D) window.update3D({ casArchShape: r.value });
+          updateDesignBarsVisibility();
         });
       });
       var casArchOpenRadios = document.querySelectorAll('input[name="cas-arch-opening"]');
@@ -3695,8 +3709,20 @@
       if (fixHeight) fixHeight.addEventListener('input', onDimChange);
 
       // Bars → 3D
-      fixHbars.forEach(function(r) { r.addEventListener('change', update3DFix); });
-      fixVbars.forEach(function(r) { r.addEventListener('change', update3DFix); });
+      fixHbars.forEach(function(r) { r.addEventListener('change', function() {
+        var casType = (document.querySelector('input[name="casement-type"]:checked') || {}).value;
+        if (casType === 'arched') {
+          var hb = parseInt((document.querySelector('input[name="f-hbars"]:checked') || {}).value) || 0;
+          if (window.update3D) window.update3D({ casementHBars: hb });
+        } else { update3DFix(); }
+      }); });
+      fixVbars.forEach(function(r) { r.addEventListener('change', function() {
+        var casType = (document.querySelector('input[name="casement-type"]:checked') || {}).value;
+        if (casType === 'arched') {
+          var vb = parseInt((document.querySelector('input[name="f-vbars"]:checked') || {}).value) || 0;
+          if (window.update3D) window.update3D({ casementVBars: vb });
+        } else { update3DFix(); }
+      }); });
 
       // ── Glass/Spacer/Colour listeners ──
       var fGlazRadios = document.querySelectorAll('input[name="f-glazing"]');
@@ -3742,6 +3768,11 @@
 
       function updateDesignBarsVisibility() {
         var shape = getFixShape();
+        // Also check arched casement shape
+        var casType = (document.querySelector('input[name="casement-type"]:checked') || {}).value || 'standard';
+        if (casType === 'arched') {
+          shape = (document.querySelector('input[name="cas-arch-shape"]:checked') || {}).value || 'semi-circle';
+        }
         if (fGothicDesign) fGothicDesign.style.display = (shape === 'gothic-arch') ? '' : 'none';
         if (fCircleDesign) fCircleDesign.style.display = (shape === 'circle') ? '' : 'none';
         if (fSemiDesign) fSemiDesign.style.display = (shape === 'semi-circle') ? '' : 'none';
