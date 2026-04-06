@@ -827,6 +827,7 @@
   // Expose globally
   window.getCasementConfig = getCasementConfig;
   window.updateCasement3D = updateCasement3D;
+  window.updateCasementSpec = updateSpecPanel;
 
   // ─── Init ───
   function init() {
