@@ -883,7 +883,7 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
   }, [hBars, vBars, iHalfW, iBottom, springY, isHub]);
 
   // ── Hub & Spoke ──
-  const HUB_STEPS = 64;
+
   const hubData = useMemo(() => {
     if (!isHub) return null;
     const isDouble = semiBarPattern === 'double-hub-spoke';
@@ -894,40 +894,70 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     const spokeAngles = [];
     for (let i = 0; i <= nSpokes - 1; i++) spokeAngles.push((i / (nSpokes - 1)) * Math.PI);
 
-    function makeHalfRing(outerR, innerR, d) {
-      const shape = new THREE.Shape();
-      const oPts = arcPoints(0, springY, outerR, 0, Math.PI, 32);
-      shape.moveTo(oPts[0][0], oPts[0][1]);
-      for (let i = 1; i < oPts.length; i++) shape.lineTo(oPts[i][0], oPts[i][1]);
-      const iPts = arcPoints(0, springY, innerR, 0, Math.PI, 32);
-      for (let i = iPts.length - 1; i >= 0; i--) shape.lineTo(iPts[i][0], iPts[i][1]);
-      shape.closePath();
-      const g = new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false });
-      g.computeVertexNormals();
-      return g;
+    // Half-ring as STRIP along semicircle path (same approach as Gothic intersecting)
+    function semiArcPts(radius, nPts) {
+      const pts = [];
+      for (let i = 0; i <= nPts; i++) {
+        const angle = (i / nPts) * Math.PI;
+        pts.push([radius * Math.cos(angle), springY + radius * Math.sin(angle)]);
+      }
+      return pts;
     }
 
+    function ptsToStrip(pts, hw) {
+      if (pts.length < 3) return null;
+      const leftEdge = [], rightEdge = [];
+      for (let i = 0; i < pts.length; i++) {
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(pts.length - 1, i + 1)];
+        const dx = next[0] - prev[0], dy = next[1] - prev[1];
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        const nx = -dy / len * hw, ny = dx / len * hw;
+        leftEdge.push([pts[i][0] + nx, pts[i][1] + ny]);
+        rightEdge.push([pts[i][0] - nx, pts[i][1] - ny]);
+      }
+      const shape = new THREE.Shape();
+      shape.moveTo(leftEdge[0][0], leftEdge[0][1]);
+      for (let i = 1; i < leftEdge.length; i++) shape.lineTo(leftEdge[i][0], leftEdge[i][1]);
+      for (let i = rightEdge.length - 1; i >= 0; i--) shape.lineTo(rightEdge[i][0], rightEdge[i][1]);
+      shape.closePath();
+      return shape;
+    }
+
+    const RING_STEPS = 64;
     function buildRingLayers(hubR) {
-      const layerD = BAR_H / HUB_STEPS;
+      const centerline = semiArcPts(hubR, 48);
+      const layerD = BAR_H / RING_STEPS;
       const extLayers = [];
-      for (let i = 0; i < HUB_STEPS; i++) {
-        const t = i / (HUB_STEPS - 1);
+      for (let i = 0; i < RING_STEPS; i++) {
+        const t = i / (RING_STEPS - 1);
         const hw = (BAR_W / 2) * (1 - t) + (BAR_TOP / 2) * t;
-        const g = makeHalfRing(hubR + hw, hubR - hw, layerD);
+        const s = ptsToStrip(centerline, hw);
+        if (!s) continue;
+        const g = new THREE.ExtrudeGeometry(s, { depth: layerD, bevelEnabled: false });
         g.translate(0, 0, glassHalf + i * layerD);
+        g.computeVertexNormals();
         extLayers.push(g);
       }
       const intLayers = [];
-      for (let i = 0; i < HUB_STEPS; i++) {
-        const t = (i + 1) / HUB_STEPS;
+      for (let i = 0; i < RING_STEPS; i++) {
+        const t = (i + 1) / RING_STEPS;
         const hw = Math.max((BAR_W / 2) * Math.cos(t * Math.PI / 2), BAR_TOP / 2);
-        const g = makeHalfRing(hubR + hw, hubR - hw, layerD);
+        const s = ptsToStrip(centerline, hw);
+        if (!s) continue;
+        const g = new THREE.ExtrudeGeometry(s, { depth: layerD, bevelEnabled: false });
         g.translate(0, 0, -(glassHalf + (i + 1) * layerD));
+        g.computeVertexNormals();
         intLayers.push(g);
       }
-      const spacerG = makeHalfRing(hubR + SPACER_BAR_W / 2, hubR - SPACER_BAR_W / 2, SPACER_DEPTH);
-      spacerG.translate(0, 0, -SPACER_DEPTH / 2);
-      return { extLayers, intLayers, spacerG };
+      const ss = ptsToStrip(centerline, SPACER_BAR_W / 2);
+      let spacerGeo = null;
+      if (ss) {
+        spacerGeo = new THREE.ExtrudeGeometry(ss, { depth: SPACER_DEPTH, bevelEnabled: false });
+        spacerGeo.translate(0, 0, -SPACER_DEPTH / 2);
+        spacerGeo.computeVertexNormals();
+      }
+      return { extLayers, intLayers, spacerGeo };
     }
 
     const ring1 = buildRingLayers(hubR1);
@@ -995,7 +1025,7 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
         {ring.intLayers.map((g, i) => (
           <mesh key={'ri' + i} geometry={g} castShadow receiveShadow><primitive object={matInt || mat} attach="material" /></mesh>
         ))}
-        <mesh geometry={ring.spacerG} castShadow receiveShadow><primitive object={spacerBarMat} attach="material" /></mesh>
+        {ring.spacerGeo && <mesh geometry={ring.spacerGeo} castShadow receiveShadow><primitive object={spacerBarMat} attach="material" /></mesh>}
       </group>
     );
   }
@@ -1023,13 +1053,6 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       <ContourBeads innerPts={innerPts} D={D} matExt={mat} matInt={matInt || mat} />
       <CurvedGlass innerPts={innerPts} glassMat={glassMat} spacerColor={spacerColor} />
       {bars.length > 0 && <FixBars barItems={bars} matExt={mat} matInt={matInt || mat} spacerColor={spacerColor} />}
-      {/* Debug: show green box when hub pattern active */}
-      {isHub && (
-        <mesh position={[0, springY + iHalfW * 0.5, 0.05]}>
-          <boxGeometry args={[0.03, 0.03, 0.03]} />
-          <meshStandardMaterial color="lime" />
-        </mesh>
-      )}
       {hubData && (
         <group>
           {renderRing(hubData.ring1, 'r1')}
