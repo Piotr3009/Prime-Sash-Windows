@@ -260,6 +260,14 @@ export default function ArchedCasementWindow({
   else if (archShape === 'semi-circle') effectiveH = Math.max(height, Math.round(width / 2) + 50);
   const W = mm(width), H = mm(effectiveH);
 
+  // ── Leaf arch rise: must match outer frame's rebated inner arch ──
+  let leafArchRise = 0;
+  if (archShape === 'segmental-arch') {
+    leafArchRise = Math.round(width * 0.2 - EXT_FACE_W - LEAF_GAP);
+  } else if (archShape === 'elliptical-arch') {
+    leafArchRise = Math.round(width * 0.325 - EXT_FACE_W - LEAF_GAP);
+  }
+
   // ── Leaf content (FixFrameWindow used directly as leaf) ──
   const leafContent = (
     <group position={[0, 0, leafZ]}>
@@ -279,6 +287,7 @@ export default function ArchedCasementWindow({
         showGuides={false}
         fixSemiBarPattern={fixSemiBarPattern}
         fixGothicBars={fixGothicBars}
+        fixArchRise={leafArchRise}
       />
     </group>
   );
