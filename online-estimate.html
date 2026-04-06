@@ -3351,6 +3351,10 @@
       } else if (isCasement) {
         if (fixBarsSec) fixBarsSec.style.display = 'none';
       }
+      // Fix-only: trigger shape-specific bar pattern visibility
+      if ((document.querySelector('input[name="window-type"]:checked') || {}).value === 'fix-only') {
+        if (typeof window.updateDesignBarsVisibility === 'function') window.updateDesignBarsVisibility();
+      }
     }
   }
   
@@ -4208,7 +4212,7 @@
           glassType: (document.querySelector('input[name="f-glazing"]:checked') || {}).value || 'double',
           glassFinish: (document.querySelector('input[name="f-glass-finish"]:checked') || {}).value || 'clear',
           spacer: (document.querySelector('input[name="f-spacer"]:checked') || {}).value || 'silver',
-          colorType: (document.querySelector('input[name="fx-colour-mode"]:checked') || {}).value || 'same',
+          colorType: (function() { var v = (document.querySelector('input[name="fx-colour-mode"]:checked') || {}).value || 'same'; return v === 'dual' ? 'dual' : 'single'; })(),
           colorSingle: (function() {
             var pn = document.getElementById('fx-single-preview-name');
             var name = pn ? pn.textContent.trim().toLowerCase() : 'white';
