@@ -4219,6 +4219,7 @@
           fixSemiBarPattern: (document.querySelector('input[name="f-semi-bars"]:checked') || {}).value || 'none',
           fixGothicBars: (document.querySelector('input[name="f-gothic-bars"]:checked') || {}).value || 'none',
           fixCircleBarPattern: (document.querySelector('input[name="f-circle-bars"]:checked') || {}).value || 'none',
+          fixCircleOffset: parseInt((document.getElementById('f-circle-offset') || {}).value) || 200,
           glassType: (document.querySelector('input[name="f-glazing"]:checked') || {}).value || 'double',
           glassFinish: (document.querySelector('input[name="f-glass-finish"]:checked') || {}).value || 'clear',
           spacer: (document.querySelector('input[name="f-spacer"]:checked') || {}).value || 'silver',

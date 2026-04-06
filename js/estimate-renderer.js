@@ -247,6 +247,7 @@ class EstimateRenderer {
         const fixShape = fc.fixShape || 'rectangle';
         const fixType = fc.fixType || 'standard';
         const fixCircleBarPattern = fc.fixCircleBarPattern || 'none';
+        const fixCircleOffset = fc.fixCircleOffset || 200;
         const fixShapeNames = { 'rectangle': 'Rectangle', 'gothic-arch': 'Gothic Arch', 'semi-circle': 'Semi-Circle', 'segmental-arch': 'Segmental Arch', 'elliptical-arch': 'Elliptical Arch', 'circle': 'Circle' };
         const fixTypeNames = { 'standard': 'Standard', 'fd30': 'FD30 Fire Rated', 'fd60': 'FD60 Fire Rated' };
         const fixTypeText = 'Fix Frame — ' + (fixShapeNames[fixShape] || fixShape) + ' (' + (fixTypeNames[fixType] || fixType) + ')';
@@ -260,6 +261,7 @@ class EstimateRenderer {
         if (fixSemiBarPattern !== 'none' && fxPatNames[fixSemiBarPattern]) fxPattern = ' + ' + fxPatNames[fixSemiBarPattern];
         if (fixGothicBars !== 'none' && fxPatNames[fixGothicBars]) fxPattern = ' + ' + fxPatNames[fixGothicBars];
         if (fixCircleBarPattern !== 'none' && fxPatNames[fixCircleBarPattern]) fxPattern = ' + ' + fxPatNames[fixCircleBarPattern];
+        if (fixCircleBarPattern === 'sunburst') fxPattern += ' (Offset: ' + fixCircleOffset + 'mm)';
         if (fxPattern) {
             fixBarsFull = (fixBarsFull === 'None' ? '' : fixBarsFull) + fxPattern;
             if (fixBarsFull.startsWith(' + ')) fixBarsFull = fixBarsFull.substring(3);
@@ -287,7 +289,7 @@ class EstimateRenderer {
             sillExtension, sillText, trickleVent, trickleColour, trickleText,
             sealColour, safetyGlass, safetyGlassText,
             glassSpecCasement, glassSpecCasementText, fanlightHeight,
-            fixShape, fixType, fixCircleBarPattern, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText
+            fixShape, fixType, fixCircleBarPattern, fixCircleOffset, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText
         };
     }
 
