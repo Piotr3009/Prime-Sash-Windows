@@ -8,6 +8,12 @@
   'use strict';
 
   // ─── Casement colour state (full payload sent every time) ───
+  var casementColourState = {
+    sameColor: true,
+    woodColor: '#F6F6F6',
+    woodColorInt: '#F6F6F6',
+    woodColorExt: '#F6F6F6'
+  };
 
   // ─── Default dimensions per layout ───
   const LAYOUT_DEFAULTS = {
@@ -109,31 +115,13 @@
     var layout = checked('casement-layout') || '040L';
     var w = parseInt(val('c-width')) || 800;
     var h = parseInt(val('c-height')) || 1200;
-    var isArched = checked('casement-type') === 'arched';
-
-    // Arched casement overrides
-    var archShape = isArched ? (checked('cas-arch-shape') || 'semi-circle') : null;
-    var archHinge = isArched ? (checked('cas-arch-opening') || 'right') : null;
-    var archHingeLabel = '';
-    if (isArched) {
-      var checkedRadio = document.querySelector('input[name="cas-arch-opening"]:checked');
-      if (checkedRadio) {
-        var label = document.querySelector('label[for="' + checkedRadio.id + '"]');
-        archHingeLabel = label ? label.textContent : (archHinge === 'right' ? 'Left Hinge' : 'Right Hinge');
-      } else {
-        archHingeLabel = 'Left Hinge';
-      }
-    }
-    var shapeNames = { 'gothic-arch': 'Gothic Arch', 'semi-circle': 'Semi-Circle', 'segmental-arch': 'Segmental Arch', 'elliptical-arch': 'Elliptical Arch' };
 
     // Window type
     var specType = document.getElementById('spec-window-type');
     var specSashType = document.getElementById('spec-sash-type');
     var specSplitItem = document.getElementById('spec-split-ratio-item');
     if (specType) specType.style.display = 'block';
-    if (specSashType) specSashType.textContent = isArched
-      ? 'Arched Casement — ' + (shapeNames[archShape] || archShape) + ' (' + archHingeLabel + ')'
-      : 'Casement — Layout ' + layout;
+    if (specSashType) specSashType.textContent = 'Casement — Layout ' + layout;
     if (specSplitItem) specSplitItem.style.display = 'none';
 
     // Dimensions
@@ -153,26 +141,18 @@
     });
 
     // Bars
-    var hBars = isArched ? (parseInt(checked('f-hbars')) || 0) : (parseInt(checked('c-hbars')) || 0);
-    var vBars = isArched ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0);
-    // Shape-specific patterns
-    var patternText = '';
-    if (isArched) {
-      var semiPat = checked('f-semi-bars');
-      var gothPat = checked('f-gothic-bars');
-      var patNames = { 'half-hub': 'Half Hub', 'hub-spoke': 'Hub & Spoke', 'double-hub-spoke': 'Double Hub', 'triple-hub-spoke': 'Triple Hub', 'intersecting': 'Intersecting' };
-      if (archShape === 'semi-circle' && semiPat && semiPat !== 'none') patternText = ' + ' + (patNames[semiPat] || semiPat);
-      if (archShape === 'gothic-arch' && gothPat && gothPat !== 'none') patternText = ' + ' + (patNames[gothPat] || gothPat);
-    }
+    var hBars = parseInt(checked('c-hbars')) || 0;
+    var vBars = parseInt(checked('c-vbars')) || 0;
     var specBars = document.getElementById('spec-bars');
     if (specBars) {
-      if (hBars > 0 || vBars > 0 || patternText) {
+      if (hBars > 0 || vBars > 0) {
         specBars.style.display = 'block';
+        // Change label from "Upper Sash:" to "Bars:"
         var upperLabel = specBars.querySelector('#spec-upper-bars');
         if (upperLabel) {
           var labelEl = upperLabel.previousElementSibling;
           if (labelEl) labelEl.textContent = 'Bars:';
-          upperLabel.textContent = hBars + ' horizontal, ' + vBars + ' vertical' + patternText;
+          upperLabel.textContent = hBars + ' horizontal, ' + vBars + ' vertical';
         }
         // Hide lower bars row
         var lowerItem = document.getElementById('spec-lower-bars');
@@ -188,19 +168,19 @@
     var specColor = document.getElementById('spec-color');
     if (specColor) {
       specColor.style.display = 'block';
-      var colorType = checked('cm-colour-mode') || 'same';
-      if (colorType === 'same') {
+      var colorType = checked('c-color-type') || 'single';
+      if (colorType === 'single') {
         var singleEl = document.getElementById('spec-single-color');
         var dualEl = document.getElementById('spec-dual-color');
         if (singleEl) singleEl.style.display = 'block';
         if (dualEl) dualEl.style.display = 'none';
         // Read from preview (works for tiles AND F&B/RAL)
-        var previewName = $('cm-single-preview-name');
-        var previewRal = $('cm-single-preview-ral');
+        var previewName = $('c-single-preview-name');
+        var previewRal = $('c-single-preview-ral');
         var colorName = previewName ? previewName.textContent : 'White';
         var colorRal = previewRal ? previewRal.textContent : '';
         if (!colorName || colorName === '-') {
-          var selectedTile = document.querySelector('#cm-single-color-selector .cm-co.selected');
+          var selectedTile = document.querySelector('#c-single-color-selector .c-color-option.selected');
           colorName = selectedTile ? (selectedTile.dataset.name || 'White') : 'White';
           colorRal = selectedTile ? (selectedTile.dataset.ral || '') : '';
         }
@@ -214,16 +194,16 @@
         if (singleEl2) singleEl2.style.display = 'none';
         if (dualEl2) dualEl2.style.display = 'block';
         // Read from dual preview elements
-        var previewInt = $('cm-dual-preview-interior');
-        var previewExt = $('cm-dual-preview-exterior');
+        var previewInt = $('c-dual-preview-interior');
+        var previewExt = $('c-dual-preview-exterior');
         var intName = previewInt ? previewInt.textContent : '-';
         var extName = previewExt ? previewExt.textContent : '-';
         if (!intName || intName === '-') {
-          var intTile = document.querySelector('.cm-interior.selected');
+          var intTile = document.querySelector('.c-interior-color.selected');
           intName = intTile ? (intTile.dataset.name + ' (' + intTile.dataset.ral + ')') : '-';
         }
         if (!extName || extName === '-') {
-          var extTile = document.querySelector('.cm-exterior.selected');
+          var extTile = document.querySelector('.c-exterior-color.selected');
           extName = extTile ? (extTile.dataset.name + ' (' + extTile.dataset.ral + ')') : '-';
         }
         var intEl = document.getElementById('spec-interior-color');
@@ -358,18 +338,18 @@
       fanlightRatio: fanlightRatio,
       glassType: checked('c-glass-type') || 'double',
       spacerColor: checked('c-spacer-color') || 'silver',
-      casementHBars: checked('casement-type') === 'arched' ? (parseInt(checked('f-hbars')) || 0) : (parseInt(checked('c-hbars')) || 0),
-      casementVBars: checked('casement-type') === 'arched' ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0),
+      casementHBars: parseInt(checked('c-hbars')) || 0,
+      casementVBars: parseInt(checked('c-vbars')) || 0,
       casementOpening: (parseInt(val('c-opening')) || 0) / 100,
       trickleVent: checked('c-trickle-vent') || 'none',
       trickleColour: checked('c-trickle-colour') || 'white',
       sillExtension: parseInt(checked('c-sill-ext')) || 0,
       sillWider: checked('c-sill-wider') === 'yes',
       glassFinish: checked('c-glass-finish') || 'clear',
-      colorSingleName: (function() { var pn = document.getElementById('cm-single-preview-name'); return pn ? pn.textContent.trim() : 'Pure White'; })(),
-      colorSingleRal: (function() { var pr = document.getElementById('cm-single-preview-ral'); return pr ? pr.textContent.trim() : '#FAFAFA'; })(),
-      colorExteriorName: (function() { var pe = document.getElementById('cm-dual-preview-exterior'); return pe ? pe.textContent.trim() : ''; })(),
-      colorInteriorName: (function() { var pi = document.getElementById('cm-dual-preview-interior'); return pi ? pi.textContent.trim() : ''; })(),
+      colorSingleName: (function() { var pn = document.getElementById('c-single-preview-name'); return pn ? pn.textContent.trim() : 'Pure White'; })(),
+      colorSingleRal: (function() { var pr = document.getElementById('c-single-preview-ral'); return pr ? pr.textContent.trim() : '#FAFAFA'; })(),
+      colorExteriorName: (function() { var pe = document.getElementById('c-dual-preview-exterior'); return pe ? pe.textContent.trim() : ''; })(),
+      colorInteriorName: (function() { var pi = document.getElementById('c-dual-preview-interior'); return pi ? pi.textContent.trim() : ''; })(),
       sealColour: checked('c-seal-colour') || 'black',
     });
 
@@ -405,9 +385,247 @@
     }
   }
 
-  // ─── Colour: handled by shared ColorModule (js/color-module.js) ───
+  // ─── Colour logic (matching sash tile system) ───
+  function setupColour() {
+    // Single/Dual toggle
+    // Color type radio buttons — exact copy of sash pattern
+    var cColorTypeRadios = document.querySelectorAll('input[name="c-color-type"]');
+    cColorTypeRadios.forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        var dualSection = document.getElementById('c-dual-colour-section');
+        var singleSelector = document.getElementById('c-single-color-selector');
 
-    // ─── Layout change handler ───
+        if (radio.value === 'single') {
+          if (dualSection) dualSection.style.display = 'none';
+          if (singleSelector) singleSelector.style.display = 'block';
+          var singlePreview = document.getElementById('c-single-color-preview-info');
+          var dualPreview = document.getElementById('c-dual-color-preview-info');
+          if (singlePreview) singlePreview.style.display = 'block';
+          if (dualPreview) dualPreview.style.display = 'none';
+          // Sync colour state back to single
+          casementColourState.sameColor = true;
+          casementColourState.woodColorInt = casementColourState.woodColor;
+          casementColourState.woodColorExt = casementColourState.woodColor;
+        } else {
+          if (dualSection) dualSection.style.display = 'block';
+          if (singleSelector) singleSelector.style.display = 'none';
+          var singlePreview2 = document.getElementById('c-single-color-preview-info');
+          var dualPreview2 = document.getElementById('c-dual-color-preview-info');
+          if (singlePreview2) singlePreview2.style.display = 'none';
+          if (dualPreview2) dualPreview2.style.display = 'block';
+          var infoPanel = document.getElementById('info-panel-content');
+          if (infoPanel) infoPanel.innerHTML =
+            '<p class="info-title">Dual Colour</p>' +
+            '<p><span class="info-highlight">Additional cost:</span> +15% applied to total window price</p>' +
+            '<p class="info-note">Interior and exterior can be different colours</p>';
+          // Switch to dual mode
+          casementColourState.sameColor = false;
+        }
+        // Send full colour state to 3D
+        if (typeof window.update3D === 'function') {
+          window.update3D({
+            sameColor: casementColourState.sameColor,
+            woodColor: casementColourState.woodColor,
+            woodColorInt: casementColourState.woodColorInt,
+            woodColorExt: casementColourState.woodColorExt
+          });
+        }
+      });
+    });
+
+    // ── Tile clicks: single ──
+    setupTileClicks('#c-single-color-selector .c-color-option', 'single');
+    setupTileClicks('.c-interior-color', 'interior');
+    setupTileClicks('.c-exterior-color', 'exterior');
+
+    // ── RAL/FB dropdowns ──
+    ['c-single-ral-select', 'c-single-fb-select', 'c-int-ral-select', 'c-int-fb-select', 'c-ext-ral-select', 'c-ext-fb-select'].forEach(function(id) {
+      var sel = $(id);
+      if (!sel) return;
+      sel.addEventListener('change', function() {
+        var hex = sel.value;
+        if (!hex) return;
+        var target = id.indexOf('int-') > -1 ? 'interior' : id.indexOf('ext-') > -1 ? 'exterior' : 'single';
+        switchToCustomTile(target);
+        var text = sel.options[sel.selectedIndex].text;
+        updatePreview(target, text, hex);
+        applyColourHex(hex, target);
+        // Reset other dropdown in same row
+        var row = sel.closest('.color-dropdown-row');
+        if (row) row.querySelectorAll('select').forEach(function(s) { if (s !== sel) s.value = ''; });
+      });
+    });
+
+    // ── RAL text input ──
+    setupRalInput('c-single-ral-input', 'c-single-ral-apply', 'c-single-ral-error', 'single');
+    setupRalInput('c-int-ral-input', 'c-int-ral-apply', 'c-int-ral-error', 'interior');
+    setupRalInput('c-ext-ral-input', 'c-ext-ral-apply', 'c-ext-ral-error', 'exterior');
+
+    // Seal colour
+    document.querySelectorAll('input[name="c-seal-colour"]').forEach(function(r) {
+      r.addEventListener('change', updateCasementColour);
+    });
+  }
+
+  function setupTileClicks(selector, target) {
+    var tiles = document.querySelectorAll(selector);
+
+    tiles.forEach(function(tile) {
+      tile.addEventListener('click', function() {
+        // Deselect siblings
+        tile.closest('.color-options').querySelectorAll('.color-option').forEach(function(t) { t.classList.remove('selected'); });
+        tile.classList.add('selected');
+        var hex = tile.style.backgroundColor;
+        var name = tile.dataset.name || '';
+        var ral = tile.dataset.ral || '';
+        if (tile.dataset.color === 'custom') return; // custom = use dropdown
+        // Convert rgb to hex
+        hex = rgbToHex(hex) || '#F6F6F6';
+        updatePreview(target, name, ral);
+        applyColourHex(hex, target);
+      });
+    });
+  }
+
+  function switchToCustomTile(target) {
+    var selector = target === 'single' ? '#c-single-color-selector .c-color-option' :
+                   target === 'interior' ? '.c-interior-color' : '.c-exterior-color';
+    document.querySelectorAll(selector).forEach(function(t) { t.classList.remove('selected'); });
+    var customBtn = target === 'single' ? document.querySelector('#c-single-color-selector .c-custom-color-btn') :
+                    target === 'interior' ? document.querySelector('.c-interior-color.c-custom-color-btn') :
+                    document.querySelector('.c-exterior-color.c-custom-color-btn');
+    if (customBtn) customBtn.classList.add('selected');
+  }
+
+  function setupRalInput(inputId, btnId, errorId, target) {
+    var input = $(inputId);
+    var btn = $(btnId);
+    var err = $(errorId);
+    if (!input || !btn) return;
+    var apply = function() {
+      var key = input.value.trim().replace(/^ral\s*/i, '');
+      var hex = RAL[key];
+      if (hex) {
+        switchToCustomTile(target);
+        updatePreview(target, 'RAL ' + key, hex);
+        applyColourHex(hex, target);
+        if (err) err.textContent = '';
+      } else {
+        if (err) err.textContent = 'RAL not found';
+      }
+    };
+    btn.addEventListener('click', apply);
+    input.addEventListener('keydown', function(e) { if (e.key === 'Enter') apply(); });
+  }
+
+  function applyColourHex(hex, target) {
+    if (typeof window.update3D !== 'function') return;
+
+    if (target === 'single') {
+      casementColourState.sameColor = true;
+      casementColourState.woodColor = hex;
+      casementColourState.woodColorInt = hex;
+      casementColourState.woodColorExt = hex;
+    } else if (target === 'interior') {
+      casementColourState.sameColor = false;
+      casementColourState.woodColorInt = hex;
+    } else if (target === 'exterior') {
+      casementColourState.sameColor = false;
+      casementColourState.woodColorExt = hex;
+    }
+
+    window.update3D({
+      sameColor: casementColourState.sameColor,
+      woodColor: casementColourState.woodColor,
+      woodColorInt: casementColourState.woodColorInt,
+      woodColorExt: casementColourState.woodColorExt
+    });
+    updateSpecPanel();
+  }
+
+  function updatePreview(target, name, code) {
+    if (target === 'single') {
+      var pn = $('c-single-preview-name');
+      var pr = $('c-single-preview-ral');
+      if (pn) pn.textContent = name;
+      if (pr) pr.textContent = code;
+    } else if (target === 'interior') {
+      var pi = $('c-dual-preview-interior');
+      if (pi) pi.textContent = name + ' (' + code + ')';
+    } else if (target === 'exterior') {
+      var pe = $('c-dual-preview-exterior');
+      if (pe) pe.textContent = name + ' (' + code + ')';
+    }
+  }
+
+  function updateCasementColour() {
+    // Called by seal colour change — just trigger a generic update
+    updateCasement3D();
+  }
+
+  function rgbToHex(rgb) {
+    if (!rgb || rgb.charAt(0) === '#') return rgb;
+    var m = rgb.match(/\d+/g);
+    if (!m || m.length < 3) return null;
+    return '#' + ((1 << 24) + (parseInt(m[0]) << 16) + (parseInt(m[1]) << 8) + parseInt(m[2])).toString(16).slice(1).toUpperCase();
+  }
+
+  // ─── RAL colours (same data as sash) ───
+  const RAL = {
+    '1000':'#BEBD7F','1001':'#C2B078','1002':'#C6A664','1003':'#E5BE01','1004':'#CDA434',
+    '1005':'#A98307','1006':'#E4A010','1007':'#DC9D00','1011':'#8A6642','1012':'#C7B446',
+    '1013':'#EAE6CA','1014':'#E1CC4F','1015':'#E6D690','1016':'#EDFF21','1017':'#F5D033',
+    '1018':'#F8F32B','1019':'#9E9764','1020':'#999950','1021':'#F3DA0B','1023':'#FAD201',
+    '1024':'#AEA04B','1026':'#FFFF00','1027':'#9D9101','1028':'#F4A900','1032':'#D6AE01',
+    '1033':'#F3A505','1034':'#EFA94A','2000':'#ED760E','2001':'#C93C20','2002':'#CB2821',
+    '2003':'#FF7514','2004':'#F44611','3000':'#AF2B1E','3001':'#A52019','3002':'#A2231D',
+    '3003':'#9B111E','3004':'#75151E','3005':'#5E2129','3007':'#412227','3009':'#642424',
+    '3011':'#781F19','3012':'#C1876B','3013':'#A12312','3014':'#D36E70','3015':'#EA899A',
+    '3016':'#B32821','3017':'#E63244','3018':'#D53032','3020':'#CC0605','3022':'#D95030',
+    '3027':'#C51D34','3031':'#B32428','4001':'#6D3F5B','4002':'#922B3E','4003':'#DE4C8A',
+    '4004':'#641C34','4005':'#6C4675','4006':'#A03472','4007':'#4A192C','4008':'#924E7D',
+    '5000':'#354D73','5001':'#1F3438','5002':'#1E2460','5003':'#1D1E33','5004':'#18171C',
+    '5005':'#1E2460','5007':'#3E5F8A','5008':'#26252D','5009':'#025669','5010':'#0E4243',
+    '5011':'#1B2A4A','5012':'#3B83BD','5013':'#1E213D','5014':'#606E8C','5015':'#2271B3',
+    '5017':'#063971','5018':'#3F888F','5019':'#1B5583','5020':'#1D334A','5021':'#256D7B',
+    '5022':'#252850','5023':'#49678D','5024':'#5D9B9B','6000':'#316650','6001':'#287233',
+    '6002':'#2D572C','6003':'#424632','6004':'#1F3A3D','6005':'#2F4538','6006':'#3E3B32',
+    '6007':'#343B29','6008':'#39352A','6009':'#31372B','6010':'#35682D','6011':'#587246',
+    '6012':'#343E40','6013':'#6C7156','6014':'#47402E','6016':'#1E5945','7000':'#78858B',
+    '7001':'#8A9597','7002':'#817F68','7003':'#7D7F7D','7004':'#9EA0A1','7005':'#6C7059',
+    '7006':'#756F61','7008':'#6A5F31','7011':'#434B4D','7012':'#4E5754','7015':'#434750',
+    '7016':'#293133','7021':'#23282B','7022':'#332F2C','7023':'#8B8C7A','7024':'#474A51',
+    '7030':'#8B8B7A','7031':'#474B4E','7032':'#B8B799','7033':'#7D8471','7034':'#8F8B66',
+    '7035':'#D7D7D7','7036':'#7F7679','7037':'#7D7F7D','7038':'#B5B8B1','7039':'#6C6960',
+    '7040':'#9DA1AA','7042':'#8D948D','7043':'#4E5452','7044':'#CAC4B0','7045':'#909090',
+    '7046':'#82898F','7047':'#D0D0D0','8000':'#826C34','8001':'#955F20','8002':'#6C3B2A',
+    '8003':'#734222','8004':'#8E402A','8007':'#59351F','8008':'#6F4F28','8011':'#6F3B2A',
+    '8014':'#382C1E','8017':'#45322E','8019':'#403A3A','8022':'#212121','8024':'#79553D',
+    '8025':'#755C48','8028':'#4E3B31','9001':'#FDF4E3','9002':'#E7EBDA','9003':'#F4F4F4',
+    '9004':'#282828','9005':'#0A0A0A','9006':'#A5A5A5','9007':'#8F8F8F','9010':'#FFFFFF',
+    '9011':'#1C2023','9016':'#F6F6F6','9017':'#1E1E1E','9018':'#D7D7D7'
+  };
+
+  // RAL dropdowns already populated in HTML (same as sash)
+  function populateRALDropdowns() {
+    // No-op: RAL options are in the HTML
+  }
+
+  // Farrow & Ball — copy from sash dropdown (single source of truth)
+  function populateFBDropdowns() {
+    var source = document.getElementById('single-fb-select');
+    if (!source) {
+      console.log('F&B source dropdown not found — casement FB dropdowns empty');
+      return;
+    }
+    ['c-fb-code', 'c-fb-ext', 'c-fb-int'].forEach(function(id) {
+      var sel = $(id);
+      if (!sel) return;
+      sel.innerHTML = source.innerHTML;
+    });
+  }
+
+  // ─── Layout change handler ───
   function setupLayoutChange() {
     var layoutRadios = document.querySelectorAll('input[name="casement-layout"]');
     layoutRadios.forEach(function(r) {
@@ -495,12 +713,12 @@
 
     // Safety glass
     document.querySelectorAll('input[name="c-safety-glass"]').forEach(function(r) {
-      r.addEventListener('change', function() { updateSpecPanel(); });
+      r.addEventListener('change', function() { updateCasement3D(); updateSpecPanel(); });
     });
 
     // Glass spec (float/low-e)
     document.querySelectorAll('input[name="c-glass-spec"]').forEach(function(r) {
-      r.addEventListener('change', function() { updateSpecPanel(); });
+      r.addEventListener('change', function() { updateCasement3D(); updateSpecPanel(); });
     });
 
     // Opening slider
@@ -516,41 +734,38 @@
     // Hardware finish
     document.querySelectorAll('input[name="c-hardware-finish"]').forEach(function(r) {
       r.addEventListener('change', function() {
-        // Hardware update — placeholder for future
+        updateCasement3D();
+        updateSpecPanel();
       });
     });
   }
 
   // ─── Store casement config (parallel to window.currentConfig for sash) ───
   function getCasementConfig() {
-    var isArched = checked('casement-type') === 'arched';
     return {
       windowType: 'casement',
       windowCategory: 'casement',
-      casementType: checked('casement-type') || 'standard',
-      casArchShape: isArched ? (checked('cas-arch-shape') || 'semi-circle') : null,
-      casArchHinge: isArched ? (checked('cas-arch-opening') || 'right') : null,
       measurementType: 'frame',
       casementLayout: checked('casement-layout') || '040L',
       layout: checked('casement-layout') || '040L',
       width: parseInt(val('c-width')) || 800,
       height: parseInt(val('c-height')) || 1200,
       fanlightHeight: parseInt(val('c-fanlight-height')) || 350,
-      casementHBars: checked('casement-type') === 'arched' ? (parseInt(checked('f-hbars')) || 0) : (parseInt(checked('c-hbars')) || 0),
-      casementVBars: checked('casement-type') === 'arched' ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0),
+      casementHBars: parseInt(checked('c-hbars')) || 0,
+      casementVBars: parseInt(checked('c-vbars')) || 0,
       hBars: parseInt(checked('c-hbars')) || 0,
       vBars: parseInt(checked('c-vbars')) || 0,
-      colorType: checked('cm-colour-mode') || 'same',
-      colourMode: checked('cm-colour-mode') || 'same',
+      colorType: checked('c-color-type') || 'single',
+      colourMode: checked('c-color-type') || 'single',
       colorSingle: (function() {
-        var pn = document.getElementById('cm-single-preview-name');
+        var pn = document.getElementById('c-single-preview-name');
         var name = pn ? pn.textContent.trim().toLowerCase() : 'white';
         return name.indexOf('white') > -1 ? 'white' : name || 'white';
       })(),
-      colorSingleName: (function() { var pn = document.getElementById('cm-single-preview-name'); return pn ? pn.textContent.trim() : 'Pure White'; })(),
-      colorSingleRal: (function() { var pr = document.getElementById('cm-single-preview-ral'); return pr ? pr.textContent.trim() : '#FAFAFA'; })(),
-      colorExteriorName: (function() { var pe = document.getElementById('cm-dual-preview-exterior'); return pe ? pe.textContent.trim() : ''; })(),
-      colorInteriorName: (function() { var pi = document.getElementById('cm-dual-preview-interior'); return pi ? pi.textContent.trim() : ''; })(),
+      colorSingleName: (function() { var pn = document.getElementById('c-single-preview-name'); return pn ? pn.textContent.trim() : 'Pure White'; })(),
+      colorSingleRal: (function() { var pr = document.getElementById('c-single-preview-ral'); return pr ? pr.textContent.trim() : '#FAFAFA'; })(),
+      colorExteriorName: (function() { var pe = document.getElementById('c-dual-preview-exterior'); return pe ? pe.textContent.trim() : ''; })(),
+      colorInteriorName: (function() { var pi = document.getElementById('c-dual-preview-interior'); return pi ? pi.textContent.trim() : ''; })(),
       sealColour: checked('c-seal-colour') || 'black',
       glassType: checked('c-glass-type') || 'double',
       glassSpec: checked('c-glass-spec') || 'float',
@@ -561,15 +776,12 @@
       sillExtension: checked('c-sill-ext') || 'none',
       trickleVent: checked('c-trickle-vent') || 'none',
       quantity: parseInt(val('c-quantity')) || 1,
-      fixSemiBarPattern: isArched ? (checked('f-semi-bars') || 'none') : 'none',
-      fixGothicBars: isArched ? (checked('f-gothic-bars') || 'none') : 'none',
     };
   }
 
   // Expose globally
   window.getCasementConfig = getCasementConfig;
   window.updateCasement3D = updateCasement3D;
-  window.updateCasementSpec = updateSpecPanel;
 
   // ─── Init ───
   function init() {
@@ -585,22 +797,7 @@
     setupDimSelect('c-width-select', 'c-width-custom', 'c-width');
     setupDimSelect('c-height-select', 'c-height-custom', 'c-height');
     setupLayoutChange();
-    // Colour now handled by ColorModule (js/color-module.js)
-    if (typeof window.ColorModule === 'function' && document.getElementById('casement-color-container')) {
-      window.casementColorModule = new ColorModule({
-        containerId: 'casement-color-container',
-        prefix: 'cm',
-        onColorChange: function(state) {
-          if (typeof window.update3D === 'function') window.update3D(state);
-          updateSpecPanel();
-          updateCasementPrice();
-        }
-      });
-    }
-    // Seal colour listener (was inside old setupColour)
-    document.querySelectorAll('input[name="c-seal-colour"]').forEach(function(r) {
-      r.addEventListener('change', updateCasement3D);
-    });
+    setupColour();
     setupLiveWatchers();
 
     // Set initial defaults from current layout
