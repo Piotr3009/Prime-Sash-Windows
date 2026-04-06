@@ -47,7 +47,7 @@ function makeFrameGeo(outerPts, innerPts, depth) {
 }
 
 // ── Arch shape point generators for OUTER FRAME ──
-// Returns { outer, inner, effectiveH, archRiseMm }
+// Copied from FixFrameWindow shape logic, using CasementFrame dims (FRAME_FACE=57, BOTTOM_FACE=68)
 function semiCirclePoints(width, height) {
   const W = mm(width), H = mm(height), fw = mm(FRAME_FACE), bw = mm(BOTTOM_FACE);
   const halfW = W / 2;
@@ -64,131 +64,73 @@ function semiCirclePoints(width, height) {
 function gothicPoints(width, height) {
   const W = mm(width), H = mm(height), fw = mm(FRAME_FACE), bw = mm(BOTTOM_FACE);
   const halfW = W / 2;
-  const archR = W; // gothic radius = full width
-  const archRiseMm = Math.round(width * Math.sqrt(3) / 2);
-  const effectiveH = Math.max(height, archRiseMm + 50);
-  const He = mm(effectiveH);
-  const springY = -He / 2 + (He - mm(archRiseMm));
-  // Outer
-  const outerArcPts = [];
-  for (let i = 0; i <= SEGS; i++) {
-    const t = i / SEGS;
-    const aL = Math.asin(t * mm(archRiseMm) / archR * 2);
-    // Left arc center at (halfW, springY), right arc at (-halfW, springY)
-  }
-  // Simplified: use same approach as FixFrameWindow gothic
-  // Gothic outer: two arcs meeting at top
-  const cLX = -halfW, cRX = halfW;
-  const outerPtsR = [], outerPtsL = [];
-  for (let i = 0; i <= SEGS / 2; i++) {
-    const t = i / (SEGS / 2);
-    const angle = Math.asin(t);
-    const px = cLX + archR * Math.cos(angle);
-    const py = springY + archR * Math.sin(angle);
-    if (px >= -halfW && px <= halfW && py >= springY) outerPtsR.push([px, py]);
-  }
-  for (let i = SEGS / 2; i >= 0; i--) {
-    const t = i / (SEGS / 2);
-    const angle = Math.PI - Math.asin(t);
-    const px = cRX + archR * Math.cos(angle);
-    const py = springY + archR * Math.sin(angle);
-    if (px >= -halfW && px <= halfW && py >= springY) outerPtsL.push([px, py]);
-  }
-  const outerArch = [...outerPtsR, ...outerPtsL];
-  const outer = [[-halfW, -He/2], [halfW, -He/2], [halfW, springY], ...outerArch, [-halfW, springY]];
-
-  // Inner
+  const archRise = W * Math.sqrt(3) / 2;
+  const effectiveH = Math.max(H, mm(Math.round(width * Math.sqrt(3) / 2)) + mm(50));
+  const straightWall = Math.max(effectiveH - archRise, mm(50));
+  const springY = -effectiveH / 2 + straightWall;
   const iHalfW = halfW - fw;
-  const iBottom = -He / 2 + bw;
-  const iArchR = archR - fw;
-  const iCLX = -iHalfW, iCRX = iHalfW;
-  // Use inner width's arch
-  const archRInner = mm(width - FRAME_FACE * 2); // inner gothic radius
-  const innerPtsR = [], innerPtsL = [];
-  for (let i = 0; i <= SEGS / 2; i++) {
-    const t = i / (SEGS / 2);
-    const angle = Math.asin(Math.min(t, 1));
-    const px = -iHalfW + archRInner * Math.cos(angle);
-    const py = springY + archRInner * Math.sin(angle);
-    if (px >= -iHalfW && px <= iHalfW && py >= springY) innerPtsR.push([px, py]);
-  }
-  for (let i = SEGS / 2; i >= 0; i--) {
-    const t = i / (SEGS / 2);
-    const angle = Math.PI - Math.asin(Math.min(t, 1));
-    const px = iHalfW + archRInner * Math.cos(angle);
-    const py = springY + archRInner * Math.sin(angle);
-    if (px >= -iHalfW && px <= iHalfW && py >= springY) innerPtsL.push([px, py]);
-  }
-  const innerArch = [...innerPtsR, ...innerPtsL];
-  const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArch, [-iHalfW, springY]];
+  const Ri = W - fw;
+  const iBottom = -effectiveH / 2 + bw;
 
-  return { outer, inner, effectiveH };
+  // Exact same arc logic as GothicArchFrame
+  const rightArc = arcPoints(-halfW, springY, W, 0, Math.PI / 3, SEGS);
+  const leftArc = arcPoints(halfW, springY, W, 2 * Math.PI / 3, Math.PI, SEGS);
+  const outer = [[-halfW, -effectiveH/2], [halfW, -effectiveH/2], [halfW, springY], ...rightArc, ...leftArc, [-halfW, springY]];
+
+  const iRightArc = arcPoints(-halfW, springY, Ri, 0, Math.PI / 3, SEGS);
+  const iLeftArc = arcPoints(halfW, springY, Ri, 2 * Math.PI / 3, Math.PI, SEGS);
+  const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...iRightArc, ...iLeftArc, [-iHalfW, springY]];
+
+  return { outer, inner };
 }
 
 function segmentalPoints(width, height) {
   const W = mm(width), H = mm(height), fw = mm(FRAME_FACE), bw = mm(BOTTOM_FACE);
   const halfW = W / 2;
-  const riseMm = Math.round(width * 0.2);
-  const rise = mm(riseMm);
+  const rise = halfW * 0.4;
+  const R = (rise * rise + halfW * halfW) / (2 * rise);
+  const cy = -H / 2 + (H - rise) - (R - rise);
   const springY = -H / 2 + (H - rise);
-  // Segmental arc: radius from chord + rise
-  const chord = W;
-  const R = (chord * chord / 4 + rise * rise) / (2 * rise);
-  const cy = springY - (R - rise);
-  const startA = Math.acos(-halfW / R);
-  const endA = Math.acos(halfW / R);
-  const outerArc = [];
-  for (let i = 0; i <= SEGS; i++) {
-    const a = startA + (endA - startA) * (i / SEGS);
-    outerArc.push([cy > springY ? R * Math.cos(a) : R * Math.cos(a), cy + R * Math.sin(a)]);
-  }
-  const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...outerArc, [-halfW, springY]];
+  const startAngle = Math.asin(Math.min(halfW / R, 1));
+
+  const topArc = arcPoints(0, cy, R, Math.PI / 2 - startAngle, Math.PI / 2 + startAngle, SEGS);
+  const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...topArc, [-halfW, springY]];
 
   const iHalfW = halfW - fw;
   const iBottom = -H / 2 + bw;
-  const iRise = rise - fw;
-  if (iRise > 0) {
-    const iChord = iHalfW * 2;
-    const iR = (iChord * iChord / 4 + iRise * iRise) / (2 * iRise);
-    const iCy = springY - (iR - iRise);
-    const iStartA = Math.acos(Math.max(-1, Math.min(1, -iHalfW / iR)));
-    const iEndA = Math.acos(Math.max(-1, Math.min(1, iHalfW / iR)));
-    const innerArc = [];
-    for (let i = 0; i <= SEGS; i++) {
-      const a = iStartA + (iEndA - iStartA) * (i / SEGS);
-      innerArc.push([iR * Math.cos(a), iCy + iR * Math.sin(a)]);
-    }
-    const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
-    return { outer, inner };
-  }
-  // Fallback: flat top inner
-  const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], [-iHalfW, springY]];
+  const iRise = Math.max(rise - fw, mm(10));
+  const iR = (iRise * iRise + iHalfW * iHalfW) / (2 * iRise);
+  const iCY = springY - (iR - iRise);
+  const iAngle = Math.asin(Math.min(iHalfW / iR, 1));
+  const innerArc = arcPoints(0, iCY, iR, Math.PI / 2 - iAngle, Math.PI / 2 + iAngle, SEGS);
+  const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
+
   return { outer, inner };
 }
 
 function ellipticalPoints(width, height) {
   const W = mm(width), H = mm(height), fw = mm(FRAME_FACE), bw = mm(BOTTOM_FACE);
   const halfW = W / 2;
-  const riseMm = Math.round(width * 0.325);
-  const rise = mm(riseMm);
-  const springY = -H / 2 + (H - rise);
-  // Ellipse: semi-axes a=halfW, b=rise
-  const outerArc = [];
-  for (let i = 0; i <= SEGS; i++) {
-    const a = Math.PI - (i / SEGS) * Math.PI;
-    outerArc.push([halfW * Math.cos(a), springY + rise * Math.sin(a)]);
-  }
-  const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...outerArc, [-halfW, springY]];
-
+  const rise = halfW * 0.65;
+  const springY = -H / 2 + Math.max(H - rise, mm(50));
   const iHalfW = halfW - fw;
   const iBottom = -H / 2 + bw;
-  const iRise = rise - fw;
-  const innerArc = [];
-  for (let i = 0; i <= SEGS; i++) {
-    const a = Math.PI - (i / SEGS) * Math.PI;
-    innerArc.push([iHalfW * Math.cos(a), springY + Math.max(iRise, mm(10)) * Math.sin(a)]);
+
+  function ellipseArc(a, b, cY, segments) {
+    const pts = [];
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI;
+      pts.push([a * Math.cos(angle), cY + b * Math.sin(angle)]);
+    }
+    return pts;
   }
+
+  const outerArc = ellipseArc(halfW, rise, springY, SEGS);
+  const outer = [[-halfW, -H/2], [halfW, -H/2], [halfW, springY], ...outerArc, [-halfW, springY]];
+  const iRise = Math.max(rise - fw, mm(10));
+  const innerArc = ellipseArc(iHalfW, iRise, springY, SEGS);
   const inner = [[-iHalfW, iBottom], [iHalfW, iBottom], [iHalfW, springY], ...innerArc, [-iHalfW, springY]];
+
   return { outer, inner };
 }
 
