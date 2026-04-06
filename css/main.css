@@ -374,3 +374,10 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
   .ft-grid    { grid-template-columns: 1fr; gap: 2rem; }
   .ft-bottom  { flex-direction: column; gap: .8rem; text-align: center; }
 }
+/* How it works - mobile responsive */
+@media (max-width:600px) {
+  .how-steps { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width:380px) {
+  .how-steps { grid-template-columns: 1fr !important; }
+}
