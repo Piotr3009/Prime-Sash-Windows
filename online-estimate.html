@@ -3742,7 +3742,13 @@
             if (cw) cw.value = '1000';
             if (ch) ch.value = '1500';
           }
-          if (window.update3D) window.update3D({ casementType: r.value, extWidth: parseInt(cw.value), extHeight: parseInt(ch.value) });
+          if (window.update3D) {
+            var update = { casementType: r.value, extWidth: parseInt(cw.value), extHeight: parseInt(ch.value) };
+            if (isArched) {
+              update.casArchShape = (document.querySelector('input[name="cas-arch-shape"]:checked') || {}).value || 'gothic-arch';
+            }
+            window.update3D(update);
+          }
           if (window.updateCasementSpec) window.updateCasementSpec();
           if (window.updateFixSpec) window.updateFixSpec();
         });
