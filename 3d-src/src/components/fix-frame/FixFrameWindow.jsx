@@ -860,14 +860,18 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     const items = [];
     const glassW = iHalfW * 2;
     if (isHub) {
-      // V bars at X positions matching where spokes meet the arch (frame edge)
+      // V bars = continuation of arch ring endpoints at springing line
       const belowH = springY - iBottom;
+      const hubR1 = iHalfW * 0.3;
+      const hubR2 = isDouble ? iHalfW * 0.6 : null;
       if (belowH > 0) {
-        for (const angle of spokeAngles) {
-          // Skip frame edge spokes (0° and 180°)
-          if (angle < 0.05 || angle > Math.PI - 0.05) continue;
-          const x = iHalfW * Math.cos(angle);
-          items.push({ type: 'v', x, y: iBottom + belowH / 2, len: belowH });
+        // Ring 1 endpoints: ±hubR1
+        items.push({ type: 'v', x: -hubR1, y: iBottom + belowH / 2, len: belowH });
+        items.push({ type: 'v', x: hubR1, y: iBottom + belowH / 2, len: belowH });
+        // Ring 2 endpoints: ±hubR2 (double only)
+        if (hubR2) {
+          items.push({ type: 'v', x: -hubR2, y: iBottom + belowH / 2, len: belowH });
+          items.push({ type: 'v', x: hubR2, y: iBottom + belowH / 2, len: belowH });
         }
       }
       // H bars: user can add below springing
