@@ -113,7 +113,17 @@
 
     // Arched casement overrides
     var archShape = isArched ? (checked('cas-arch-shape') || 'semi-circle') : null;
-    var archHinge = isArched ? (checked('cas-arch-opening') || 'left') : null;
+    var archHinge = isArched ? (checked('cas-arch-opening') || 'right') : null;
+    var archHingeLabel = '';
+    if (isArched) {
+      var checkedRadio = document.querySelector('input[name="cas-arch-opening"]:checked');
+      if (checkedRadio) {
+        var label = document.querySelector('label[for="' + checkedRadio.id + '"]');
+        archHingeLabel = label ? label.textContent : (archHinge === 'right' ? 'Left Hinge' : 'Right Hinge');
+      } else {
+        archHingeLabel = 'Left Hinge';
+      }
+    }
     var shapeNames = { 'gothic-arch': 'Gothic Arch', 'semi-circle': 'Semi-Circle', 'segmental-arch': 'Segmental Arch', 'elliptical-arch': 'Elliptical Arch' };
 
     // Window type
@@ -122,7 +132,7 @@
     var specSplitItem = document.getElementById('spec-split-ratio-item');
     if (specType) specType.style.display = 'block';
     if (specSashType) specSashType.textContent = isArched
-      ? 'Arched Casement — ' + (shapeNames[archShape] || archShape) + ' (' + (archHinge === 'left' ? 'Left Hinge' : 'Right Hinge') + ')'
+      ? 'Arched Casement — ' + (shapeNames[archShape] || archShape) + ' (' + archHingeLabel + ')'
       : 'Casement — Layout ' + layout;
     if (specSplitItem) specSplitItem.style.display = 'none';
 
