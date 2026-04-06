@@ -1016,8 +1016,8 @@ class EstimateRenderer {
             const sqI = Ri * Ri - dxI * dxI;
             const innerPeakY = sqI > 0 ? springY - Math.sqrt(sqI) : springY;
 
-            outerPath = `M ${ox} ${oy + drawH} L ${ox} ${springY} A ${R} ${R} 0 0 0 ${centerX} ${peakY} A ${R} ${R} 0 0 0 ${ox + drawW} ${springY} L ${ox + drawW} ${oy + drawH} Z`;
-            innerPath = `M ${ix} ${iBottom} L ${ix} ${springY} A ${Ri} ${Ri} 0 0 0 ${centerX} ${innerPeakY} A ${Ri} ${Ri} 0 0 0 ${ixR} ${springY} L ${ixR} ${iBottom} Z`;
+            outerPath = `M ${ox} ${oy + drawH} L ${ox} ${springY} A ${R} ${R} 0 0 1 ${centerX} ${peakY} A ${R} ${R} 0 0 1 ${ox + drawW} ${springY} L ${ox + drawW} ${oy + drawH} Z`;
+            innerPath = `M ${ix} ${iBottom} L ${ix} ${springY} A ${Ri} ${Ri} 0 0 1 ${centerX} ${innerPeakY} A ${Ri} ${Ri} 0 0 1 ${ixR} ${springY} L ${ixR} ${iBottom} Z`;
 
             archYInner = function(dx) {
                 // Gothic: two arcs, centers at ±drawW/2 from center
