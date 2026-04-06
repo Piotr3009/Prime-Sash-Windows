@@ -347,11 +347,11 @@ class PriceCalculator {
     const vBars = configuration.casementVBars || 0;
     const totalBars = hBars + vBars;
     if (totalBars > 0) {
-      barsPrice = totalBars * this.pricing.barPricing.pricePerBar;
+      barsPrice = totalBars * 2 * this.pricing.barPricing.pricePerBar;
       // Multiply by number of panels
       const panelCount = layoutData.mullions + 1 + (layoutData.transoms > 0 ? layoutData.mullions + 1 : 0);
       barsPrice *= Math.max(1, layoutData.sashes + (layoutData.mullions + 1 - layoutData.sashes));
-      console.log('Bars:', totalBars, '× £' + this.pricing.barPricing.pricePerBar, '× panels =', barsPrice.toFixed(2));
+      console.log('Bars:', totalBars, '× 2 × £' + this.pricing.barPricing.pricePerBar, '× panels =', barsPrice.toFixed(2));
     }
     
     // Additional options (glass, finish, PAS24, sill, ironmongery — same as sash)
@@ -446,7 +446,7 @@ class PriceCalculator {
     const vBars = configuration.casementVBars || 0;
     const totalBars = hBars + vBars;
     const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
-    const barsPrice = totalBars * barRate;
+    const barsPrice = totalBars * 2 * barRate;
     if (barsPrice > 0) console.log('Bars:', totalBars, '× £' + barRate, '= £' + barsPrice);
 
     // Additional options (glass, sill)
@@ -530,7 +530,7 @@ class PriceCalculator {
     const vBars = configuration.casementVBars || 0;
     const totalBars = hBars + vBars;
     const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
-    const barsPrice = totalBars * barRate;
+    const barsPrice = totalBars * 2 * barRate;
     if (barsPrice > 0) console.log('Bars:', totalBars, '× £' + barRate, '= £' + barsPrice);
 
     // Additional options (glass, sill)
