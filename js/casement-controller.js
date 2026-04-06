@@ -821,6 +821,7 @@
       quantity: parseInt(val('c-quantity')) || 1,
       fixSemiBarPattern: isArched ? (checked('f-semi-bars') || 'none') : 'none',
       fixGothicBars: isArched ? (checked('f-gothic-bars') || 'none') : 'none',
+      ironmongery: (window.currentConfig && window.currentConfig.ironmongery) ? window.currentConfig.ironmongery : {},
     };
   }
 
@@ -828,6 +829,7 @@
   window.getCasementConfig = getCasementConfig;
   window.updateCasement3D = updateCasement3D;
   window.updateCasementSpec = updateSpecPanel;
+  window.updateCasementPrice = updateCasementPrice;
 
   // ─── Init ───
   function init() {

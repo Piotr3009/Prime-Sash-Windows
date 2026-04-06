@@ -759,6 +759,10 @@ class IronmongeryGallery {
       console.log('💰 Recalculating price...');
       window.updatePrice();
     }
+    // Casement: updatePrice skips casement via guard, recalc manually
+    if (typeof window.updateCasementPrice === 'function') {
+      window.updateCasementPrice();
+    }
 
     // Wywołaj applyDetails (specyfikacja)
     if (window.specificationController) {
