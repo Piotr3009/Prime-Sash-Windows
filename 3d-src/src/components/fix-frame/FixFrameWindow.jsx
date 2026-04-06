@@ -845,18 +845,32 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
   }
 
   const isHub = semiBarPattern === 'hub-spoke' || semiBarPattern === 'double-hub-spoke';
-  console.log('SEMI: semiBarPattern=', semiBarPattern, 'isHub=', isHub);
+
+  // Spoke positions: calculated once, shared by bars and hubData
+  const isDouble = semiBarPattern === 'double-hub-spoke';
+  const spokeCount = isDouble ? Math.max(7, Math.round(iHalfW / mm(1) / 70)) : Math.max(5, Math.round(iHalfW / mm(1) / 90));
+  const spokeAngles = useMemo(() => {
+    if (!isHub) return [];
+    const angles = [];
+    for (let i = 0; i < spokeCount; i++) angles.push((i / (spokeCount - 1)) * Math.PI);
+    return angles;
+  }, [isHub, spokeCount]);
 
   const bars = useMemo(() => {
     const items = [];
     const glassW = iHalfW * 2;
     if (isHub) {
-      // NO horizontal bar at springing — hub ring replaces it
+      // V bars = automatic from spoke angles (continuation below springing)
       const belowH = springY - iBottom;
-      for (let i = 1; i <= (vBars || 0); i++) {
-        const x = -iHalfW + (glassW / (vBars + 1)) * i;
-        if (belowH > 0) items.push({ type: 'v', x, y: iBottom + belowH / 2, len: belowH });
+      if (belowH > 0) {
+        for (const angle of spokeAngles) {
+          // Skip frame edge spokes (0° and 180°) — they're at frame edge
+          if (angle < 0.05 || angle > Math.PI - 0.05) continue;
+          const x = iHalfW * Math.cos(angle);
+          items.push({ type: 'v', x, y: iBottom + belowH / 2, len: belowH });
+        }
       }
+      // H bars: user can add below springing
       for (let i = 1; i <= (hBars || 0); i++) {
         const y = iBottom + (belowH / (hBars + 1)) * i;
         if (y < springY - mm(5)) items.push({ type: 'h', x: 0, y, len: glassW });
@@ -881,34 +895,16 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       }
     }
     return items;
-  }, [hBars, vBars, iHalfW, iBottom, springY, isHub]);
+  }, [hBars, vBars, iHalfW, iBottom, springY, isHub, spokeAngles]);
 
   // ── Hub & Spoke ──
 
   const hubData = useMemo(() => {
-    if (!isHub) { console.log('SEMI HUB: isHub false, returning null'); return null; }
-    console.log('SEMI HUB: building hub data, semiBarPattern=', semiBarPattern);
-    const isDouble = semiBarPattern === 'double-hub-spoke';
+    if (!isHub) return null;
     const hubR1 = iHalfW * 0.3;
-    console.log('SEMI HUB: hubR1=', hubR1, 'iHalfW=', iHalfW, 'springY=', springY);
     const hubR2 = isDouble ? iHalfW * 0.6 : null;
 
-    // Spoke angles: always evenly spaced, PLUS vBar positions if set
-    const baseSpokes = isDouble ? Math.max(7, Math.round(iHalfW / mm(1) / 70)) : Math.max(5, Math.round(iHalfW / mm(1) / 90));
-    const spokeAngles = [];
-    // Default evenly spaced spokes (always)
-    for (let i = 0; i < baseSpokes; i++) spokeAngles.push((i / (baseSpokes - 1)) * Math.PI);
-    // Add vBar positions as extra spokes (if any, and not already close to existing)
-    const glassW = iHalfW * 2;
-    for (let i = 1; i <= (vBars || 0); i++) {
-      const x = -iHalfW + (glassW / ((vBars || 0) + 1)) * i;
-      const clampedX = Math.max(-iHalfW * 0.99, Math.min(iHalfW * 0.99, x));
-      const a = Math.acos(clampedX / iHalfW);
-      // Only add if not too close to existing spoke
-      const tooClose = spokeAngles.some(sa => Math.abs(sa - a) < 0.05);
-      if (!tooClose) spokeAngles.push(a);
-    }
-    spokeAngles.sort((a, b) => b - a);
+    // spokeAngles from shared calculation above
 
     // Half-ring as STRIP along semicircle path (same approach as Gothic intersecting)
     function semiArcPts(radius, nPts) {
@@ -1025,7 +1021,7 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     }
 
     return { ring1, ring2, spokes, outerSpokes };
-  }, [semiBarPattern, iHalfW, springY, isHub, vBars]);
+  }, [semiBarPattern, iHalfW, springY, isHub, spokeAngles]);
 
   const spacerBarMat = useMemo(() => new THREE.MeshStandardMaterial({
     color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',

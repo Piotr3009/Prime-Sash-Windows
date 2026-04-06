@@ -2405,7 +2405,7 @@
             <div class="radio-option"><input type="radio" id="f-hbars-5" name="f-hbars" value="5"><label for="f-hbars-5" class="radio-label">5</label></div>
           </div>
         </div>
-        <div class="input-group">
+        <div class="input-group" id="fix-vbars-group">
           <label>Vertical Bars:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="f-vbars-0" name="f-vbars" value="0" checked><label for="f-vbars-0" class="radio-label">None</label></div>
@@ -3618,6 +3618,10 @@
         if (fSemiDesign) fSemiDesign.style.display = (shape === 'semi-circle') ? '' : 'none';
         var circlePattern = (document.querySelector('input[name="f-circle-bars"]:checked') || {}).value || 'none';
         if (fCircleOffsetDesign) fCircleOffsetDesign.style.display = (shape === 'circle' && circlePattern === 'sunburst') ? '' : 'none';
+        // V bars: hide when semi hub active
+        var semiPattern = (document.querySelector('input[name="f-semi-bars"]:checked') || {}).value || 'none';
+        var vbarsGroup = document.getElementById('fix-vbars-group');
+        if (vbarsGroup) vbarsGroup.style.display = (shape === 'semi-circle' && semiPattern !== 'none') ? 'none' : '';
       }
 
       // Wire shape radios to update design bars visibility
@@ -3647,7 +3651,10 @@
 
       fSemiRadios.forEach(function(r) {
         r.addEventListener('change', function() {
-          console.log('SEMI BAR PATTERN:', r.value); if (window.update3D) window.update3D({ fixSemiBarPattern: r.value });
+          if (window.update3D) window.update3D({ fixSemiBarPattern: r.value });
+          // Hide V bars when hub pattern active (V bars are automatic from spokes)
+          var vbarsGroup = document.getElementById('fix-vbars-group');
+          if (vbarsGroup) vbarsGroup.style.display = (r.value === 'none') ? '' : 'none';
         });
       });
 
