@@ -3496,6 +3496,13 @@
             var el = document.getElementById(id);
             if (el) el.style.display = (radio.value === 'casement') ? '' : 'none';
           });
+          // Update price + spec for new window type
+          if (radio.value === 'fix-only') {
+            if (window.updateFixSpec) window.updateFixSpec();
+          } else if (radio.value === 'casement') {
+            if (window.updateCasement3D) window.updateCasement3D();
+            if (window.updateCasementSpec) window.updateCasementSpec();
+          }
         });
       });
 
