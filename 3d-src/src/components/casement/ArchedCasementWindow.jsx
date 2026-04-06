@@ -5,7 +5,9 @@
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import { FRAME_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, BOTTOM_FACE, GASKET_T, mm } from './CasementFrame';
+import { FRAME_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, BOTTOM_FACE, GASKET_W, GASKET_T, mm } from './CasementFrame';
+import { SASH_RAIL } from './CasementPanel';
+import WindowCasementHandle from './WindowCasementHandle';
 import FixFrameWindow from '../fix-frame/FixFrameWindow';
 
 const LEAF_GAP = 4; // mm gap between leaf and frame
@@ -194,8 +196,8 @@ function ellipticalPoints(width, height) {
 export default function ArchedCasementWindow({
   width = 1000,
   height = 1500,
-  archShape = 'semi-circle', // gothic-arch, semi-circle, segmental-arch, elliptical-arch
-  hingeDirection = 'left',   // left, right
+  archShape = 'semi-circle',
+  hingeDirection = 'left',
   opening = 0.3,
   woodColor = '#F6F6F6',
   woodColorExt = '#F6F6F6',
@@ -209,7 +211,8 @@ export default function ArchedCasementWindow({
   brightness = 1.0,
   ironmongery = 'brass',
   sealColour = 'black',
-  // Semi-circle hub pattern
+  sillExtension = 0,
+  sillWider = false,
   fixSemiBarPattern = 'none',
   fixGothicBars = 'none',
 }) {
@@ -224,11 +227,29 @@ export default function ArchedCasementWindow({
     color: colorI, roughness: 0.72, metalness: 0.02, clearcoat: 0.06, clearcoatRoughness: 0.4,
   }), [colorI]);
 
+  // Gasket material
+  const gasketMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: sealColour === 'white' ? '#E8E8E8' : '#1a1a1a', roughness: 0.9, metalness: 0,
+  }), [sealColour]);
+
+  // Handle colors (same as CasementPanel)
+  const handleColors = useMemo(() => {
+    const defs = {
+      brass:         { metalColor: '#d4af37', lockColor: '#c9b07a' },
+      chrome:        { metalColor: '#e8eaec', lockColor: '#c8cacc' },
+      stainless:     { metalColor: '#c8c8c8', lockColor: '#a8a8a8' },
+      antique_brass: { metalColor: '#9c7722', lockColor: '#7a5810' },
+      black:         { metalColor: '#1a1a1a', lockColor: '#111111' },
+      white:         { metalColor: '#f0f0f0', lockColor: '#d8d8d8' },
+    };
+    return defs[ironmongery] || defs.brass;
+  }, [ironmongery]);
+
   const D = mm(FRAME_DEPTH);
   const halfD = D / 2;
 
   // ── Outer frame geometry ──
-  const outerFrameGeo = useMemo(() => {
+  const frameData = useMemo(() => {
     let pts;
     if (archShape === 'gothic-arch') pts = gothicPoints(width, height);
     else if (archShape === 'semi-circle') pts = semiCirclePoints(width, height);
@@ -236,7 +257,27 @@ export default function ArchedCasementWindow({
     else if (archShape === 'elliptical-arch') pts = ellipticalPoints(width, height);
     else return null;
     if (!pts) return null;
-    return makeFrameGeo(pts.outer, pts.inner, pts.innerRebated);
+    const frameGeo = makeFrameGeo(pts.outer, pts.inner, pts.innerRebated);
+
+    // Gasket: thin strip on rebate face (inner boundary offset 19mm inward)
+    // Compute gasket inner by offsetting inner points toward centroid
+    const gInner = pts.inner;
+    let cx = 0, cy = 0;
+    for (const p of gInner) { cx += p[0]; cy += p[1]; }
+    cx /= gInner.length; cy /= gInner.length;
+    const gw = mm(GASKET_W);
+    const gasketInnerPts = gInner.map(p => {
+      const dx = p[0] - cx, dy = p[1] - cy;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      return [p[0] - dx / len * gw, p[1] - dy / len * gw];
+    });
+    const gasketShape = makeShapeWithHole(gInner, gasketInnerPts);
+    const gasketGeo = new THREE.ExtrudeGeometry(gasketShape, { depth: mm(GASKET_T), bevelEnabled: false });
+    const gZ = mm(FRAME_DEPTH) / 2 - mm(EXT_DEPTH);
+    gasketGeo.translate(0, 0, gZ);
+    gasketGeo.computeVertexNormals();
+
+    return { frameGeo, gasketGeo };
   }, [archShape, width, height]);
 
   // ── Leaf dimensions ──
@@ -252,13 +293,7 @@ export default function ArchedCasementWindow({
   const angleRad = THREE.MathUtils.degToRad(clampedOpening * MAX_ANGLE);
 
   // ── Leaf pivot dimensions ──
-  const leafWm = mm(leafW); // leaf width in meters
-
-  // Effective height (arch shapes may override)
-  let effectiveH = height;
-  if (archShape === 'gothic-arch') effectiveH = Math.max(height, Math.round(width * Math.sqrt(3) / 2) + 50);
-  else if (archShape === 'semi-circle') effectiveH = Math.max(height, Math.round(width / 2) + 50);
-  const W = mm(width), H = mm(effectiveH);
+  const leafWm = mm(leafW);
 
   // ── Leaf arch rise: must match outer frame's rebated inner arch ──
   let leafArchRise = 0;
@@ -279,7 +314,20 @@ export default function ArchedCasementWindow({
   // Gap = LEAF_GAP (4mm): leafBottom = outerRebatedBottom + gap
   const leafYOffset = -mm(height) / 2 + mm(BOTTOM_INNER + LEAF_GAP) + mm(leafEffH) / 2;
 
-  // ── Leaf content (FixFrameWindow used directly as leaf) ──
+  // ── Handle positioning (same logic as CasementPanel) ──
+  const handleDeg = clampedOpening * MAX_ANGLE;
+  const handleScale = 0.001;
+  const REBATE_HIDDEN = 21;
+  const stileCenter = mm(REBATE_HIDDEN + (SASH_RAIL - REBATE_HIDDEN) / 2);
+  const leafD = mm(57); // leaf depth
+  const intZ = -leafD / 2 - 0.001;
+  const handleY = leafH >= 800 ? (-mm(leafEffH) / 2 + mm(500)) : 0;
+  const handlePos = hingeDirection === 'left'
+    ? [leafWm / 2 - stileCenter, handleY, intZ]
+    : [-leafWm / 2 + stileCenter, handleY, intZ];
+  const handleRot = [0, -Math.PI / 2, 0];
+
+  // ── Leaf content (FixFrameWindow + handle) ──
   const leafContent = (
     <group position={[0, leafYOffset, leafZ]}>
       <FixFrameWindow
@@ -300,6 +348,14 @@ export default function ArchedCasementWindow({
         fixGothicBars={fixGothicBars}
         fixArchRise={leafArchRise}
       />
+      {/* Handle on opposite stile, interior face */}
+      <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
+        <WindowCasementHandle
+          rotationDeg={hingeDirection === 'left' ? -handleDeg : handleDeg}
+          metalColor={handleColors.metalColor}
+          lockColor={handleColors.lockColor}
+        />
+      </group>
     </group>
   );
 
@@ -318,7 +374,6 @@ export default function ArchedCasementWindow({
       </group>
     );
   } else {
-    // right hinge
     leafNode = (
       <group position={[leafWm / 2, 0, 0]}>
         <group rotation={[0, angleRad, 0]}>
@@ -330,21 +385,43 @@ export default function ArchedCasementWindow({
     );
   }
 
+  // ── Sill dimensions (same as CasementWindow) ──
+  const W = mm(width);
+  const sillProj = mm(sillExtension);
+  const sillExtra = sillWider ? mm(50) : 0;
+  const sillW = W + sillExtra * 2;
+  const sillH_size = mm(25);
+
   return (
     <group>
       {/* Outer frame */}
-      {outerFrameGeo && (
+      {frameData && (
         <group>
-          <mesh geometry={outerFrameGeo.ext} castShadow receiveShadow>
+          <mesh geometry={frameData.frameGeo.ext} castShadow receiveShadow>
             <primitive object={extMat} attach="material" />
           </mesh>
-          <mesh geometry={outerFrameGeo.int} castShadow receiveShadow>
+          <mesh geometry={frameData.frameGeo.int} castShadow receiveShadow>
             <primitive object={intMat} attach="material" />
           </mesh>
         </group>
       )}
 
-      {/* Leaf (fix-frame shape) in rebate with pivot */}
+      {/* Gasket on rebate face */}
+      {frameData && frameData.gasketGeo && (
+        <mesh geometry={frameData.gasketGeo} castShadow receiveShadow>
+          <primitive object={gasketMat} attach="material" />
+        </mesh>
+      )}
+
+      {/* Sill extension */}
+      {sillExtension > 0 && (
+        <mesh position={[0, -mm(height) / 2 + sillH_size / 2, halfD + sillProj / 2]} castShadow receiveShadow>
+          <boxGeometry args={[sillW, sillH_size, sillProj]} />
+          <primitive object={extMat} attach="material" />
+        </mesh>
+      )}
+
+      {/* Leaf with pivot */}
       {leafNode}
     </group>
   );

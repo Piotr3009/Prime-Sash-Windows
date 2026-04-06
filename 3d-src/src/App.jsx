@@ -609,6 +609,8 @@ function Scene({ config, isMobile }) {
                 brightness={config.brightness}
                 ironmongery={config.ironmongery}
                 sealColour={config.sealColour || 'black'}
+                sillExtension={config.sillExtension || 0}
+                sillWider={config.sillWider || false}
                 fixSemiBarPattern={config.fixSemiBarPattern || 'none'}
                 fixGothicBars={config.fixGothicBars || 'none'}
               />
