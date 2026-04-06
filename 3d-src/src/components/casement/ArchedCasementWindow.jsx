@@ -268,9 +268,20 @@ export default function ArchedCasementWindow({
     leafArchRise = Math.round(width * 0.325 - EXT_FACE_W - LEAF_GAP);
   }
 
+  // ── Leaf effective height (same logic as FixFrameWindow) ──
+  let leafEffH = leafH;
+  if (archShape === 'gothic-arch') leafEffH = Math.max(leafH, Math.round(leafW * Math.sqrt(3) / 2) + 50);
+  else if (archShape === 'semi-circle') leafEffH = Math.max(leafH, Math.round(leafW / 2) + 50);
+
+  // ── Leaf Y offset: align leaf bottom with outer frame rebated inner bottom + gap ──
+  // Outer rebated inner bottom = -height/2 + BOTTOM_INNER (47mm)
+  // Leaf bottom = -leafEffH/2 + Y_offset
+  // Gap = LEAF_GAP (4mm): leafBottom = outerRebatedBottom + gap
+  const leafYOffset = -mm(height) / 2 + mm(BOTTOM_INNER + LEAF_GAP) + mm(leafEffH) / 2;
+
   // ── Leaf content (FixFrameWindow used directly as leaf) ──
   const leafContent = (
-    <group position={[0, 0, leafZ]}>
+    <group position={[0, leafYOffset, leafZ]}>
       <FixFrameWindow
         width={leafW}
         height={leafH}
