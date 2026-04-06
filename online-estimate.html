@@ -2452,7 +2452,7 @@
 
         <div class="input-group" id="fix-semi-bars-design" style="display:none;margin-top:10px;">
           <label>Semi-Circle Bar Pattern:</label>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
             <label class="layout-option">
               <input type="radio" name="f-semi-bars" value="none" checked>
               <div class="layout-thumb" title="None">
@@ -2463,11 +2463,24 @@
               <span style="font-size:10px;color:#666;">None</span>
             </label>
             <label class="layout-option">
+              <input type="radio" name="f-semi-bars" value="half-hub">
+              <div class="layout-thumb" title="Half Hub">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M18 20 A8 8 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="25" y1="12" x2="25" y2="0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18" y1="20" x2="8" y2="4" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="32" y1="20" x2="42" y2="4" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Half Hub</span>
+            </label>
+            <label class="layout-option">
               <input type="radio" name="f-semi-bars" value="hub-spoke">
               <div class="layout-thumb" title="Hub & Spoke">
                 <svg viewBox="0 0 50 40" width="44" height="34">
                   <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
-                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
                   <line x1="18" y1="38" x2="18" y2="20" stroke="#0a1628" stroke-width="1"/>
                   <line x1="32" y1="38" x2="32" y2="20" stroke="#0a1628" stroke-width="1"/>
                   <path d="M18 20 A8 8 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="1"/>
@@ -2483,9 +2496,9 @@
               <div class="layout-thumb" title="Double Hub & Spoke">
                 <svg viewBox="0 0 50 40" width="44" height="34">
                   <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
-                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
                   <line x1="13" y1="38" x2="13" y2="20" stroke="#0a1628" stroke-width="0.8"/>
-                  <line x1="25" y1="38" x2="25" y2="20" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18" y1="38" x2="18" y2="20" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="32" y1="38" x2="32" y2="20" stroke="#0a1628" stroke-width="0.8"/>
                   <line x1="37" y1="38" x2="37" y2="20" stroke="#0a1628" stroke-width="0.8"/>
                   <path d="M18 20 A8 8 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="0.8"/>
                   <path d="M10 20 A16 16 0 0 1 40 20" fill="none" stroke="#0a1628" stroke-width="0.8"/>
@@ -2497,6 +2510,28 @@
                 </svg>
               </div>
               <span style="font-size:10px;color:#666;">Double Hub</span>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="f-semi-bars" value="triple-hub-spoke">
+              <div class="layout-thumb" title="Triple Hub & Spoke">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="10" y1="38" x2="10" y2="20" stroke="#0a1628" stroke-width="0.7"/>
+                  <line x1="18" y1="38" x2="18" y2="20" stroke="#0a1628" stroke-width="0.7"/>
+                  <line x1="25" y1="38" x2="25" y2="20" stroke="#0a1628" stroke-width="0.7"/>
+                  <line x1="32" y1="38" x2="32" y2="20" stroke="#0a1628" stroke-width="0.7"/>
+                  <line x1="40" y1="38" x2="40" y2="20" stroke="#0a1628" stroke-width="0.7"/>
+                  <path d="M18 20 A8 8 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="0.7"/>
+                  <path d="M10 20 A16 16 0 0 1 40 20" fill="none" stroke="#0a1628" stroke-width="0.7"/>
+                  <path d="M5 20 A21 21 0 0 1 45 20" fill="none" stroke="#0a1628" stroke-width="0.7"/>
+                  <line x1="25" y1="12" x2="25" y2="0" stroke="#0a1628" stroke-width="0.7"/>
+                  <line x1="10" y1="20" x2="5" y2="3" stroke="#0a1628" stroke-width="0.7"/>
+                  <line x1="40" y1="20" x2="45" y2="3" stroke="#0a1628" stroke-width="0.7"/>
+                  <line x1="18" y1="20" x2="10" y2="5" stroke="#0a1628" stroke-width="0.7"/>
+                  <line x1="32" y1="20" x2="40" y2="5" stroke="#0a1628" stroke-width="0.7"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Triple Hub</span>
             </label>
           </div>
         </div>

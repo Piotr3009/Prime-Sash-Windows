@@ -844,11 +844,13 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     return sq > 0 ? springY + Math.sqrt(sq) : springY;
   }
 
-  const isHub = semiBarPattern === 'hub-spoke' || semiBarPattern === 'double-hub-spoke';
+  const isHub = semiBarPattern === 'half-hub' || semiBarPattern === 'hub-spoke' || semiBarPattern === 'double-hub-spoke' || semiBarPattern === 'triple-hub-spoke';
 
   // Spoke positions: calculated once, shared by bars and hubData
+  const isHalf = semiBarPattern === 'half-hub';
   const isDouble = semiBarPattern === 'double-hub-spoke';
-  const spokeCount = isDouble ? 6 : 4;
+  const isTriple = semiBarPattern === 'triple-hub-spoke';
+  const spokeCount = isTriple ? 8 : isDouble ? 6 : 4;
   const spokeAngles = useMemo(() => {
     if (!isHub) return [];
     const angles = [];
@@ -860,18 +862,26 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     const items = [];
     const glassW = iHalfW * 2;
     if (isHub) {
-      // V bars = continuation of arch ring endpoints at springing line
       const belowH = springY - iBottom;
       const hubR1 = iHalfW * 0.3;
-      const hubR2 = isDouble ? iHalfW * 0.6 : null;
-      if (belowH > 0) {
+      const hubR2 = (isDouble || isTriple) ? iHalfW * 0.6 : null;
+      const hubR3 = isTriple ? iHalfW * 0.8 : null;
+      if (isHalf) {
+        // Half Hub: H bar at springing, no V bars
+        items.push({ type: 'h', x: 0, y: springY, len: iHalfW * 2 });
+      } else if (belowH > 0) {
         // Ring 1 endpoints: ±hubR1
         items.push({ type: 'v', x: -hubR1, y: iBottom + belowH / 2, len: belowH });
         items.push({ type: 'v', x: hubR1, y: iBottom + belowH / 2, len: belowH });
-        // Ring 2 endpoints: ±hubR2 (double only)
+        // Ring 2 endpoints: ±hubR2 (double + triple)
         if (hubR2) {
           items.push({ type: 'v', x: -hubR2, y: iBottom + belowH / 2, len: belowH });
           items.push({ type: 'v', x: hubR2, y: iBottom + belowH / 2, len: belowH });
+        }
+        // Ring 3 endpoints: ±hubR3 (triple only)
+        if (hubR3) {
+          items.push({ type: 'v', x: -hubR3, y: iBottom + belowH / 2, len: belowH });
+          items.push({ type: 'v', x: hubR3, y: iBottom + belowH / 2, len: belowH });
         }
       }
       // H bars: user can add below springing
@@ -906,7 +916,8 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
   const hubData = useMemo(() => {
     if (!isHub) return null;
     const hubR1 = iHalfW * 0.3;
-    const hubR2 = isDouble ? iHalfW * 0.6 : null;
+    const hubR2 = (isDouble || isTriple) ? iHalfW * 0.6 : null;
+    const hubR3 = isTriple ? iHalfW * 0.8 : null;
 
     // spokeAngles from shared calculation above
 
@@ -977,7 +988,8 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     }
 
     const ring1 = buildRingLayers(hubR1);
-    const ring2 = isDouble ? buildRingLayers(hubR2) : null;
+    const ring2 = (isDouble || isTriple) ? buildRingLayers(hubR2) : null;
+    const ring3 = isTriple ? buildRingLayers(hubR3) : null;
 
     // Spoke profiles
     const trapV = new THREE.Shape();
@@ -991,26 +1003,10 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     ovoloV.quadraticCurveTo(BAR_H - drop - sqH, BAR_W / 2, 0, BAR_W / 2);
     ovoloV.closePath();
 
-    const spokes = spokeAngles.map(angle => {
-      const startR = hubR1 + BAR_W * 0.6;
-      const endR = isDouble ? (hubR2 - BAR_W * 0.6) : (iHalfW - BAR_W * 0.4);
-      const spokeLen = endR - startR;
-      if (spokeLen < mm(20)) return null;
-      const midR = (startR + endR) / 2;
-      const cx = midR * Math.cos(angle);
-      const cy = springY + midR * Math.sin(angle);
-      const extG = new THREE.ExtrudeGeometry(trapV, { depth: spokeLen + mm(10), bevelEnabled: false });
-      extG.rotateZ(Math.PI / 2); extG.rotateX(-Math.PI / 2); extG.translate(0, -(spokeLen + mm(10)) / 2, 0); extG.computeVertexNormals();
-      const intG = new THREE.ExtrudeGeometry(ovoloV, { depth: spokeLen + mm(10), bevelEnabled: false, curveSegments: 16 });
-      intG.rotateZ(Math.PI / 2); intG.rotateX(-Math.PI / 2); intG.translate(0, -(spokeLen + mm(10)) / 2, 0); intG.computeVertexNormals();
-      return { extG, intG, len: spokeLen, cx, cy, angle };
-    }).filter(Boolean);
-
-    let outerSpokes = [];
-    if (isDouble) {
-      outerSpokes = spokeAngles.map(angle => {
-        const startR = hubR2 + BAR_W * 0.6;
-        const endR = iHalfW - BAR_W * 0.4;
+    function buildSpokes(innerR, outerR) {
+      return spokeAngles.map(angle => {
+        const startR = innerR + BAR_W * 0.6;
+        const endR = outerR - BAR_W * 0.4;
         const spokeLen = endR - startR;
         if (spokeLen < mm(20)) return null;
         const midR = (startR + endR) / 2;
@@ -1024,8 +1020,15 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       }).filter(Boolean);
     }
 
-    return { ring1, ring2, spokes, outerSpokes };
-  }, [semiBarPattern, iHalfW, springY, isHub, spokeAngles]);
+    // Inner spokes: hub1 → hub2 (or frame if single/half)
+    const spokes = buildSpokes(hubR1, (isDouble || isTriple) ? hubR2 : iHalfW);
+    // Outer spokes: hub2 → hub3 (or frame if double)
+    const outerSpokes = (isDouble || isTriple) ? buildSpokes(hubR2, isTriple ? hubR3 : iHalfW) : [];
+    // Outermost spokes: hub3 → frame (triple only)
+    const outermostSpokes = isTriple ? buildSpokes(hubR3, iHalfW) : [];
+
+    return { ring1, ring2, ring3, spokes, outerSpokes, outermostSpokes };
+  }, [semiBarPattern, iHalfW, springY, isHub, isDouble, isTriple, spokeAngles]);
 
   const spacerBarMat = useMemo(() => new THREE.MeshStandardMaterial({
     color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
@@ -1073,8 +1076,10 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
         <group>
           {renderRing(hubData.ring1, 'r1')}
           {hubData.ring2 && renderRing(hubData.ring2, 'r2')}
+          {hubData.ring3 && renderRing(hubData.ring3, 'r3')}
           {renderSpokes(hubData.spokes, 'sp')}
           {hubData.outerSpokes.length > 0 && renderSpokes(hubData.outerSpokes, 'osp')}
+          {hubData.outermostSpokes.length > 0 && renderSpokes(hubData.outermostSpokes, 'omsp')}
         </group>
       )}
     </group>
