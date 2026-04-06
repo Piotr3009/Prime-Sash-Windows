@@ -199,11 +199,37 @@ class EstimateRenderer {
         // ═══ CASEMENT FIELDS ═══
         const windowType = fc.windowType || fc.windowCategory || 'sash';
         const casementLayout = fc.casementLayout || fc.layout || '';
+        const casementType = fc.casementType || 'standard';
+        const casArchShape = fc.casArchShape || null;
+        const casArchHinge = fc.casArchHinge || null;
+        const fixSemiBarPattern = fc.fixSemiBarPattern || 'none';
+        const fixGothicBars = fc.fixGothicBars || 'none';
         const casementHBars = fc.casementHBars || fc.hBars || 0;
         const casementVBars = fc.casementVBars || fc.vBars || 0;
+
+        // Build type text
+        const shapeNames = { 'gothic-arch': 'Gothic Arch', 'semi-circle': 'Semi-Circle', 'segmental-arch': 'Segmental Arch', 'elliptical-arch': 'Elliptical Arch' };
+        const hingeNames = { 'left': 'Right Hinge', 'right': 'Left Hinge' };
+        let casementTypeText;
+        if (casementType === 'arched' && casArchShape) {
+            casementTypeText = 'Arched Casement — ' + (shapeNames[casArchShape] || casArchShape);
+            if (casArchHinge) casementTypeText += ' (' + (hingeNames[casArchHinge] || casArchHinge) + ')';
+        } else {
+            casementTypeText = 'Casement — Layout ' + casementLayout;
+        }
+
+        // Build bars text with pattern
+        const patNames = { 'half-hub': 'Half Hub', 'hub-spoke': 'Hub & Spoke', 'double-hub-spoke': 'Double Hub', 'triple-hub-spoke': 'Triple Hub', 'intersecting': 'Intersecting' };
         let casementBarsText = 'None';
         if (casementHBars > 0 || casementVBars > 0) {
             casementBarsText = casementHBars + ' horizontal, ' + casementVBars + ' vertical';
+        }
+        let patternText = '';
+        if (fixSemiBarPattern !== 'none' && patNames[fixSemiBarPattern]) patternText = ' + ' + patNames[fixSemiBarPattern];
+        if (fixGothicBars !== 'none' && patNames[fixGothicBars]) patternText = ' + ' + patNames[fixGothicBars];
+        if (patternText) {
+            casementBarsText = (casementBarsText === 'None' ? '' : casementBarsText) + patternText;
+            if (casementBarsText.startsWith(' + ')) casementBarsText = casementBarsText.substring(3);
         }
         const sillExtension = fc.sillExtension || 'none';
         const sillText = sillExtension !== 'none' ? sillExtension + 'mm' : 'None';
@@ -230,7 +256,8 @@ class EstimateRenderer {
             fixUpperBars, fixLowerBars, fixBarsText,
             horns, hornsText, pas24,
             ironList, hardwareFinish, quantity,
-            casementLayout, casementHBars, casementVBars, casementBarsText,
+            casementLayout, casementType, casArchShape, casArchHinge, casementTypeText,
+            casementHBars, casementVBars, casementBarsText,
             sillExtension, sillText, trickleVent, trickleColour, trickleText,
             sealColour, safetyGlass, safetyGlassText,
             glassSpecCasement, glassSpecCasementText, fanlightHeight
@@ -294,7 +321,7 @@ class EstimateRenderer {
                     <div style="padding:1.5rem;">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
                             ${p.windowType === 'casement' ? `
-                            ${R.specRow('Type', 'Casement — Layout ' + p.casementLayout)}
+                            ${R.specRow('Type', p.casementTypeText)}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
                             ${p.fanlightHeight > 0 ? R.specRow('Fanlight Height', p.fanlightHeight + 'mm') : ''}
                             ${R.specRow('Glass', p.glassText)}
@@ -307,7 +334,7 @@ class EstimateRenderer {
                             ${R.specRow('Safety Glass', p.safetyGlassText)}
                             ${R.specRow('Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1))}
                             ${p.sillExtension !== 'none' ? R.specRow('Sill Projection', p.sillText) : ''}
-                            ${p.trickleVent !== 'none' ? R.specRow('Trickle Vent', p.trickleText) : ''}
+                            ${R.specRow('Trickle Vent', p.trickleText)}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
                             ` : `
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
@@ -1318,7 +1345,7 @@ class EstimateRenderer {
 
                 const specs = [];
                 if (p.windowType === 'casement') {
-                    specs.push(['Type', 'Casement — Layout ' + p.casementLayout]);
+                    specs.push(['Type', p.casementTypeText]);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                     if (p.fanlightHeight > 0) specs.push(['Fanlight Height', p.fanlightHeight + 'mm']);
                     specs.push(['Glass', p.glassText]);
@@ -1331,7 +1358,7 @@ class EstimateRenderer {
                     specs.push(['Safety Glass', p.safetyGlassText]);
                     specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                     if (p.sillExtension !== 'none') specs.push(['Sill Projection', p.sillText]);
-                    if (p.trickleVent !== 'none') specs.push(['Trickle Vent', p.trickleText]);
+                    specs.push(['Trickle Vent', p.trickleText]);
                     if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 } else {
                     if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
@@ -1484,7 +1511,7 @@ class EstimateRenderer {
             // Build spec rows
             const specs = [];
             if (p.windowType === 'casement') {
-                specs.push(['Type', 'Casement — Layout ' + p.casementLayout]);
+                specs.push(['Type', p.casementTypeText]);
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                 if (p.fanlightHeight > 0) specs.push(['Fanlight Height', p.fanlightHeight + 'mm']);
                 specs.push(['Glass', p.glassText]);
@@ -1497,7 +1524,7 @@ class EstimateRenderer {
                 specs.push(['Safety Glass', p.safetyGlassText]);
                 specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                 if (p.sillExtension !== 'none') specs.push(['Sill Projection', p.sillText]);
-                if (p.trickleVent !== 'none') specs.push(['Trickle Vent', p.trickleText]);
+                specs.push(['Trickle Vent', p.trickleText]);
                 if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
             } else {
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
