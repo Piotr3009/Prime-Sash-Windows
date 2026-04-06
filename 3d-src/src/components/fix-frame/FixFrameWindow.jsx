@@ -851,7 +851,7 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     const items = [];
     const glassW = iHalfW * 2;
     if (isHub) {
-      items.push({ type: 'h', x: 0, y: springY, len: glassW });
+      // NO horizontal bar at springing — hub ring replaces it
       const belowH = springY - iBottom;
       for (let i = 1; i <= (vBars || 0); i++) {
         const x = -iHalfW + (glassW / (vBars + 1)) * i;
@@ -859,7 +859,7 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       }
       for (let i = 1; i <= (hBars || 0); i++) {
         const y = iBottom + (belowH / (hBars + 1)) * i;
-        if (y < springY) items.push({ type: 'h', x: 0, y, len: glassW });
+        if (y < springY - mm(5)) items.push({ type: 'h', x: 0, y, len: glassW });
       }
     } else {
       const topY = semiArchY(0);
@@ -892,10 +892,16 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     const hubR1 = iHalfW * 0.3;
     console.log('SEMI HUB: hubR1=', hubR1, 'iHalfW=', iHalfW, 'springY=', springY);
     const hubR2 = isDouble ? iHalfW * 0.6 : null;
-    const nSpokes = isDouble ? Math.max(7, Math.round(iHalfW / mm(1) / 70)) : Math.max(5, Math.round(iHalfW / mm(1) / 90));
 
-    const spokeAngles = [];
-    for (let i = 0; i <= nSpokes - 1; i++) spokeAngles.push((i / (nSpokes - 1)) * Math.PI);
+    // Spoke angles: frame edges + vBar positions converted to angles
+    const spokeAngles = [Math.PI, 0]; // left edge, right edge
+    const glassW = iHalfW * 2;
+    for (let i = 1; i <= (vBars || 0); i++) {
+      const x = -iHalfW + (glassW / ((vBars || 0) + 1)) * i;
+      const clampedX = Math.max(-iHalfW * 0.99, Math.min(iHalfW * 0.99, x));
+      spokeAngles.push(Math.acos(clampedX / iHalfW));
+    }
+    spokeAngles.sort((a, b) => b - a); // π → 0 (left to right)
 
     // Half-ring as STRIP along semicircle path (same approach as Gothic intersecting)
     function semiArcPts(radius, nPts) {
@@ -987,9 +993,9 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       const cx = midR * Math.cos(angle);
       const cy = springY + midR * Math.sin(angle);
       const extG = new THREE.ExtrudeGeometry(trapV, { depth: spokeLen + mm(10), bevelEnabled: false });
-      extG.rotateX(-Math.PI / 2); extG.translate(0, -(spokeLen + mm(10)) / 2, 0); extG.computeVertexNormals();
+      extG.rotateZ(Math.PI / 2); extG.rotateX(-Math.PI / 2); extG.translate(0, -(spokeLen + mm(10)) / 2, 0); extG.computeVertexNormals();
       const intG = new THREE.ExtrudeGeometry(ovoloV, { depth: spokeLen + mm(10), bevelEnabled: false, curveSegments: 16 });
-      intG.rotateX(-Math.PI / 2); intG.translate(0, -(spokeLen + mm(10)) / 2, 0); intG.computeVertexNormals();
+      intG.rotateZ(Math.PI / 2); intG.rotateX(-Math.PI / 2); intG.translate(0, -(spokeLen + mm(10)) / 2, 0); intG.computeVertexNormals();
       return { extG, intG, len: spokeLen, cx, cy, angle };
     }).filter(Boolean);
 
@@ -1004,15 +1010,15 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
         const cx = midR * Math.cos(angle);
         const cy = springY + midR * Math.sin(angle);
         const extG = new THREE.ExtrudeGeometry(trapV, { depth: spokeLen + mm(10), bevelEnabled: false });
-        extG.rotateX(-Math.PI / 2); extG.translate(0, -(spokeLen + mm(10)) / 2, 0); extG.computeVertexNormals();
+        extG.rotateZ(Math.PI / 2); extG.rotateX(-Math.PI / 2); extG.translate(0, -(spokeLen + mm(10)) / 2, 0); extG.computeVertexNormals();
         const intG = new THREE.ExtrudeGeometry(ovoloV, { depth: spokeLen + mm(10), bevelEnabled: false, curveSegments: 16 });
-        intG.rotateX(-Math.PI / 2); intG.translate(0, -(spokeLen + mm(10)) / 2, 0); intG.computeVertexNormals();
+        intG.rotateZ(Math.PI / 2); intG.rotateX(-Math.PI / 2); intG.translate(0, -(spokeLen + mm(10)) / 2, 0); intG.computeVertexNormals();
         return { extG, intG, len: spokeLen, cx, cy, angle };
       }).filter(Boolean);
     }
 
     return { ring1, ring2, spokes, outerSpokes };
-  }, [semiBarPattern, iHalfW, springY, isHub]);
+  }, [semiBarPattern, iHalfW, springY, isHub, vBars]);
 
   const spacerBarMat = useMemo(() => new THREE.MeshStandardMaterial({
     color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
