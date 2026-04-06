@@ -174,9 +174,9 @@ function SceneContent({ sceneIndex, isMobile }) {
             fixCircleBarOffset={180}
             hBars={0}
             vBars={0}
-            woodColor="#1a2a3a"
-            woodColorExt="#1a2a3a"
-            woodColorInt="#c8b898"
+            woodColor="#c8b898"
+            woodColorExt="#c8b898"
+            woodColorInt="#a8c4d4"
             sameColor={false}
             spacerColor="silver"
             glassFinish="clear"
