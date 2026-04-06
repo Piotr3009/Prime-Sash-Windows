@@ -909,7 +909,7 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
       }
     }
     return items;
-  }, [hBars, vBars, iHalfW, iBottom, springY, isHub, spokeAngles]);
+  }, [hBars, vBars, iHalfW, iBottom, springY, isHub, semiBarPattern, spokeAngles]);
 
   // ── Hub & Spoke ──
 
