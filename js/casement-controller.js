@@ -109,13 +109,21 @@
     var layout = checked('casement-layout') || '040L';
     var w = parseInt(val('c-width')) || 800;
     var h = parseInt(val('c-height')) || 1200;
+    var isArched = checked('casement-type') === 'arched';
+
+    // Arched casement overrides
+    var archShape = isArched ? (checked('cas-arch-shape') || 'semi-circle') : null;
+    var archHinge = isArched ? (checked('cas-arch-opening') || 'left') : null;
+    var shapeNames = { 'gothic-arch': 'Gothic Arch', 'semi-circle': 'Semi-Circle', 'segmental-arch': 'Segmental Arch', 'elliptical-arch': 'Elliptical Arch' };
 
     // Window type
     var specType = document.getElementById('spec-window-type');
     var specSashType = document.getElementById('spec-sash-type');
     var specSplitItem = document.getElementById('spec-split-ratio-item');
     if (specType) specType.style.display = 'block';
-    if (specSashType) specSashType.textContent = 'Casement — Layout ' + layout;
+    if (specSashType) specSashType.textContent = isArched
+      ? 'Arched Casement — ' + (shapeNames[archShape] || archShape) + ' (' + (archHinge === 'left' ? 'Left Hinge' : 'Right Hinge') + ')'
+      : 'Casement — Layout ' + layout;
     if (specSplitItem) specSplitItem.style.display = 'none';
 
     // Dimensions
@@ -135,18 +143,26 @@
     });
 
     // Bars
-    var hBars = parseInt(checked('c-hbars')) || 0;
-    var vBars = parseInt(checked('c-vbars')) || 0;
+    var hBars = isArched ? (parseInt(checked('f-hbars')) || 0) : (parseInt(checked('c-hbars')) || 0);
+    var vBars = isArched ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0);
+    // Shape-specific patterns
+    var patternText = '';
+    if (isArched) {
+      var semiPat = checked('f-semi-bars');
+      var gothPat = checked('f-gothic-bars');
+      var patNames = { 'half-hub': 'Half Hub', 'hub-spoke': 'Hub & Spoke', 'double-hub-spoke': 'Double Hub', 'triple-hub-spoke': 'Triple Hub', 'intersecting': 'Intersecting' };
+      if (archShape === 'semi-circle' && semiPat && semiPat !== 'none') patternText = ' + ' + (patNames[semiPat] || semiPat);
+      if (archShape === 'gothic-arch' && gothPat && gothPat !== 'none') patternText = ' + ' + (patNames[gothPat] || gothPat);
+    }
     var specBars = document.getElementById('spec-bars');
     if (specBars) {
-      if (hBars > 0 || vBars > 0) {
+      if (hBars > 0 || vBars > 0 || patternText) {
         specBars.style.display = 'block';
-        // Change label from "Upper Sash:" to "Bars:"
         var upperLabel = specBars.querySelector('#spec-upper-bars');
         if (upperLabel) {
           var labelEl = upperLabel.previousElementSibling;
           if (labelEl) labelEl.textContent = 'Bars:';
-          upperLabel.textContent = hBars + ' horizontal, ' + vBars + ' vertical';
+          upperLabel.textContent = hBars + ' horizontal, ' + vBars + ' vertical' + patternText;
         }
         // Hide lower bars row
         var lowerItem = document.getElementById('spec-lower-bars');
@@ -537,6 +553,7 @@
   // Expose globally
   window.getCasementConfig = getCasementConfig;
   window.updateCasement3D = updateCasement3D;
+  window.updateCasementSpec = updateSpecPanel;
 
   // ─── Init ───
   function init() {
