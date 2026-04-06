@@ -559,8 +559,8 @@
           <div class="input-group" style="margin-top:10px;">
             <label>Opening Direction:</label>
             <div class="radio-group">
-              <div class="radio-option"><input type="radio" id="cas-arch-open-left" name="cas-arch-opening" value="left" checked><label for="cas-arch-open-left" class="radio-label">Left Hinge</label></div>
-              <div class="radio-option"><input type="radio" id="cas-arch-open-right" name="cas-arch-opening" value="right"><label for="cas-arch-open-right" class="radio-label">Right Hinge</label></div>
+              <div class="radio-option"><input type="radio" id="cas-arch-open-left" name="cas-arch-opening" value="right" checked><label for="cas-arch-open-left" class="radio-label">Left Hinge</label></div>
+              <div class="radio-option"><input type="radio" id="cas-arch-open-right" name="cas-arch-opening" value="left"><label for="cas-arch-open-right" class="radio-label">Right Hinge</label></div>
             </div>
           </div>
         </div><!-- /casement-arched-options -->
@@ -3554,8 +3554,12 @@
           if (ch) ch.min = isArched ? '300' : '400';
           // Starting dimensions: 1000x1500 for arched (same as fix-frame)
           if (isArched) {
-            if (cw && parseInt(cw.value) < 1000) { cw.value = '1000'; cw.dispatchEvent(new Event('input')); }
-            if (ch && parseInt(ch.value) < 1500) { ch.value = '1500'; ch.dispatchEvent(new Event('input')); }
+            var cwSel = document.getElementById('c-width-select');
+            var chSel = document.getElementById('c-height-select');
+            if (cwSel) cwSel.value = '1000';
+            if (chSel) chSel.value = '1500';
+            if (cw) { cw.value = '1000'; cw.dispatchEvent(new Event('input')); }
+            if (ch) { ch.value = '1500'; ch.dispatchEvent(new Event('input')); }
           }
         });
       });
