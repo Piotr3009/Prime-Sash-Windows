@@ -893,15 +893,22 @@ function SemiCircleFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
     console.log('SEMI HUB: hubR1=', hubR1, 'iHalfW=', iHalfW, 'springY=', springY);
     const hubR2 = isDouble ? iHalfW * 0.6 : null;
 
-    // Spoke angles: frame edges + vBar positions converted to angles
-    const spokeAngles = [Math.PI, 0]; // left edge, right edge
+    // Spoke angles: always evenly spaced, PLUS vBar positions if set
+    const baseSpokes = isDouble ? Math.max(7, Math.round(iHalfW / mm(1) / 70)) : Math.max(5, Math.round(iHalfW / mm(1) / 90));
+    const spokeAngles = [];
+    // Default evenly spaced spokes (always)
+    for (let i = 0; i < baseSpokes; i++) spokeAngles.push((i / (baseSpokes - 1)) * Math.PI);
+    // Add vBar positions as extra spokes (if any, and not already close to existing)
     const glassW = iHalfW * 2;
     for (let i = 1; i <= (vBars || 0); i++) {
       const x = -iHalfW + (glassW / ((vBars || 0) + 1)) * i;
       const clampedX = Math.max(-iHalfW * 0.99, Math.min(iHalfW * 0.99, x));
-      spokeAngles.push(Math.acos(clampedX / iHalfW));
+      const a = Math.acos(clampedX / iHalfW);
+      // Only add if not too close to existing spoke
+      const tooClose = spokeAngles.some(sa => Math.abs(sa - a) < 0.05);
+      if (!tooClose) spokeAngles.push(a);
     }
-    spokeAngles.sort((a, b) => b - a); // π → 0 (left to right)
+    spokeAngles.sort((a, b) => b - a);
 
     // Half-ring as STRIP along semicircle path (same approach as Gothic intersecting)
     function semiArcPts(radius, nPts) {
