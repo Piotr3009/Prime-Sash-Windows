@@ -475,10 +475,11 @@ class EstimateManager {
         if (window.currentConfig) {
             const cfg = window.currentConfig;
             const isCasement = cfg.windowType === 'casement' || cfg.windowCategory === 'casement';
+            const isFixOnly = cfg.windowType === 'fix-only';
 
             return {
                 // Window type
-                windowType: isCasement ? 'casement' : 'sash',
+                windowType: isFixOnly ? 'fix-only' : isCasement ? 'casement' : 'sash',
 
                 // Wymiary - ZAWSZE wymiar okna (nie brick-to-brick)
                 width: cfg.actualFrameWidth || cfg.width,

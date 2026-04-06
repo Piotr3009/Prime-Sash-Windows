@@ -4193,6 +4193,10 @@
         if (ironItem) ironItem.style.display = 'none';
 
         // Update price
+        // Update currentConfig for estimate saving
+        window.currentConfig = getFixConfig();
+
+        // Update price
         if (typeof updateFixPrice === 'function') updateFixPrice();
       }
       window.updateFixSpec = updateFixSpec;
