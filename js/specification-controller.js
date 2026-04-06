@@ -884,11 +884,6 @@ class SpecificationController {
     }
 
     this.showAppliedFeedback('apply-horns');
-
-    // Update price
-    if (window.configuratorCore?.isInitialized) {
-      window.configuratorCore.updateAll();
-    }
   }
 
   applyColor() {
@@ -1021,11 +1016,6 @@ class SpecificationController {
     }
 
     this.showAppliedFeedback('apply-glass');
-
-    // Update price
-    if (window.configuratorCore?.isInitialized) {
-      window.configuratorCore.updateAll();
-    }
   }
 
   applyOpening() {
