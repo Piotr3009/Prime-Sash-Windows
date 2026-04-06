@@ -263,7 +263,10 @@ class PriceCalculator {
       galleryIronmongery.fingerLift,
       galleryIronmongery.pullHandles,
       galleryIronmongery.stoppers,
-      galleryIronmongery.horns
+      galleryIronmongery.horns,
+      galleryIronmongery.casementHandles,
+      galleryIronmongery.casementStays,
+      galleryIronmongery.casementLocks
     ].filter(p => p !== null && p !== undefined);
     
     if (selectedProducts.length > 0) {
