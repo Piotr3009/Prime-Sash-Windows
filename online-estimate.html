@@ -3742,6 +3742,18 @@
         fixShapeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         doorTypeSection.style.display = isWindows ? 'none' : 'block';
         if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
+
+        // Update product range hint
+        var hintEl = document.getElementById('hint-product-range');
+        if (hintEl) {
+          if (!isWindows) {
+            var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+            hintEl.textContent = doorLabels[doorType] || 'Timber Door';
+          } else {
+            var winLabels = {'sash':'Sash Window','casement':'Casement Window','fix-only':'Fix Frame'};
+            hintEl.textContent = winLabels[windowType] || 'Sash Window';
+          }
+        }
       }
 
       rangeRadios.forEach(function(radio) {
