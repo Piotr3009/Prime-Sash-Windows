@@ -3430,20 +3430,6 @@
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
         dso.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
       }
-
-      // Update product range hint
-      var hintEl = document.getElementById('hint-product-range');
-      if (hintEl) {
-        if (!isWindows) {
-          var dt = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
-          var dLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
-          hintEl.textContent = dLabels[dt] || 'Timber Door';
-        } else {
-          var wt = (document.querySelector('input[name="window-type"]:checked') || {}).value || '';
-          var wLabels = {'sash':'Sash Window','casement':'Casement Window','fix-only':'Fix Frame'};
-          hintEl.textContent = wLabels[wt] || 'Sash Window';
-        }
-      }
     }
     // Fix bars: only show for triple
     if (cat === 'dim-design') {
@@ -3827,20 +3813,6 @@
           if (window.specificationController && window.specificationController.applyProductRange) {
             window.specificationController.applyProductRange();
           }
-          // Update product range hint
-          var hintEl = document.getElementById('hint-product-range');
-          if (hintEl) {
-            var range = (document.querySelector('input[name="product-range"]:checked') || {}).value;
-            if (range === 'doors') {
-              var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
-              var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
-              hintEl.textContent = doorLabels[doorType] || 'Timber Door';
-            } else {
-              var winType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
-              var winLabels = {'sash':'Sash Window','casement':'Casement Window','fix-only':'Fix Frame'};
-              hintEl.textContent = winLabels[winType] || 'Sash Window';
-            }
-          }
           // Switch to Dimensions/Design
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
@@ -3855,8 +3827,6 @@
           if (typeof window.updateCasement3D === 'function') {
             window.updateCasement3D();
           }
-          var hintEl = document.getElementById('hint-product-range');
-          if (hintEl) hintEl.textContent = 'Casement Window';
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
           }
@@ -3921,8 +3891,6 @@
       var applyFixBtn = document.getElementById('apply-fix-frame');
       if (applyFixBtn) {
         applyFixBtn.addEventListener('click', function() {
-          var hintEl = document.getElementById('hint-product-range');
-          if (hintEl) hintEl.textContent = 'Fix Frame';
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
           }
@@ -3933,12 +3901,6 @@
       var applyDoorBtn = document.getElementById('apply-door-type');
       if (applyDoorBtn) {
         applyDoorBtn.addEventListener('click', function() {
-          var hintEl = document.getElementById('hint-product-range');
-          if (hintEl) {
-            var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
-            var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
-            hintEl.textContent = doorLabels[doorType] || 'Timber Door';
-          }
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
           }
