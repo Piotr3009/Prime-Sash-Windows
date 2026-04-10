@@ -3707,6 +3707,20 @@
           if (window.specificationController && window.specificationController.applyProductRange) {
             window.specificationController.applyProductRange();
           }
+          // Update product range hint
+          var hintEl = document.getElementById('hint-product-range');
+          if (hintEl) {
+            var range = (document.querySelector('input[name="product-range"]:checked') || {}).value;
+            if (range === 'doors') {
+              var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+              var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+              hintEl.textContent = doorLabels[doorType] || 'Timber Door';
+            } else {
+              var winType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
+              var winLabels = {'sash':'Sash Window','casement':'Casement Window','fix-only':'Fix Frame'};
+              hintEl.textContent = winLabels[winType] || 'Sash Window';
+            }
+          }
           // Switch to Dimensions/Design
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
