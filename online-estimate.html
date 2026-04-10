@@ -754,6 +754,7 @@
             </div>
           </div>
         </div>
+        <button class="btn btn-apply" id="apply-door-type">Apply</button>
       </div>
 
       <div class="config-section" data-for="sash" data-category="dim-design">
@@ -3735,6 +3736,8 @@
           if (typeof window.updateCasement3D === 'function') {
             window.updateCasement3D();
           }
+          var hintEl = document.getElementById('hint-product-range');
+          if (hintEl) hintEl.textContent = 'Casement Window';
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
           }
@@ -3799,6 +3802,24 @@
       var applyFixBtn = document.getElementById('apply-fix-frame');
       if (applyFixBtn) {
         applyFixBtn.addEventListener('click', function() {
+          var hintEl = document.getElementById('hint-product-range');
+          if (hintEl) hintEl.textContent = 'Fix Frame';
+          if (typeof window.showCategory === 'function') {
+            window.showCategory('dim-design');
+          }
+        });
+      }
+
+      // Door Type Apply
+      var applyDoorBtn = document.getElementById('apply-door-type');
+      if (applyDoorBtn) {
+        applyDoorBtn.addEventListener('click', function() {
+          var hintEl = document.getElementById('hint-product-range');
+          if (hintEl) {
+            var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+            var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+            hintEl.textContent = doorLabels[doorType] || 'Timber Door';
+          }
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
           }
