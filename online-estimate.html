@@ -3430,6 +3430,20 @@
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
         dso.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
       }
+
+      // Update product range hint
+      var hintEl = document.getElementById('hint-product-range');
+      if (hintEl) {
+        if (!isWindows) {
+          var dt = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+          var dLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+          hintEl.textContent = dLabels[dt] || 'Timber Door';
+        } else {
+          var wt = (document.querySelector('input[name="window-type"]:checked') || {}).value || '';
+          var wLabels = {'sash':'Sash Window','casement':'Casement Window','fix-only':'Fix Frame'};
+          hintEl.textContent = wLabels[wt] || 'Sash Window';
+        }
+      }
     }
     // Fix bars: only show for triple
     if (cat === 'dim-design') {
