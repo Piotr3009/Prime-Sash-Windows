@@ -736,13 +736,21 @@
         <h3>Door Type</h3>
         <div class="input-group">
           <div class="radio-group">
-            <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-              <input type="radio" id="type-french" name="door-type" value="french" disabled>
-              <label for="type-french" class="radio-label">French Doors <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+            <div class="radio-option">
+              <input type="radio" id="type-single-ext" name="door-type" value="single-external">
+              <label for="type-single-ext" class="radio-label">Single External Door</label>
             </div>
-            <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-              <input type="radio" id="type-external" name="door-type" value="external" disabled>
-              <label for="type-external" class="radio-label">External Doors <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+            <div class="radio-option">
+              <input type="radio" id="type-french" name="door-type" value="french">
+              <label for="type-french" class="radio-label">French Doors</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="type-sliding" name="door-type" value="sliding">
+              <label for="type-sliding" class="radio-label">Sliding Door</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="type-bifold" name="door-type" value="bifold">
+              <label for="type-bifold" class="radio-label">Bi-Fold Door</label>
             </div>
           </div>
         </div>
@@ -3224,7 +3232,7 @@
     <div class="window-type-tabs" style="display:flex;gap:8px;padding:12px 20px;border-bottom:2px solid rgba(255,255,255,0.1);">
       <button class="wt-tab active" data-wt="sash" style="padding:12px 24px;border:2px solid var(--primary-color);border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:var(--primary-color);color:white;letter-spacing:0.5px;">Sash Windows</button>
       <button class="wt-tab" data-wt="casement" style="padding:12px 24px;border:2px solid var(--primary-color);border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:transparent;color:var(--primary-color);letter-spacing:0.5px;">Casement</button>
-      <button class="wt-tab" data-wt="doors" style="padding:12px 24px;border:2px solid #999;border-radius:6px;font-size:0.95rem;font-weight:700;cursor:not-allowed;background:transparent;color:#999;opacity:0.5;letter-spacing:0.5px;">Doors <span style="font-size:0.65rem;">Soon</span></button>
+      <button class="wt-tab" data-wt="doors" style="padding:12px 24px;border:2px solid #999;border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:transparent;color:#333;letter-spacing:0.5px;">Doors</button>
     </div>
 
     <!-- Type Selector (sub-level - smaller) -->
