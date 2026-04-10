@@ -3945,12 +3945,18 @@
         });
       }
 
-      // Door Type radio change — show/hide options
+      // Door Type radio change — show/hide options + update hint
       var doorTypeRadios = document.querySelectorAll('input[name="door-type"]');
       doorTypeRadios.forEach(function(r) {
         r.addEventListener('change', function() {
           var dso = document.getElementById('door-single-options');
           if (dso) dso.style.display = r.value === 'single-external' ? 'block' : 'none';
+          // Update hint
+          var hintEl = document.getElementById('hint-product-range');
+          if (hintEl) {
+            var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+            hintEl.textContent = doorLabels[r.value] || 'Timber Door';
+          }
         });
       });
     })();
