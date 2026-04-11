@@ -238,12 +238,23 @@
     <div class="config-sidebar">
       <p class="sidebar-label">Configure</p>
       <button class="cat-btn active" data-target="product-range">Product Range<span class="cat-hint" id="hint-product-range">Sash Window</span></button>
-      <button class="cat-btn" data-target="dim-design">Dimensions / Design<span class="cat-hint" id="hint-dim-design">1000 × 1500mm</span></button>
-      <button class="cat-btn" data-target="glass">Glass<span class="cat-hint" id="hint-glass">Standard DG</span></button>
-      <button class="cat-btn" data-target="opening">Opening<span class="cat-hint" id="hint-opening">Both Open</span></button>
-      <button class="cat-btn" data-target="colour">Colour<span class="cat-hint" id="hint-colour">White</span></button>
-      <button class="cat-btn" data-target="hardware">Hardware<span class="cat-hint" id="hint-hardware">Ironmongery</span></button>
-      <button class="cat-btn" data-target="finalise">Finalise<span class="cat-hint" id="hint-finalise">Add to Estimate</span></button>
+      <!-- WINDOW MENU -->
+      <div id="window-menu">
+        <button class="cat-btn" data-target="dim-design">Dimensions / Design<span class="cat-hint" id="hint-dim-design">1000 × 1500mm</span></button>
+        <button class="cat-btn" data-target="glass">Glass<span class="cat-hint" id="hint-glass">Standard DG</span></button>
+        <button class="cat-btn" data-target="opening">Opening<span class="cat-hint" id="hint-opening">Both Open</span></button>
+        <button class="cat-btn" data-target="colour">Colour<span class="cat-hint" id="hint-colour">White</span></button>
+        <button class="cat-btn" data-target="hardware">Hardware<span class="cat-hint" id="hint-hardware">Ironmongery</span></button>
+        <button class="cat-btn" data-target="finalise">Finalise<span class="cat-hint" id="hint-finalise">Add to Estimate</span></button>
+      </div>
+      <!-- DOOR MENU -->
+      <div id="door-menu" style="display:none;">
+        <button class="cat-btn" data-target="door-dimensions">Dimensions<span class="cat-hint" id="hint-door-dim">900 × 2100mm</span></button>
+        <button class="cat-btn" data-target="door-glass">Glass<span class="cat-hint" id="hint-door-glass">Standard DG</span></button>
+        <button class="cat-btn" data-target="door-colour">Colour<span class="cat-hint" id="hint-door-colour">White</span></button>
+        <button class="cat-btn" data-target="door-hardware">Hardware<span class="cat-hint" id="hint-door-hardware">Ironmongery</span></button>
+        <button class="cat-btn" data-target="door-finalise">Finalise<span class="cat-hint" id="hint-door-finalise">Add to Estimate</span></button>
+      </div>
       <div class="sidebar-price">
         <p class="sidebar-price-label">Total</p>
         <p class="sidebar-price-value" id="sidebar-total-price">£0.00</p>
@@ -841,6 +852,50 @@
 
         <button class="btn btn-apply" id="apply-door-type">Apply</button>
       </div>
+
+      <!-- ═══ DOOR SECTIONS ═══ -->
+
+      <!-- Door Dimensions -->
+      <div class="config-section" data-for="door" data-category="door-dimensions" style="display:none;">
+        <h3>Door Dimensions</h3>
+        <div class="input-group">
+          <p style="color:#888;font-size:0.85rem;">Door dimension controls coming next...</p>
+        </div>
+      </div>
+
+      <!-- Door Glass -->
+      <div class="config-section" data-for="door" data-category="door-glass" style="display:none;">
+        <h3>Door Glass</h3>
+        <div class="input-group">
+          <p style="color:#888;font-size:0.85rem;">Door glass options coming next...</p>
+        </div>
+      </div>
+
+      <!-- Door Colour -->
+      <div class="config-section" data-for="door" data-category="door-colour" style="display:none;">
+        <h3>Door Colour</h3>
+        <div class="input-group">
+          <p style="color:#888;font-size:0.85rem;">Door colour options coming next...</p>
+        </div>
+      </div>
+
+      <!-- Door Hardware -->
+      <div class="config-section" data-for="door" data-category="door-hardware" style="display:none;">
+        <h3>Door Hardware</h3>
+        <div class="input-group">
+          <p style="color:#888;font-size:0.85rem;">Door hardware options coming next...</p>
+        </div>
+      </div>
+
+      <!-- Door Finalise -->
+      <div class="config-section" data-for="door" data-category="door-finalise" style="display:none;">
+        <h3>Finalise</h3>
+        <div class="input-group">
+          <p style="color:#888;font-size:0.85rem;">Door finalise coming next...</p>
+        </div>
+      </div>
+
+      <!-- ═══ END DOOR SECTIONS ═══ -->
 
       <div class="config-section" data-for="sash" data-category="dim-design">
         <h3>Step 1: Window Dimensions</h3>
@@ -3391,14 +3446,17 @@
   var configSections = document.querySelectorAll('.config-section[data-category]');
   
   function showCategory(cat) {
+    var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
     var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+    var activeFor = isWindows ? windowType : 'door';
+
     configSections.forEach(function(s) {
       if (s.dataset.category !== cat) {
         s.style.display = 'none';
       } else {
-        // Respect data-for: only show if matches current window type (or no data-for)
+        // Respect data-for: only show if matches current product type (or no data-for)
         var forType = s.getAttribute('data-for');
-        if (!forType || forType === windowType) {
+        if (!forType || forType === activeFor) {
           s.style.display = 'block';
         } else {
           s.style.display = 'none';
@@ -3731,11 +3789,18 @@
       var fixShapeSection = document.getElementById('fix-shape-section');
       var doorTypeSection = document.getElementById('door-type-section');
       var doorSingleOptions = document.getElementById('door-single-options');
+      var windowMenu = document.getElementById('window-menu');
+      var doorMenu = document.getElementById('door-menu');
 
       function updateSections() {
         var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
         var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+
+        // Toggle menus
+        if (windowMenu) windowMenu.style.display = isWindows ? '' : 'none';
+        if (doorMenu) doorMenu.style.display = isWindows ? 'none' : '';
+
         windowTypeSection.style.display = isWindows ? 'block' : 'none';
         sashTypeSection.style.display = (isWindows && windowType === 'sash') ? 'block' : 'none';
         casementLayoutSection.style.display = (isWindows && windowType === 'casement') ? 'block' : 'none';
@@ -3903,7 +3968,7 @@
       if (applyDoorBtn) {
         applyDoorBtn.addEventListener('click', function() {
           if (typeof window.showCategory === 'function') {
-            window.showCategory('dim-design');
+            window.showCategory('door-dimensions');
           }
         });
       }
