@@ -3797,6 +3797,8 @@
         var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
 
+        console.log('🔄 updateSections: isWindows=' + isWindows + ', windowMenu=' + !!windowMenu + ', doorMenu=' + !!doorMenu);
+
         // Toggle menus
         if (windowMenu) windowMenu.style.display = isWindows ? '' : 'none';
         if (doorMenu) doorMenu.style.display = isWindows ? 'none' : '';
@@ -3823,7 +3825,10 @@
       }
 
       rangeRadios.forEach(function(radio) {
-        radio.addEventListener('change', updateSections);
+        radio.addEventListener('change', function() {
+          console.log('🔘 product-range changed to: ' + radio.value);
+          updateSections();
+        });
       });
 
       // Window type → show/hide sash or casement sections + update 3D
