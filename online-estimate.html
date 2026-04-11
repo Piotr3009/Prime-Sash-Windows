@@ -3800,8 +3800,14 @@
         console.log('🔄 updateSections: isWindows=' + isWindows + ', windowMenu=' + !!windowMenu + ', doorMenu=' + !!doorMenu);
 
         // Toggle menus
-        if (windowMenu) windowMenu.style.display = isWindows ? '' : 'none';
-        if (doorMenu) doorMenu.style.display = isWindows ? 'none' : '';
+        if (windowMenu) {
+          windowMenu.style.display = isWindows ? 'block' : 'none';
+          console.log('  windowMenu display SET to: ' + windowMenu.style.display + ', computed: ' + getComputedStyle(windowMenu).display);
+        }
+        if (doorMenu) {
+          doorMenu.style.display = isWindows ? 'none' : 'block';
+          console.log('  doorMenu display SET to: ' + doorMenu.style.display + ', computed: ' + getComputedStyle(doorMenu).display + ', children: ' + doorMenu.children.length);
+        }
 
         windowTypeSection.style.display = isWindows ? 'block' : 'none';
         sashTypeSection.style.display = (isWindows && windowType === 'sash') ? 'block' : 'none';
@@ -3828,6 +3834,13 @@
         radio.addEventListener('change', function() {
           console.log('🔘 product-range changed to: ' + radio.value);
           updateSections();
+          // Check if something overrides after 500ms
+          setTimeout(function() {
+            var wm = document.getElementById('window-menu');
+            var dm = document.getElementById('door-menu');
+            console.log('⏰ 500ms later: windowMenu=' + (wm ? wm.style.display : 'null') + ', doorMenu=' + (dm ? dm.style.display : 'null'));
+            console.log('⏰ computed: windowMenu=' + (wm ? getComputedStyle(wm).display : 'null') + ', doorMenu=' + (dm ? getComputedStyle(dm).display : 'null'));
+          }, 500);
         });
       });
 
