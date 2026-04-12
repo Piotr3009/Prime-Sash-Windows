@@ -62,10 +62,6 @@
       openDirection: checked('d-open-direction') || 'inward',
       lockType: checked('d-lock-type') || 'multipoint',
       threshold: checked('d-threshold') || 'standard',
-      letterbox: checked('d-letterbox') || 'none',
-      spyhole: checked('d-spyhole') || 'none',
-      knocker: checked('d-knocker') || 'none',
-      numerals: checked('d-numerals') || 'none',
       quantity: numVal('d-quantity') || 1,
       notes: val('d-notes') || '',
       // Colour
@@ -190,7 +186,7 @@
       'd-hbars', 'd-vbars',
       'd-glass-type', 'd-glass-finish', 'd-spacer-color',
       'd-hinge-side', 'd-open-direction', 'd-lock-type',
-      'd-threshold', 'd-letterbox', 'd-spyhole', 'd-knocker', 'd-numerals'
+      'd-threshold'
     ].forEach(function(name) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(function(radio) {
         radio.addEventListener('change', debouncedUpdate);

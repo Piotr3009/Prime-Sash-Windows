@@ -249,7 +249,7 @@
       </div>
       <!-- DOOR MENU -->
       <div id="door-menu" style="display:none;">
-        <button class="cat-btn" data-target="door-dimensions">Dimensions<span class="cat-hint" id="hint-door-dim">900 × 2100mm</span></button>
+        <button class="cat-btn" data-target="door-dimensions">Dimensions / Design<span class="cat-hint" id="hint-door-dim">900 × 2100mm</span></button>
         <button class="cat-btn" data-target="door-glass">Glass<span class="cat-hint" id="hint-door-glass">Standard DG</span></button>
         <button class="cat-btn" data-target="door-colour">Colour<span class="cat-hint" id="hint-door-colour">White</span></button>
         <button class="cat-btn" data-target="door-hardware">Hardware<span class="cat-hint" id="hint-door-hardware">Ironmongery</span></button>
@@ -916,6 +916,33 @@
         </div>
       </div>
 
+      <!-- Door Design Options -->
+      <div class="config-section" data-for="door" data-category="door-dimensions" style="display:none;">
+        <h3>Step 3: Door Design</h3>
+        <div class="input-group">
+          <label>Hinge Side:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-hinge-left" name="d-hinge-side" value="left" checked><label for="d-hinge-left" class="radio-label">Left</label></div>
+            <div class="radio-option"><input type="radio" id="d-hinge-right" name="d-hinge-side" value="right"><label for="d-hinge-right" class="radio-label">Right</label></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Opening Direction:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-open-inward" name="d-open-direction" value="inward" checked><label for="d-open-inward" class="radio-label">Inward</label></div>
+            <div class="radio-option"><input type="radio" id="d-open-outward" name="d-open-direction" value="outward"><label for="d-open-outward" class="radio-label">Outward</label></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Threshold:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-threshold-standard" name="d-threshold" value="standard" checked><label for="d-threshold-standard" class="radio-label">Standard Hardwood</label></div>
+            <div class="radio-option"><input type="radio" id="d-threshold-aluminium" name="d-threshold" value="aluminium"><label for="d-threshold-aluminium" class="radio-label">Aluminium</label></div>
+            <div class="radio-option"><input type="radio" id="d-threshold-low" name="d-threshold" value="low-profile"><label for="d-threshold-low" class="radio-label">Low Profile (wheelchair accessible)</label></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Door Glass Type -->
       <div class="config-section" data-for="door" data-category="door-glass" style="display:none;">
         <h3>Step 3: Glass Type</h3>
@@ -960,20 +987,6 @@
       <div class="config-section" data-for="door" data-category="door-hardware" style="display:none;">
         <h3>Step 6: Door Hardware</h3>
         <div class="input-group">
-          <label>Hinge Side:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-hinge-left" name="d-hinge-side" value="left" checked><label for="d-hinge-left" class="radio-label">Left</label></div>
-            <div class="radio-option"><input type="radio" id="d-hinge-right" name="d-hinge-side" value="right"><label for="d-hinge-right" class="radio-label">Right</label></div>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>Opening Direction:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-open-inward" name="d-open-direction" value="inward" checked><label for="d-open-inward" class="radio-label">Inward</label></div>
-            <div class="radio-option"><input type="radio" id="d-open-outward" name="d-open-direction" value="outward"><label for="d-open-outward" class="radio-label">Outward</label></div>
-          </div>
-        </div>
-        <div class="input-group">
           <label>Lock Type:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="d-lock-multi" name="d-lock-type" value="multipoint" checked><label for="d-lock-multi" class="radio-label">Multipoint Lock</label></div>
@@ -987,52 +1000,6 @@
           </button>
         </div>
         <div id="d-selected-products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 15px;"></div>
-      </div>
-
-      <!-- Door Threshold -->
-      <div class="config-section" data-for="door" data-category="door-hardware" style="display:none;">
-        <h3>Threshold</h3>
-        <div class="input-group">
-          <label>Threshold Type:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-threshold-standard" name="d-threshold" value="standard" checked><label for="d-threshold-standard" class="radio-label">Standard Hardwood</label></div>
-            <div class="radio-option"><input type="radio" id="d-threshold-aluminium" name="d-threshold" value="aluminium"><label for="d-threshold-aluminium" class="radio-label">Aluminium</label></div>
-            <div class="radio-option"><input type="radio" id="d-threshold-low" name="d-threshold" value="low-profile"><label for="d-threshold-low" class="radio-label">Low Profile (wheelchair accessible)</label></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Door Letterbox & Accessories -->
-      <div class="config-section" data-for="door" data-category="door-hardware" style="display:none;">
-        <h3>Accessories</h3>
-        <div class="input-group">
-          <label>Letterbox:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-letterbox-none" name="d-letterbox" value="none" checked><label for="d-letterbox-none" class="radio-label">None</label></div>
-            <div class="radio-option"><input type="radio" id="d-letterbox-yes" name="d-letterbox" value="yes"><label for="d-letterbox-yes" class="radio-label">Letterbox</label></div>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>Spy Hole:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-spyhole-none" name="d-spyhole" value="none" checked><label for="d-spyhole-none" class="radio-label">None</label></div>
-            <div class="radio-option"><input type="radio" id="d-spyhole-yes" name="d-spyhole" value="yes"><label for="d-spyhole-yes" class="radio-label">Spy Hole</label></div>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>Door Knocker:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-knocker-none" name="d-knocker" value="none" checked><label for="d-knocker-none" class="radio-label">None</label></div>
-            <div class="radio-option"><input type="radio" id="d-knocker-yes" name="d-knocker" value="yes"><label for="d-knocker-yes" class="radio-label">Door Knocker</label></div>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>Door Numerals:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-numerals-none" name="d-numerals" value="none" checked><label for="d-numerals-none" class="radio-label">None</label></div>
-            <div class="radio-option"><input type="radio" id="d-numerals-yes" name="d-numerals" value="yes"><label for="d-numerals-yes" class="radio-label">Door Numerals</label></div>
-          </div>
-        </div>
       </div>
 
       <!-- Door Finalise -->
