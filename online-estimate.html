@@ -60,7 +60,14 @@
           "itemOffered": {
             "@type": "Product",
             "name": "Traditional Timber Sash Window",
-            "description": "Bespoke timber sash windows with double or triple glazing, PAS24 security option"
+            "description": "Bespoke timber sash windows with double or triple glazing, PAS24 security option",
+            "offers": {
+              "@type": "Offer",
+              "priceCurrency": "GBP",
+              "price": "1100",
+              "priceValidUntil": "2026-12-31",
+              "availability": "https://schema.org/InStock"
+            }
           }
         }
       ]
@@ -3953,6 +3960,10 @@
       rangeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
           updateSections();
+          // Send door category to 3D when switching to doors
+          if (radio.value === 'doors' && window.update3D) {
+            window.update3D({ windowCategory: 'door', extWidth: 900, extHeight: 2100 });
+          }
         });
       });
 
@@ -4006,12 +4017,24 @@
       var applyRangeBtn = document.getElementById('apply-product-range');
       if (applyRangeBtn) {
         applyRangeBtn.addEventListener('click', function() {
+          var isDoors = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'doors';
           if (window.specificationController && window.specificationController.applyProductRange) {
             window.specificationController.applyProductRange();
           }
-          // Switch to Dimensions/Design
-          if (typeof window.showCategory === 'function') {
-            window.showCategory('dim-design');
+          if (isDoors) {
+            // Send door category to 3D
+            if (window.update3D) {
+              window.update3D({ windowCategory: 'door', extWidth: 900, extHeight: 2100 });
+            }
+            // Switch to door dimensions
+            if (typeof window.showCategory === 'function') {
+              window.showCategory('door-dimensions');
+            }
+          } else {
+            // Switch to Dimensions/Design
+            if (typeof window.showCategory === 'function') {
+              window.showCategory('dim-design');
+            }
           }
         });
       }
@@ -4025,6 +4048,22 @@
           }
           if (typeof window.showCategory === 'function') {
             window.showCategory('dim-design');
+          }
+        });
+      }
+
+      // Door Apply button
+      var applyDoorBtn = document.getElementById('apply-door-type');
+      if (applyDoorBtn) {
+        applyDoorBtn.addEventListener('click', function() {
+          if (window.update3D) {
+            window.update3D({ windowCategory: 'door', extWidth: 900, extHeight: 2100 });
+          }
+          if (typeof window.updateDoor3D === 'function') {
+            window.updateDoor3D();
+          }
+          if (typeof window.showCategory === 'function') {
+            window.showCategory('door-dimensions');
           }
         });
       }
