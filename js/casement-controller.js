@@ -848,9 +848,12 @@
     setupColour();
     setupLiveWatchers();
 
-    // Set initial defaults from current layout
-    var currentLayout = checked('casement-layout') || '040L';
-    setDefaultDimensions(currentLayout);
+    // Set initial defaults from current layout — ONLY if casement is active
+    var activeType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
+    if (activeType === 'casement') {
+      var currentLayout = checked('casement-layout') || '040L';
+      setDefaultDimensions(currentLayout);
+    }
 
     console.log('✅ Casement controller initialized');
   }
