@@ -284,8 +284,8 @@
               <label for="range-windows" class="radio-label">Timber Windows</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="range-doors" name="product-range" value="doors">
-              <label for="range-doors" class="radio-label">Timber Doors</label>
+              <input type="radio" id="range-doors" name="product-range" value="doors" disabled>
+              <label for="range-doors" class="radio-label" style="opacity:0.4;cursor:not-allowed;position:relative;">Timber Doors<br><span style="font-size:0.6rem;letter-spacing:1px;color:var(--secondary-color);">COMING SOON</span></label>
             </div>
           </div>
         </div>
@@ -1845,6 +1845,23 @@
           </div>
         </div>
 
+        <div class="input-group" style="margin-top:16px;">
+          <label>Spacer Colour:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="spacer-silver" name="spacer-color" value="silver" checked>
+              <label for="spacer-silver" class="radio-label">Silver</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="spacer-white" name="spacer-color" value="white">
+              <label for="spacer-white" class="radio-label">White</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="spacer-black" name="spacer-color" value="black">
+              <label for="spacer-black" class="radio-label">Black</label>
+            </div>
+          </div>
+        </div>
         
       </div>
       <div class="config-section" data-for="sash" data-category="glass">
@@ -1861,23 +1878,6 @@
           <div class="radio-option">
             <input type="radio" id="passive-glass" name="glass-type" value="passive">
             <label for="passive-glass" class="radio-label">Passive Glass<br>(U-value: 0.8)</label>
-          </div>
-        </div>
-        <div class="input-group" style="margin-top:12px;">
-          <label>Spacer Colour:</label>
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="spacer-silver" name="spacer-color" value="silver" checked>
-              <label for="spacer-silver" class="radio-label">Silver</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="spacer-white" name="spacer-color" value="white">
-              <label for="spacer-white" class="radio-label">White</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="spacer-black" name="spacer-color" value="black">
-              <label for="spacer-black" class="radio-label">Black</label>
-            </div>
           </div>
         </div>
         
@@ -3997,7 +3997,14 @@
             } else if (radio.value === 'fix-only') {
               window.update3D({ windowCategory: 'fix-only' });
             } else {
-              window.update3D({ windowCategory: 'sash' });
+              // Reset sash dimensions to defaults
+              var ws = document.getElementById('width-select');
+              var hs = document.getElementById('height-select');
+              var wi = document.getElementById('width');
+              var hi = document.getElementById('height');
+              if (ws && parseInt(ws.value) < 600) { ws.value = '1000'; if (wi) wi.value = '1000'; }
+              if (hs && parseInt(hs.value) < 800) { hs.value = '1500'; if (hi) hi.value = '1500'; }
+              window.update3D({ windowCategory: 'sash', extWidth: parseInt(wi ? wi.value : 1000), extHeight: parseInt(hi ? hi.value : 1500) });
             }
           }
           // Hide/show casement-specific spec sections
