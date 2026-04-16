@@ -68,14 +68,6 @@
               "priceValidUntil": "2026-12-31",
               "availability": "https://schema.org/InStock"
             }
-            "description": "Bespoke timber sash windows with double or triple glazing, PAS24 security option",
-            "offers": {
-              "@type": "Offer",
-              "priceCurrency": "GBP",
-              "price": "1100",
-              "priceValidUntil": "2026-12-31",
-              "availability": "https://schema.org/InStock"
-            }
           }
         }
       ]
@@ -253,23 +245,6 @@
     <div class="config-sidebar">
       <p class="sidebar-label">Configure</p>
       <button class="cat-btn active" data-target="product-range">Product Range<span class="cat-hint" id="hint-product-range">Sash Window</span></button>
-      <!-- WINDOW MENU -->
-      <div id="window-menu">
-        <button class="cat-btn" data-target="dim-design">Dimensions / Design<span class="cat-hint" id="hint-dim-design">1000 × 1500mm</span></button>
-        <button class="cat-btn" data-target="glass">Glass<span class="cat-hint" id="hint-glass">Standard DG</span></button>
-        <button class="cat-btn" data-target="opening">Opening<span class="cat-hint" id="hint-opening">Both Open</span></button>
-        <button class="cat-btn" data-target="colour">Colour<span class="cat-hint" id="hint-colour">White</span></button>
-        <button class="cat-btn" data-target="hardware">Hardware<span class="cat-hint" id="hint-hardware">Ironmongery</span></button>
-        <button class="cat-btn" data-target="finalise">Finalise<span class="cat-hint" id="hint-finalise">Add to Estimate</span></button>
-      </div>
-      <!-- DOOR MENU -->
-      <div id="door-menu" style="display:none;">
-        <button class="cat-btn" data-target="door-dimensions">Dimensions / Design<span class="cat-hint" id="hint-door-dim">900 × 2100mm</span></button>
-        <button class="cat-btn" data-target="door-glass">Glass<span class="cat-hint" id="hint-door-glass">Standard DG</span></button>
-        <button class="cat-btn" data-target="door-colour">Colour<span class="cat-hint" id="hint-door-colour">White</span></button>
-        <button class="cat-btn" data-target="door-hardware">Hardware<span class="cat-hint" id="hint-door-hardware">Ironmongery</span></button>
-        <button class="cat-btn" data-target="door-finalise">Finalise<span class="cat-hint" id="hint-door-finalise">Add to Estimate</span></button>
-      </div>
       <!-- WINDOW MENU -->
       <div id="window-menu">
         <button class="cat-btn" data-target="dim-design">Dimensions / Design<span class="cat-hint" id="hint-dim-design">1000 × 1500mm</span></button>
@@ -778,24 +753,10 @@
             <div class="radio-option">
               <input type="radio" id="type-single-ext" name="door-type" value="single-external">
               <label for="type-single-ext" class="radio-label">Single External Door</label>
-            <div class="radio-option">
-              <input type="radio" id="type-single-ext" name="door-type" value="single-external">
-              <label for="type-single-ext" class="radio-label">Single External Door</label>
             </div>
             <div class="radio-option">
               <input type="radio" id="type-french" name="door-type" value="french">
               <label for="type-french" class="radio-label">French Doors</label>
-            <div class="radio-option">
-              <input type="radio" id="type-french" name="door-type" value="french">
-              <label for="type-french" class="radio-label">French Doors</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="type-sliding" name="door-type" value="sliding">
-              <label for="type-sliding" class="radio-label">Sliding Door</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="type-bifold" name="door-type" value="bifold">
-              <label for="type-bifold" class="radio-label">Bi-Fold Door</label>
             </div>
             <div class="radio-option">
               <input type="radio" id="type-sliding" name="door-type" value="sliding">
@@ -3519,7 +3480,6 @@
 <script src="js/color-module.js"></script>
 <script src="js/casement-controller.js"></script>
 <script src="js/door-controller.js"></script>
-<script src="js/door-controller.js"></script>
 
 <!-- Authentication Integration -->
 <script src="js/menu-loader.js"></script>
@@ -3655,17 +3615,12 @@
       var fss = document.getElementById('fix-shape-section');
       var dts = document.getElementById('door-type-section');
       var dso = document.getElementById('door-single-options');
-      var dso = document.getElementById('door-single-options');
       if (wts) wts.style.display = isWindows ? 'block' : 'none';
       if (sts) sts.style.display = (isWindows && isSash) ? 'block' : 'none';
       if (cls) cls.style.display = (isWindows && isCasementPR) ? 'block' : 'none';
       if (fts) fts.style.display = (isWindows && isFixOnly) ? 'block' : 'none';
       if (fss) fss.style.display = (isWindows && isFixOnly) ? 'block' : 'none';
       if (dts) dts.style.display = isWindows ? 'none' : 'block';
-      if (dso) {
-        var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
-        dso.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
-      }
       if (dso) {
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
         dso.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
@@ -3972,9 +3927,6 @@
       var doorSingleOptions = document.getElementById('door-single-options');
       var windowMenu = document.getElementById('window-menu');
       var doorMenu = document.getElementById('door-menu');
-      var doorSingleOptions = document.getElementById('door-single-options');
-      var windowMenu = document.getElementById('window-menu');
-      var doorMenu = document.getElementById('door-menu');
 
       function updateSections() {
         var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
@@ -4214,15 +4166,7 @@
         });
       }
 
-      // Door Type Apply
-      var applyDoorBtn = document.getElementById('apply-door-type');
-      if (applyDoorBtn) {
-        applyDoorBtn.addEventListener('click', function() {
-          if (typeof window.showCategory === 'function') {
-            window.showCategory('door-dimensions');
-          }
-        });
-      }
+
 
       // Door Type radio change — show/hide options + update hint
       var doorTypeRadios = document.querySelectorAll('input[name="door-type"]');
