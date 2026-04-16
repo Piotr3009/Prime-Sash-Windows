@@ -68,6 +68,14 @@
               "priceValidUntil": "2026-12-31",
               "availability": "https://schema.org/InStock"
             }
+            "description": "Bespoke timber sash windows with double or triple glazing, PAS24 security option",
+            "offers": {
+              "@type": "Offer",
+              "priceCurrency": "GBP",
+              "price": "1100",
+              "priceValidUntil": "2026-12-31",
+              "availability": "https://schema.org/InStock"
+            }
           }
         }
       ]
@@ -262,6 +270,23 @@
         <button class="cat-btn" data-target="door-hardware">Hardware<span class="cat-hint" id="hint-door-hardware">Ironmongery</span></button>
         <button class="cat-btn" data-target="door-finalise">Finalise<span class="cat-hint" id="hint-door-finalise">Add to Estimate</span></button>
       </div>
+      <!-- WINDOW MENU -->
+      <div id="window-menu">
+        <button class="cat-btn" data-target="dim-design">Dimensions / Design<span class="cat-hint" id="hint-dim-design">1000 × 1500mm</span></button>
+        <button class="cat-btn" data-target="glass">Glass<span class="cat-hint" id="hint-glass">Standard DG</span></button>
+        <button class="cat-btn" data-target="opening">Opening<span class="cat-hint" id="hint-opening">Both Open</span></button>
+        <button class="cat-btn" data-target="colour">Colour<span class="cat-hint" id="hint-colour">White</span></button>
+        <button class="cat-btn" data-target="hardware">Hardware<span class="cat-hint" id="hint-hardware">Ironmongery</span></button>
+        <button class="cat-btn" data-target="finalise">Finalise<span class="cat-hint" id="hint-finalise">Add to Estimate</span></button>
+      </div>
+      <!-- DOOR MENU -->
+      <div id="door-menu" style="display:none;">
+        <button class="cat-btn" data-target="door-dimensions">Dimensions / Design<span class="cat-hint" id="hint-door-dim">900 × 2100mm</span></button>
+        <button class="cat-btn" data-target="door-glass">Glass<span class="cat-hint" id="hint-door-glass">Standard DG</span></button>
+        <button class="cat-btn" data-target="door-colour">Colour<span class="cat-hint" id="hint-door-colour">White</span></button>
+        <button class="cat-btn" data-target="door-hardware">Hardware<span class="cat-hint" id="hint-door-hardware">Ironmongery</span></button>
+        <button class="cat-btn" data-target="door-finalise">Finalise<span class="cat-hint" id="hint-door-finalise">Add to Estimate</span></button>
+      </div>
       <div class="sidebar-price">
         <p class="sidebar-price-label">Total</p>
         <p class="sidebar-price-value" id="sidebar-total-price">£0.00</p>
@@ -284,8 +309,8 @@
               <label for="range-windows" class="radio-label">Timber Windows</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="range-doors" name="product-range" value="doors">
-              <label for="range-doors" class="radio-label">Timber Doors</label>
+              <input type="radio" id="range-doors" name="product-range" value="doors" disabled>
+              <label for="range-doors" class="radio-label" style="opacity:0.4;cursor:not-allowed;position:relative;">Timber Doors<br><span style="font-size:0.6rem;letter-spacing:1px;color:var(--secondary-color);">COMING SOON</span></label>
             </div>
           </div>
         </div>
@@ -383,8 +408,6 @@
             </div>
           </div>
         </div>
-
-        <button class="btn btn-apply" id="apply-product-range">Apply</button>
       </div>
 
       <!-- ═══ CASEMENT LAYOUT ═══ -->
@@ -527,7 +550,6 @@
           </div>
         </div>
 
-        <button class="btn btn-apply" id="apply-casement-layout">Apply</button>
         </div><!-- /casement-standard-layouts -->
 
         <!-- Arched casement options -->
@@ -747,7 +769,6 @@
           <input type="range" id="fix-circle-offset" min="50" max="400" value="200" step="10">
         </div>
 
-        <button class="btn btn-apply" id="apply-fix-frame">Apply</button>
       </div>
 
       <div class="config-section" data-category="product-range" id="door-type-section" style="display:none;">
@@ -757,10 +778,24 @@
             <div class="radio-option">
               <input type="radio" id="type-single-ext" name="door-type" value="single-external">
               <label for="type-single-ext" class="radio-label">Single External Door</label>
+            <div class="radio-option">
+              <input type="radio" id="type-single-ext" name="door-type" value="single-external">
+              <label for="type-single-ext" class="radio-label">Single External Door</label>
             </div>
             <div class="radio-option">
               <input type="radio" id="type-french" name="door-type" value="french">
               <label for="type-french" class="radio-label">French Doors</label>
+            <div class="radio-option">
+              <input type="radio" id="type-french" name="door-type" value="french">
+              <label for="type-french" class="radio-label">French Doors</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="type-sliding" name="door-type" value="sliding">
+              <label for="type-sliding" class="radio-label">Sliding Door</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="type-bifold" name="door-type" value="bifold">
+              <label for="type-bifold" class="radio-label">Bi-Fold Door</label>
             </div>
             <div class="radio-option">
               <input type="radio" id="type-sliding" name="door-type" value="sliding">
@@ -1850,6 +1885,23 @@
           </div>
         </div>
 
+        <div class="input-group" style="margin-top:16px;">
+          <label>Spacer Colour:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="spacer-silver" name="spacer-color" value="silver" checked>
+              <label for="spacer-silver" class="radio-label">Silver</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="spacer-white" name="spacer-color" value="white">
+              <label for="spacer-white" class="radio-label">White</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="spacer-black" name="spacer-color" value="black">
+              <label for="spacer-black" class="radio-label">Black</label>
+            </div>
+          </div>
+        </div>
         
       </div>
       <div class="config-section" data-for="sash" data-category="glass">
@@ -1866,23 +1918,6 @@
           <div class="radio-option">
             <input type="radio" id="passive-glass" name="glass-type" value="passive">
             <label for="passive-glass" class="radio-label">Passive Glass<br>(U-value: 0.8)</label>
-          </div>
-        </div>
-        <div class="input-group" style="margin-top:12px;">
-          <label>Spacer Colour:</label>
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="spacer-silver" name="spacer-color" value="silver" checked>
-              <label for="spacer-silver" class="radio-label">Silver</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="spacer-white" name="spacer-color" value="white">
-              <label for="spacer-white" class="radio-label">White</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="spacer-black" name="spacer-color" value="black">
-              <label for="spacer-black" class="radio-label">Black</label>
-            </div>
           </div>
         </div>
         
@@ -2765,6 +2800,24 @@
             <div class="radio-option"><input type="radio" id="c-seal-white" name="c-seal-colour" value="white"><label for="c-seal-white" class="radio-label">White</label></div>
           </div>
         </div>
+
+        <div class="input-group" style="margin-top:16px;">
+          <label>Spacer Colour:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="c-spacer-silver" name="c-spacer-color" value="silver" checked>
+              <label for="c-spacer-silver" class="radio-label">Silver</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="c-spacer-white" name="c-spacer-color" value="white">
+              <label for="c-spacer-white" class="radio-label">White</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="c-spacer-black" name="c-spacer-color" value="black">
+              <label for="c-spacer-black" class="radio-label">Black</label>
+            </div>
+          </div>
+        </div>
 </div>
 
 
@@ -2797,23 +2850,6 @@
             <div class="radio-option"><input type="radio" id="c-finish-clear" name="c-glass-finish" value="clear" checked><label for="c-finish-clear" class="radio-label">Clear</label></div>
             <div class="radio-option"><input type="radio" id="c-finish-obscure" name="c-glass-finish" value="obscure"><label for="c-finish-obscure" class="radio-label">Obscure</label></div>
             <div class="radio-option"><input type="radio" id="c-finish-frosted" name="c-glass-finish" value="frosted"><label for="c-finish-frosted" class="radio-label">Frosted</label></div>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>Spacer Bar:</label>
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="c-spacer-silver" name="c-spacer-color" value="silver" checked>
-              <label for="c-spacer-silver" class="radio-label">Silver</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="c-spacer-white" name="c-spacer-color" value="white">
-              <label for="c-spacer-white" class="radio-label">White</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="c-spacer-black" name="c-spacer-color" value="black">
-              <label for="c-spacer-black" class="radio-label">Black</label>
-            </div>
           </div>
         </div>
 
@@ -3483,6 +3519,7 @@
 <script src="js/color-module.js"></script>
 <script src="js/casement-controller.js"></script>
 <script src="js/door-controller.js"></script>
+<script src="js/door-controller.js"></script>
 
 <!-- Authentication Integration -->
 <script src="js/menu-loader.js"></script>
@@ -3507,6 +3544,7 @@
     <div class="window-type-tabs" style="display:flex;gap:8px;padding:12px 20px;border-bottom:2px solid rgba(255,255,255,0.1);">
       <button class="wt-tab active" data-wt="sash" style="padding:12px 24px;border:2px solid var(--primary-color);border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:var(--primary-color);color:white;letter-spacing:0.5px;">Sash Windows</button>
       <button class="wt-tab" data-wt="casement" style="padding:12px 24px;border:2px solid var(--primary-color);border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:transparent;color:var(--primary-color);letter-spacing:0.5px;">Casement</button>
+      <button class="wt-tab" data-wt="doors" style="padding:12px 24px;border:2px solid #999;border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:transparent;color:#333;letter-spacing:0.5px;">Doors</button>
       <button class="wt-tab" data-wt="doors" style="padding:12px 24px;border:2px solid #999;border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:transparent;color:#333;letter-spacing:0.5px;">Doors</button>
     </div>
 
@@ -3580,7 +3618,10 @@
   
   function showCategory(cat) {
     var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
+    var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
     var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+    var activeFor = isWindows ? windowType : 'door';
+
     var activeFor = isWindows ? windowType : 'door';
 
     configSections.forEach(function(s) {
@@ -3588,7 +3629,9 @@
         s.style.display = 'none';
       } else {
         // Respect data-for: only show if matches current product type (or no data-for)
+        // Respect data-for: only show if matches current product type (or no data-for)
         var forType = s.getAttribute('data-for');
+        if (!forType || forType === activeFor) {
         if (!forType || forType === activeFor) {
           s.style.display = 'block';
         } else {
@@ -3612,12 +3655,17 @@
       var fss = document.getElementById('fix-shape-section');
       var dts = document.getElementById('door-type-section');
       var dso = document.getElementById('door-single-options');
+      var dso = document.getElementById('door-single-options');
       if (wts) wts.style.display = isWindows ? 'block' : 'none';
       if (sts) sts.style.display = (isWindows && isSash) ? 'block' : 'none';
       if (cls) cls.style.display = (isWindows && isCasementPR) ? 'block' : 'none';
       if (fts) fts.style.display = (isWindows && isFixOnly) ? 'block' : 'none';
       if (fss) fss.style.display = (isWindows && isFixOnly) ? 'block' : 'none';
       if (dts) dts.style.display = isWindows ? 'none' : 'block';
+      if (dso) {
+        var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+        dso.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
+      }
       if (dso) {
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
         dso.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
@@ -3924,10 +3972,21 @@
       var doorSingleOptions = document.getElementById('door-single-options');
       var windowMenu = document.getElementById('window-menu');
       var doorMenu = document.getElementById('door-menu');
+      var doorSingleOptions = document.getElementById('door-single-options');
+      var windowMenu = document.getElementById('window-menu');
+      var doorMenu = document.getElementById('door-menu');
 
       function updateSections() {
         var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
         var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
+        var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+
+        console.log('🔄 updateSections: isWindows=' + isWindows);
+
+        // Toggle menus
+        if (windowMenu) windowMenu.style.display = isWindows ? 'block' : 'none';
+        if (doorMenu) doorMenu.style.display = isWindows ? 'none' : 'block';
+
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
 
         console.log('🔄 updateSections: isWindows=' + isWindows);
@@ -3942,6 +4001,19 @@
         fixTypeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         fixShapeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         doorTypeSection.style.display = isWindows ? 'none' : 'block';
+        if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
+
+        // Update product range hint
+        var hintEl = document.getElementById('hint-product-range');
+        if (hintEl) {
+          if (!isWindows) {
+            var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+            hintEl.textContent = doorLabels[doorType] || 'Timber Door';
+          } else {
+            var winLabels = {'sash':'Sash Window','casement':'Casement Window','fix-only':'Fix Frame'};
+            hintEl.textContent = winLabels[windowType] || 'Sash Window';
+          }
+        }
         if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
 
         // Update product range hint
@@ -3984,7 +4056,14 @@
             } else if (radio.value === 'fix-only') {
               window.update3D({ windowCategory: 'fix-only' });
             } else {
-              window.update3D({ windowCategory: 'sash' });
+              // Reset sash dimensions to defaults
+              var ws = document.getElementById('width-select');
+              var hs = document.getElementById('height-select');
+              var wi = document.getElementById('width');
+              var hi = document.getElementById('height');
+              if (ws && parseInt(ws.value) < 600) { ws.value = '1000'; if (wi) wi.value = '1000'; }
+              if (hs && parseInt(hs.value) < 800) { hs.value = '1500'; if (hi) hi.value = '1500'; }
+              window.update3D({ windowCategory: 'sash', extWidth: parseInt(wi ? wi.value : 1000), extHeight: parseInt(hi ? hi.value : 1500) });
             }
           }
           // Hide/show casement-specific spec sections
@@ -4039,10 +4118,13 @@
         });
       }
 
-      // Casement Apply button
-      var applyCasementBtn = document.getElementById('apply-casement-layout');
-      if (applyCasementBtn) {
-        applyCasementBtn.addEventListener('click', function() {
+      // ── AUTO-SWITCH: Casement layout click → update 3D + switch to Dimensions ──
+      var layoutRadios = document.querySelectorAll('input[name="casement-layout"]');
+      layoutRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          if (window.update3D) {
+            window.update3D({ casementLayout: radio.value });
+          }
           if (typeof window.updateCasement3D === 'function') {
             window.updateCasement3D();
           }
@@ -4272,6 +4354,12 @@
               if (window.update3D) window.update3D({ extHeight: 1500 });
             }
           }
+          // Auto-switch to Dimensions after shape selection
+          setTimeout(function() {
+            if (typeof window.showCategory === 'function') {
+              window.showCategory('dim-design');
+            }
+          }, 300);
         });
       });
 

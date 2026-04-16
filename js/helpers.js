@@ -142,8 +142,8 @@ class UIHelpers {
 class AppState {
   constructor() {
     this.config = {
-      width: 800,
-      height: 1000,
+      width: 1000,
+      height: 1500,
       measurementType: 'box-to-box',
       frameType: 'standard',
       colorType: 'single',
@@ -192,8 +192,8 @@ class AppState {
   
   reset() {
     this.config = {
-      width: 800,
-      height: 1000,
+      width: 1000,
+      height: 1500,
       measurementType: 'box-to-box',
       frameType: 'standard',
       colorType: 'single',

@@ -541,7 +541,7 @@ function Scene({ config, isMobile }) {
   return (
     <>
 
-      <PerspectiveCamera makeDefault position={[1.75, 1, 1.25]} fov={50} />
+      <PerspectiveCamera makeDefault position={[1.4, 0.7, 1.6]} fov={45} />
 
       {/* Ambient */}
       <ambientLight intensity={0.56 * b} />
