@@ -161,7 +161,8 @@ class CustomerDashboard {
                 .from('estimates')
                 .select(`
                     *,
-                    estimate_items (*)
+                    estimate_items (*),
+                    customers (full_name, company_name, email, phone, customer_code)
                 `)
                 .eq('customer_id', this.customerData.id)
                 .order('created_at', { ascending: false });
@@ -316,7 +317,8 @@ class CustomerDashboard {
                 .from('estimates')
                 .select(`
                     *,
-                    estimate_items (*)
+                    estimate_items (*),
+                    customers (full_name, company_name, email, phone, customer_code)
                 `)
                 .eq('id', estimateId)
                 .single();
