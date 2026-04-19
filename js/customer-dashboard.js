@@ -162,6 +162,7 @@ class CustomerDashboard {
                 .select(`
                     *,
                     estimate_items (*),
+                    estimate_extras (*),
                     customers (full_name, company_name, email, phone, customer_code)
                 `)
                 .eq('customer_id', this.customerData.id)
@@ -223,6 +224,30 @@ class CustomerDashboard {
         const createdDate = new Date(order.created_at).toLocaleDateString('en-GB');
         const itemCount = order.estimate_items?.length || 0;
 
+        // Extras state (for Add Installation / Add Delivery buttons)
+        const extras = order.estimate_extras || [];
+        const hasInstallation = extras.some(e => e.type === 'installation');
+        const hasDelivery = extras.some(e => e.type === 'delivery');
+        const canEditExtras = ['draft', 'sent', 'pending', 'saved'].includes(order.status);
+
+        // Gold color = #c9a96e (brand accent)
+        const extraBtnBase = `font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;padding:.45rem .9rem;cursor:pointer;border-radius:2px;transition:all .15s ease;`;
+        const extraBtnOutline = `${extraBtnBase}background:#fff;border:1px solid #c9a96e;color:#c9a96e;`;
+        const extraBtnSolid = `${extraBtnBase}background:#c9a96e;border:1px solid #c9a96e;color:#fff;`;
+        const extraBtnDisabled = `${extraBtnBase}background:#f5f4f0;border:1px solid #e5e4dd;color:#9e9e90;cursor:not-allowed;`;
+
+        const installationBtn = !canEditExtras
+            ? `<button style="${extraBtnDisabled}" disabled title="Additional services cannot be changed at this stage">${hasInstallation ? '✓ Installation' : '+ Installation'}</button>`
+            : hasInstallation
+                ? `<button style="${extraBtnSolid}" onclick="event.stopPropagation();dashboard.toggleInstallation('${order.id}', true)" title="Click to remove">✓ Installation added</button>`
+                : `<button style="${extraBtnOutline}" onclick="event.stopPropagation();dashboard.toggleInstallation('${order.id}', false)">+ Add Installation</button>`;
+
+        const deliveryBtn = !canEditExtras
+            ? `<button style="${extraBtnDisabled}" disabled title="Additional services cannot be changed at this stage">${hasDelivery ? '✓ Delivery' : '+ Delivery'}</button>`
+            : hasDelivery
+                ? `<button style="${extraBtnSolid}" onclick="event.stopPropagation();dashboard.toggleDelivery('${order.id}', true)" title="Click to remove">✓ Delivery added</button>`
+                : `<button style="${extraBtnOutline}" onclick="event.stopPropagation();dashboard.toggleDelivery('${order.id}', false)">+ Add Delivery</button>`;
+
         return `
             <div class="estimate-card" data-order-id="${order.id}">
                 <div class="estimate-header" onclick="this.parentElement.classList.toggle('open')">
@@ -252,7 +277,9 @@ class CustomerDashboard {
                         <span class="val">${statusConfig.label}</span>
                     </div>
                     ${this.renderOrderProgress(order)}
-                    <div class="estimate-actions">
+                    <div class="estimate-actions" style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;">
+                        ${installationBtn}
+                        ${deliveryBtn}
                         <button class="btn-sm" onclick="dashboard.viewOrderDetails('${order.id}')">View Details</button>
                         <button class="btn-sm danger" onclick="dashboard.deleteEstimate('${order.id}')">Delete</button>
                     </div>
@@ -373,6 +400,50 @@ class CustomerDashboard {
     }
 
     // Delete estimate
+    // Toggle Installation (add or remove)
+    async toggleInstallation(estimateId, currentlyAdded) {
+        try {
+            if (currentlyAdded) {
+                if (!confirm('Remove installation from this estimate?')) return;
+                await EstimateExtras.removeByType(estimateId, 'installation');
+                this.showSuccessMessage('Installation removed');
+            } else {
+                const order = this.orders.find(o => o.id === estimateId);
+                if (!order) throw new Error('Estimate not found');
+                const items = order.estimate_items || [];
+                const totalQty = items.reduce((s, i) => s + (parseInt(i.quantity) || 1), 0);
+                if (totalQty < 1) {
+                    this.showError('Cannot add installation: no windows in estimate');
+                    return;
+                }
+                await EstimateExtras.addInstallation(estimateId, totalQty);
+                this.showSuccessMessage(`Installation added (${totalQty} × £${EstimateExtras.INSTALLATION_UNIT_PRICE})`);
+            }
+            await this.loadEstimates();
+        } catch (error) {
+            console.error('Error toggling installation:', error);
+            this.showError(error.message || 'Failed to update installation');
+        }
+    }
+
+    // Toggle Delivery (add or remove)
+    async toggleDelivery(estimateId, currentlyAdded) {
+        try {
+            if (currentlyAdded) {
+                if (!confirm('Remove delivery from this estimate?')) return;
+                await EstimateExtras.removeByType(estimateId, 'delivery');
+                this.showSuccessMessage('Delivery removed');
+            } else {
+                await EstimateExtras.addDelivery(estimateId);
+                this.showSuccessMessage(`Delivery added (£${EstimateExtras.DELIVERY_FLAT_PRICE})`);
+            }
+            await this.loadEstimates();
+        } catch (error) {
+            console.error('Error toggling delivery:', error);
+            this.showError(error.message || 'Failed to update delivery');
+        }
+    }
+
     async deleteEstimate(estimateId) {
         if (!confirm('Are you sure you want to delete this estimate? This action cannot be undone.')) {
             return;
