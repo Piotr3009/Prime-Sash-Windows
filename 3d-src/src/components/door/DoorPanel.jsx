@@ -249,6 +249,209 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
     [mullionH]
   );
 
+  // ── Recessed panel geometry (for three-quarter / half-glazed doors) ──
+  // Structure (EXT side, mirrored on INT):
+  //   Rim (frame face level, Z=+halfD): 4 strips replacing bRail in panel area
+  //   Bevel 1: slanted ring from Z=+halfD (outer edge) to Z=+halfD - RECESS (inner)
+  //   Flat step: horizontal ring at Z=+halfD - RECESS
+  //   Bevel 2: slanted ring from Z=+halfD - RECESS (outer) to Z=+halfD - RAISED_DROP (inner)
+  //   Raised field: horizontal centre at Z=+halfD - RAISED_DROP
+  const hasPanel = doorStyle !== 'full-glass';
+
+  // Panel params (mm → meters)
+  const PANEL_MARGIN_MM = 100;       // margin from stiles / glass / door bottom
+  const BEVEL1_W_MM = 30;             // outer bevel width
+  const FLAT_STEP_W_MM = 20;          // flat step width
+  const BEVEL2_W_MM = 30;             // inner bevel width
+  const RECESS_DEPTH_MM = 8;          // full recess depth (flat step Z)
+  const RAISED_DROP_MM = 3;           // raised field depth below frame face
+  const PM = mm(PANEL_MARGIN_MM);
+  const B1 = mm(BEVEL1_W_MM);
+  const FS = mm(FLAT_STEP_W_MM);
+  const B2 = mm(BEVEL2_W_MM);
+  const REC = mm(RECESS_DEPTH_MM);
+  const RD = mm(RAISED_DROP_MM);
+
+  // Rail (bottom rail) XY bounds in 3D coords
+  const railLeftX   = -W/2 + F_STILE;
+  const railRightX  =  W/2 - F_STILE;
+  const railWidth   = railRightX - railLeftX;
+  const railBottomY = -H/2;
+  const railTopY    = -H/2 + fBot;
+  const railHeight  = fBot;
+
+  // Panel outer bounds (inside margin)
+  const panelL = railLeftX + PM;
+  const panelR = railRightX - PM;
+  const panelB = railBottomY + PM;
+  const panelT = railTopY - PM;
+  const panelW = panelR - panelL;
+  const panelH2 = panelT - panelB;
+
+  // Inner-bounds (after bevel 1)
+  const innerL = panelL + B1;
+  const innerR = panelR - B1;
+  const innerB = panelB + B1;
+  const innerT = panelT - B1;
+
+  // Flat-step inner bounds (after bevel 1 + flat step width)
+  const stepInnerL = innerL + FS;
+  const stepInnerR = innerR - FS;
+  const stepInnerB = innerB + FS;
+  const stepInnerT = innerT - FS;
+
+  // Raised field bounds (after bevel 2)
+  const raisedL = stepInnerL + B2;
+  const raisedR = stepInnerR - B2;
+  const raisedB = stepInnerB + B2;
+  const raisedT = stepInnerT - B2;
+
+  // Safety check: panel only valid if raised field has positive area
+  const panelValid = hasPanel && raisedR > raisedL && raisedT > raisedB;
+
+  // ── Debug materials (distinctive colours for each panel component) ──
+  const matRim      = useMemo(() => new THREE.MeshStandardMaterial({ color: '#888888', roughness: 0.7 }), []);
+  const matBevel1   = useMemo(() => new THREE.MeshStandardMaterial({ color: '#e63946', roughness: 0.6, side: THREE.DoubleSide }), []);
+  const matFlatStep = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2a9d3f', roughness: 0.6, side: THREE.DoubleSide }), []);
+  const matBevel2   = useMemo(() => new THREE.MeshStandardMaterial({ color: '#3b82f6', roughness: 0.6, side: THREE.DoubleSide }), []);
+  const matRaised   = useMemo(() => new THREE.MeshStandardMaterial({ color: '#f4c430', roughness: 0.6, side: THREE.DoubleSide }), []);
+
+  // ── Helper: create a quad geometry from 4 3D points (for bevel strips) ──
+  const makeQuadGeo = (A, B, C, D) => {
+    const geo = new THREE.BufferGeometry();
+    const verts = new Float32Array([
+      A[0], A[1], A[2],
+      B[0], B[1], B[2],
+      C[0], C[1], C[2],
+      D[0], D[1], D[2],
+    ]);
+    geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+    geo.setIndex([0, 1, 2, 0, 2, 3]);
+    geo.computeVertexNormals();
+    return geo;
+  };
+
+  // ── Panel geometry (memoised) ──
+  // Build all bevel quads once, reuse for EXT and INT (mirrored in Z)
+  const panelGeo = useMemo(() => {
+    if (!panelValid) return null;
+    const zFrame = halfD;
+    const zFloor = halfD - REC;   // flat step Z (EXT side)
+    const zRaised = halfD - RD;   // raised field Z (EXT side)
+
+    // Bevel 1 quads (outer slant, frame → floor)
+    const b1Top = makeQuadGeo(
+      [panelL, panelT, zFrame],      // outer TL
+      [panelR, panelT, zFrame],      // outer TR
+      [innerR, innerT, zFloor],      // inner TR
+      [innerL, innerT, zFloor],      // inner TL
+    );
+    const b1Bot = makeQuadGeo(
+      [panelR, panelB, zFrame],      // outer BR
+      [panelL, panelB, zFrame],      // outer BL
+      [innerL, innerB, zFloor],      // inner BL
+      [innerR, innerB, zFloor],      // inner BR
+    );
+    const b1Left = makeQuadGeo(
+      [panelL, panelB, zFrame],      // outer BL
+      [panelL, panelT, zFrame],      // outer TL
+      [innerL, innerT, zFloor],      // inner TL
+      [innerL, innerB, zFloor],      // inner BL
+    );
+    const b1Right = makeQuadGeo(
+      [panelR, panelT, zFrame],      // outer TR
+      [panelR, panelB, zFrame],      // outer BR
+      [innerR, innerB, zFloor],      // inner BR
+      [innerR, innerT, zFloor],      // inner TR
+    );
+
+    // Bevel 2 quads (inner slant, floor → raised)
+    const b2Top = makeQuadGeo(
+      [stepInnerL, stepInnerT, zFloor],
+      [stepInnerR, stepInnerT, zFloor],
+      [raisedR, raisedT, zRaised],
+      [raisedL, raisedT, zRaised],
+    );
+    const b2Bot = makeQuadGeo(
+      [stepInnerR, stepInnerB, zFloor],
+      [stepInnerL, stepInnerB, zFloor],
+      [raisedL, raisedB, zRaised],
+      [raisedR, raisedB, zRaised],
+    );
+    const b2Left = makeQuadGeo(
+      [stepInnerL, stepInnerB, zFloor],
+      [stepInnerL, stepInnerT, zFloor],
+      [raisedL, raisedT, zRaised],
+      [raisedL, raisedB, zRaised],
+    );
+    const b2Right = makeQuadGeo(
+      [stepInnerR, stepInnerT, zFloor],
+      [stepInnerR, stepInnerB, zFloor],
+      [raisedR, raisedB, zRaised],
+      [raisedR, raisedT, zRaised],
+    );
+
+    return { b1Top, b1Bot, b1Left, b1Right, b2Top, b2Bot, b2Left, b2Right };
+  }, [panelValid, halfD, panelL, panelR, panelB, panelT, innerL, innerR, innerB, innerT, stepInnerL, stepInnerR, stepInnerB, stepInnerT, raisedL, raisedR, raisedB, raisedT]);
+
+  // Panel geo INT side (mirrored — negate Z)
+  const panelGeoInt = useMemo(() => {
+    if (!panelValid) return null;
+    const zFrame = -halfD;
+    const zFloor = -halfD + REC;   // flat step Z (INT side, mirrored)
+    const zRaised = -halfD + RD;   // raised field Z (INT side, mirrored)
+
+    const b1Top = makeQuadGeo(
+      [panelL, panelT, zFrame],
+      [innerL, innerT, zFloor],
+      [innerR, innerT, zFloor],
+      [panelR, panelT, zFrame],
+    );
+    const b1Bot = makeQuadGeo(
+      [panelR, panelB, zFrame],
+      [innerR, innerB, zFloor],
+      [innerL, innerB, zFloor],
+      [panelL, panelB, zFrame],
+    );
+    const b1Left = makeQuadGeo(
+      [panelL, panelB, zFrame],
+      [innerL, innerB, zFloor],
+      [innerL, innerT, zFloor],
+      [panelL, panelT, zFrame],
+    );
+    const b1Right = makeQuadGeo(
+      [panelR, panelT, zFrame],
+      [innerR, innerT, zFloor],
+      [innerR, innerB, zFloor],
+      [panelR, panelB, zFrame],
+    );
+    const b2Top = makeQuadGeo(
+      [stepInnerL, stepInnerT, zFloor],
+      [raisedL, raisedT, zRaised],
+      [raisedR, raisedT, zRaised],
+      [stepInnerR, stepInnerT, zFloor],
+    );
+    const b2Bot = makeQuadGeo(
+      [stepInnerR, stepInnerB, zFloor],
+      [raisedR, raisedB, zRaised],
+      [raisedL, raisedB, zRaised],
+      [stepInnerL, stepInnerB, zFloor],
+    );
+    const b2Left = makeQuadGeo(
+      [stepInnerL, stepInnerB, zFloor],
+      [raisedL, raisedB, zRaised],
+      [raisedL, raisedT, zRaised],
+      [stepInnerL, stepInnerT, zFloor],
+    );
+    const b2Right = makeQuadGeo(
+      [stepInnerR, stepInnerT, zFloor],
+      [raisedR, raisedT, zRaised],
+      [raisedR, raisedB, zRaised],
+      [stepInnerR, stepInnerB, zFloor],
+    );
+    return { b1Top, b1Bot, b1Left, b1Right, b2Top, b2Bot, b2Left, b2Right };
+  }, [panelValid, halfD, panelL, panelR, panelB, panelT, innerL, innerR, innerB, innerT, stepInnerL, stepInnerR, stepInnerB, stepInnerT, raisedL, raisedR, raisedB, raisedT]);
+
   return (
     <group>
       {/* ─── Left stile EXT ─── */}
@@ -273,16 +476,122 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
         <primitive object={mi} attach="material" />
       </mesh>
 
-      {/* ─── Bottom rail EXT ─── */}
-      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,-H/2,halfD]}>
-        <extrudeGeometry args={[bRailExt, railSettings]} />
-        <primitive object={mat} attach="material" />
-      </mesh>
-      {/* ─── Bottom rail INT ─── */}
-      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,-H/2,halfD]}>
-        <extrudeGeometry args={[bRailInt, railSettings]} />
-        <primitive object={mi} attach="material" />
-      </mesh>
+      {/* ─── Bottom rail (solid, only when no recessed panel) ─── */}
+      {!hasPanel && (
+        <>
+          <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,-H/2,halfD]}>
+            <extrudeGeometry args={[bRailExt, railSettings]} />
+            <primitive object={mat} attach="material" />
+          </mesh>
+          <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,-H/2,halfD]}>
+            <extrudeGeometry args={[bRailInt, railSettings]} />
+            <primitive object={mi} attach="material" />
+          </mesh>
+        </>
+      )}
+
+      {/* ─── Bottom rail split into 4 rim strips around recessed panel ─── */}
+      {panelValid && (
+        <group>
+          {/* Top strip: full rail width, between glass and panel top */}
+          <mesh castShadow receiveShadow position={[0, (panelT + railTopY) / 2, 0]}>
+            <boxGeometry args={[railWidth, railTopY - panelT, D]} />
+            <primitive object={matRim} attach="material" />
+          </mesh>
+          {/* Bottom strip: full rail width, between door bottom and panel bottom */}
+          <mesh castShadow receiveShadow position={[0, (railBottomY + panelB) / 2, 0]}>
+            <boxGeometry args={[railWidth, panelB - railBottomY, D]} />
+            <primitive object={matRim} attach="material" />
+          </mesh>
+          {/* Left strip: between left stile and panel left, only in panel vertical range */}
+          <mesh castShadow receiveShadow position={[(railLeftX + panelL) / 2, (panelB + panelT) / 2, 0]}>
+            <boxGeometry args={[panelL - railLeftX, panelH2, D]} />
+            <primitive object={matRim} attach="material" />
+          </mesh>
+          {/* Right strip: between panel right and right stile */}
+          <mesh castShadow receiveShadow position={[(panelR + railRightX) / 2, (panelB + panelT) / 2, 0]}>
+            <boxGeometry args={[railRightX - panelR, panelH2, D]} />
+            <primitive object={matRim} attach="material" />
+          </mesh>
+        </group>
+      )}
+
+      {/* ─── Recessed panel layers (EXT + INT symmetric) ─── */}
+      {panelValid && panelGeo && panelGeoInt && (
+        <group>
+          {/* EXT side — Bevel 1 (4 slanted strips, red) */}
+          <mesh geometry={panelGeo.b1Top}   castShadow receiveShadow><primitive object={matBevel1} attach="material" /></mesh>
+          <mesh geometry={panelGeo.b1Bot}   castShadow receiveShadow><primitive object={matBevel1} attach="material" /></mesh>
+          <mesh geometry={panelGeo.b1Left}  castShadow receiveShadow><primitive object={matBevel1} attach="material" /></mesh>
+          <mesh geometry={panelGeo.b1Right} castShadow receiveShadow><primitive object={matBevel1} attach="material" /></mesh>
+
+          {/* EXT side — Flat step ring (4 horizontal strips at Z=halfD-REC, green) */}
+          <mesh position={[0, (innerT + stepInnerT) / 2, halfD - REC]} castShadow receiveShadow>
+            <planeGeometry args={[stepInnerR - stepInnerL, innerT - stepInnerT]} />
+            <primitive object={matFlatStep} attach="material" />
+          </mesh>
+          <mesh position={[0, (innerB + stepInnerB) / 2, halfD - REC]} castShadow receiveShadow>
+            <planeGeometry args={[stepInnerR - stepInnerL, stepInnerB - innerB]} />
+            <primitive object={matFlatStep} attach="material" />
+          </mesh>
+          <mesh position={[(innerL + stepInnerL) / 2, (stepInnerB + stepInnerT) / 2, halfD - REC]} castShadow receiveShadow>
+            <planeGeometry args={[stepInnerL - innerL, stepInnerT - stepInnerB]} />
+            <primitive object={matFlatStep} attach="material" />
+          </mesh>
+          <mesh position={[(innerR + stepInnerR) / 2, (stepInnerB + stepInnerT) / 2, halfD - REC]} castShadow receiveShadow>
+            <planeGeometry args={[innerR - stepInnerR, stepInnerT - stepInnerB]} />
+            <primitive object={matFlatStep} attach="material" />
+          </mesh>
+
+          {/* EXT side — Bevel 2 (4 slanted strips, blue) */}
+          <mesh geometry={panelGeo.b2Top}   castShadow receiveShadow><primitive object={matBevel2} attach="material" /></mesh>
+          <mesh geometry={panelGeo.b2Bot}   castShadow receiveShadow><primitive object={matBevel2} attach="material" /></mesh>
+          <mesh geometry={panelGeo.b2Left}  castShadow receiveShadow><primitive object={matBevel2} attach="material" /></mesh>
+          <mesh geometry={panelGeo.b2Right} castShadow receiveShadow><primitive object={matBevel2} attach="material" /></mesh>
+
+          {/* EXT side — Raised field centre (yellow) */}
+          <mesh position={[0, (raisedB + raisedT) / 2, halfD - RD]} castShadow receiveShadow>
+            <planeGeometry args={[raisedR - raisedL, raisedT - raisedB]} />
+            <primitive object={matRaised} attach="material" />
+          </mesh>
+
+          {/* INT side — Bevel 1 (mirrored) */}
+          <mesh geometry={panelGeoInt.b1Top}   castShadow receiveShadow><primitive object={matBevel1} attach="material" /></mesh>
+          <mesh geometry={panelGeoInt.b1Bot}   castShadow receiveShadow><primitive object={matBevel1} attach="material" /></mesh>
+          <mesh geometry={panelGeoInt.b1Left}  castShadow receiveShadow><primitive object={matBevel1} attach="material" /></mesh>
+          <mesh geometry={panelGeoInt.b1Right} castShadow receiveShadow><primitive object={matBevel1} attach="material" /></mesh>
+
+          {/* INT side — Flat step ring (at Z=-halfD+REC, rotated to face -Z) */}
+          <mesh position={[0, (innerT + stepInnerT) / 2, -halfD + REC]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
+            <planeGeometry args={[stepInnerR - stepInnerL, innerT - stepInnerT]} />
+            <primitive object={matFlatStep} attach="material" />
+          </mesh>
+          <mesh position={[0, (innerB + stepInnerB) / 2, -halfD + REC]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
+            <planeGeometry args={[stepInnerR - stepInnerL, stepInnerB - innerB]} />
+            <primitive object={matFlatStep} attach="material" />
+          </mesh>
+          <mesh position={[(innerL + stepInnerL) / 2, (stepInnerB + stepInnerT) / 2, -halfD + REC]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
+            <planeGeometry args={[stepInnerL - innerL, stepInnerT - stepInnerB]} />
+            <primitive object={matFlatStep} attach="material" />
+          </mesh>
+          <mesh position={[(innerR + stepInnerR) / 2, (stepInnerB + stepInnerT) / 2, -halfD + REC]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
+            <planeGeometry args={[innerR - stepInnerR, stepInnerT - stepInnerB]} />
+            <primitive object={matFlatStep} attach="material" />
+          </mesh>
+
+          {/* INT side — Bevel 2 (mirrored) */}
+          <mesh geometry={panelGeoInt.b2Top}   castShadow receiveShadow><primitive object={matBevel2} attach="material" /></mesh>
+          <mesh geometry={panelGeoInt.b2Bot}   castShadow receiveShadow><primitive object={matBevel2} attach="material" /></mesh>
+          <mesh geometry={panelGeoInt.b2Left}  castShadow receiveShadow><primitive object={matBevel2} attach="material" /></mesh>
+          <mesh geometry={panelGeoInt.b2Right} castShadow receiveShadow><primitive object={matBevel2} attach="material" /></mesh>
+
+          {/* INT side — Raised field centre (facing -Z) */}
+          <mesh position={[0, (raisedB + raisedT) / 2, -halfD + RD]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
+            <planeGeometry args={[raisedR - raisedL, raisedT - raisedB]} />
+            <primitive object={matRaised} attach="material" />
+          </mesh>
+        </group>
+      )}
 
       {/* ─── Top rail EXT ─── */}
       <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-F_TOP,halfD]}>
