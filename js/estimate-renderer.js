@@ -520,7 +520,8 @@ class EstimateRenderer {
                 </td>
                 <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;">${qty}</td>
                 <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);vertical-align:top;">£${R.formatPrice(amount)}</td>
-                ${isAdmin ? `<td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;">
+                ${isAdmin ? `<td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;white-space:nowrap;">
+                    <button onclick="adminEditExtra('${extraId}')" style="background:transparent;border:1px solid rgba(10,22,40,.3);color:var(--navy);font-family:'Jost',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .6rem;cursor:pointer;border-radius:2px;margin-right:.3rem;">Edit</button>
                     <button onclick="adminDeleteExtra('${extraId}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.8);font-family:'Jost',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .6rem;cursor:pointer;border-radius:2px;">Delete</button>
                 </td>` : ''}
             </tr>
@@ -634,16 +635,51 @@ class EstimateRenderer {
             </div>
         `;
 
+        // Group custom extras by payment_timing
+        const customByTiming = {
+            with_deposit: customExtras.filter(e => e.payment_timing === 'with_deposit'),
+            with_balance: customExtras.filter(e => e.payment_timing === 'with_balance'),
+            on_delivery: customExtras.filter(e => e.payment_timing === 'on_delivery'),
+            on_completion: customExtras.filter(e => !e.payment_timing || e.payment_timing === 'on_completion')
+        };
+        const sumTiming = (list) => list.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+        const customDepositAdd = sumTiming(customByTiming.with_deposit);
+        const customBalanceAdd = sumTiming(customByTiming.with_balance);
+        const customDeliveryAdd = sumTiming(customByTiming.on_delivery);
+
+        const listIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} £${R.formatPrice(e.total_price)}`).join(', ')}.` : '';
+
+        // Deposit / Balance: add half of (with_deposit → deposit, with_balance → balance)
+        // Note: we add the FULL amount of with_deposit to deposit card (100% at deposit time), same for balance
+        const depositAmount = depositHalf + customDepositAdd;
+        const balanceAmount = depositHalf + customBalanceAdd;
+        const deliveryAmount = deliveryTotal + customDeliveryAdd;
+
         const depositBaseNote = hasInstallation ? 'Calculated on windows + installation.' : 'Calculated on windows only.';
+        const depositIncludes = listIncludes(customByTiming.with_deposit);
+        const balanceIncludes = listIncludes(customByTiming.with_balance);
+        const deliveryIncludes = listIncludes(customByTiming.on_delivery);
+
+        // Roman numeral generator
+        const romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+        let romanIdx = 0;
+        const nextRoman = () => romans[romanIdx++] || `${romanIdx}`;
+
         const paymentCards = [
-            paymentCard('I', 'Initial Deposit', '50%', depositHalf, `Non-refundable deposit upon acceptance. Secures the order and reserves workshop capacity. ${depositBaseNote}`),
-            paymentCard('II', 'Balance', '50%', depositHalf, `Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. ${depositBaseNote}`),
-            hasInstallation ? paymentCard('III', 'Installation', '100%', installationTotal, 'Payable after installation is completed on site.', true) : '',
-            hasDelivery ? paymentCard(hasInstallation ? 'IV' : 'III', 'Delivery', '100%', deliveryTotal, 'Payable upon delivery to site. Separate from windows schedule.', true) : ''
+            paymentCard(nextRoman(), 'Initial Deposit', '50%', depositAmount, `Non-refundable deposit upon acceptance. Secures the order and reserves workshop capacity. ${depositBaseNote}${depositIncludes}`),
+            paymentCard(nextRoman(), 'Balance', '50%', balanceAmount, `Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. ${depositBaseNote}${balanceIncludes}`),
+            hasInstallation ? paymentCard(nextRoman(), 'Installation', '100%', installationTotal, 'Payable after installation is completed on site.', true) : '',
+            (hasDelivery || customDeliveryAdd > 0) ? paymentCard(nextRoman(), 'Delivery', '100%', deliveryAmount, `Payable upon delivery to site. Separate from windows schedule.${deliveryIncludes}`, true) : '',
+            // Each on_completion custom extra = own card
+            ...customByTiming.on_completion.map(e => paymentCard(nextRoman(), e.name, '100%', e.total_price, `${e.description ? e.description + '. ' : ''}Payable on completion.`, true))
         ].filter(Boolean);
 
         const numCards = paymentCards.length;
-        const paymentGridCols = numCards === 2 ? '1fr 1fr' : numCards === 3 ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr';
+        const paymentGridCols = numCards === 1 ? '1fr'
+            : numCards === 2 ? '1fr 1fr'
+            : numCards === 3 ? '1fr 1fr 1fr'
+            : numCards === 4 ? '1fr 1fr 1fr 1fr'
+            : 'repeat(auto-fit, minmax(180px, 1fr))';
 
         const paymentHTML = `
             <div style="margin:2rem 0;">
@@ -2337,16 +2373,44 @@ class EstimateRenderer {
                 </div>
             `;
 
+            // PDF — Group custom extras by payment_timing (same hybrid logic as dashboard)
+            const pdfCustomByTiming = {
+                with_deposit: customExtras.filter(e => e.payment_timing === 'with_deposit'),
+                with_balance: customExtras.filter(e => e.payment_timing === 'with_balance'),
+                on_delivery: customExtras.filter(e => e.payment_timing === 'on_delivery'),
+                on_completion: customExtras.filter(e => !e.payment_timing || e.payment_timing === 'on_completion')
+            };
+            const pdfSumTiming = (list) => list.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+            const pdfCustomDepositAdd = pdfSumTiming(pdfCustomByTiming.with_deposit);
+            const pdfCustomBalanceAdd = pdfSumTiming(pdfCustomByTiming.with_balance);
+            const pdfCustomDeliveryAdd = pdfSumTiming(pdfCustomByTiming.on_delivery);
+            const pdfListIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} £${R.formatPrice(e.total_price)}`).join(', ')}.` : '';
+
+            const pdfDepositAmount = depositHalf + pdfCustomDepositAdd;
+            const pdfBalanceAmount = depositHalf + pdfCustomBalanceAdd;
+            const pdfDeliveryAmountTotal = deliveryTotal + pdfCustomDeliveryAdd;
+
             const pdfDepositBaseNote = hasInstallation ? 'Calculated on windows + installation.' : 'Calculated on windows only.';
+            const pdfDepositIncludes = pdfListIncludes(pdfCustomByTiming.with_deposit);
+            const pdfBalanceIncludes = pdfListIncludes(pdfCustomByTiming.with_balance);
+            const pdfDeliveryIncludes = pdfListIncludes(pdfCustomByTiming.on_delivery);
+
+            const pdfRomans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+            let pdfRomanIdx = 0;
+            const pdfNextRoman = () => pdfRomans[pdfRomanIdx++] || `${pdfRomanIdx}`;
+
             const pdfPaymentCards = [
-                pdfPaymentCard('I', 'Initial Deposit', '50%', depositHalf, `Non-refundable deposit payable upon acceptance of this quotation. Secures the order, reserves workshop capacity, and funds material procurement. ${pdfDepositBaseNote}`),
-                pdfPaymentCard('II', 'Balance', '50%', depositHalf, `Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. Bank transfer to Skylon Joinery Ltd. ${pdfDepositBaseNote}`),
-                hasInstallation ? pdfPaymentCard('III', 'Installation', '100%', installationTotal, 'Payable after installation is completed on site. Covers labour and installation services.', true) : '',
-                hasDelivery ? pdfPaymentCard(hasInstallation ? 'IV' : 'III', 'Delivery', '100%', deliveryTotal, 'Payable upon delivery to site. Separate from windows payment schedule. Covers transport, logistics, and safe unloading.', true) : ''
+                pdfPaymentCard(pdfNextRoman(), 'Initial Deposit', '50%', pdfDepositAmount, `Non-refundable deposit payable upon acceptance of this quotation. Secures the order, reserves workshop capacity, and funds material procurement. ${pdfDepositBaseNote}${pdfDepositIncludes}`),
+                pdfPaymentCard(pdfNextRoman(), 'Balance', '50%', pdfBalanceAmount, `Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. Bank transfer to Skylon Joinery Ltd. ${pdfDepositBaseNote}${pdfBalanceIncludes}`),
+                hasInstallation ? pdfPaymentCard(pdfNextRoman(), 'Installation', '100%', installationTotal, 'Payable after installation is completed on site. Covers labour and installation services.', true) : '',
+                (hasDelivery || pdfCustomDeliveryAdd > 0) ? pdfPaymentCard(pdfNextRoman(), 'Delivery', '100%', pdfDeliveryAmountTotal, `Payable upon delivery to site. Separate from windows payment schedule. Covers transport, logistics, and safe unloading.${pdfDeliveryIncludes}`, true) : '',
+                ...pdfCustomByTiming.on_completion.map(e => pdfPaymentCard(pdfNextRoman(), e.name, '100%', e.total_price, `${e.description ? e.description + '. ' : ''}Payable on completion.`, true))
             ].filter(Boolean);
 
             const pdfNumCards = pdfPaymentCards.length;
-            const pdfPaymentGrid = pdfNumCards === 2 ? '1fr 1fr' : pdfNumCards === 3 ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr';
+            const pdfPaymentGrid = pdfNumCards <= 4
+                ? (pdfNumCards === 1 ? '1fr' : pdfNumCards === 2 ? '1fr 1fr' : pdfNumCards === 3 ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr')
+                : 'repeat(auto-fit, minmax(70mm, 1fr))';
             const pdfIntroText = pdfNumCards === 2
                 ? 'Payments are structured as a two-stage deposit and balance, both based on the total for windows.'
                 : 'Payments are structured to protect both parties. Deposit secures the order, balance is required prior to dispatch, and additional services are billed separately upon completion.';

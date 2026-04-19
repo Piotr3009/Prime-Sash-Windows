@@ -849,7 +849,7 @@
             if (show) {
                 setTimeout(() => document.getElementById('admin-extra-name')?.focus(), 50);
             } else {
-                // Clear form on cancel
+                // Clear form on cancel / close
                 ['admin-extra-name', 'admin-extra-desc', 'admin-extra-price'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.value = '';
@@ -858,6 +858,41 @@
                 if (qtyEl) qtyEl.value = '1';
                 const timingEl = document.getElementById('admin-extra-timing');
                 if (timingEl) timingEl.value = 'on_completion';
+                // Reset edit mode
+                currentEditExtraId = null;
+                const formTitle = document.querySelector('#admin-extra-form h4');
+                if (formTitle) formTitle.textContent = 'Add Custom Extra';
+            }
+        }
+
+        let currentEditExtraId = null;
+
+        async function adminEditExtra(extraId) {
+            if (!extraId || !currentAdminEstimateId) return;
+            try {
+                // Load the extra from DB (reusing EstimateExtras.load and filtering)
+                const all = await EstimateExtras.load(currentAdminEstimateId);
+                const extra = all.find(e => e.id === extraId);
+                if (!extra) {
+                    alert('Extra not found');
+                    return;
+                }
+
+                // Open form + prefill
+                adminToggleExtraForm(true);
+                document.getElementById('admin-extra-name').value = extra.name || '';
+                document.getElementById('admin-extra-desc').value = extra.description || '';
+                document.getElementById('admin-extra-qty').value = extra.quantity || 1;
+                document.getElementById('admin-extra-price').value = extra.unit_price || 0;
+                document.getElementById('admin-extra-timing').value = extra.payment_timing || 'on_completion';
+
+                // Mark form as edit mode
+                currentEditExtraId = extraId;
+                const formTitle = document.querySelector('#admin-extra-form h4');
+                if (formTitle) formTitle.textContent = `Edit: ${extra.name}`;
+            } catch (err) {
+                console.error('Failed to load extra for edit:', err);
+                alert('Failed to load: ' + (err.message || 'unknown error'));
             }
         }
 
@@ -886,12 +921,19 @@
             }
 
             try {
-                await EstimateExtras.addCustom(currentAdminEstimateId, { name, description, quantity, unit_price, payment_timing });
+                if (currentEditExtraId) {
+                    // EDIT mode — update existing extra
+                    await EstimateExtras.update(currentEditExtraId, { name, description, quantity, unit_price, payment_timing });
+                } else {
+                    // ADD mode — create new custom extra
+                    await EstimateExtras.addCustom(currentAdminEstimateId, { name, description, quantity, unit_price, payment_timing });
+                }
+                currentEditExtraId = null;
                 // Refresh view
                 await viewEstimate(currentAdminEstimateId);
             } catch (err) {
-                console.error('Failed to add extra:', err);
-                alert('Failed to add extra: ' + (err.message || 'unknown error'));
+                console.error('Failed to save extra:', err);
+                alert('Failed to save: ' + (err.message || 'unknown error'));
             }
         }
 
