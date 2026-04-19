@@ -1888,12 +1888,21 @@ class EstimateRenderer {
                     if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 }
 
-                const specRows = specs.map(([l, v]) => `
-                    <tr>
-                        <td style="padding:2.2mm 0;border-bottom:1px dashed #e5e4dd;color:#6b6b6b;width:42%;font-weight:300;font-size:10px;">${l}</td>
-                        <td style="padding:2.2mm 0;border-bottom:1px dashed #e5e4dd;color:#0A1628;font-weight:400;text-align:right;font-size:10px;">${v}</td>
-                    </tr>
+                const specRows2Col = specs.map(([l, v]) => `
+                    <div>
+                        <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.18em;text-transform:uppercase;font-size:8px;color:#6b6b6b;margin-bottom:1mm;">${l}</div>
+                        <div style="font-family:'Jost',sans-serif;font-size:10px;color:#0A1628;margin-bottom:3mm;line-height:1.35;">${v}</div>
+                    </div>
                 `).join('');
+
+                const ironItemsHTML = (p.ironList && p.ironList.length > 0)
+                    ? p.ironList.map(pr => `
+                        <div style="display:flex;align-items:center;gap:3mm;margin-bottom:2mm;">
+                            ${pr.img ? `<img src="${pr.img}" crossorigin="anonymous" style="width:10mm;height:10mm;object-fit:cover;border:1px solid #e5e4dd;border-radius:1mm;flex-shrink:0;background:#f5f4f0;" onerror="this.style.visibility='hidden'">` : `<div style="width:10mm;height:10mm;border:1px solid #e5e4dd;background:#f5f4f0;border-radius:1mm;flex-shrink:0;"></div>`}
+                            <span style="font-family:'Jost',sans-serif;font-size:9.5px;color:#0A1628;line-height:1.4;">${pr.qty > 1 ? `<strong>${pr.qty}×</strong> ` : ''}${pr.name}${pr.color ? ` — ${pr.color}` : ''}</span>
+                        </div>
+                    `).join('')
+                    : `<div style="font-family:'Jost',sans-serif;font-size:9.5px;color:#888;font-style:italic;">No ironmongery specified for this item.</div>`;
 
                 const typeLabel = p.windowType === 'casement' ? 'Casement Window'
                     : p.windowType === 'fix-only' ? 'Fix Frame'
@@ -1905,25 +1914,27 @@ class EstimateRenderer {
                 const priceStr = '£' + R.formatPrice(item.total_price || 0);
 
                 return `
-                    <div style="border:1px solid #e5e4dd;margin-bottom:4mm;overflow:hidden;">
+                    <div style="border:1px solid #e5e4dd;margin-bottom:5mm;overflow:hidden;">
                         <div style="background:#0A1628;color:#fff;padding:5mm 7mm;display:flex;justify-content:space-between;align-items:center;">
                             <div style="font-family:${serif};font-weight:600;font-size:18px;letter-spacing:.02em;"><span style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;opacity:.65;letter-spacing:.25em;margin-right:10px;">ITEM ${idxStr}</span>${typeLabel}</div>
                             <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:18px;letter-spacing:.02em;">${priceStr}</div>
                         </div>
-                        <div style="display:grid;grid-template-columns:70mm 1fr;gap:6mm;padding:5mm;">
+                        <div style="display:grid;grid-template-columns:70mm 1fr;gap:6mm;padding:6mm;">
                             ${screenshots?.interior ? `
-                                <div style="background:#f5f4f0;border:1px solid #e5e4dd;padding:3mm;display:flex;flex-direction:column;gap:2mm;">
-                                    <div style="width:100%;height:40mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
-                                    <div style="width:100%;height:40mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:2mm;">${svg}</div>
+                                <div style="background:#f5f4f0;border:1px solid #e5e4dd;padding:4mm;display:flex;flex-direction:column;gap:3mm;">
+                                    <div style="width:100%;height:48mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
+                                    <div style="width:100%;height:48mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;">${svg}</div>
                                 </div>
                             ` : `
-                                <div style="background:#f5f4f0;border:1px solid #e5e4dd;display:flex;align-items:center;justify-content:center;padding:3mm;">
-                                    <div style="width:100%;max-height:85mm;">${svg}</div>
+                                <div style="background:#f5f4f0;border:1px solid #e5e4dd;display:flex;align-items:center;justify-content:center;padding:4mm;">
+                                    <div style="width:100%;max-height:100mm;">${svg}</div>
                                 </div>
                             `}
-                            <div style="font-family:'Jost',sans-serif;font-size:10px;">
-                                <h4 style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.18em;text-transform:uppercase;font-size:9px;color:#6b6b6b;margin:0 0 2mm;border-bottom:1px solid #e5e4dd;padding-bottom:2mm;">Specification</h4>
-                                <table style="width:100%;border-collapse:collapse;">${specRows}</table>
+                            <div>
+                                <h4 style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.18em;text-transform:uppercase;font-size:9px;color:#6b6b6b;margin:0 0 3mm;border-bottom:1px solid #e5e4dd;padding-bottom:2mm;">Specification</h4>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 6mm;">${specRows2Col}</div>
+                                <h4 style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.18em;text-transform:uppercase;font-size:9px;color:#6b6b6b;margin:4mm 0 3mm;border-top:1px solid #e5e4dd;border-bottom:1px solid #e5e4dd;padding:3mm 0 2mm;">Ironmongery</h4>
+                                ${ironItemsHTML}
                             </div>
                         </div>
                     </div>
