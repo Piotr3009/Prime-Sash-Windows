@@ -1934,46 +1934,28 @@ class EstimateRenderer {
                 `;
             };
 
-            // Split items into pages (2 per page)
-            const itemsPages = [];
-            const ITEMS_PER_PAGE = 2;
-            for (let i = 0; i < items.length; i += ITEMS_PER_PAGE) {
-                const chunk = items.slice(i, i + ITEMS_PER_PAGE);
-                const pageNumInChunk = Math.floor(i / ITEMS_PER_PAGE);
-                const itemsHTML = chunk.map((it, j) => buildItemCard(it, i + j)).join('');
-                const isFirst = pageNumInChunk === 0;
-                const titleHTML = isFirst ? `
-                    <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:30px;letter-spacing:.02em;margin:8mm 0 6mm;display:flex;justify-content:space-between;align-items:baseline;">
+            // ──────── ITEMS: title block + per-item blocks (for smart page-breaking) ────────
+            const titleBlockHTML = items.length > 0 ? `
+                <div style="font-family:'Jost',sans-serif;padding:20px 30px;background:#fff;">
+                    <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:30px;letter-spacing:.02em;margin:0;display:flex;justify-content:space-between;align-items:baseline;">
                         Your Estimate
-                        <span style="font-family:'Jost',sans-serif;font-weight:300;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#6b6b6b;">${items.length} Item${items.length !== 1 ? 's' : ''}</span>
+                        <span style="font-family:'Jost',sans-serif;font-weight:300;font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:#6b6b6b;">${items.length} Item${items.length !== 1 ? 's' : ''}</span>
                     </h2>
-                ` : `
-                    <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:24px;letter-spacing:.02em;margin:8mm 0 6mm;">
-                        Your Estimate (continued)
-                    </h2>
-                `;
-                itemsPages.push(`
-                    <div style="${pageStyle}">
-                        ${headerBar}
-                        <div style="padding:0 20mm 10mm;">
-                            ${titleHTML}
-                            ${itemsHTML}
-                        </div>
-                    </div>
-                `);
-            }
+                </div>
+            ` : `
+                <div style="font-family:'Jost',sans-serif;padding:20px 30px;background:#fff;">
+                    <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:0 0 5mm;">Your Estimate</h2>
+                    <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:12px;color:#6b6b6b;">No items added to this estimate yet.</p>
+                </div>
+            `;
 
-            if (itemsPages.length === 0) {
-                itemsPages.push(`
-                    <div style="${pageStyle}">
-                        ${headerBar}
-                        <div style="padding:0 20mm;">
-                            <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 5mm;">Your Estimate</h2>
-                            <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:12px;color:#6b6b6b;">No items added to this estimate yet.</p>
-                        </div>
-                    </div>
-                `);
-            }
+            const itemBlocksHTML = items.map((item, idx) => `
+                <div style="font-family:'Jost',sans-serif;padding:10px 30px;background:#fff;">
+                    ${buildItemCard(item, idx)}
+                </div>
+            `);
+
+
 
             // ──────── PAGE -2: SUMMARY + PAYMENT 50/50 ────────
             const summaryRows = items.map((it, idx) => {
@@ -2095,21 +2077,13 @@ class EstimateRenderer {
                 </div>
             `;
 
-            // ──────── ASSEMBLE PAGES + RENDER ────────
-            const allPages = [pageCover, pageQuote, pageCerts, ...itemsPages, pageSummary, pageTerms];
-
-            const doc = new jsPDF('p', 'mm', 'a4');
-            const pageW = 210, pageH = 297;
-
-            for (let i = 0; i < allPages.length; i++) {
-                const pageHTML = allPages[i];
-
+            // ──────── RENDER HELPERS ────────
+            async function renderToCanvas(html, width) {
                 const container = document.createElement('div');
-                container.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;height:297mm;background:#fff;';
-                container.innerHTML = pageHTML;
+                container.style.cssText = `position:fixed;left:-9999px;top:0;width:${width};background:#fff;`;
+                container.innerHTML = html;
                 document.body.appendChild(container);
 
-                // Wait for images
                 const imgs = container.querySelectorAll('img');
                 if (imgs.length > 0) {
                     await Promise.all([...imgs].map(img => {
@@ -2117,27 +2091,67 @@ class EstimateRenderer {
                         return new Promise(res => {
                             img.onload = res;
                             img.onerror = res;
-                            setTimeout(res, 3000); // safety timeout
+                            setTimeout(res, 3000);
                         });
                     }));
                 }
 
                 const canvas = await window.html2canvas(container, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    logging: false,
-                    width: container.offsetWidth,
-                    height: container.offsetHeight
+                    scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
+                    logging: false, width: container.offsetWidth, height: container.offsetHeight
                 });
-
                 document.body.removeChild(container);
+                return canvas;
+            }
 
-                if (i > 0) doc.addPage();
+            // ──────── ASSEMBLE PDF ────────
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageW = 210, pageH = 297, margin = 8;
+            const usableW = pageW - margin * 2;
+
+            // Full A4 page (cover, quote, certs, summary, terms)
+            async function addFullPage(html, isFirst = false) {
+                if (!isFirst) doc.addPage();
+                const canvas = await renderToCanvas(html, '210mm');
                 const imgData = canvas.toDataURL('image/jpeg', 0.92);
                 doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH);
             }
+
+            // Smart page-breaking block (items section only)
+            let curY = margin;
+            async function addBlock(html) {
+                const canvas = await renderToCanvas(html, '800px');
+                const blockH = (canvas.height / canvas.width) * usableW;
+
+                if (curY + blockH > pageH - margin && curY > margin + 1) {
+                    doc.addPage();
+                    curY = margin;
+                }
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                doc.addImage(imgData, 'JPEG', margin, curY, usableW, blockH);
+                curY += blockH + 4;
+            }
+
+            // 1. Cover
+            await addFullPage(pageCover, true);
+            // 2. Quote
+            await addFullPage(pageQuote);
+            // 3. Certifications
+            await addFullPage(pageCerts);
+
+            // 4. Items — new page + smart page-breaking
+            doc.addPage();
+            curY = margin;
+            await addBlock(titleBlockHTML);
+            for (const itemHTML of itemBlocksHTML) {
+                await addBlock(itemHTML);
+            }
+
+            // 5. Summary
+            await addFullPage(pageSummary);
+            // 6. Terms
+            await addFullPage(pageTerms);
 
             doc.save(`PrimeSashWindows_Quote_${estimateNumber}.pdf`);
 
@@ -2146,6 +2160,7 @@ class EstimateRenderer {
             alert('Failed to download PDF: ' + error.message);
         }
     }
+
     // ─── Print-only HTML (no buttons, clean layout) ───
     static renderEstimatePrintHTML(estimate) {
         const R = EstimateRenderer;
