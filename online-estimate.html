@@ -811,6 +811,21 @@
           </div>
         </div>
 
+        <!-- Center Mullion (glass split) -->
+        <h3>Center Mullion</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="door-center-mullion-off" name="door-center-mullion" value="off" checked>
+              <label for="door-center-mullion-off" class="radio-label">None</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="door-center-mullion-on" name="door-center-mullion" value="on">
+              <label for="door-center-mullion-on" class="radio-label">Split Glass</label>
+            </div>
+          </div>
+        </div>
+
         <!-- Paneling -->
         <h3>Paneling</h3>
         <div class="input-group">
@@ -3739,7 +3754,7 @@
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
   </style>
-  <script type="module" src="3d/assets/window3d.js?v=14"></script>
+  <script type="module" src="3d/assets/window3d.js?v=15"></script>
   <script>
     // Force close ironmongery gallery after everything loads
     window.addEventListener('load', function() {

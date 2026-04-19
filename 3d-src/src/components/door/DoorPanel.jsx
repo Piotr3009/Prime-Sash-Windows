@@ -125,8 +125,43 @@ function buildTopRailShape(F) {
   return shapeFromPts(pts);
 }
 
+// ── Center Mullion shapes ── (symmetric — glazing on BOTH sides)
+// Shape XY: X=face(0=left-glazing, F=right-glazing), Y=depth(0=EXT, D=INT)
+// Rendered between rails, splits glass area into 2 panels.
+// EXT half: chamfer on both sides (X=0 and X=F) at Y=0..halfDepth
+// INT half: ovolo on both sides at Y=halfDepth..D
+
+function buildCenterMullionExt(F, halfDepth) {
+  const pts = [
+    [EBW, 0],            // bottom-left (inset EBW from left glazing edge)
+    [F - EBW, 0],        // bottom-right (inset EBW from right glazing edge)
+    [F, EBD],            // right chamfer end (right glazing-EXT)
+    [F, halfDepth],      // right side up to split line
+    [0, halfDepth],      // across split line to left
+    [0, EBD],            // left glazing down to chamfer start
+    // closePath back to [EBW, 0]
+  ];
+  return shapeFromPts(pts);
+}
+
+function buildCenterMullionInt(F, halfDepth) {
+  const pts = [
+    [0, halfDepth],      // bottom-left (at split line)
+    [F, halfDepth],      // bottom-right (at split line)
+    [F, D - IBR],        // right glazing up to arc start
+  ];
+  // Right ovolo arc: center (F-IBR, D-IBR), from angle 0 to PI/2 → ends at (F-IBR, D)
+  pts.push(...ovoloArc(F - IBR, D - IBR, IBR, 0, Math.PI / 2, OVOLO_N));
+  // Flat top across INT face (between the two ovolos)
+  pts.push([IBR, D]);
+  // Left ovolo arc: center (IBR, D-IBR), from angle PI/2 to PI → ends at (0, D-IBR)
+  pts.push(...ovoloArc(IBR, D - IBR, IBR, Math.PI / 2, Math.PI, OVOLO_N));
+  // closePath back to [0, halfDepth]
+  return shapeFromPts(pts);
+}
+
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, doorStyle = 'full-glass' }) {
+function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, doorStyle = 'full-glass', centerMullion = false }) {
   const W = mm(width);
   const H = mm(height);
 
@@ -205,6 +240,15 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
 
   const mi = matInt || mat;
 
+  // ── Center mullion geometry (only used when centerMullion=true) ──
+  const cmExt = useMemo(() => buildCenterMullionExt(F_STILE, halfDepth), []);
+  const cmInt = useMemo(() => buildCenterMullionInt(F_STILE, halfDepth), []);
+  const mullionH = H - fBot - F_TOP;
+  const mullionSettings = useMemo(
+    () => ({ depth: Math.max(mullionH, 0.001), bevelEnabled: false }),
+    [mullionH]
+  );
+
   return (
     <group>
       {/* ─── Left stile EXT ─── */}
@@ -251,10 +295,37 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
         <primitive object={mi} attach="material" />
       </mesh>
 
-      {/* ─── Glazing ─── */}
-      {glassW > 0 && glassH > 0 && (
+      {/* ─── Center Mullion (optional addon) ─── */}
+      {centerMullion && mullionH > 0 && (
+        <>
+          <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[-F_STILE/2, -H/2 + fBot, halfD]}>
+            <extrudeGeometry args={[cmExt, mullionSettings]} />
+            <primitive object={mat} attach="material" />
+          </mesh>
+          <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[-F_STILE/2, -H/2 + fBot, halfD]}>
+            <extrudeGeometry args={[cmInt, mullionSettings]} />
+            <primitive object={mi} attach="material" />
+          </mesh>
+        </>
+      )}
+
+      {/* ─── Glazing (single when no mullion, split into 2 panels when centerMullion=true) ─── */}
+      {glassW > 0 && glassH > 0 && !centerMullion && (
         <DoorGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[0, mm((bottomRailMm - LEAF_TOP_RAIL) / 2), 0]} />
       )}
+      {glassW > 0 && glassH > 0 && centerMullion && (() => {
+        // Split glass into 2 panels with LEAF_STILE-wide mullion between them
+        const halfGlassW = (glassW - LEAF_STILE) / 2;
+        if (halfGlassW <= 0) return null;
+        const yOffset = mm((bottomRailMm - LEAF_TOP_RAIL) / 2);
+        const xOff = mm(halfGlassW / 2 + LEAF_STILE / 2);
+        return (
+          <>
+            <DoorGlazing width={halfGlassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[-xOff, yOffset, 0]} />
+            <DoorGlazing width={halfGlassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[xOff, yOffset, 0]} />
+          </>
+        );
+      })()}
     </group>
   );
 }
@@ -274,6 +345,7 @@ export default function DoorPanel({
   ironmongery = 'brass',
   position = [0, 0, 0],
   doorStyle = 'full-glass',
+  centerMullion = false,
 }) {
   const mat = material;
   const W = mm(width);
@@ -323,7 +395,7 @@ export default function DoorPanel({
 
   const content = (
     <group>
-      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} />
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} />
       {handlePos && hingeType !== 'fixed' && (
         <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
           <WindowDoorHandle rotationDeg={hingeType === 'left' ? -handleDeg : handleDeg} metalColor={handleColors.metalColor} lockColor={handleColors.lockColor} />
