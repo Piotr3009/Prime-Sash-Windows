@@ -2072,31 +2072,46 @@ class EstimateRenderer {
                         <div style="margin-top:4mm;padding:3mm 5mm;background:#fff8ed;border-left:3px solid #c9a96e;font-family:'Jost',sans-serif;font-size:9.5px;color:#6b6b6b;line-height:1.55;">
                             <strong style="color:#0A1628;">All prices exclude VAT.</strong> VAT will be applied at the applicable rate (0%, 5%, or 20%) depending on your property status and project type. The correct rate will be confirmed prior to invoicing.
                         </div>
+                    </div>
+                </div>
+            `;
 
-                        <!-- ─── PAYMENT SCHEDULE (3 CARDS) ─── -->
-                        <h3 style="font-family:${serif};font-weight:700;font-size:18px;color:#0A1628;margin:8mm 0 3mm;">Payment Schedule</h3>
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm;">
-                            <div style="border:1px solid #e5e4dd;padding:4mm;position:relative;">
-                                <div style="position:absolute;top:2mm;right:3mm;font-family:${serif};font-weight:700;font-size:34px;color:#D4D4C8;line-height:1;">I</div>
-                                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:8px;color:#6b6b6b;margin-bottom:1.5mm;">Initial Deposit</div>
-                                <div style="font-family:${serif};font-weight:700;font-size:22px;color:#0A1628;line-height:1;margin-bottom:2mm;">50%</div>
-                                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:12px;color:#c9a96e;margin-bottom:2mm;">£${R.formatPrice(depositHalf)}</div>
-                                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:8.5px;color:#6b6b6b;line-height:1.5;">Upon acceptance. Non-refundable. Of windows + installation.</div>
+            // ──────── PAGE: PAYMENT SCHEDULE (own page) ────────
+            const pagePayment = `
+                <div style="${pageStyle}">
+                    ${headerBar}
+                    <div style="padding:0 20mm;">
+                        <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 4mm;">Payment Schedule</h2>
+                        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;color:#6b6b6b;line-height:1.65;margin-bottom:8mm;max-width:160mm;">
+                            Payments are structured to protect both parties. Deposit secures the order, balance is required prior to dispatch, and delivery is billed separately upon site arrival.
+                        </p>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm;">
+                            <div style="border:1px solid #e5e4dd;padding:6mm;position:relative;min-height:85mm;">
+                                <div style="position:absolute;top:4mm;right:5mm;font-family:${serif};font-weight:700;font-size:46px;color:#D4D4C8;line-height:1;">I</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:9.5px;color:#6b6b6b;margin-bottom:2mm;">Initial Deposit</div>
+                                <div style="font-family:${serif};font-weight:700;font-size:30px;color:#0A1628;line-height:1;margin-bottom:3mm;">50%</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:15px;color:#c9a96e;margin-bottom:3mm;">£${R.formatPrice(depositHalf)}</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:10px;color:#6b6b6b;line-height:1.55;">Non-refundable deposit payable upon acceptance of this quotation. Secures the order, reserves workshop capacity, and funds material procurement. Calculated on windows + installation only.</div>
                             </div>
-                            <div style="border:1px solid #e5e4dd;padding:4mm;position:relative;">
-                                <div style="position:absolute;top:2mm;right:3mm;font-family:${serif};font-weight:700;font-size:34px;color:#D4D4C8;line-height:1;">II</div>
-                                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:8px;color:#6b6b6b;margin-bottom:1.5mm;">Balance</div>
-                                <div style="font-family:${serif};font-weight:700;font-size:22px;color:#0A1628;line-height:1;margin-bottom:2mm;">50%</div>
-                                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:12px;color:#c9a96e;margin-bottom:2mm;">£${R.formatPrice(depositHalf)}</div>
-                                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:8.5px;color:#6b6b6b;line-height:1.5;">Prior to dispatch/installation. Of windows + installation.</div>
+                            <div style="border:1px solid #e5e4dd;padding:6mm;position:relative;min-height:85mm;">
+                                <div style="position:absolute;top:4mm;right:5mm;font-family:${serif};font-weight:700;font-size:46px;color:#D4D4C8;line-height:1;">II</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:9.5px;color:#6b6b6b;margin-bottom:2mm;">Balance</div>
+                                <div style="font-family:${serif};font-weight:700;font-size:30px;color:#0A1628;line-height:1;margin-bottom:3mm;">50%</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:15px;color:#c9a96e;margin-bottom:3mm;">£${R.formatPrice(depositHalf)}</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:10px;color:#6b6b6b;line-height:1.55;">Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. Bank transfer to Skylon Joinery Ltd. Calculated on windows + installation only.</div>
                             </div>
-                            <div style="border:1px solid #e5e4dd;padding:4mm;position:relative;background:#fbfaf7;">
-                                <div style="position:absolute;top:2mm;right:3mm;font-family:${serif};font-weight:700;font-size:34px;color:#D4D4C8;line-height:1;">III</div>
-                                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:8px;color:#6b6b6b;margin-bottom:1.5mm;">Delivery</div>
-                                <div style="font-family:${serif};font-weight:700;font-size:22px;color:#0A1628;line-height:1;margin-bottom:2mm;">100%</div>
-                                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:12px;color:#c9a96e;margin-bottom:2mm;">£${R.formatPrice(deliveryCost)}</div>
-                                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:8.5px;color:#6b6b6b;line-height:1.5;">Payable upon delivery to site. Separate from windows schedule.</div>
+                            <div style="border:1px solid #e5e4dd;padding:6mm;position:relative;min-height:85mm;background:#fbfaf7;">
+                                <div style="position:absolute;top:4mm;right:5mm;font-family:${serif};font-weight:700;font-size:46px;color:#D4D4C8;line-height:1;">III</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:9.5px;color:#6b6b6b;margin-bottom:2mm;">Delivery</div>
+                                <div style="font-family:${serif};font-weight:700;font-size:30px;color:#0A1628;line-height:1;margin-bottom:3mm;">100%</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:15px;color:#c9a96e;margin-bottom:3mm;">£${R.formatPrice(deliveryCost)}</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:10px;color:#6b6b6b;line-height:1.55;">Payable upon delivery to site. Separate from windows payment schedule. Covers transport, logistics, and safe unloading.</div>
                             </div>
+                        </div>
+
+                        <div style="margin-top:10mm;padding:5mm 6mm;background:#f5f4f0;border-left:3px solid #0A1628;font-family:'Jost',sans-serif;font-size:10.5px;color:#1a1a1a;line-height:1.65;">
+                            <strong style="color:#0A1628;">Bank transfer details</strong> are provided on the final Terms & Conditions page. Alternative payment methods may be arranged in writing prior to acceptance.
                         </div>
                     </div>
                 </div>
@@ -2221,8 +2236,10 @@ class EstimateRenderer {
                 await addBlock(itemHTML);
             }
 
-            // 5. Summary
+            // 5. Summary (windows + additional services + grand total + VAT note)
             await addFullPage(pageSummary);
+            // 5b. Payment Schedule (own page)
+            await addFullPage(pagePayment);
             // 6. Terms
             await addFullPage(pageTerms);
 
