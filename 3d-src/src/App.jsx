@@ -12,7 +12,7 @@ import DoorWindow from './components/door/DoorWindow';
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 // Auto-fit camera distance to window dimensions (view frustum math)
-function fitDistance(widthMm, heightMm, fovDeg = 45, aspect = 1.78, margin = 1.35) {
+function fitDistance(widthMm, heightMm, fovDeg = 45, aspect = 1.78, margin = 1.75) {
   if (!widthMm || !heightMm) return 2.2; // fallback (approx. current default)
   const W = widthMm / 1000;
   const H = heightMm / 1000;
