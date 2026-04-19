@@ -11,6 +11,44 @@ import DoorWindow from './components/door/DoorWindow';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+// Auto-fit camera distance to window dimensions (view frustum math)
+function fitDistance(widthMm, heightMm, fovDeg = 45, aspect = 1.78, margin = 1.25) {
+  if (!widthMm || !heightMm) return 2.2; // fallback (approx. current default)
+  const W = widthMm / 1000;
+  const H = heightMm / 1000;
+  const fov = (fovDeg * Math.PI) / 180;
+  const distH = (H / 2) / Math.tan(fov / 2);
+  const distW = (W / 2) / (Math.tan(fov / 2) * aspect);
+  return Math.max(distH, distW) * margin;
+}
+
+// Auto-zoom camera when window dimensions change (keeps angle, only adjusts distance)
+function AutoZoom({ width, height }) {
+  const camera = useThree(s => s.camera);
+  const controls = useThree(s => s.controls);
+
+  useEffect(() => {
+    if (!width || !height) return;
+    const aspect = camera.aspect || 1.78;
+    const dist = fitDistance(width, height, camera.fov, aspect);
+
+    const target = new THREE.Vector3(0, 0.18, 0);
+    const direction = new THREE.Vector3().subVectors(camera.position, target);
+
+    if (direction.lengthSq() < 0.001) {
+      direction.set(1.4, 0.52, 1.6);
+    }
+    direction.normalize();
+
+    camera.position.copy(target).addScaledVector(direction, dist);
+    camera.updateProjectionMatrix();
+
+    if (controls && controls.update) controls.update();
+  }, [width, height, camera, controls]);
+
+  return null;
+}
+
 function Slider({ label, value, min, max, step, suffix = ' mm', onChange }) {
   return (
     <label className="control">
@@ -438,14 +476,15 @@ function MicrocementFloor() {
 
 
 
-function ScreenshotHelper() {
+function ScreenshotHelper({ config }) {
   const { gl, scene, camera } = useThree();
 
   useEffect(() => {
     window.captureWindowScreenshots = async () => {
       return new Promise((resolve) => {
         const target = new THREE.Vector3(0, 0.18, 0);
-        const distance = 2.0;
+        // Screenshot canvas is square (600×600) → aspect = 1 for fitDistance
+        const distance = fitDistance(config?.width, config?.height, 45, 1);
 
         // Save current camera state
         const savedPos = camera.position.clone();
@@ -524,7 +563,7 @@ function ScreenshotHelper() {
     };
 
     return () => { delete window.captureWindowScreenshots; };
-  }, [gl, scene, camera]);
+  }, [gl, scene, camera, config?.width, config?.height]);
 
   return null;
 }
@@ -542,6 +581,8 @@ function Scene({ config, isMobile }) {
     <>
 
       <PerspectiveCamera makeDefault position={[1.4, 0.7, 1.6]} fov={45} />
+
+      <AutoZoom width={config.width} height={config.height} />
 
       {/* Ambient */}
       <ambientLight intensity={0.56 * b} />
@@ -706,7 +747,7 @@ function Scene({ config, isMobile }) {
         autoRotateSpeed={0.45}
       />
 
-      <ScreenshotHelper />
+      <ScreenshotHelper config={config} />
 
 
     </>
