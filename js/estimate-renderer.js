@@ -1911,9 +1911,16 @@ class EstimateRenderer {
                             <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:18px;letter-spacing:.02em;">${priceStr}</div>
                         </div>
                         <div style="display:grid;grid-template-columns:70mm 1fr;gap:6mm;padding:6mm;">
-                            <div style="background:#f5f4f0;border:1px solid #e5e4dd;display:flex;align-items:center;justify-content:center;padding:4mm;">
-                                ${screenshots?.interior ? `<img src="${screenshots.interior}" crossorigin="anonymous" style="width:100%;max-height:90mm;object-fit:contain;"/>` : `<div style="width:100%;max-height:90mm;">${svg}</div>`}
-                            </div>
+                            ${screenshots?.interior ? `
+                                <div style="background:#f5f4f0;border:1px solid #e5e4dd;padding:4mm;display:flex;flex-direction:column;gap:3mm;">
+                                    <div style="width:100%;height:48mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
+                                    <div style="width:100%;height:48mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;">${svg}</div>
+                                </div>
+                            ` : `
+                                <div style="background:#f5f4f0;border:1px solid #e5e4dd;display:flex;align-items:center;justify-content:center;padding:4mm;">
+                                    <div style="width:100%;max-height:100mm;">${svg}</div>
+                                </div>
+                            `}
                             <div style="font-family:'Jost',sans-serif;font-size:10px;">
                                 <h4 style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.18em;text-transform:uppercase;font-size:9px;color:#6b6b6b;margin:0 0 3mm;border-bottom:1px solid #e5e4dd;padding-bottom:2mm;">Specification</h4>
                                 <table style="width:100%;border-collapse:collapse;">${specRows}</table>
