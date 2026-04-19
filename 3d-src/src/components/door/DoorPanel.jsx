@@ -17,7 +17,11 @@ import WindowDoorHandle from './WindowDoorHandle';
 
 const mm = (v) => v / 1000;
 
-const SASH_RAIL = 64;
+const LEAF_STILE = 93;         // leaf side rails width (was SASH_RAIL=64)
+const LEAF_TOP_RAIL = 93;      // leaf top rail height
+const LEAF_BOTTOM_RAIL = 185;  // leaf bottom rail height (fixed)
+const SASH_RAIL = LEAF_STILE;  // alias — kept for compat (ArchedDoorWindow imports this)
+
 const SASH_DEPTH = 57;
 const MAX_ANGLE = 70;
 
@@ -29,7 +33,9 @@ const IBD = mm(14);  // int ovolo depth
 const IBR = mm(11);  // int ovolo radius
 const OVOLO_N = 16;  // arc segments
 
-const F = mm(SASH_RAIL);  // face
+const F_STILE  = mm(LEAF_STILE);       // 93mm — used by stiles (left/right)
+const F_TOP    = mm(LEAF_TOP_RAIL);    // 93mm — used by top rail
+const F_BOTTOM = mm(LEAF_BOTTOM_RAIL); // 185mm — used by bottom rail
 const D = mm(SASH_DEPTH); // depth
 const halfD = D / 2;
 
@@ -59,7 +65,7 @@ function shapeFromPts(pts) {
 // Shape XY: X=face(0=outer, F=glazing), Y=depth(0=EXT, D=INT)
 // Extrude along Z → height, rotation [-PI/2,0,0]: X→worldX, Y→-worldZ, Z→worldY
 
-function buildLeftStileShape() {
+function buildLeftStileShape(F) {
   // Glazing at X=F (right side)
   const pts = [
     [0, 0],            // outer-EXT
@@ -73,7 +79,7 @@ function buildLeftStileShape() {
   return shapeFromPts(pts);
 }
 
-function buildRightStileShape() {
+function buildRightStileShape(F) {
   // Glazing at X=0 (left side) — mirror of left
   const pts = [
     [F, 0],             // outer-EXT
@@ -91,7 +97,7 @@ function buildRightStileShape() {
 // Shape XY: X=depth(0=EXT, D=INT), Y=face(0=outer, F=glazing)
 // Extrude along Z → width, rotation [0,PI/2,0]: X→-worldZ, Y→worldY, Z→worldX
 
-function buildBottomRailShape() {
+function buildBottomRailShape(F) {
   // Glazing at Y=F (top)
   const pts = [
     [0, 0],             // EXT-outer
@@ -105,7 +111,7 @@ function buildBottomRailShape() {
   return shapeFromPts(pts);
 }
 
-function buildTopRailShape() {
+function buildTopRailShape(F) {
   // Glazing at Y=0 (bottom) — mirror of bottom rail (flip Y)
   const pts = [
     [0, F],              // EXT-outer
@@ -125,13 +131,13 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   const H = mm(height);
 
   // BOTH stiles and rails go full extent — overlap at corners = natural miter
-  const glassW = width - SASH_RAIL * 2;
-  const glassH = height - SASH_RAIL * 2;
+  const glassW = width - LEAF_STILE * 2;
+  const glassH = height - LEAF_TOP_RAIL - LEAF_BOTTOM_RAIL;
 
-  const lStile = useMemo(() => buildLeftStileShape(), []);
-  const rStile = useMemo(() => buildRightStileShape(), []);
-  const bRail = useMemo(() => buildBottomRailShape(), []);
-  const tRail = useMemo(() => buildTopRailShape(), []);
+  const lStile = useMemo(() => buildLeftStileShape(F_STILE), []);
+  const rStile = useMemo(() => buildRightStileShape(F_STILE), []);
+  const bRail = useMemo(() => buildBottomRailShape(F_BOTTOM), []);
+  const tRail = useMemo(() => buildTopRailShape(F_TOP), []);
 
   const stileSettings = useMemo(() => ({ depth: H, bevelEnabled: false }), [H]);
   const railSettings = useMemo(() => ({ depth: W, bevelEnabled: false }), [W]);
@@ -139,51 +145,51 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   // Split shapes at depth midpoint for dual colour
   const halfDepth = D / 2;
 
-  // EXT halves
+  // EXT halves (stiles use F_STILE, top rail F_TOP, bottom rail F_BOTTOM)
   const lStileExt = useMemo(() => {
-    const pts = [[0,0],[F-EBW,0],[F,EBD],[F,halfDepth],[0,halfDepth]];
+    const pts = [[0,0],[F_STILE-EBW,0],[F_STILE,EBD],[F_STILE,halfDepth],[0,halfDepth]];
     return shapeFromPts(pts);
   }, []);
   const rStileExt = useMemo(() => {
-    const pts = [[F,0],[EBW,0],[0,EBD],[0,halfDepth],[F,halfDepth]];
+    const pts = [[F_STILE,0],[EBW,0],[0,EBD],[0,halfDepth],[F_STILE,halfDepth]];
     return shapeFromPts(pts);
   }, []);
   const bRailExt = useMemo(() => {
-    const pts = [[0,0],[0,F-EBW],[EBD,F],[halfDepth,F],[halfDepth,0]];
+    const pts = [[0,0],[0,F_BOTTOM-EBW],[EBD,F_BOTTOM],[halfDepth,F_BOTTOM],[halfDepth,0]];
     return shapeFromPts(pts);
   }, []);
   const tRailExt = useMemo(() => {
-    const pts = [[0,F],[0,EBW],[EBD,0],[halfDepth,0],[halfDepth,F]];
+    const pts = [[0,F_TOP],[0,EBW],[EBD,0],[halfDepth,0],[halfDepth,F_TOP]];
     return shapeFromPts(pts);
   }, []);
 
   // INT halves
   const lStileInt = useMemo(() => {
-    const pts = [[0,halfDepth],[F,halfDepth],[F,D-IBR]];
-    const arc = ovoloArc(F-IBR, D-IBR, IBR, 0, Math.PI/2, OVOLO_N);
+    const pts = [[0,halfDepth],[F_STILE,halfDepth],[F_STILE,D-IBR]];
+    const arc = ovoloArc(F_STILE-IBR, D-IBR, IBR, 0, Math.PI/2, OVOLO_N);
     pts.push(...arc);
     pts.push([0,D]);
     return shapeFromPts(pts);
   }, []);
   const rStileInt = useMemo(() => {
-    const pts = [[F,halfDepth],[0,halfDepth],[0,D-IBR]];
+    const pts = [[F_STILE,halfDepth],[0,halfDepth],[0,D-IBR]];
     const arc = ovoloArc(IBR, D-IBR, IBR, Math.PI, Math.PI/2, OVOLO_N);
     pts.push(...arc);
-    pts.push([F,D]);
+    pts.push([F_STILE,D]);
     return shapeFromPts(pts);
   }, []);
   const bRailInt = useMemo(() => {
-    const pts = [[halfDepth,0],[halfDepth,F],[D-IBR,F]];
-    const arc = ovoloArc(D-IBR, F-IBR, IBR, Math.PI/2, 0, OVOLO_N);
+    const pts = [[halfDepth,0],[halfDepth,F_BOTTOM],[D-IBR,F_BOTTOM]];
+    const arc = ovoloArc(D-IBR, F_BOTTOM-IBR, IBR, Math.PI/2, 0, OVOLO_N);
     pts.push(...arc);
     pts.push([D,0]);
     return shapeFromPts(pts);
   }, []);
   const tRailInt = useMemo(() => {
-    const pts = [[halfDepth,F],[halfDepth,0],[D-IBR,0]];
+    const pts = [[halfDepth,F_TOP],[halfDepth,0],[D-IBR,0]];
     const arc = ovoloArc(D-IBR, IBR, IBR, -Math.PI/2, 0, OVOLO_N);
     pts.push(...arc);
-    pts.push([D,F]);
+    pts.push([D,F_TOP]);
     return shapeFromPts(pts);
   }, []);
 
@@ -203,12 +209,12 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
       </mesh>
 
       {/* ─── Right stile EXT ─── */}
-      <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[W/2-F,-H/2,halfD]}>
+      <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[W/2-F_STILE,-H/2,halfD]}>
         <extrudeGeometry args={[rStileExt, stileSettings]} />
         <primitive object={mat} attach="material" />
       </mesh>
       {/* ─── Right stile INT ─── */}
-      <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[W/2-F,-H/2,halfD]}>
+      <mesh castShadow receiveShadow rotation={[-Math.PI/2,0,0]} position={[W/2-F_STILE,-H/2,halfD]}>
         <extrudeGeometry args={[rStileInt, stileSettings]} />
         <primitive object={mi} attach="material" />
       </mesh>
@@ -225,12 +231,12 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
       </mesh>
 
       {/* ─── Top rail EXT ─── */}
-      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-F,halfD]}>
+      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-F_TOP,halfD]}>
         <extrudeGeometry args={[tRailExt, railSettings]} />
         <primitive object={mat} attach="material" />
       </mesh>
       {/* ─── Top rail INT ─── */}
-      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-F,halfD]}>
+      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-F_TOP,halfD]}>
         <extrudeGeometry args={[tRailInt, railSettings]} />
         <primitive object={mi} attach="material" />
       </mesh>
@@ -282,7 +288,7 @@ export default function DoorPanel({
   // Handle position: opposite stile from hinges, interior face
   const handleScale = 0.001;
   const REBATE = 21; // mm hidden behind frame
-  const stileCenter = mm(REBATE + (SASH_RAIL - REBATE) / 2); // visible center
+  const stileCenter = mm(REBATE + (LEAF_STILE - REBATE) / 2); // visible center
   const intZ = -D / 2 - 0.001; // just outside interior face
 
   // Handle Y: 400mm from bottom, or center if panel < 800mm
