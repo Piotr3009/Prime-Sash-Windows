@@ -357,6 +357,7 @@ export default function DoorWindow({
   hBars = 0,
   vBars = 0,
   ironmongery = 'brass',
+  doorStyle = 'full-glass',
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -423,6 +424,7 @@ export default function DoorWindow({
             height={leafH}
             hingeType={p.hinge}
             opening={p.hinge === 'fixed' ? 0 : opening}
+            doorStyle={doorStyle}
             material={extMaterial}
             materialInt={intMaterial}
             spacerColor={spacerColor}

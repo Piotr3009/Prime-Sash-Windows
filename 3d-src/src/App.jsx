@@ -708,6 +708,7 @@ function Scene({ config, isMobile }) {
                 height={config.extHeight}
                 layout={config.doorHinge === 'right' ? '040R' : '040L'}
                 opening={0}
+                doorStyle={config.doorStyle}
                 woodColor={config.woodColor}
                 woodColorExt={config.woodColorExt}
                 woodColorInt={config.woodColorInt}

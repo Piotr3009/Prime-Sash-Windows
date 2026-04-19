@@ -126,17 +126,27 @@ function buildTopRailShape(F) {
 }
 
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars }) {
+function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, doorStyle = 'full-glass' }) {
   const W = mm(width);
   const H = mm(height);
 
+  // Bottom rail size depends on door style.
+  // half-glazed: bottom rail = leaf height / 2
+  // three-quarter: bottom rail = leaf height / 3
+  // full-glass: bottom rail = LEAF_BOTTOM_RAIL (185mm fixed minimum)
+  const bottomRailMm =
+    doorStyle === 'half-glazed'  ? height / 2 :
+    doorStyle === 'three-quarter' ? height / 3 :
+    LEAF_BOTTOM_RAIL;
+  const fBot = mm(bottomRailMm);
+
   // BOTH stiles and rails go full extent — overlap at corners = natural miter
   const glassW = width - LEAF_STILE * 2;
-  const glassH = height - LEAF_TOP_RAIL - LEAF_BOTTOM_RAIL;
+  const glassH = height - LEAF_TOP_RAIL - bottomRailMm;
 
   const lStile = useMemo(() => buildLeftStileShape(F_STILE), []);
   const rStile = useMemo(() => buildRightStileShape(F_STILE), []);
-  const bRail = useMemo(() => buildBottomRailShape(F_BOTTOM), []);
+  const bRail = useMemo(() => buildBottomRailShape(fBot), [fBot]);
   const tRail = useMemo(() => buildTopRailShape(F_TOP), []);
 
   const stileSettings = useMemo(() => ({ depth: H, bevelEnabled: false }), [H]);
@@ -155,9 +165,9 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
     return shapeFromPts(pts);
   }, []);
   const bRailExt = useMemo(() => {
-    const pts = [[0,0],[0,F_BOTTOM-EBW],[EBD,F_BOTTOM],[halfDepth,F_BOTTOM],[halfDepth,0]];
+    const pts = [[0,0],[0,fBot-EBW],[EBD,fBot],[halfDepth,fBot],[halfDepth,0]];
     return shapeFromPts(pts);
-  }, []);
+  }, [fBot]);
   const tRailExt = useMemo(() => {
     const pts = [[0,F_TOP],[0,EBW],[EBD,0],[halfDepth,0],[halfDepth,F_TOP]];
     return shapeFromPts(pts);
@@ -179,12 +189,12 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
     return shapeFromPts(pts);
   }, []);
   const bRailInt = useMemo(() => {
-    const pts = [[halfDepth,0],[halfDepth,F_BOTTOM],[D-IBR,F_BOTTOM]];
-    const arc = ovoloArc(D-IBR, F_BOTTOM-IBR, IBR, Math.PI/2, 0, OVOLO_N);
+    const pts = [[halfDepth,0],[halfDepth,fBot],[D-IBR,fBot]];
+    const arc = ovoloArc(D-IBR, fBot-IBR, IBR, Math.PI/2, 0, OVOLO_N);
     pts.push(...arc);
     pts.push([D,0]);
     return shapeFromPts(pts);
-  }, []);
+  }, [fBot]);
   const tRailInt = useMemo(() => {
     const pts = [[halfDepth,F_TOP],[halfDepth,0],[D-IBR,0]];
     const arc = ovoloArc(D-IBR, IBR, IBR, -Math.PI/2, 0, OVOLO_N);
@@ -243,7 +253,7 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
 
       {/* ─── Glazing ─── */}
       {glassW > 0 && glassH > 0 && (
-        <DoorGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[0, mm((LEAF_BOTTOM_RAIL - LEAF_TOP_RAIL) / 2), 0]} />
+        <DoorGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[0, mm((bottomRailMm - LEAF_TOP_RAIL) / 2), 0]} />
       )}
     </group>
   );
@@ -263,6 +273,7 @@ export default function DoorPanel({
   vBars = 0,
   ironmongery = 'brass',
   position = [0, 0, 0],
+  doorStyle = 'full-glass',
 }) {
   const mat = material;
   const W = mm(width);
@@ -312,7 +323,7 @@ export default function DoorPanel({
 
   const content = (
     <group>
-      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} />
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} />
       {handlePos && hingeType !== 'fixed' && (
         <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
           <WindowDoorHandle rotationDeg={hingeType === 'left' ? -handleDeg : handleDeg} metalColor={handleColors.metalColor} lockColor={handleColors.lockColor} />
