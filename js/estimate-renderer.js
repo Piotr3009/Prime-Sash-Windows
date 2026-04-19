@@ -1729,9 +1729,19 @@ class EstimateRenderer {
             const estimateNumber = estimate.estimate_number || (estimate.id ? estimate.id.substring(0, 8) : 'DRAFT');
             const items = estimate.estimate_items || [];
             const totalEx = items.reduce((s, i) => s + parseFloat(i.total_price || 0), 0);
-            const vat = totalEx * 0.20;
-            const totalInc = totalEx + vat;
-            const depositHalf = totalInc / 2;
+
+            // Additional services (PR 1: hardcoded; PR 2 will move to DB)
+            const INSTALLATION_RATE = 400;   // per item quantity
+            const DELIVERY_FLAT = 300;       // flat charge
+            const totalQty = items.reduce((s, i) => {
+                const p = R.parseItem(i);
+                return s + (p.quantity || 1);
+            }, 0);
+            const installationCost = INSTALLATION_RATE * totalQty;
+            const deliveryCost = DELIVERY_FLAT;
+            const totalWindowsPlusInstallation = totalEx + installationCost;
+            const grandTotal = totalEx + installationCost + deliveryCost;
+            const depositHalf = totalWindowsPlusInstallation / 2;
 
             // ──────── SHARED STYLES ────────
             const pageStyle = `width:210mm;height:297mm;background:#fff;font-family:'Jost',sans-serif;color:#1a1a1a;box-sizing:border-box;overflow:hidden;position:relative;`;
@@ -1987,49 +1997,105 @@ class EstimateRenderer {
                 <div style="${pageStyle}">
                     ${headerBar}
                     <div style="padding:0 20mm;">
-                        <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 5mm;">Summary</h2>
-                        <table style="width:100%;border-collapse:collapse;margin:6mm 0;font-family:'Jost',sans-serif;font-size:11px;">
+                        <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:26px;letter-spacing:.02em;margin:8mm 0 4mm;">Summary</h2>
+
+                        <!-- ─── WINDOWS TABLE ─── -->
+                        <table style="width:100%;border-collapse:collapse;margin:0 0 5mm;font-family:'Jost',sans-serif;font-size:10.5px;">
                             <thead>
                                 <tr>
-                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9.5px;padding:3mm 5mm;text-align:left;">Item</th>
-                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9.5px;padding:3mm 5mm;text-align:left;">Description</th>
-                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9.5px;padding:3mm 5mm;text-align:center;">Qty</th>
-                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9.5px;padding:3mm 5mm;text-align:right;">Price</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:left;">Item</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:left;">Description</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:center;">Qty</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:right;">Price</th>
                                 </tr>
                             </thead>
                             <tbody>${summaryRows}</tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="3" style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;font-weight:400;color:#6b6b6b;font-size:10.5px;">Subtotal (excl. VAT)</td>
-                                    <td style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;color:#6b6b6b;">£${R.formatPrice(totalEx)}</td>
-                                </tr>
-                                <tr>
-                                    <td colspan="3" style="padding:3mm 5mm;text-align:right;font-weight:400;color:#6b6b6b;font-size:10.5px;">VAT 20%</td>
-                                    <td style="padding:3mm 5mm;text-align:right;color:#6b6b6b;">£${R.formatPrice(vat)}</td>
-                                </tr>
-                                <tr>
-                                    <td colspan="3" style="padding:4mm 5mm;background:#f5f4f0;font-family:${serif};font-weight:700;font-size:20px;color:#0A1628;border-top:2px solid #0A1628;text-align:right;">Total</td>
-                                    <td style="padding:4mm 5mm;background:#f5f4f0;font-family:${serif};font-weight:700;font-size:20px;color:#0A1628;border-top:2px solid #0A1628;text-align:right;">£${R.formatPrice(totalInc)}</td>
+                                    <td colspan="3" style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;font-weight:500;color:#0A1628;font-size:11px;">Subtotal — Windows</td>
+                                    <td style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;color:#0A1628;font-weight:500;">£${R.formatPrice(totalEx)}</td>
                                 </tr>
                             </tfoot>
                         </table>
-                        <div style="margin-top:10mm;">
-                            <h3 style="font-family:${serif};font-weight:700;font-size:22px;color:#0A1628;margin:0 0 4mm;">Payment Schedule</h3>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5mm;">
-                                <div style="border:1px solid #e5e4dd;padding:6mm;position:relative;">
-                                    <div style="position:absolute;top:4mm;right:5mm;font-family:${serif};font-weight:700;font-size:46px;color:#D4D4C8;line-height:1;">I</div>
-                                    <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:9.5px;color:#6b6b6b;margin-bottom:2mm;">Initial Deposit</div>
-                                    <div style="font-family:${serif};font-weight:700;font-size:30px;color:#0A1628;line-height:1;margin-bottom:3mm;">50%</div>
-                                    <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:15px;color:#c9a96e;margin-bottom:3mm;">£${R.formatPrice(depositHalf)}</div>
-                                    <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:10px;color:#6b6b6b;line-height:1.55;">Non-refundable deposit payable upon acceptance of this quotation. Secures the order, reserves workshop capacity, and funds material procurement.</div>
-                                </div>
-                                <div style="border:1px solid #e5e4dd;padding:6mm;position:relative;">
-                                    <div style="position:absolute;top:4mm;right:5mm;font-family:${serif};font-weight:700;font-size:46px;color:#D4D4C8;line-height:1;">II</div>
-                                    <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:9.5px;color:#6b6b6b;margin-bottom:2mm;">Final Payment</div>
-                                    <div style="font-family:${serif};font-weight:700;font-size:30px;color:#0A1628;line-height:1;margin-bottom:3mm;">50%</div>
-                                    <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:15px;color:#c9a96e;margin-bottom:3mm;">£${R.formatPrice(depositHalf)}</div>
-                                    <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:10px;color:#6b6b6b;line-height:1.55;">Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. Bank transfer to Skylon Joinery Ltd.</div>
-                                </div>
+
+                        <!-- ─── ADDITIONAL SERVICES TABLE ─── -->
+                        <h3 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:18px;letter-spacing:.02em;margin:8mm 0 3mm;">Additional Services</h3>
+                        <table style="width:100%;border-collapse:collapse;font-family:'Jost',sans-serif;font-size:10.5px;">
+                            <thead>
+                                <tr>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:left;">Item</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:left;">Description</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:center;">Qty</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:right;">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;vertical-align:top;">I-01</td>
+                                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;">
+                                        <div style="font-weight:500;color:#0A1628;">Installation</div>
+                                        <div style="font-size:9px;color:#6b6b6b;font-style:italic;margin-top:1mm;">£${INSTALLATION_RATE} per unit · standard rate · final amount subject to site survey</div>
+                                    </td>
+                                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;text-align:center;vertical-align:top;">${totalQty}</td>
+                                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;text-align:right;font-weight:500;color:#0A1628;vertical-align:top;">£${R.formatPrice(installationCost)}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;vertical-align:top;">D-01</td>
+                                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;">
+                                        <div style="font-weight:500;color:#0A1628;">Delivery</div>
+                                        <div style="font-size:9px;color:#6b6b6b;font-style:italic;margin-top:1mm;">Standard delivery charge · subject to location confirmation</div>
+                                    </td>
+                                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;text-align:center;vertical-align:top;">1</td>
+                                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;text-align:right;font-weight:500;color:#0A1628;vertical-align:top;">£${R.formatPrice(deliveryCost)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- ─── GRAND TOTAL ─── -->
+                        <div style="margin-top:6mm;padding:4mm 6mm;background:#f5f4f0;border-top:2px solid #0A1628;">
+                            <div style="display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:10.5px;color:#6b6b6b;padding:1.5mm 0;">
+                                <span>Subtotal — Windows</span><span>£${R.formatPrice(totalEx)}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:10.5px;color:#6b6b6b;padding:1.5mm 0;">
+                                <span>Installation (${totalQty} × £${INSTALLATION_RATE})</span><span>£${R.formatPrice(installationCost)}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:10.5px;color:#6b6b6b;padding:1.5mm 0;border-bottom:1px solid #e5e4dd;">
+                                <span>Delivery</span><span>£${R.formatPrice(deliveryCost)}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:baseline;font-family:${serif};font-weight:700;font-size:22px;color:#0A1628;padding:3mm 0 0;">
+                                <span>Total <span style="font-family:'Jost',sans-serif;font-size:10px;font-weight:400;color:#6b6b6b;letter-spacing:.1em;">(EXCL. VAT)</span></span>
+                                <span>£${R.formatPrice(grandTotal)}</span>
+                            </div>
+                        </div>
+
+                        <!-- ─── VAT NOTE ─── -->
+                        <div style="margin-top:4mm;padding:3mm 5mm;background:#fff8ed;border-left:3px solid #c9a96e;font-family:'Jost',sans-serif;font-size:9.5px;color:#6b6b6b;line-height:1.55;">
+                            <strong style="color:#0A1628;">All prices exclude VAT.</strong> VAT will be applied at the applicable rate (0%, 5%, or 20%) depending on your property status and project type. The correct rate will be confirmed prior to invoicing.
+                        </div>
+
+                        <!-- ─── PAYMENT SCHEDULE (3 CARDS) ─── -->
+                        <h3 style="font-family:${serif};font-weight:700;font-size:18px;color:#0A1628;margin:8mm 0 3mm;">Payment Schedule</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm;">
+                            <div style="border:1px solid #e5e4dd;padding:4mm;position:relative;">
+                                <div style="position:absolute;top:2mm;right:3mm;font-family:${serif};font-weight:700;font-size:34px;color:#D4D4C8;line-height:1;">I</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:8px;color:#6b6b6b;margin-bottom:1.5mm;">Initial Deposit</div>
+                                <div style="font-family:${serif};font-weight:700;font-size:22px;color:#0A1628;line-height:1;margin-bottom:2mm;">50%</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:12px;color:#c9a96e;margin-bottom:2mm;">£${R.formatPrice(depositHalf)}</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:8.5px;color:#6b6b6b;line-height:1.5;">Upon acceptance. Non-refundable. Of windows + installation.</div>
+                            </div>
+                            <div style="border:1px solid #e5e4dd;padding:4mm;position:relative;">
+                                <div style="position:absolute;top:2mm;right:3mm;font-family:${serif};font-weight:700;font-size:34px;color:#D4D4C8;line-height:1;">II</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:8px;color:#6b6b6b;margin-bottom:1.5mm;">Balance</div>
+                                <div style="font-family:${serif};font-weight:700;font-size:22px;color:#0A1628;line-height:1;margin-bottom:2mm;">50%</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:12px;color:#c9a96e;margin-bottom:2mm;">£${R.formatPrice(depositHalf)}</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:8.5px;color:#6b6b6b;line-height:1.5;">Prior to dispatch/installation. Of windows + installation.</div>
+                            </div>
+                            <div style="border:1px solid #e5e4dd;padding:4mm;position:relative;background:#fbfaf7;">
+                                <div style="position:absolute;top:2mm;right:3mm;font-family:${serif};font-weight:700;font-size:34px;color:#D4D4C8;line-height:1;">III</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:8px;color:#6b6b6b;margin-bottom:1.5mm;">Delivery</div>
+                                <div style="font-family:${serif};font-weight:700;font-size:22px;color:#0A1628;line-height:1;margin-bottom:2mm;">100%</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:12px;color:#c9a96e;margin-bottom:2mm;">£${R.formatPrice(deliveryCost)}</div>
+                                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:8.5px;color:#6b6b6b;line-height:1.5;">Payable upon delivery to site. Separate from windows schedule.</div>
                             </div>
                         </div>
                     </div>
