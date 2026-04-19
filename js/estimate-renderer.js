@@ -2364,12 +2364,12 @@ class EstimateRenderer {
             // ──────── PAGE: PAYMENT SCHEDULE (own page) ────────
             // PDF Payment card helper
             const pdfPaymentCard = (roman, label, percent, amount, note, highlight = false) => `
-                <div style="border:1px solid #e5e4dd;padding:6mm;position:relative;min-height:85mm;${highlight ? 'background:#fbfaf7;' : ''}">
-                    <div style="position:absolute;top:4mm;right:5mm;font-family:${serif};font-weight:700;font-size:46px;color:#D4D4C8;line-height:1;">${roman}</div>
-                    <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:9.5px;color:#6b6b6b;margin-bottom:2mm;">${label}</div>
-                    <div style="font-family:${serif};font-weight:700;font-size:30px;color:#0A1628;line-height:1;margin-bottom:3mm;">${percent}</div>
-                    <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:15px;color:#c9a96e;margin-bottom:3mm;">£${R.formatPrice(amount)} <span style="font-size:10px;font-weight:400;color:#6b6b6b;">+ VAT</span></div>
-                    <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:10px;color:#6b6b6b;line-height:1.55;">${note}</div>
+                <div style="border:1px solid #e5e4dd;padding:5mm;position:relative;min-height:60mm;${highlight ? 'background:#fbfaf7;' : ''}">
+                    <div style="position:absolute;top:3mm;right:4mm;font-family:${serif};font-weight:700;font-size:36px;color:#D4D4C8;line-height:1;">${roman}</div>
+                    <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:8.5px;color:#6b6b6b;margin-bottom:1.5mm;">${label}</div>
+                    <div style="font-family:${serif};font-weight:700;font-size:24px;color:#0A1628;line-height:1;margin-bottom:2mm;">${percent}</div>
+                    <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:13px;color:#c9a96e;margin-bottom:2mm;">£${R.formatPrice(amount)} <span style="font-size:9px;font-weight:400;color:#6b6b6b;">+ VAT</span></div>
+                    <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:9px;color:#6b6b6b;line-height:1.5;">${note}</div>
                 </div>
             `;
 
@@ -2408,9 +2408,12 @@ class EstimateRenderer {
             ].filter(Boolean);
 
             const pdfNumCards = pdfPaymentCards.length;
-            const pdfPaymentGrid = pdfNumCards <= 4
-                ? (pdfNumCards === 1 ? '1fr' : pdfNumCards === 2 ? '1fr 1fr' : pdfNumCards === 3 ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr')
-                : 'repeat(auto-fit, minmax(70mm, 1fr))';
+            const pdfPaymentGrid = pdfNumCards === 1 ? '1fr'
+                : pdfNumCards === 2 ? '1fr 1fr'
+                : pdfNumCards === 3 ? '1fr 1fr 1fr'
+                : pdfNumCards === 4 ? '1fr 1fr 1fr 1fr'
+                : pdfNumCards <= 6 ? '1fr 1fr 1fr'
+                : 'repeat(auto-fit, minmax(50mm, 1fr))';
             const pdfIntroText = pdfNumCards === 2
                 ? 'Payments are structured as a two-stage deposit and balance, both based on the total for windows.'
                 : 'Payments are structured to protect both parties. Deposit secures the order, balance is required prior to dispatch, and additional services are billed separately upon completion.';
