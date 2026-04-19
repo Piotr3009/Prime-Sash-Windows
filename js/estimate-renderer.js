@@ -304,20 +304,23 @@ class EstimateRenderer {
         const customer = estimate.customers || {};
         const customerName = customer.full_name || 'Valued Client';
 
-        // Additional services calculations (same as PDF)
-        const INSTALLATION_RATE = 400;
-        const DELIVERY_FLAT = 300;
+        // Read additional services from DB (loaded by dashboard before calling render)
+        const extras = estimate.extras || [];
+        const installationExtras = extras.filter(e => e.type === 'installation');
+        const deliveryExtras = extras.filter(e => e.type === 'delivery');
+        const customExtras = extras.filter(e => e.type === 'custom');
+        const hasInstallation = installationExtras.length > 0;
+        const hasDelivery = deliveryExtras.length > 0;
+        const hasAnyExtras = extras.length > 0;
+
         const items = estimate.estimate_items || [];
-        const totalQty = items.reduce((s, i) => {
-            const p = R.parseItem(i);
-            return s + (p.quantity || 1);
-        }, 0);
         const totalEx = items.reduce((s, i) => s + parseFloat(i.total_price || 0), 0);
-        const installationCost = INSTALLATION_RATE * totalQty;
-        const deliveryCost = DELIVERY_FLAT;
-        const totalWindowsPlusInstallation = totalEx + installationCost;
-        const grandTotal = totalEx + installationCost + deliveryCost;
-        const depositHalf = totalWindowsPlusInstallation / 2;
+        const installationTotal = installationExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+        const deliveryTotal = deliveryExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+
+        // Payment base = windows + installation (if selected). Delivery NOT in base (paid separately).
+        const depositBase = totalEx + installationTotal;
+        const depositHalf = depositBase / 2;
 
         const customerHTML = isAdmin ? `
             <div style="background:rgba(10,22,40,.04);padding:1.2rem 1.5rem;margin-bottom:1.5rem;border-left:3px solid var(--navy);">
@@ -507,6 +510,28 @@ class EstimateRenderer {
             `;
         }).join('');
 
+        // Additional Services rows (dynamic from DB extras)
+        const extraRow = (label, desc, qty, amount, idx) => `
+            <tr>
+                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};vertical-align:top;">${idx}</td>
+                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">
+                    <div style="font-weight:500;color:var(--navy);">${label}</div>
+                    ${desc ? `<div style="font-size:.72rem;color:var(--muted);font-style:italic;margin-top:.15rem;">${desc}</div>` : ''}
+                </td>
+                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;">${qty}</td>
+                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);vertical-align:top;">£${R.formatPrice(amount)}</td>
+            </tr>
+        `;
+
+        let extrasRowIdx = 1;
+        const extrasRows = [
+            ...installationExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `I-${String(extrasRowIdx++).padStart(2, '0')}`)),
+            ...deliveryExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `D-${String(extrasRowIdx++).padStart(2, '0')}`)),
+            ...customExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `X-${String(extrasRowIdx++).padStart(2, '0')}`))
+        ].join('');
+
+        const extrasTotalAll = installationTotal + deliveryTotal + customExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+
         const summaryHTML = `
             <div style="margin:2.5rem 0 1.5rem;">
                 <h2 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.6rem;margin:0 0 1rem;">Summary</h2>
@@ -531,6 +556,7 @@ class EstimateRenderer {
 
             <div style="margin:1.5rem 0;">
                 <h3 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.15rem;margin:0 0 .6rem;">Additional Services</h3>
+                ${hasAnyExtras ? `
                 <table style="width:100%;border-collapse:collapse;font-family:'Jost',sans-serif;font-size:.82rem;">
                     <thead>
                         <tr>
@@ -540,43 +566,19 @@ class EstimateRenderer {
                             <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:right;">Price</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody>${extrasRows}</tbody>
+                    <tfoot>
                         <tr>
-                            <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};vertical-align:top;">I-01</td>
-                            <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">
-                                <div style="font-weight:500;color:var(--navy);">Installation</div>
-                                <div style="font-size:.72rem;color:var(--muted);font-style:italic;margin-top:.15rem;">£${INSTALLATION_RATE} per unit · standard rate · final amount subject to site survey</div>
-                            </td>
-                            <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;">${totalQty}</td>
-                            <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);vertical-align:top;">£${R.formatPrice(installationCost)}</td>
+                            <td colspan="3" style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;font-weight:500;color:var(--navy);">Subtotal — Additional Services</td>
+                            <td style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;color:var(--navy);font-weight:500;">£${R.formatPrice(extrasTotalAll)}</td>
                         </tr>
-                        <tr>
-                            <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};vertical-align:top;">D-01</td>
-                            <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">
-                                <div style="font-weight:500;color:var(--navy);">Delivery</div>
-                                <div style="font-size:.72rem;color:var(--muted);font-style:italic;margin-top:.15rem;">Standard delivery charge · subject to location confirmation</div>
-                            </td>
-                            <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;">1</td>
-                            <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);vertical-align:top;">£${R.formatPrice(deliveryCost)}</td>
-                        </tr>
-                    </tbody>
+                    </tfoot>
                 </table>
-            </div>
-
-            <div style="margin:1.5rem 0;padding:1rem 1.3rem;background:${CREAM_LIGHT};border-top:2px solid var(--navy);">
-                <div style="display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:.82rem;color:var(--muted);padding:.3rem 0;">
-                    <span>Subtotal — Windows</span><span>£${R.formatPrice(totalEx)}</span>
+                ` : `
+                <div style="padding:1rem 1.3rem;background:${CREAM_LIGHT};border-left:3px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;color:var(--muted);line-height:1.55;">
+                    No additional services selected. Installation and delivery can be added to this estimate.
                 </div>
-                <div style="display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:.82rem;color:var(--muted);padding:.3rem 0;">
-                    <span>Installation (${totalQty} × £${INSTALLATION_RATE})</span><span>£${R.formatPrice(installationCost)}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:.82rem;color:var(--muted);padding:.3rem 0;border-bottom:1px solid ${BORDER};">
-                    <span>Delivery</span><span>£${R.formatPrice(deliveryCost)}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:baseline;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.5rem;color:var(--navy);padding:.6rem 0 0;">
-                    <span>Total <span style="font-family:'Jost',sans-serif;font-size:.65rem;font-weight:400;color:var(--muted);letter-spacing:.1em;">(EXCL. VAT)</span></span>
-                    <span>£${R.formatPrice(grandTotal)}</span>
-                </div>
+                `}
             </div>
 
             <div style="margin:1rem 0 2rem;padding:.8rem 1.2rem;background:#fff8ed;border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.75rem;color:var(--muted);line-height:1.55;">
@@ -584,7 +586,10 @@ class EstimateRenderer {
             </div>
         `;
 
-        // Payment Schedule (3 cards like PDF)
+        // Payment Schedule — dynamic cards based on what's selected
+        // I. Deposit 50%, II. Balance 50% (both on windows + installation if selected)
+        // III. Installation (only if installation selected) — 100% after installation
+        // IV. Delivery (only if delivery selected) — 100% on delivery
         const paymentCard = (roman, label, percent, amount, note, highlight = false) => `
             <div style="border:1px solid ${BORDER};padding:1.2rem;position:relative;${highlight ? 'background:#fbfaf7;' : ''}">
                 <div style="position:absolute;top:.5rem;right:.8rem;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:2.2rem;color:#D4D4C8;line-height:1;">${roman}</div>
@@ -594,13 +599,23 @@ class EstimateRenderer {
                 <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:.7rem;color:var(--muted);line-height:1.55;">${note}</div>
             </div>
         `;
+
+        const depositBaseNote = hasInstallation ? 'Calculated on windows + installation.' : 'Calculated on windows only.';
+        const paymentCards = [
+            paymentCard('I', 'Initial Deposit', '50%', depositHalf, `Non-refundable deposit upon acceptance. Secures the order and reserves workshop capacity. ${depositBaseNote}`),
+            paymentCard('II', 'Balance', '50%', depositHalf, `Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. ${depositBaseNote}`),
+            hasInstallation ? paymentCard('III', 'Installation', '100%', installationTotal, 'Payable after installation is completed on site.', true) : '',
+            hasDelivery ? paymentCard(hasInstallation ? 'IV' : 'III', 'Delivery', '100%', deliveryTotal, 'Payable upon delivery to site. Separate from windows schedule.', true) : ''
+        ].filter(Boolean);
+
+        const numCards = paymentCards.length;
+        const paymentGridCols = numCards === 2 ? '1fr 1fr' : numCards === 3 ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr';
+
         const paymentHTML = `
             <div style="margin:2rem 0;">
                 <h2 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.5rem;margin:0 0 .8rem;">Payment Schedule</h2>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;">
-                    ${paymentCard('I', 'Initial Deposit', '50%', depositHalf, 'Non-refundable deposit upon acceptance. Secures the order and reserves workshop capacity. Calculated on windows + installation only.')}
-                    ${paymentCard('II', 'Balance', '50%', depositHalf, 'Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. Calculated on windows + installation only.')}
-                    ${paymentCard('III', 'Delivery', '100%', deliveryCost, 'Payable upon delivery to site. Separate from windows payment schedule.', true)}
+                <div style="display:grid;grid-template-columns:${paymentGridCols};gap:.8rem;">
+                    ${paymentCards.join('')}
                 </div>
             </div>
         `;

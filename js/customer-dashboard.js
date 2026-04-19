@@ -325,6 +325,14 @@ class CustomerDashboard {
 
             if (error) throw error;
 
+            // Load extras (installation / delivery / custom) from DB
+            try {
+                data.extras = await EstimateExtras.load(estimateId);
+            } catch (extrasErr) {
+                console.warn('Failed to load extras, continuing with empty list:', extrasErr);
+                data.extras = [];
+            }
+
             this.showOrderModal(data);
         } catch (error) {
             console.error('Error loading estimate details:', error);

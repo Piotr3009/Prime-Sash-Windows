@@ -814,10 +814,18 @@
         }
         
         // View Estimate Detail — uses shared EstimateRenderer
-        function viewEstimate(id) {
+        async function viewEstimate(id) {
             const est = allEstimates.find(e => e.id === id);
             if (!est) return;
-            
+
+            // Load extras from DB
+            try {
+                est.extras = await EstimateExtras.load(id);
+            } catch (extrasErr) {
+                console.warn('Failed to load extras, continuing with empty list:', extrasErr);
+                est.extras = [];
+            }
+
             document.getElementById('modal-body').innerHTML = EstimateRenderer.renderEstimateHTML(est, {
                 isAdmin: true,
                 isEditable: false
