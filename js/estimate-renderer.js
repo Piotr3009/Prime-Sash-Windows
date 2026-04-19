@@ -552,7 +552,7 @@ class EstimateRenderer {
         const dimFont = 'font-family="Jost,sans-serif" font-size="7" fill="' + dimColor + '"';
 
         // Box frame dimensions in mm
-        const boxLeft = 80, boxRight = 80, mullionW = 50;
+        const boxLeft = 100, boxRight = 100, mullionW = 50;
         const beadGap = 12; // visual gap for beading
 
         if (sashType === 'triple') {
