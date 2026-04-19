@@ -226,7 +226,10 @@ class IronmongeryGallery {
     
     // Always start with Standard view - user can switch to PAS24 if needed
     this.switchType('standard');
-    
+
+    // Apply window type filtering (sash vs casement)
+    this.showTabsForWindowType();
+
     // Render products
     this.renderProducts();
   }
