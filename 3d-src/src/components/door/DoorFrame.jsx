@@ -22,6 +22,13 @@ const BOTTOM_FACE = 68;
 const BOTTOM_EXT_OUTER = 36;
 const BOTTOM_INNER_FACE = BOTTOM_FACE - REBATE_STEP;
 
+// ─── Threshold (used in standard DoorFrame, NOT in ArchedDoorWindow) ───
+const THRESHOLD_HEIGHT = 40;
+const THRESHOLD_FLAT_DEPTH = 68;
+const THRESHOLD_SLOPE_DEPTH = FRAME_DEPTH - THRESHOLD_FLAT_DEPTH; // 25mm exterior slope
+const THRESHOLD_SLOPE_ANGLE = 7 * Math.PI / 180;
+const THRESHOLD_OUTER_HEIGHT = THRESHOLD_HEIGHT - THRESHOLD_SLOPE_DEPTH * Math.tan(THRESHOLD_SLOPE_ANGLE); // ~36.93mm
+
 const halfD = mm(FRAME_DEPTH) / 2;
 
 // Gasket (seal) on rebate surface
@@ -109,6 +116,37 @@ function BottomRail({ width, cuts, mat, matInt, debugColors }) {
   );
 }
 
+// ═══ Threshold (Standard Hardwood) ═══
+// 40mm height, 93mm depth (FRAME_DEPTH), interior flat 68mm, exterior 25mm slope at 7deg
+// Currently rendered in DEBUG color (magenta) so the geometry is clearly visible
+function Threshold({ width, mat }) {
+  const len = mm(width);
+  const shape = useMemo(() => {
+    const s = new THREE.Shape();
+    // Profile in XY (X = depth from exterior, Y = height). After rotation, X maps to depth.
+    // X=0 is exterior outer edge; X=FRAME_DEPTH is interior edge.
+    s.moveTo(0, 0); // exterior bottom corner
+    s.lineTo(0, mm(THRESHOLD_OUTER_HEIGHT)); // exterior top (lower — start of slope)
+    s.lineTo(mm(THRESHOLD_SLOPE_DEPTH), mm(THRESHOLD_HEIGHT)); // end of slope / start of flat
+    s.lineTo(mm(FRAME_DEPTH), mm(THRESHOLD_HEIGHT)); // interior top
+    s.lineTo(mm(FRAME_DEPTH), 0); // interior bottom
+    s.closePath();
+    return s;
+  }, []);
+  const settings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
+  const debugMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#ff00ff',           // magenta — easy to spot during development
+    roughness: 0.75,
+    metalness: 0.0
+  }), []);
+  return (
+    <mesh castShadow receiveShadow rotation={[0, Math.PI / 2, 0]} position={[-len / 2, 0, halfD]}>
+      <extrudeGeometry args={[shape, settings]} />
+      <primitive object={debugMat} attach="material" />
+    </mesh>
+  );
+}
+
 // ═══ Top Rail ═══
 function TopRail({ width, cuts, mat, matInt, debugColors }) {
   const len = mm(width);
@@ -157,7 +195,9 @@ function Stile({ frameHeight, side, intCuts, mat, matInt, debugColors }) {
   const extTopCut = mm(frameHeight - FRAME_FACE + REBATE_STEP);
   const extShape = useMemo(() => {
     const s = new THREE.Shape();
-    s.moveTo(0, mm(BOTTOM_EXT_OUTER)); s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));
+    s.moveTo(0, mm(THRESHOLD_OUTER_HEIGHT));
+    s.lineTo(mm(THRESHOLD_SLOPE_DEPTH), mm(THRESHOLD_HEIGHT));
+    s.lineTo(mm(EXT_DEPTH), mm(THRESHOLD_HEIGHT));
     s.lineTo(mm(EXT_DEPTH), extTopCut); s.lineTo(0, extTopCut); s.closePath();
     return s;
   }, [extTopCut]);
@@ -165,7 +205,7 @@ function Stile({ frameHeight, side, intCuts, mat, matInt, debugColors }) {
   const extX = side === 'left' ? 0 : mm(REBATE_STEP);
 
   // INT segmented
-  const intStartY = mm(BOTTOM_FACE);
+  const intStartY = mm(THRESHOLD_HEIGHT);
   const intH = mm(frameHeight - FRAME_FACE) - intStartY;
   const fw = mm(FRAME_FACE);
   const d = mm(INT_DEPTH);
@@ -218,7 +258,9 @@ function Mullion({ startY = 0, endY = 1200, touchesBottom = true, touchesTop = t
   const extShape = useMemo(() => {
     const s = new THREE.Shape();
     if (touchesBottom) {
-      s.moveTo(0, mm(BOTTOM_EXT_OUTER)); s.lineTo(mm(EXT_DEPTH), mm(BOTTOM_INNER_FACE));
+      s.moveTo(0, mm(THRESHOLD_OUTER_HEIGHT));
+      s.lineTo(mm(THRESHOLD_SLOPE_DEPTH), mm(THRESHOLD_HEIGHT));
+      s.lineTo(mm(EXT_DEPTH), mm(THRESHOLD_HEIGHT));
     } else {
       s.moveTo(0, -extendBottom); s.lineTo(mm(EXT_DEPTH), -extendBottom);
     }
@@ -233,7 +275,7 @@ function Mullion({ startY = 0, endY = 1200, touchesBottom = true, touchesTop = t
   }, [hMm, touchesBottom, touchesTop, extendBottom, extendTop]);
   const extSettings = useMemo(() => ({ depth: mm(MULLION_EXT_FACE), bevelEnabled: false }), []);
 
-  const intStartYLocal = touchesBottom ? mm(BOTTOM_FACE) : -extendBottom;
+  const intStartYLocal = touchesBottom ? mm(THRESHOLD_HEIGHT) : -extendBottom;
   const intEndYLocal = touchesTop ? mm(hMm - FRAME_FACE) : h + extendTop;
   const intH = Math.max(intEndYLocal - intStartYLocal, 0.001);
 
@@ -365,8 +407,8 @@ export default function DoorFrame({
   }, [width, mullObjs]);
 
   // ─── Cuts for left stile INT ───
-  // Stile INT runs from BOTTOM_FACE to height-FRAME_FACE. Flat where transoms cross.
-  const stileIntLen = mm(height - FRAME_FACE - BOTTOM_FACE);
+  // Stile INT runs from THRESHOLD_HEIGHT to height-FRAME_FACE. Flat where transoms cross.
+  const stileIntLen = mm(height - FRAME_FACE - THRESHOLD_HEIGHT);
   const leftStileCuts = useMemo(() => {
     const cuts = [];
     transObjs.forEach(t => {
@@ -383,8 +425,8 @@ export default function DoorFrame({
       // Left stile inner edge is at X=FRAME_FACE from frame left. Transom must overlap this.
       if (transomLeftX <= 0 && transomRightX >= 0) {
         // Transom crosses left stile. Cut in stile INT coords (Y from bottom):
-        const cutStart = mm(t.y - MULLION_W / 2 - BOTTOM_FACE);
-        const cutEnd = mm(t.y + MULLION_W / 2 - BOTTOM_FACE);
+        const cutStart = mm(t.y - MULLION_W / 2 - THRESHOLD_HEIGHT);
+        const cutEnd = mm(t.y + MULLION_W / 2 - THRESHOLD_HEIGHT);
         cuts.push({ start: cutStart, end: cutEnd });
       }
     });
@@ -398,8 +440,8 @@ export default function DoorFrame({
       const transomRightX = transomLeftX + t.width;
       const stileInnerFromLeft = width - FRAME_FACE * 2;
       if (transomLeftX <= stileInnerFromLeft && transomRightX >= stileInnerFromLeft) {
-        const cutStart = mm(t.y - MULLION_W / 2 - BOTTOM_FACE);
-        const cutEnd = mm(t.y + MULLION_W / 2 - BOTTOM_FACE);
+        const cutStart = mm(t.y - MULLION_W / 2 - THRESHOLD_HEIGHT);
+        const cutEnd = mm(t.y + MULLION_W / 2 - THRESHOLD_HEIGHT);
         cuts.push({ start: cutStart, end: cutEnd });
       }
     });
@@ -418,7 +460,7 @@ export default function DoorFrame({
       // Check ANY overlap (not full containment)
       if (transomRightX > mullLeftX && transomLeftX < mullRightX) {
         // Mullion INT local Y starts at intStartYLocal
-        const mullIntStartMm = mObj.touchesBottom !== false ? BOTTOM_FACE : (mObj.startY - REBATE_STEP);
+        const mullIntStartMm = mObj.touchesBottom !== false ? THRESHOLD_HEIGHT : (mObj.startY - REBATE_STEP);
         const cutStart = mm(t.y - MULLION_W / 2 - mullIntStartMm);
         const cutEnd = mm(t.y + MULLION_W / 2 - mullIntStartMm);
         cuts.push({ start: cutStart, end: cutEnd });
@@ -447,7 +489,7 @@ export default function DoorFrame({
   return (
     <group>
       <group position={[0, -H / 2, 0]}>
-        <BottomRail width={width} cuts={railCuts} mat={material} matInt={materialInt} debugColors={debugColors} />
+        <Threshold width={width} mat={material} />
       </group>
       <group position={[0, H / 2 - mm(FRAME_FACE), 0]}>
         <TopRail width={width} cuts={railCuts} mat={material} matInt={materialInt} debugColors={debugColors} />
@@ -490,7 +532,7 @@ export default function DoorFrame({
         // Opening bounds (inner edges of rebates)
         const openLeft = -W / 2 + mm(EXT_FACE);
         const openRight = W / 2 - mm(EXT_FACE);
-        const openBottom = -H / 2 + mm(BOTTOM_INNER_FACE);
+        const openBottom = -H / 2 + mm(THRESHOLD_HEIGHT);
         const openTop = H / 2 - mm(FRAME_FACE) + mm(REBATE_STEP);
         const openW = openRight - openLeft;
         const openH = openTop - openBottom;
@@ -526,7 +568,7 @@ export default function DoorFrame({
             {/* Mullion gaskets — between rails, both sides */}
             {mullObjs.map((mObj, i) => {
               const mullCenterX = -W / 2 + mm(mObj.x);
-              const mullBottom = -H / 2 + mm(mObj.startY) + (mObj.touchesBottom !== false ? mm(BOTTOM_INNER_FACE) : 0);
+              const mullBottom = -H / 2 + mm(mObj.startY) + (mObj.touchesBottom !== false ? mm(THRESHOLD_HEIGHT) : 0);
               const mullTop = -H / 2 + mm(mObj.endY) - (mObj.touchesTop !== false ? mm(FRAME_FACE - REBATE_STEP) : 0);
               const mullGH = mullTop - mullBottom;
               const mullGCY = (mullBottom + mullTop) / 2;
