@@ -853,6 +853,7 @@
           </div>
         </div>
 
+        <button class="btn btn-apply" id="apply-door-type">Apply</button>
       </div>
 
       <!-- ═══ DOOR SECTIONS ═══ -->
@@ -3504,6 +3505,7 @@
       <button class="wt-tab active" data-wt="sash" style="padding:12px 24px;border:2px solid var(--primary-color);border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:var(--primary-color);color:white;letter-spacing:0.5px;">Sash Windows</button>
       <button class="wt-tab" data-wt="casement" style="padding:12px 24px;border:2px solid var(--primary-color);border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:transparent;color:var(--primary-color);letter-spacing:0.5px;">Casement</button>
       <button class="wt-tab" data-wt="doors" style="padding:12px 24px;border:2px solid #999;border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:transparent;color:#333;letter-spacing:0.5px;">Doors</button>
+      <button class="wt-tab" data-wt="doors" style="padding:12px 24px;border:2px solid #999;border-radius:6px;font-size:0.95rem;font-weight:700;cursor:pointer;background:transparent;color:#333;letter-spacing:0.5px;">Doors</button>
     </div>
 
     <!-- Type Selector (sub-level - smaller) -->
@@ -3576,7 +3578,10 @@
   
   function showCategory(cat) {
     var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
+    var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
     var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+    var activeFor = isWindows ? windowType : 'door';
+
     var activeFor = isWindows ? windowType : 'door';
 
     configSections.forEach(function(s) {
@@ -3584,7 +3589,9 @@
         s.style.display = 'none';
       } else {
         // Respect data-for: only show if matches current product type (or no data-for)
+        // Respect data-for: only show if matches current product type (or no data-for)
         var forType = s.getAttribute('data-for');
+        if (!forType || forType === activeFor) {
         if (!forType || forType === activeFor) {
           s.style.display = 'block';
         } else {
@@ -3740,7 +3747,7 @@
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
   </style>
-  <script type="module" src="3d/assets/window3d.js?v=11"></script>
+  <script type="module" src="3d/assets/window3d.js?v=12"></script>
   <script>
     // Force close ironmongery gallery after everything loads
     window.addEventListener('load', function() {
@@ -3932,6 +3939,14 @@
         if (windowMenu) windowMenu.style.display = isWindows ? 'block' : 'none';
         if (doorMenu) doorMenu.style.display = isWindows ? 'none' : 'block';
 
+        var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+
+        console.log('🔄 updateSections: isWindows=' + isWindows);
+
+        // Toggle menus
+        if (windowMenu) windowMenu.style.display = isWindows ? 'block' : 'none';
+        if (doorMenu) doorMenu.style.display = isWindows ? 'none' : 'block';
+
         windowTypeSection.style.display = isWindows ? 'block' : 'none';
         sashTypeSection.style.display = (isWindows && windowType === 'sash') ? 'block' : 'none';
         casementLayoutSection.style.display = (isWindows && windowType === 'casement') ? 'block' : 'none';
@@ -3951,32 +3966,27 @@
             hintEl.textContent = winLabels[windowType] || 'Sash Window';
           }
         }
+        if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
+
+        // Update product range hint
+        var hintEl = document.getElementById('hint-product-range');
+        if (hintEl) {
+          if (!isWindows) {
+            var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+            hintEl.textContent = doorLabels[doorType] || 'Timber Door';
+          } else {
+            var winLabels = {'sash':'Sash Window','casement':'Casement Window','fix-only':'Fix Frame'};
+            hintEl.textContent = winLabels[windowType] || 'Sash Window';
+          }
+        }
       }
 
       rangeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
           updateSections();
-          if (radio.value === 'doors') {
-            // Send door category to 3D
-            if (window.update3D) {
-              window.update3D({ windowCategory: 'door', extWidth: 900, extHeight: 2100 });
-            }
-          } else {
-            // Switching back to windows — auto-apply current window type
-            if (window.specificationController && window.specificationController.applyProductRange) {
-              window.specificationController.applyProductRange();
-            }
-            var wt = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
-            if (window.update3D) {
-              if (wt === 'casement') {
-                var layout = (document.querySelector('input[name="casement-layout"]:checked') || {}).value || '040L';
-                window.update3D({ windowCategory: 'casement', casementLayout: layout });
-              } else if (wt === 'fix-only') {
-                window.update3D({ windowCategory: 'fix-only' });
-              } else {
-                window.update3D({ windowCategory: 'sash' });
-              }
-            }
+          // Send door category to 3D when switching to doors
+          if (radio.value === 'doors' && window.update3D) {
+            window.update3D({ windowCategory: 'door', extWidth: 900, extHeight: 2100 });
           }
         });
       });
@@ -4034,15 +4044,31 @@
         });
       });
 
-      // ── AUTO-APPLY: Apply product range automatically on window-type change ──
-      windowTypeRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-          // Auto-apply specification
+      // Apply Product Range button — delegate to specification-controller.js
+      var applyRangeBtn = document.getElementById('apply-product-range');
+      if (applyRangeBtn) {
+        applyRangeBtn.addEventListener('click', function() {
+          var isDoors = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'doors';
           if (window.specificationController && window.specificationController.applyProductRange) {
             window.specificationController.applyProductRange();
           }
+          if (isDoors) {
+            // Send door category to 3D
+            if (window.update3D) {
+              window.update3D({ windowCategory: 'door', extWidth: 900, extHeight: 2100 });
+            }
+            // Switch to door dimensions
+            if (typeof window.showCategory === 'function') {
+              window.showCategory('door-dimensions');
+            }
+          } else {
+            // Switch to Dimensions/Design
+            if (typeof window.showCategory === 'function') {
+              window.showCategory('dim-design');
+            }
+          }
         });
-      });
+      }
 
       // ── AUTO-SWITCH: Casement layout click → update 3D + switch to Dimensions ──
       var layoutRadios = document.querySelectorAll('input[name="casement-layout"]');
@@ -4054,34 +4080,27 @@
           if (typeof window.updateCasement3D === 'function') {
             window.updateCasement3D();
           }
-          // Auto-switch to Dimensions after 300ms
-          setTimeout(function() {
-            if (typeof window.showCategory === 'function') {
-              window.showCategory('dim-design');
-            }
-          }, 300);
+          if (typeof window.showCategory === 'function') {
+            window.showCategory('dim-design');
+          }
         });
-      });
+      }
 
-      // ── AUTO-SWITCH: Door type → update 3D + switch to door-dimensions ──
-      // (Door type radios already have change handler for hint updates above)
-      // Add auto-switch on door-type change
-      document.querySelectorAll('input[name="door-type"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
+      // Door Apply button
+      var applyDoorBtn = document.getElementById('apply-door-type');
+      if (applyDoorBtn) {
+        applyDoorBtn.addEventListener('click', function() {
           if (window.update3D) {
             window.update3D({ windowCategory: 'door', extWidth: 900, extHeight: 2100 });
           }
           if (typeof window.updateDoor3D === 'function') {
             window.updateDoor3D();
           }
-          // Auto-switch to door dimensions after 300ms
-          setTimeout(function() {
-            if (typeof window.showCategory === 'function') {
-              window.showCategory('door-dimensions');
-            }
-          }, 300);
+          if (typeof window.showCategory === 'function') {
+            window.showCategory('door-dimensions');
+          }
         });
-      });
+      }
 
       // ── Casement Type: Standard / Arched toggle ──
       var casTypeRadios = document.querySelectorAll('input[name="casement-type"]');
@@ -4136,6 +4155,18 @@
           if (window.updateFixSpec) window.updateFixSpec();
         });
       });
+
+      // Fix Frame Apply
+      var applyFixBtn = document.getElementById('apply-fix-frame');
+      if (applyFixBtn) {
+        applyFixBtn.addEventListener('click', function() {
+          if (typeof window.showCategory === 'function') {
+            window.showCategory('dim-design');
+          }
+        });
+      }
+
+
 
       // Door Type radio change — show/hide options + update hint
       var doorTypeRadios = document.querySelectorAll('input[name="door-type"]');
