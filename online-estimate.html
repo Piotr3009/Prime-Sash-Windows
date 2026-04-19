@@ -4043,7 +4043,7 @@
         });
       });
 
-      // ── AUTO-SWITCH: Casement layout click → update 3D + switch to Dimensions ──
+      // ── Casement layout click → update 3D (no auto-switch — let user explore Product Range) ──
       var layoutRadios = document.querySelectorAll('input[name="casement-layout"]');
       layoutRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -4053,18 +4053,12 @@
           if (typeof window.updateCasement3D === 'function') {
             window.updateCasement3D();
           }
-          // Auto-switch to Dimensions after 300ms
-          setTimeout(function() {
-            if (typeof window.showCategory === 'function') {
-              window.showCategory('dim-design');
-            }
-          }, 300);
+          // Auto-switch removed
         });
       });
 
-      // ── AUTO-SWITCH: Door type → update 3D + switch to door-dimensions ──
+      // ── AUTO-SWITCH: Door type → update 3D (no auto-switch — user has more options below) ──
       // (Door type radios already have change handler for hint updates above)
-      // Add auto-switch on door-type change
       document.querySelectorAll('input[name="door-type"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
           if (window.update3D) {
@@ -4073,12 +4067,7 @@
           if (typeof window.updateDoor3D === 'function') {
             window.updateDoor3D();
           }
-          // Auto-switch to door dimensions after 300ms
-          setTimeout(function() {
-            if (typeof window.showCategory === 'function') {
-              window.showCategory('door-dimensions');
-            }
-          }, 300);
+          // Auto-switch removed — user still has door-shape, door-style, paneling, sidelights to choose
         });
       });
 
@@ -4266,12 +4255,7 @@
               if (window.update3D) window.update3D({ extHeight: 1500 });
             }
           }
-          // Auto-switch to Dimensions after shape selection
-          setTimeout(function() {
-            if (typeof window.showCategory === 'function') {
-              window.showCategory('dim-design');
-            }
-          }, 300);
+          // Auto-switch removed — user may want to continue choosing in Product Range
         });
       });
 

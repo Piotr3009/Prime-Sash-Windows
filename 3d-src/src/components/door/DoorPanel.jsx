@@ -243,7 +243,7 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
 
       {/* ─── Glazing ─── */}
       {glassW > 0 && glassH > 0 && (
-        <DoorGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[0, 0, 0]} />
+        <DoorGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[0, mm((LEAF_BOTTOM_RAIL - LEAF_TOP_RAIL) / 2), 0]} />
       )}
     </group>
   );
