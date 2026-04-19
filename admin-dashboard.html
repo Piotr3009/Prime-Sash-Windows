@@ -814,6 +814,8 @@
         }
         
         // View Estimate Detail — uses shared EstimateRenderer
+        let currentAdminEstimateId = null;
+
         async function viewEstimate(id) {
             const est = allEstimates.find(e => e.id === id);
             if (!est) return;
@@ -826,6 +828,8 @@
                 est.extras = [];
             }
 
+            currentAdminEstimateId = id;
+
             document.getElementById('modal-body').innerHTML = EstimateRenderer.renderEstimateHTML(est, {
                 isAdmin: true,
                 isEditable: false
@@ -833,6 +837,76 @@
             
             document.getElementById('quote-modal').classList.add('active');
             EstimateRenderer.attachExportButtons(est);
+        }
+
+        // ─── Admin: Additional Services CRUD ───
+        function adminToggleExtraForm(show) {
+            const form = document.getElementById('admin-extra-form');
+            const btn = document.getElementById('admin-add-extra-btn');
+            if (!form || !btn) return;
+            form.style.display = show ? 'block' : 'none';
+            btn.style.display = show ? 'none' : 'inline-block';
+            if (show) {
+                setTimeout(() => document.getElementById('admin-extra-name')?.focus(), 50);
+            } else {
+                // Clear form on cancel
+                ['admin-extra-name', 'admin-extra-desc', 'admin-extra-price'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                const qtyEl = document.getElementById('admin-extra-qty');
+                if (qtyEl) qtyEl.value = '1';
+                const timingEl = document.getElementById('admin-extra-timing');
+                if (timingEl) timingEl.value = 'on_completion';
+            }
+        }
+
+        async function adminAddExtra() {
+            if (!currentAdminEstimateId) {
+                alert('No estimate selected');
+                return;
+            }
+            const name = document.getElementById('admin-extra-name')?.value?.trim() || '';
+            const description = document.getElementById('admin-extra-desc')?.value?.trim() || null;
+            const quantity = parseInt(document.getElementById('admin-extra-qty')?.value) || 1;
+            const unit_price = parseFloat(document.getElementById('admin-extra-price')?.value) || 0;
+            const payment_timing = document.getElementById('admin-extra-timing')?.value || 'on_completion';
+
+            if (!name) {
+                alert('Name is required');
+                return;
+            }
+            if (unit_price < 0) {
+                alert('Unit price must be ≥ 0');
+                return;
+            }
+            if (quantity < 1) {
+                alert('Quantity must be ≥ 1');
+                return;
+            }
+
+            try {
+                await EstimateExtras.addCustom(currentAdminEstimateId, { name, description, quantity, unit_price, payment_timing });
+                // Refresh view
+                await viewEstimate(currentAdminEstimateId);
+            } catch (err) {
+                console.error('Failed to add extra:', err);
+                alert('Failed to add extra: ' + (err.message || 'unknown error'));
+            }
+        }
+
+        async function adminDeleteExtra(extraId) {
+            if (!extraId) return;
+            if (!confirm('Delete this additional service?')) return;
+            try {
+                await EstimateExtras.delete(extraId);
+                if (currentAdminEstimateId) {
+                    await viewEstimate(currentAdminEstimateId);
+                }
+            } catch (err) {
+                console.error('Failed to delete extra:', err);
+                alert('Failed to delete: ' + (err.message || 'unknown error'));
+            }
         }
         
         // Close Modal

@@ -511,7 +511,7 @@ class EstimateRenderer {
         }).join('');
 
         // Additional Services rows (dynamic from DB extras)
-        const extraRow = (label, desc, qty, amount, idx) => `
+        const extraRow = (label, desc, qty, amount, idx, extraId) => `
             <tr>
                 <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};vertical-align:top;">${idx}</td>
                 <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">
@@ -520,17 +520,48 @@ class EstimateRenderer {
                 </td>
                 <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;">${qty}</td>
                 <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);vertical-align:top;">£${R.formatPrice(amount)}</td>
+                ${isAdmin ? `<td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;">
+                    <button onclick="adminDeleteExtra('${extraId}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.8);font-family:'Jost',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .6rem;cursor:pointer;border-radius:2px;">Delete</button>
+                </td>` : ''}
             </tr>
         `;
 
         let extrasRowIdx = 1;
         const extrasRows = [
-            ...installationExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `I-${String(extrasRowIdx++).padStart(2, '0')}`)),
-            ...deliveryExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `D-${String(extrasRowIdx++).padStart(2, '0')}`)),
-            ...customExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `X-${String(extrasRowIdx++).padStart(2, '0')}`))
+            ...installationExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `I-${String(extrasRowIdx++).padStart(2, '0')}`, e.id)),
+            ...deliveryExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `D-${String(extrasRowIdx++).padStart(2, '0')}`, e.id)),
+            ...customExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `X-${String(extrasRowIdx++).padStart(2, '0')}`, e.id))
         ].join('');
 
         const extrasTotalAll = installationTotal + deliveryTotal + customExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+
+        // Admin: "+ Add Extra" inline form (hidden by default)
+        const adminExtrasControlsHTML = isAdmin ? `
+            <div style="margin-top:1rem;">
+                <button onclick="adminToggleExtraForm(true)" id="admin-add-extra-btn" style="background:var(--navy);color:#fff;border:none;padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;">+ Add Extra</button>
+            </div>
+            <div id="admin-extra-form" style="display:none;margin-top:1rem;padding:1.2rem 1.4rem;background:${CREAM_LIGHT};border:1px solid ${BORDER};">
+                <h4 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1rem;margin:0 0 .8rem;">Add Custom Extra</h4>
+                <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:.6rem;margin-bottom:.6rem;">
+                    <input id="admin-extra-name" type="text" placeholder="Name (e.g. Crane rental)" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;" />
+                    <input id="admin-extra-qty" type="number" min="1" value="1" placeholder="Qty" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;" />
+                    <input id="admin-extra-price" type="number" min="0" step="0.01" placeholder="Unit price" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;" />
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1fr;gap:.6rem;margin-bottom:.8rem;">
+                    <input id="admin-extra-desc" type="text" placeholder="Description (optional)" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;" />
+                    <select id="admin-extra-timing" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;background:#fff;">
+                        <option value="on_completion" selected>Payable on completion</option>
+                        <option value="with_deposit">With deposit</option>
+                        <option value="with_balance">With balance</option>
+                        <option value="on_delivery">On delivery</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:.6rem;">
+                    <button onclick="adminAddExtra()" style="background:var(--navy);color:#fff;border:none;padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;">Save</button>
+                    <button onclick="adminToggleExtraForm(false)" style="background:transparent;border:1px solid ${BORDER};color:var(--muted);padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;">Cancel</button>
+                </div>
+            </div>
+        ` : '';
 
         const summaryHTML = `
             <div style="margin:2.5rem 0 1.5rem;">
@@ -564,6 +595,7 @@ class EstimateRenderer {
                             <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:left;">Description</th>
                             <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:center;">Qty</th>
                             <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:right;">Price</th>
+                            ${isAdmin ? `<th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:center;width:1%;">Actions</th>` : ''}
                         </tr>
                     </thead>
                     <tbody>${extrasRows}</tbody>
@@ -571,6 +603,7 @@ class EstimateRenderer {
                         <tr>
                             <td colspan="3" style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;font-weight:500;color:var(--navy);">Subtotal — Additional Services</td>
                             <td style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;color:var(--navy);font-weight:500;">£${R.formatPrice(extrasTotalAll)} <span style="font-size:.7rem;font-weight:400;color:var(--muted);">+ VAT</span></td>
+                            ${isAdmin ? `<td style="padding:.7rem 1rem;border-top:2px solid var(--navy);"></td>` : ''}
                         </tr>
                     </tfoot>
                 </table>
@@ -579,6 +612,7 @@ class EstimateRenderer {
                     No additional services selected. Installation and delivery can be added to this estimate.
                 </div>
                 `}
+                ${adminExtrasControlsHTML}
             </div>
 
             <div style="margin:1rem 0 2rem;padding:.8rem 1.2rem;background:#fff8ed;border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.75rem;color:var(--muted);line-height:1.55;">
