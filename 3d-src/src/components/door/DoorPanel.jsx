@@ -942,10 +942,10 @@ export default function DoorPanel({
             scale={1}
             side={handleSide === 'right' ? 'left' : 'right'}
           />
-          {/* INT handle — original handleSide, rotated 180° around Z axis to fix orientation */}
+          {/* INT handle — rotated 180° around Y so lever protrudes outward from INT side (-Z) */}
           <DoorHandleChrome
             position={[handleX, handleY, intZ]}
-            rotation={[0, 0, Math.PI]}
+            rotation={[0, Math.PI, 0]}
             scale={1}
             side={handleSide}
           />
