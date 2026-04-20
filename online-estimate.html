@@ -755,16 +755,16 @@
               <label for="type-single-ext" class="radio-label">Single External Door</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="type-french" name="door-type" value="french">
-              <label for="type-french" class="radio-label">French Doors</label>
+              <input type="radio" id="type-french" name="door-type" value="french" disabled>
+              <label for="type-french" class="radio-label disabled-option">French Doors<br><small>(Coming Soon)</small></label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="type-sliding" name="door-type" value="sliding">
-              <label for="type-sliding" class="radio-label">Sliding Door</label>
+              <input type="radio" id="type-sliding" name="door-type" value="sliding" disabled>
+              <label for="type-sliding" class="radio-label disabled-option">Sliding Door<br><small>(Coming Soon)</small></label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="type-bifold" name="door-type" value="bifold">
-              <label for="type-bifold" class="radio-label">Bi-Fold Door</label>
+              <input type="radio" id="type-bifold" name="door-type" value="bifold" disabled>
+              <label for="type-bifold" class="radio-label disabled-option">Bi-Fold Door<br><small>(Coming Soon)</small></label>
             </div>
           </div>
         </div>
@@ -782,12 +782,12 @@
               <label for="door-shape-standard" class="radio-label">Standard</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="door-shape-arched" name="door-shape" value="arched">
-              <label for="door-shape-arched" class="radio-label">Arched</label>
+              <input type="radio" id="door-shape-arched" name="door-shape" value="arched" disabled>
+              <label for="door-shape-arched" class="radio-label disabled-option">Arched<br><small>(Coming Soon)</small></label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="door-shape-glazed-arch" name="door-shape" value="glazed-arch">
-              <label for="door-shape-glazed-arch" class="radio-label">Glazed Arch</label>
+              <input type="radio" id="door-shape-glazed-arch" name="door-shape" value="glazed-arch" disabled>
+              <label for="door-shape-glazed-arch" class="radio-label disabled-option">Glazed Arch<br><small>(Coming Soon)</small></label>
             </div>
           </div>
         </div>
@@ -831,7 +831,11 @@
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
-              <input type="radio" id="door-panel-recessed" name="door-paneling" value="panel" checked>
+              <input type="radio" id="door-panel-flat" name="door-paneling" value="flat" checked>
+              <label for="door-panel-flat" class="radio-label">Flat</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="door-panel-recessed" name="door-paneling" value="panel">
               <label for="door-panel-recessed" class="radio-label">Panel</label>
             </div>
             <div class="radio-option">
@@ -842,6 +846,10 @@
               <input type="radio" id="door-panel-bespoke" name="door-paneling" value="bespoke">
               <label for="door-panel-bespoke" class="radio-label">Bespoke</label>
             </div>
+          </div>
+          <div id="paneling-bespoke-info" style="display:none; margin-top:12px; padding:12px; background:#f4ede1; border-left:3px solid #1a2c4e; border-radius:4px; font-size:13px; line-height:1.5;">
+            <strong>Dear Customer,</strong><br>
+            If you have chosen Bespoke paneling, please send us your drawings and details to: <a href="mailto:info@primesashwindows.co.uk">info@primesashwindows.co.uk</a>
           </div>
         </div>
 
@@ -3754,7 +3762,7 @@
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
   </style>
-  <script type="module" src="3d/assets/window3d.js?v=21"></script>
+  <script type="module" src="3d/assets/window3d.js?v=22"></script>
   <script>
     // Force close ironmongery gallery after everything loads
     window.addEventListener('load', function() {
@@ -4083,6 +4091,16 @@
             window.updateDoor3D();
           }
           // Auto-switch removed — user still has door-shape, door-style, paneling, sidelights to choose
+        });
+      });
+
+      // ── Paneling: show Bespoke info-box when Bespoke selected ──
+      document.querySelectorAll('input[name="door-paneling"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          var info = document.getElementById('paneling-bespoke-info');
+          if (info) {
+            info.style.display = (this.value === 'bespoke') ? 'block' : 'none';
+          }
         });
       });
 

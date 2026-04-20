@@ -161,7 +161,7 @@ function buildCenterMullionInt(F, halfDepth) {
 }
 
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, doorStyle = 'full-glass', centerMullion = false }) {
+function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, doorStyle = 'full-glass', centerMullion = false, paneling = 'flat' }) {
   const W = mm(width);
   const H = mm(height);
 
@@ -268,7 +268,9 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   //   Flat step: horizontal ring at Z=+halfD - RECESS
   //   Bevel 2: slanted ring from Z=+halfD - RECESS (outer) to Z=+halfD - RAISED_DROP (inner)
   //   Raised field: horizontal centre at Z=+halfD - RAISED_DROP
-  const hasPanel = doorStyle !== 'full-glass';
+  // Panel renders only when door has non-full-glass style AND paneling is 'panel'
+  // 'flat' / 'beading' / 'bespoke' → render solid bottom rail (no recessed panel)
+  const hasPanel = doorStyle !== 'full-glass' && paneling === 'panel';
 
   // Panel params (mm → meters)
   const PANEL_MARGIN_X_MM = 0;          // from stiles (panel touches stiles directly)
@@ -681,6 +683,7 @@ export default function DoorPanel({
   position = [0, 0, 0],
   doorStyle = 'full-glass',
   centerMullion = false,
+  paneling = 'flat',
 }) {
   const mat = material;
   const W = mm(width);
@@ -730,7 +733,7 @@ export default function DoorPanel({
 
   const content = (
     <group>
-      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} />
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} />
       {handlePos && hingeType !== 'fixed' && (
         <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
           <WindowDoorHandle rotationDeg={hingeType === 'left' ? -handleDeg : handleDeg} metalColor={handleColors.metalColor} lockColor={handleColors.lockColor} />

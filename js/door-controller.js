@@ -39,9 +39,8 @@
     var doorType = checked('door-type') || 'single-external';
     var doorShape = checked('door-shape') || 'standard';
     var doorStyle = checked('door-style') || 'full-glass';
-    var doorPaneling = checked('door-paneling') || 'panel';
+    var doorPaneling = checked('door-paneling') || 'flat';
     var sidePanels = checked('door-side-panels') || 'none';
-    var centerMullion = checked('door-center-mullion') === 'on';
 
     return {
       productType: 'door',
@@ -50,7 +49,6 @@
       doorStyle: doorStyle,
       doorPaneling: doorPaneling,
       sidePanels: sidePanels,
-      centerMullion: centerMullion,
       width: numVal('d-width'),
       height: numVal('d-height'),
       sideLeftWidth: numVal('d-side-left-width'),
@@ -88,7 +86,6 @@
       doorStyle: config.doorStyle,
       doorPaneling: config.doorPaneling,
       sidePanels: config.sidePanels,
-      centerMullion: config.centerMullion,
       extWidth: config.width,
       extHeight: config.height,
       sideLeftWidth: config.sideLeftWidth,
@@ -205,7 +202,7 @@
     });
 
     // Door shape/style/paneling changes
-    ['door-shape', 'door-style', 'door-paneling', 'door-side-panels', 'door-center-mullion'].forEach(function(name) {
+    ['door-shape', 'door-style', 'door-paneling', 'door-side-panels'].forEach(function(name) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(function(radio) {
         radio.addEventListener('change', debouncedUpdate);
       });
