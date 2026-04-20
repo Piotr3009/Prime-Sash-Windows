@@ -935,22 +935,20 @@ export default function DoorPanel({
       <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} />
       {handleX !== null && hingeType !== 'fixed' && (
         <>
-          {/* EXT handle — lever points inward to match door style */}
+          {/* EXT handle — opposite side (was wrong in v1, flip side to fix) */}
           <DoorHandleChrome
             position={[handleX, handleY, extZ]}
             rotation={[0, 0, 0]}
             scale={1}
+            side={handleSide === 'right' ? 'left' : 'right'}
+          />
+          {/* INT handle — original handleSide (this was correct in v1) */}
+          <DoorHandleChrome
+            position={[handleX, handleY, intZ]}
+            rotation={[0, 0, 0]}
+            scale={1}
             side={handleSide}
           />
-          {/* INT handle — true mirror via scale.z = -1 (reflects through door plane) */}
-          <group position={[handleX, handleY, intZ]} scale={[1, 1, -1]}>
-            <DoorHandleChrome
-              position={[0, 0, 0]}
-              rotation={[0, 0, 0]}
-              scale={1}
-              side={handleSide}
-            />
-          </group>
         </>
       )}
     </group>
