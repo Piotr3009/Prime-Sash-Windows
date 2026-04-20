@@ -359,6 +359,26 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
     return new THREE.ShapeGeometry(shape);
   }, [panelValid, innerL, innerR, innerB, innerT, stepInnerL, stepInnerR, stepInnerB, stepInnerT]);
 
+  // ── Flat step ring INT (same XY coords, inverted winding → normals point -Z) ──
+  const flatStepRingGeoInt = useMemo(() => {
+    if (!flatStepRingGeo) return null;
+    const geo = flatStepRingGeo.clone();
+    // Reverse index order to flip normals from +Z to -Z
+    const idx = geo.index;
+    if (idx) {
+      const arr = idx.array;
+      const reversed = new arr.constructor(arr.length);
+      for (let i = 0; i < arr.length; i += 3) {
+        reversed[i] = arr[i];
+        reversed[i + 1] = arr[i + 2];
+        reversed[i + 2] = arr[i + 1];
+      }
+      geo.setIndex(new THREE.BufferAttribute(reversed, 1));
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }, [flatStepRingGeo]);
+
   // ── Panel geometry (memoised) ──
   // Build all bevel quads once, reuse for EXT and INT (mirrored in Z)
   const panelGeo = useMemo(() => {
@@ -582,9 +602,9 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
           <mesh geometry={panelGeoInt.b1Left}  castShadow receiveShadow><primitive object={miPanel} attach="material" /></mesh>
           <mesh geometry={panelGeoInt.b1Right} castShadow receiveShadow><primitive object={miPanel} attach="material" /></mesh>
 
-          {/* INT side — Flat step ring at Z=-halfD+REC, rotated to face -Z */}
-          {flatStepRingGeo && (
-            <mesh geometry={flatStepRingGeo} position={[0, 0, -halfD + REC]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
+          {/* INT side — Flat step ring at Z=-halfD+REC (inverted winding, no rotation needed) */}
+          {flatStepRingGeoInt && (
+            <mesh geometry={flatStepRingGeoInt} position={[0, 0, -halfD + REC]} castShadow receiveShadow>
               <primitive object={miPanel} attach="material" />
             </mesh>
           )}
