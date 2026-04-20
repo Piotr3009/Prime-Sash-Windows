@@ -942,12 +942,12 @@ export default function DoorPanel({
             scale={1}
             side={handleSide}
           />
-          {/* INT handle — backplate flush with interior face, lever protruding inward (-Z) */}
+          {/* INT handle — mirrored (opposite 'side') so from inside it's a true mirror, not a copy */}
           <DoorHandleChrome
             position={[handleX, handleY, intZ]}
             rotation={[0, Math.PI, 0]}
             scale={1}
-            side={handleSide}
+            side={handleSide === 'right' ? 'left' : 'right'}
           />
         </>
       )}
