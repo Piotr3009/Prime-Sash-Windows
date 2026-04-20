@@ -30,6 +30,7 @@ import * as THREE from 'three';
 import { Text, Line } from '@react-three/drei';
 import DoorFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, GASKET_T, mm } from './DoorFrame';
 import DoorPanel, { SASH_RAIL } from './DoorPanel';
+import DoorSidePanel from './DoorSidePanel';
 
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
@@ -360,6 +361,11 @@ export default function DoorWindow({
   doorStyle = 'full-glass',
   centerMullion = false,
   paneling = 'flat',
+  sidePanels = 'none',
+  sideLeftWidth = 400,
+  sideRightWidth = 400,
+  sideHBars = 0,
+  sideVBars = 0,
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -518,6 +524,38 @@ export default function DoorWindow({
           </mesh>
         );
       })()}
+
+      {/* ─── Side panels (sidelights) — attached next to main door frame ─── */}
+      {(sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0 && (
+        <DoorSidePanel
+          width={sideLeftWidth}
+          height={height}
+          woodColor={woodColor}
+          woodColorExt={woodColorExt}
+          woodColorInt={woodColorInt}
+          sameColor={sameColor}
+          spacerColor={spacerColor}
+          glassFinish={glassFinish}
+          hBars={sideHBars}
+          vBars={sideVBars}
+          position={[-W / 2 - mm(sideLeftWidth) / 2, 0, 0]}
+        />
+      )}
+      {(sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0 && (
+        <DoorSidePanel
+          width={sideRightWidth}
+          height={height}
+          woodColor={woodColor}
+          woodColorExt={woodColorExt}
+          woodColorInt={woodColorInt}
+          sameColor={sameColor}
+          spacerColor={spacerColor}
+          glassFinish={glassFinish}
+          hBars={sideHBars}
+          vBars={sideVBars}
+          position={[W / 2 + mm(sideRightWidth) / 2, 0, 0]}
+        />
+      )}
 
       {showGuides && (
         <group>

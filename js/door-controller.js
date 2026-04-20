@@ -57,6 +57,8 @@
       sideRightWidth: numVal('d-side-right-width'),
       hBars: parseInt(checked('d-hbars') || '0'),
       vBars: parseInt(checked('d-vbars') || '0'),
+      sideHBars: parseInt(checked('d-side-hbars') || '0'),
+      sideVBars: parseInt(checked('d-side-vbars') || '0'),
       glassType: checked('d-glass-type') || 'double',
       glassFinish: checked('d-glass-finish') || 'clear',
       spacerColor: checked('d-spacer-color') || 'silver',
@@ -95,6 +97,8 @@
       sideRightWidth: config.sideRightWidth,
       hBars: config.hBars,
       vBars: config.vBars,
+      sideHBars: config.sideHBars,
+      sideVBars: config.sideVBars,
       glassType: config.glassType,
       spacerColor: config.spacerColor,
       hingeSide: config.hingeSide,
@@ -187,6 +191,7 @@
     // Radio groups
     [
       'd-hbars', 'd-vbars',
+      'd-side-hbars', 'd-side-vbars',
       'd-glass-type', 'd-glass-finish', 'd-spacer-color',
       'd-hinge-side', 'd-open-direction', 'd-lock-type',
       'd-threshold'
