@@ -352,76 +352,162 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   const bdFrameH = bdT - bdB;
   const beadingValid = hasBeading && bdFrameW > 2 * BW && bdFrameH > 2 * BW;
 
-  // Ogee profile — cross-section of the moulding (XY, to be extruded along moulding length)
-  // Orientation B: APEX (high point) on OUTER edge of frame, COVE (concave) on INNER edge
-  // Profile drawn in local 2D: X = across moulding width (0 to BW), Y = height above rail (0 to BH)
-  // The "outer" edge of the frame is where moulding starts (X=0), apex there; cove curves down to X=BW at Y=0
-  // Local coords during extrusion:
-  //   X axis = moulding cross-section width (20mm)
-  //   Y axis = height above rail surface (15mm at apex, 0 at inner edge)
-  //   Z axis = along moulding length (will be set via extrudeSettings.depth)
+  // ═══ Ogee profile — cross-section of the moulding ═══
+  // Shape in local 2D:
+  //   X: 0 = OUTER edge of frame (apex side)
+  //   X: BW = INNER edge of frame (cove-to-rail)
+  //   Y: 0 = rail surface (base)
+  //   Y: BH = apex top
+  //
+  // Shape sequence (counter-clockwise, closed):
+  //   (0,0) → (0,BH-R) → arc to (R,BH) → flat top → (ST_X, ST_Y) → cove bezier to (BW,0) → back to (0,0)
+  //   R     = apex bullnose radius (5mm)
+  //   ST_X  = step after apex (~R, ~8mm)
+  //   ST_Y  = step height where cove begins (~BH-R, ~10mm)
   const ogeeProfile = useMemo(() => {
+    const R = mm(5);              // apex bullnose radius
+    const stepX = mm(8);          // cove starts at this X (just past apex)
+    const stepY = mm(10);         // cove top Y (just below apex)
     const shape = new THREE.Shape();
-    // Start at outer-bottom corner (rail surface, outer edge of moulding)
+    // Outer edge: straight up from base to just below apex
     shape.moveTo(0, 0);
-    // Up along outer edge (vertical step at outer edge, small height ~5mm)
-    const apexStepH = mm(5);
-    shape.lineTo(0, BH);                      // straight up to apex
-    // Apex (rounded top, quarter arc going inward and down slightly)
-    // Use a small convex arc from apex to ~mid-width at step down to apexStepH*2
-    // Approximate with bezier curve:
-    const midX = mm(7);                        // where convex top rolls into the cove
-    const midY = mm(12);                       // slightly below apex (bullnose effect)
-    shape.quadraticCurveTo(mm(4), BH, midX, midY);  // convex top
-    // Cove (concave curve sweeping down-and-inward to inner-bottom corner)
-    // Use bezier: from (midX, midY) curve down to (BW, 0)
+    shape.lineTo(0, BH - R);
+    // Apex bullnose: quarter arc convex outward
+    shape.quadraticCurveTo(0, BH, R, BH);
+    // Flat top segment (apex plateau)
+    shape.lineTo(stepX, BH);
+    // Step down to cove top
+    shape.lineTo(stepX, stepY);
+    // Cove (concave) bezier sweep from step down to inner-base corner
     shape.bezierCurveTo(
-      mm(12), midY,         // control 1: horizontal pull from cove top
-      BW, mm(6),            // control 2: pulls toward inner-bottom
-      BW, 0                 // end at inner-bottom corner of moulding (rail surface at inner edge)
+      mm(14), stepY,    // control 1: pulls horizontally toward inner edge
+      BW, mm(4),        // control 2: pulls down toward base
+      BW, 0             // end at inner-bottom corner
     );
-    // Back along rail surface to start
+    // Close along rail surface back to start
     shape.lineTo(0, 0);
     return shape;
-  }, [BH, BW]);
+  }, [BW, BH]);
 
-  // Build 8 beading moulding geometries (4 EXT, 4 INT)
-  // Each moulding is an ExtrudeGeometry of ogeeProfile along its length
-  //
-  // Frame layout (top-down view of door EXT face):
-  //   top_bead    ─────────────────────────    ← runs horizontally, full width (bdL..bdR)
-  //              │    ┌─────────────────┐   │
-  //   left_bead  │    │                 │   │  right_bead  ← vertical, between top/bottom beads
-  //              │    │                 │   │
-  //              │    └─────────────────┘   │
-  //  bottom_bead ─────────────────────────
-  //
-  // Overlap strategy: top + bottom run full width (bdL..bdR); left + right sit between them (bdB+BW..bdT-BW)
-  // This creates overlap in corners (where horizontal and vertical mouldings meet)
-  //
-  // Each moulding has its profile oriented so apex is AWAY from frame center (outer edge),
-  // cove curves toward frame center.
-  //
-  // For TOP bead: length runs along X axis (bdL..bdR), moulding cross-section lies in Y-Z plane
-  //   Profile X (20mm) maps to Y direction (from bdT going DOWN toward frame center)
-  //   Profile Y (15mm) maps to Z direction (protruding in +Z)
-  // For BOTTOM bead: profile X maps to Y going UP from bdB
-  // For LEFT bead: profile X maps to X going RIGHT from bdL
-  // For RIGHT bead: profile X maps to X going LEFT from bdR
+  // ═══ Build one ogee-bar geometry via Matrix4 basis ═══
+  // profile: Shape defined above (profile X = width apex→cove, profile Y = height base→apex)
+  // length: extrusion depth (along shape-local Z)
+  // xAxis, yAxis, zAxis: world-space unit vectors defining orientation
+  //   xAxis = world direction for profile X (apex-to-cove direction)
+  //   yAxis = world direction for profile Y (base-to-apex direction = perpendicular to door surface)
+  //   zAxis = world direction for extrusion (length direction)
+  // pos: world position of the profile's origin corner (outer-base corner of the bar)
+  // REQUIREMENT: xAxis × yAxis must equal zAxis (right-handed basis) — verified per bar below
+  const makeOgeeBar = (profile, length, xAxis, yAxis, zAxis, pos) => {
+    const geo = new THREE.ExtrudeGeometry(profile, { depth: length, bevelEnabled: false });
+    const m = new THREE.Matrix4();
+    m.makeBasis(xAxis, yAxis, zAxis);
+    geo.applyMatrix4(m);
+    geo.translate(pos.x, pos.y, pos.z);
+    return geo;
+  };
 
-  // Build ExtrudeGeometry for TOP bead (length = bdFrameW along X, profile extruded in Y-Z)
-  // ExtrudeGeometry extrudes Shape (XY plane) along +Z. We need to rotate/position per moulding.
-  const beadingExtrudeSettings = useMemo(
-    () => ({ depth: 0.001, bevelEnabled: false }), // depth set per-mesh via scale or via separate settings
-    []
-  );
+  // ═══ Build 8 bar geometries (4 EXT + 4 INT) ═══
+  // bdFrameW = frame width (bdR - bdL), runs along X world
+  // bdFrameH = frame height (bdT - bdB), runs along Y world
+  // EXT bars protrude in +Z (height direction = (0,0,1)), INT bars protrude in -Z
+  //
+  // Convention: pos = outer-base corner of the bar (where profile origin lands)
+  //   "outer" = the world edge where APEX sits (away from frame center)
+  //   "base" = the door surface side (Z = halfD for EXT, -halfD for INT)
+  //
+  // Handedness check for each bar: xAxis × yAxis must equal zAxis.
+  //   ax × ay = az (right-handed Cartesian)
 
-  // Per-moulding extrude settings
-  const bdTopSettings    = useMemo(() => ({ depth: bdFrameW, bevelEnabled: false }), [bdFrameW]);
-  const bdBotSettings    = useMemo(() => ({ depth: bdFrameW, bevelEnabled: false }), [bdFrameW]);
-  const bdSideLen        = bdFrameH; // left/right run FULL frame height for corner overlap with top/bottom
-  const bdLeftSettings   = useMemo(() => ({ depth: Math.max(bdSideLen, 0.001), bevelEnabled: false }), [bdSideLen]);
-  const bdRightSettings  = useMemo(() => ({ depth: Math.max(bdSideLen, 0.001), bevelEnabled: false }), [bdSideLen]);
+  const beadingBarsExt = useMemo(() => {
+    if (!beadingValid) return null;
+    const vX = new THREE.Vector3(1, 0, 0);
+    const vY = new THREE.Vector3(0, 1, 0);
+    const vZ = new THREE.Vector3(0, 0, 1);
+    const nvX = new THREE.Vector3(-1, 0, 0);
+    const nvY = new THREE.Vector3(0, -1, 0);
+
+    // TOP EXT: apex at world Y=bdT (top edge of frame), cove pointing down to bdT-BW
+    //   profile X (apex→cove) = world -Y → xAxis = -Y
+    //   profile Y (base→apex) = world +Z → yAxis = +Z
+    //   extrusion (length) along +X → zAxis = +X
+    //   check: (-Y) × (+Z) = -(Y×Z) = -X ≠ +X ❌ left-handed
+    //   fix: flip zAxis to -X, start pos at bdR instead of bdL (extrude runs bdR → bdL)
+    //   check: (-Y) × (+Z) = -X = zAxis ✓ right-handed
+    // pos = (bdR, bdT, halfD) because bar extrudes in -X from bdR down to bdL
+    const topExt = makeOgeeBar(ogeeProfile, bdFrameW, nvY.clone(), vZ.clone(), nvX.clone(),
+      new THREE.Vector3(bdR, bdT, halfD));
+
+    // BOTTOM EXT: apex at world Y=bdB (bottom edge), cove pointing up to bdB+BW
+    //   xAxis = +Y (apex→cove)
+    //   yAxis = +Z (base→apex = out of door)
+    //   zAxis wants +X (bdL→bdR)
+    //   check: (+Y) × (+Z) = +X = zAxis ✓ right-handed
+    // pos = (bdL, bdB, halfD)
+    const botExt = makeOgeeBar(ogeeProfile, bdFrameW, vY.clone(), vZ.clone(), vX.clone(),
+      new THREE.Vector3(bdL, bdB, halfD));
+
+    // LEFT EXT: apex at world X=bdL (left edge), cove pointing right to bdL+BW
+    //   xAxis = +X (apex→cove)
+    //   yAxis = +Z (base→apex)
+    //   zAxis wants +Y (bdB→bdT)
+    //   check: (+X) × (+Z) = -Y ≠ +Y ❌ left-handed
+    //   fix: flip zAxis to -Y, pos at bdB+bdFrameH = bdT
+    //   check: (+X) × (+Z) = -Y = zAxis ✓ right-handed
+    // pos = (bdL, bdT, halfD) extrudes in -Y down to bdB
+    const leftExt = makeOgeeBar(ogeeProfile, bdFrameH, vX.clone(), vZ.clone(), nvY.clone(),
+      new THREE.Vector3(bdL, bdT, halfD));
+
+    // RIGHT EXT: apex at world X=bdR (right edge), cove pointing left to bdR-BW
+    //   xAxis = -X (apex→cove)
+    //   yAxis = +Z (base→apex)
+    //   zAxis wants +Y
+    //   check: (-X) × (+Z) = +Y = zAxis ✓ right-handed
+    // pos = (bdR, bdB, halfD)
+    const rightExt = makeOgeeBar(ogeeProfile, bdFrameH, nvX.clone(), vZ.clone(), vY.clone(),
+      new THREE.Vector3(bdR, bdB, halfD));
+
+    return { topExt, botExt, leftExt, rightExt };
+  }, [beadingValid, ogeeProfile, bdFrameW, bdFrameH, bdL, bdR, bdT, bdB, halfD]);
+
+  const beadingBarsInt = useMemo(() => {
+    if (!beadingValid) return null;
+    const vX = new THREE.Vector3(1, 0, 0);
+    const vY = new THREE.Vector3(0, 1, 0);
+    const nvX = new THREE.Vector3(-1, 0, 0);
+    const nvY = new THREE.Vector3(0, -1, 0);
+    const nvZ = new THREE.Vector3(0, 0, -1);
+    const zINT = -halfD;
+
+    // INT mirror of EXT — base-to-apex direction flips to -Z instead of +Z
+    // Re-verify handedness for each with new yAxis = -Z
+
+    // TOP INT: xAxis = -Y, yAxis = -Z, zAxis = ?
+    //   (-Y) × (-Z) = +X → zAxis = +X (right-handed)
+    //   pos = (bdL, bdT, zINT) extrudes in +X
+    const topInt = makeOgeeBar(ogeeProfile, bdFrameW, nvY.clone(), nvZ.clone(), vX.clone(),
+      new THREE.Vector3(bdL, bdT, zINT));
+
+    // BOTTOM INT: xAxis = +Y, yAxis = -Z, zAxis = ?
+    //   (+Y) × (-Z) = -X → zAxis = -X
+    //   pos = (bdR, bdB, zINT) extrudes in -X
+    const botInt = makeOgeeBar(ogeeProfile, bdFrameW, vY.clone(), nvZ.clone(), nvX.clone(),
+      new THREE.Vector3(bdR, bdB, zINT));
+
+    // LEFT INT: xAxis = +X, yAxis = -Z, zAxis = ?
+    //   (+X) × (-Z) = +Y → zAxis = +Y
+    //   pos = (bdL, bdB, zINT) extrudes in +Y
+    const leftInt = makeOgeeBar(ogeeProfile, bdFrameH, vX.clone(), nvZ.clone(), vY.clone(),
+      new THREE.Vector3(bdL, bdB, zINT));
+
+    // RIGHT INT: xAxis = -X, yAxis = -Z, zAxis = ?
+    //   (-X) × (-Z) = -Y → zAxis = -Y
+    //   pos = (bdR, bdT, zINT) extrudes in -Y
+    const rightInt = makeOgeeBar(ogeeProfile, bdFrameH, nvX.clone(), nvZ.clone(), nvY.clone(),
+      new THREE.Vector3(bdR, bdT, zINT));
+
+    return { topInt, botInt, leftInt, rightInt };
+  }, [beadingValid, ogeeProfile, bdFrameW, bdFrameH, bdL, bdR, bdT, bdB, halfD]);
 
   // ── Helper: create a quad geometry from 4 3D points (for bevel strips) ──
   const makeQuadGeo = (A, B, C, D) => {
@@ -718,71 +804,20 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
         </group>
       )}
 
-      {/* ─── Beading frame (4 box mouldings EXT + 4 INT) — TEST VERSION ─── */}
-      {/* Rendered when paneling === 'beading'. Simple boxes nailed on top of flat bottom rail. */}
-      {/* Box dimensions: each moulding is (along-length × height × width) positioned as ring around panel. */}
-      {/* Ogee profile will replace boxes in a later iteration. Each box = single mesh, no rotation. */}
-      {beadingValid && (
+      {/* ─── Beading frame (4 ogee mouldings EXT + 4 INT) ─── */}
+      {beadingValid && beadingBarsExt && beadingBarsInt && (
         <group>
-          {/* ═══ EXT side — 4 boxes protruding in +Z from rail face at Z=halfD ═══ */}
+          {/* ═══ EXT side ═══ */}
+          <mesh geometry={beadingBarsExt.topExt}   castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+          <mesh geometry={beadingBarsExt.botExt}   castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+          <mesh geometry={beadingBarsExt.leftExt}  castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+          <mesh geometry={beadingBarsExt.rightExt} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
 
-          {/* TOP box — horizontal, length along X (bdFrameW), width in Y (BW), height in Z (BH) */}
-          <mesh castShadow receiveShadow position={[(bdL + bdR) / 2, bdT - BW / 2, halfD + BH / 2]}>
-            <boxGeometry args={[bdFrameW, BW, BH]} />
-            <primitive object={mat} attach="material" />
-          </mesh>
-
-          {/* BOTTOM box */}
-          <mesh castShadow receiveShadow position={[(bdL + bdR) / 2, bdB + BW / 2, halfD + BH / 2]}>
-            <boxGeometry args={[bdFrameW, BW, BH]} />
-            <primitive object={mat} attach="material" />
-          </mesh>
-
-          {/* LEFT box — vertical, length along Y (bdSideLen), width in X (BW), height in Z (BH) */}
-          {bdSideLen > 0 && (
-            <mesh castShadow receiveShadow position={[bdL + BW / 2, (bdB + bdT) / 2, halfD + BH / 2]}>
-              <boxGeometry args={[BW, bdSideLen, BH]} />
-              <primitive object={mat} attach="material" />
-            </mesh>
-          )}
-
-          {/* RIGHT box */}
-          {bdSideLen > 0 && (
-            <mesh castShadow receiveShadow position={[bdR - BW / 2, (bdB + bdT) / 2, halfD + BH / 2]}>
-              <boxGeometry args={[BW, bdSideLen, BH]} />
-              <primitive object={mat} attach="material" />
-            </mesh>
-          )}
-
-          {/* ═══ INT side — 4 boxes protruding in -Z from rail face at Z=-halfD ═══ */}
-
-          {/* TOP box INT */}
-          <mesh castShadow receiveShadow position={[(bdL + bdR) / 2, bdT - BW / 2, -halfD - BH / 2]}>
-            <boxGeometry args={[bdFrameW, BW, BH]} />
-            <primitive object={mi} attach="material" />
-          </mesh>
-
-          {/* BOTTOM box INT */}
-          <mesh castShadow receiveShadow position={[(bdL + bdR) / 2, bdB + BW / 2, -halfD - BH / 2]}>
-            <boxGeometry args={[bdFrameW, BW, BH]} />
-            <primitive object={mi} attach="material" />
-          </mesh>
-
-          {/* LEFT box INT */}
-          {bdSideLen > 0 && (
-            <mesh castShadow receiveShadow position={[bdL + BW / 2, (bdB + bdT) / 2, -halfD - BH / 2]}>
-              <boxGeometry args={[BW, bdSideLen, BH]} />
-              <primitive object={mi} attach="material" />
-            </mesh>
-          )}
-
-          {/* RIGHT box INT */}
-          {bdSideLen > 0 && (
-            <mesh castShadow receiveShadow position={[bdR - BW / 2, (bdB + bdT) / 2, -halfD - BH / 2]}>
-              <boxGeometry args={[BW, bdSideLen, BH]} />
-              <primitive object={mi} attach="material" />
-            </mesh>
-          )}
+          {/* ═══ INT side ═══ */}
+          <mesh geometry={beadingBarsInt.topInt}   castShadow receiveShadow><primitive object={mi} attach="material" /></mesh>
+          <mesh geometry={beadingBarsInt.botInt}   castShadow receiveShadow><primitive object={mi} attach="material" /></mesh>
+          <mesh geometry={beadingBarsInt.leftInt}  castShadow receiveShadow><primitive object={mi} attach="material" /></mesh>
+          <mesh geometry={beadingBarsInt.rightInt} castShadow receiveShadow><primitive object={mi} attach="material" /></mesh>
         </group>
       )}
 
