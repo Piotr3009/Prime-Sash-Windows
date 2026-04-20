@@ -847,10 +847,6 @@
               <label for="door-panel-bespoke" class="radio-label">Bespoke</label>
             </div>
           </div>
-          <div id="paneling-bespoke-info" style="display:none; margin-top:12px; padding:12px; background:#f4ede1; border-left:3px solid #1a2c4e; border-radius:4px; font-size:13px; line-height:1.5;">
-            <strong>Dear Customer,</strong><br>
-            If you have chosen Bespoke paneling, please send us your drawings and details to: <a href="mailto:info@primesashwindows.co.uk">info@primesashwindows.co.uk</a>
-          </div>
         </div>
 
         <!-- Side Panels -->
@@ -3762,7 +3758,7 @@
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
   </style>
-  <script type="module" src="3d/assets/window3d.js?v=22"></script>
+  <script type="module" src="3d/assets/window3d.js?v=23"></script>
   <script>
     // Force close ironmongery gallery after everything loads
     window.addEventListener('load', function() {
@@ -4094,12 +4090,18 @@
         });
       });
 
-      // ── Paneling: show Bespoke info-box when Bespoke selected ──
+      // ── Paneling: when Bespoke selected → show info in global info-panel ──
       document.querySelectorAll('input[name="door-paneling"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
-          var info = document.getElementById('paneling-bespoke-info');
-          if (info) {
-            info.style.display = (this.value === 'bespoke') ? 'block' : 'none';
+          if (this.value === 'bespoke') {
+            var infoPanel = document.getElementById('info-panel-content');
+            if (infoPanel) {
+              infoPanel.innerHTML =
+                '<p class="info-title">Bespoke Paneling</p>' +
+                '<p>Dear Customer, if you have chosen <strong>Bespoke</strong> paneling, please send us your drawings and details to:</p>' +
+                '<p><a href="mailto:info@primesashwindows.co.uk">info@primesashwindows.co.uk</a></p>' +
+                '<p class="info-note">This information will be added to your specification.</p>';
+            }
           }
         });
       });

@@ -326,6 +326,103 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   // Safety check: panel only valid if raised field has positive area
   const panelValid = hasPanel && raisedR > raisedL && raisedT > raisedB;
 
+  // ═══ Beading params and geometry ═══
+  // Beading = 4 ogee mouldings nailed on top of flat bottom rail (EXT + INT mirrored)
+  // Margins identical to panel: 150mm bot, 100mm top, 100mm L/R (but using PM_X=0 would make it touch stile)
+  // For beading we override L/R margin to 100mm (unlike panel which is 0)
+  const BEADING_MARGIN_X_MM = 100;
+  const BEADING_MARGIN_TOP_MM = 100;
+  const BEADING_MARGIN_BOTTOM_MM = 150;
+  const BEADING_W_MM = 20;   // moulding width (lying flat on rail)
+  const BEADING_H_MM = 15;   // moulding height (protruding above rail)
+  const BM_X = mm(BEADING_MARGIN_X_MM);
+  const BM_TOP = mm(BEADING_MARGIN_TOP_MM);
+  const BM_BOT = mm(BEADING_MARGIN_BOTTOM_MM);
+  const BW = mm(BEADING_W_MM);
+  const BH = mm(BEADING_H_MM);
+
+  const hasBeading = doorStyle !== 'full-glass' && paneling === 'beading';
+
+  // Beading frame outer bounds (inner edge of the rectangular beading ring on EXT face, Z=halfD)
+  const bdL = railLeftX + BM_X;
+  const bdR = railRightX - BM_X;
+  const bdB = railBottomY + BM_BOT;
+  const bdT = railTopY - BM_TOP;
+  const bdFrameW = bdR - bdL;
+  const bdFrameH = bdT - bdB;
+  const beadingValid = hasBeading && bdFrameW > 2 * BW && bdFrameH > 2 * BW;
+
+  // Ogee profile — cross-section of the moulding (XY, to be extruded along moulding length)
+  // Orientation B: APEX (high point) on OUTER edge of frame, COVE (concave) on INNER edge
+  // Profile drawn in local 2D: X = across moulding width (0 to BW), Y = height above rail (0 to BH)
+  // The "outer" edge of the frame is where moulding starts (X=0), apex there; cove curves down to X=BW at Y=0
+  // Local coords during extrusion:
+  //   X axis = moulding cross-section width (20mm)
+  //   Y axis = height above rail surface (15mm at apex, 0 at inner edge)
+  //   Z axis = along moulding length (will be set via extrudeSettings.depth)
+  const ogeeProfile = useMemo(() => {
+    const shape = new THREE.Shape();
+    // Start at outer-bottom corner (rail surface, outer edge of moulding)
+    shape.moveTo(0, 0);
+    // Up along outer edge (vertical step at outer edge, small height ~5mm)
+    const apexStepH = mm(5);
+    shape.lineTo(0, BH);                      // straight up to apex
+    // Apex (rounded top, quarter arc going inward and down slightly)
+    // Use a small convex arc from apex to ~mid-width at step down to apexStepH*2
+    // Approximate with bezier curve:
+    const midX = mm(7);                        // where convex top rolls into the cove
+    const midY = mm(12);                       // slightly below apex (bullnose effect)
+    shape.quadraticCurveTo(mm(4), BH, midX, midY);  // convex top
+    // Cove (concave curve sweeping down-and-inward to inner-bottom corner)
+    // Use bezier: from (midX, midY) curve down to (BW, 0)
+    shape.bezierCurveTo(
+      mm(12), midY,         // control 1: horizontal pull from cove top
+      BW, mm(6),            // control 2: pulls toward inner-bottom
+      BW, 0                 // end at inner-bottom corner of moulding (rail surface at inner edge)
+    );
+    // Back along rail surface to start
+    shape.lineTo(0, 0);
+    return shape;
+  }, [BH, BW]);
+
+  // Build 8 beading moulding geometries (4 EXT, 4 INT)
+  // Each moulding is an ExtrudeGeometry of ogeeProfile along its length
+  //
+  // Frame layout (top-down view of door EXT face):
+  //   top_bead    ─────────────────────────    ← runs horizontally, full width (bdL..bdR)
+  //              │    ┌─────────────────┐   │
+  //   left_bead  │    │                 │   │  right_bead  ← vertical, between top/bottom beads
+  //              │    │                 │   │
+  //              │    └─────────────────┘   │
+  //  bottom_bead ─────────────────────────
+  //
+  // Overlap strategy: top + bottom run full width (bdL..bdR); left + right sit between them (bdB+BW..bdT-BW)
+  // This creates overlap in corners (where horizontal and vertical mouldings meet)
+  //
+  // Each moulding has its profile oriented so apex is AWAY from frame center (outer edge),
+  // cove curves toward frame center.
+  //
+  // For TOP bead: length runs along X axis (bdL..bdR), moulding cross-section lies in Y-Z plane
+  //   Profile X (20mm) maps to Y direction (from bdT going DOWN toward frame center)
+  //   Profile Y (15mm) maps to Z direction (protruding in +Z)
+  // For BOTTOM bead: profile X maps to Y going UP from bdB
+  // For LEFT bead: profile X maps to X going RIGHT from bdL
+  // For RIGHT bead: profile X maps to X going LEFT from bdR
+
+  // Build ExtrudeGeometry for TOP bead (length = bdFrameW along X, profile extruded in Y-Z)
+  // ExtrudeGeometry extrudes Shape (XY plane) along +Z. We need to rotate/position per moulding.
+  const beadingExtrudeSettings = useMemo(
+    () => ({ depth: 0.001, bevelEnabled: false }), // depth set per-mesh via scale or via separate settings
+    []
+  );
+
+  // Per-moulding extrude settings
+  const bdTopSettings    = useMemo(() => ({ depth: bdFrameW, bevelEnabled: false }), [bdFrameW]);
+  const bdBotSettings    = useMemo(() => ({ depth: bdFrameW, bevelEnabled: false }), [bdFrameW]);
+  const bdSideLen        = bdFrameH - 2 * BW; // left/right run between top and bottom beads (avoids stacking)
+  const bdLeftSettings   = useMemo(() => ({ depth: Math.max(bdSideLen, 0.001), bevelEnabled: false }), [bdSideLen]);
+  const bdRightSettings  = useMemo(() => ({ depth: Math.max(bdSideLen, 0.001), bevelEnabled: false }), [bdSideLen]);
+
   // ── Helper: create a quad geometry from 4 3D points (for bevel strips) ──
   const makeQuadGeo = (A, B, C, D) => {
     const geo = new THREE.BufferGeometry();
@@ -617,6 +714,64 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
           <mesh position={[0, (raisedB + raisedT) / 2, -halfD + RD]} rotation={[Math.PI, 0, 0]} castShadow receiveShadow>
             <planeGeometry args={[raisedR - raisedL, raisedT - raisedB]} />
             <primitive object={miPanel} attach="material" />
+          </mesh>
+        </group>
+      )}
+
+      {/* ─── Beading frame (4 ogee mouldings EXT + 4 INT) ─── */}
+      {/* Rendered when paneling === 'beading'. Mouldings nailed on top of flat bottom rail. */}
+      {beadingValid && (
+        <group>
+          {/* ═══ EXT side (4 mouldings protruding in +Z from rail face at Z=halfD) ═══ */}
+
+          {/* TOP bead — runs horizontally along X (bdL → bdR), apex at outer edge (upper Y = bdT) */}
+          <mesh castShadow receiveShadow position={[bdL, bdT, halfD]} rotation={[-Math.PI/2, -Math.PI/2, 0]}>
+            <extrudeGeometry args={[ogeeProfile, bdTopSettings]} />
+            <primitive object={mat} attach="material" />
+          </mesh>
+
+          {/* BOTTOM bead — runs horizontally along X, apex at lower Y = bdB */}
+          <mesh castShadow receiveShadow position={[bdL, bdB, halfD]} rotation={[Math.PI/2, -Math.PI/2, 0]}>
+            <extrudeGeometry args={[ogeeProfile, bdBotSettings]} />
+            <primitive object={mat} attach="material" />
+          </mesh>
+
+          {/* LEFT bead — runs vertically along Y, apex at outer edge X = bdL */}
+          <mesh castShadow receiveShadow position={[bdL, bdB + BW, halfD]} rotation={[0, -Math.PI/2, 0]}>
+            <extrudeGeometry args={[ogeeProfile, bdLeftSettings]} />
+            <primitive object={mat} attach="material" />
+          </mesh>
+
+          {/* RIGHT bead — runs vertically along Y, apex at outer edge X = bdR */}
+          <mesh castShadow receiveShadow position={[bdR, bdB + BW, halfD]} rotation={[0, Math.PI/2, 0]} scale={[-1, 1, 1]}>
+            <extrudeGeometry args={[ogeeProfile, bdRightSettings]} />
+            <primitive object={mat} attach="material" />
+          </mesh>
+
+          {/* ═══ INT side (4 mouldings protruding in -Z from rail face at Z=-halfD) ═══ */}
+
+          {/* TOP bead INT */}
+          <mesh castShadow receiveShadow position={[bdL, bdT, -halfD]} rotation={[Math.PI/2, -Math.PI/2, 0]} scale={[1, 1, -1]}>
+            <extrudeGeometry args={[ogeeProfile, bdTopSettings]} />
+            <primitive object={mi} attach="material" />
+          </mesh>
+
+          {/* BOTTOM bead INT */}
+          <mesh castShadow receiveShadow position={[bdL, bdB, -halfD]} rotation={[-Math.PI/2, -Math.PI/2, 0]} scale={[1, 1, -1]}>
+            <extrudeGeometry args={[ogeeProfile, bdBotSettings]} />
+            <primitive object={mi} attach="material" />
+          </mesh>
+
+          {/* LEFT bead INT */}
+          <mesh castShadow receiveShadow position={[bdL, bdB + BW, -halfD]} rotation={[0, Math.PI/2, 0]} scale={[1, 1, -1]}>
+            <extrudeGeometry args={[ogeeProfile, bdLeftSettings]} />
+            <primitive object={mi} attach="material" />
+          </mesh>
+
+          {/* RIGHT bead INT */}
+          <mesh castShadow receiveShadow position={[bdR, bdB + BW, -halfD]} rotation={[0, -Math.PI/2, 0]} scale={[1, 1, -1]}>
+            <extrudeGeometry args={[ogeeProfile, bdRightSettings]} />
+            <primitive object={mi} attach="material" />
           </mesh>
         </group>
       )}
