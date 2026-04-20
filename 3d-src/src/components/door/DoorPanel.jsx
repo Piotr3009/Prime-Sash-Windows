@@ -14,6 +14,7 @@ import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import DoorGlazing from './DoorGlazing';
 import WindowDoorHandle from './WindowDoorHandle';
+import DoorHandleChrome from './DoorHandleChrome';
 
 const mm = (v) => v / 1000;
 
@@ -906,38 +907,49 @@ export default function DoorPanel({
   const angleRad = THREE.MathUtils.degToRad(clampedOpening * MAX_ANGLE);
   const handleDeg = clampedOpening * MAX_ANGLE;
 
-  // Handle position: opposite stile from hinges, interior face
-  const handleScale = 0.001;
+  // Handle position: opposite stile from hinges
   const REBATE = 21; // mm hidden behind frame
-  const stileCenter = mm(REBATE + (LEAF_STILE - REBATE) / 2); // visible center
-  const intZ = -D / 2 - 0.001; // just outside interior face
+  const stileCenter = mm(REBATE + (LEAF_STILE - REBATE) / 2); // visible center of stile (X offset from leaf edge)
+  const extZ = D / 2;   // exterior face of leaf (positive Z)
+  const intZ = -D / 2;  // interior face of leaf (negative Z)
 
-  // Handle Y: 400mm from bottom, or center if panel < 800mm
-  const handleY = height >= 800 ? (-H / 2 + mm(500)) : 0;
+  // Handle Y: 1000mm from bottom of door, constant regardless of door height
+  const handleY = -H / 2 + mm(1000);
 
-  let handlePos = null;
-  let handleRot = null;
+  // Horizontal position (X) and side mapping for DoorHandleChrome
+  // hingeType='left' → hinge at left stile → handle on RIGHT stile → side='right'
+  // hingeType='right' → hinge at right stile → handle on LEFT stile → side='left'
+  let handleX = null;
+  let handleSide = 'right';
   if (hingeType === 'left') {
-    // Handle on right stile, interior face
-    handlePos = [W / 2 - stileCenter, handleY, intZ];
-    handleRot = [0, -Math.PI / 2, 0];
+    handleX = W / 2 - stileCenter;
+    handleSide = 'right';
   } else if (hingeType === 'right') {
-    // Handle on left stile, interior face
-    handlePos = [-W / 2 + stileCenter, handleY, intZ];
-    handleRot = [0, -Math.PI / 2, 0];
-  } else if (hingeType === 'top') {
-    // Handle on bottom rail, interior face, horizontal
-    handlePos = [0, -H / 2 + stileCenter, intZ];
-    handleRot = [Math.PI / 2, 0, Math.PI / 2];
+    handleX = -W / 2 + stileCenter;
+    handleSide = 'left';
   }
+  // hingeType === 'top' or 'fixed' → no handle (handled below)
 
   const content = (
     <group>
       <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} />
-      {handlePos && hingeType !== 'fixed' && (
-        <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
-          <WindowDoorHandle rotationDeg={hingeType === 'left' ? -handleDeg : handleDeg} metalColor={handleColors.metalColor} lockColor={handleColors.lockColor} />
-        </group>
+      {handleX !== null && hingeType !== 'fixed' && (
+        <>
+          {/* EXT handle — backplate flush with exterior face, lever protruding outward (+Z) */}
+          <DoorHandleChrome
+            position={[handleX, handleY, extZ]}
+            rotation={[0, 0, 0]}
+            scale={1}
+            side={handleSide}
+          />
+          {/* INT handle — backplate flush with interior face, lever protruding inward (-Z) */}
+          <DoorHandleChrome
+            position={[handleX, handleY, intZ]}
+            rotation={[0, Math.PI, 0]}
+            scale={1}
+            side={handleSide}
+          />
+        </>
       )}
     </group>
   );
