@@ -302,7 +302,6 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   const panelB = railBottomY + PM_BOT;
   const panelT = railTopY - PM_TOP;
   const panelW = panelR - panelL;
-  const panelH2 = panelT - panelB;
 
   // Inner-bounds (after bevel 1)
   const innerL = panelL + B1;
@@ -538,33 +537,30 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
         </>
       )}
 
-      {/* ─── Bottom rail split into 4 rim strips around recessed panel ─── */}
+      {/* ─── Bottom rail split into 2 rim strips (top + bottom) around recessed panel ─── */}
+      {/* Each strip is split into EXT half (z=+halfD/2, mat) and INT half (z=-halfD/2, mi) for dual colour */}
       {panelValid && (
         <group>
-          {/* Top strip: full rail width, between glass and panel top */}
-          <mesh castShadow receiveShadow position={[0, (panelT + railTopY) / 2, 0]}>
-            <boxGeometry args={[railWidth, railTopY - panelT, D]} />
+          {/* Top strip EXT half */}
+          <mesh castShadow receiveShadow position={[0, (panelT + railTopY) / 2, halfD / 2]}>
+            <boxGeometry args={[railWidth, railTopY - panelT, halfD]} />
             <primitive object={mat} attach="material" />
           </mesh>
-          {/* Bottom strip: full rail width, between door bottom and panel bottom */}
-          <mesh castShadow receiveShadow position={[0, (railBottomY + panelB) / 2, 0]}>
-            <boxGeometry args={[railWidth, panelB - railBottomY, D]} />
+          {/* Top strip INT half */}
+          <mesh castShadow receiveShadow position={[0, (panelT + railTopY) / 2, -halfD / 2]}>
+            <boxGeometry args={[railWidth, railTopY - panelT, halfD]} />
+            <primitive object={mi} attach="material" />
+          </mesh>
+          {/* Bottom strip EXT half */}
+          <mesh castShadow receiveShadow position={[0, (railBottomY + panelB) / 2, halfD / 2]}>
+            <boxGeometry args={[railWidth, panelB - railBottomY, halfD]} />
             <primitive object={mat} attach="material" />
           </mesh>
-          {/* Left strip: only if PM_X > 0 (skip when panel touches stile) */}
-          {PM_X > 0 && (
-            <mesh castShadow receiveShadow position={[(railLeftX + panelL) / 2, (panelB + panelT) / 2, 0]}>
-              <boxGeometry args={[panelL - railLeftX, panelH2, D]} />
-              <primitive object={mat} attach="material" />
-            </mesh>
-          )}
-          {/* Right strip: only if PM_X > 0 */}
-          {PM_X > 0 && (
-            <mesh castShadow receiveShadow position={[(panelR + railRightX) / 2, (panelB + panelT) / 2, 0]}>
-              <boxGeometry args={[railRightX - panelR, panelH2, D]} />
-              <primitive object={mat} attach="material" />
-            </mesh>
-          )}
+          {/* Bottom strip INT half */}
+          <mesh castShadow receiveShadow position={[0, (railBottomY + panelB) / 2, -halfD / 2]}>
+            <boxGeometry args={[railWidth, panelB - railBottomY, halfD]} />
+            <primitive object={mi} attach="material" />
+          </mesh>
         </group>
       )}
 
