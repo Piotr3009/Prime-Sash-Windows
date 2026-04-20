@@ -419,7 +419,7 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   // Per-moulding extrude settings
   const bdTopSettings    = useMemo(() => ({ depth: bdFrameW, bevelEnabled: false }), [bdFrameW]);
   const bdBotSettings    = useMemo(() => ({ depth: bdFrameW, bevelEnabled: false }), [bdFrameW]);
-  const bdSideLen        = bdFrameH - 2 * BW; // left/right run between top and bottom beads (avoids stacking)
+  const bdSideLen        = bdFrameH; // left/right run FULL frame height for corner overlap with top/bottom
   const bdLeftSettings   = useMemo(() => ({ depth: Math.max(bdSideLen, 0.001), bevelEnabled: false }), [bdSideLen]);
   const bdRightSettings  = useMemo(() => ({ depth: Math.max(bdSideLen, 0.001), bevelEnabled: false }), [bdSideLen]);
 
@@ -718,61 +718,71 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
         </group>
       )}
 
-      {/* ─── Beading frame (4 ogee mouldings EXT + 4 INT) ─── */}
-      {/* Rendered when paneling === 'beading'. Mouldings nailed on top of flat bottom rail. */}
+      {/* ─── Beading frame (4 box mouldings EXT + 4 INT) — TEST VERSION ─── */}
+      {/* Rendered when paneling === 'beading'. Simple boxes nailed on top of flat bottom rail. */}
+      {/* Box dimensions: each moulding is (along-length × height × width) positioned as ring around panel. */}
+      {/* Ogee profile will replace boxes in a later iteration. Each box = single mesh, no rotation. */}
       {beadingValid && (
         <group>
-          {/* ═══ EXT side (4 mouldings protruding in +Z from rail face at Z=halfD) ═══ */}
+          {/* ═══ EXT side — 4 boxes protruding in +Z from rail face at Z=halfD ═══ */}
 
-          {/* TOP bead — runs horizontally along X (bdL → bdR), apex at outer edge (upper Y = bdT) */}
-          <mesh castShadow receiveShadow position={[bdL, bdT, halfD]} rotation={[-Math.PI/2, -Math.PI/2, 0]}>
-            <extrudeGeometry args={[ogeeProfile, bdTopSettings]} />
+          {/* TOP box — horizontal, length along X (bdFrameW), width in Y (BW), height in Z (BH) */}
+          <mesh castShadow receiveShadow position={[(bdL + bdR) / 2, bdT - BW / 2, halfD + BH / 2]}>
+            <boxGeometry args={[bdFrameW, BW, BH]} />
             <primitive object={mat} attach="material" />
           </mesh>
 
-          {/* BOTTOM bead — runs horizontally along X, apex at lower Y = bdB */}
-          <mesh castShadow receiveShadow position={[bdL, bdB, halfD]} rotation={[Math.PI/2, -Math.PI/2, 0]}>
-            <extrudeGeometry args={[ogeeProfile, bdBotSettings]} />
+          {/* BOTTOM box */}
+          <mesh castShadow receiveShadow position={[(bdL + bdR) / 2, bdB + BW / 2, halfD + BH / 2]}>
+            <boxGeometry args={[bdFrameW, BW, BH]} />
             <primitive object={mat} attach="material" />
           </mesh>
 
-          {/* LEFT bead — runs vertically along Y, apex at outer edge X = bdL */}
-          <mesh castShadow receiveShadow position={[bdL, bdB + BW, halfD]} rotation={[0, -Math.PI/2, 0]}>
-            <extrudeGeometry args={[ogeeProfile, bdLeftSettings]} />
-            <primitive object={mat} attach="material" />
-          </mesh>
+          {/* LEFT box — vertical, length along Y (bdSideLen), width in X (BW), height in Z (BH) */}
+          {bdSideLen > 0 && (
+            <mesh castShadow receiveShadow position={[bdL + BW / 2, (bdB + bdT) / 2, halfD + BH / 2]}>
+              <boxGeometry args={[BW, bdSideLen, BH]} />
+              <primitive object={mat} attach="material" />
+            </mesh>
+          )}
 
-          {/* RIGHT bead — runs vertically along Y, apex at outer edge X = bdR */}
-          <mesh castShadow receiveShadow position={[bdR, bdB + BW, halfD]} rotation={[0, Math.PI/2, 0]} scale={[-1, 1, 1]}>
-            <extrudeGeometry args={[ogeeProfile, bdRightSettings]} />
-            <primitive object={mat} attach="material" />
-          </mesh>
+          {/* RIGHT box */}
+          {bdSideLen > 0 && (
+            <mesh castShadow receiveShadow position={[bdR - BW / 2, (bdB + bdT) / 2, halfD + BH / 2]}>
+              <boxGeometry args={[BW, bdSideLen, BH]} />
+              <primitive object={mat} attach="material" />
+            </mesh>
+          )}
 
-          {/* ═══ INT side (4 mouldings protruding in -Z from rail face at Z=-halfD) ═══ */}
+          {/* ═══ INT side — 4 boxes protruding in -Z from rail face at Z=-halfD ═══ */}
 
-          {/* TOP bead INT */}
-          <mesh castShadow receiveShadow position={[bdL, bdT, -halfD]} rotation={[Math.PI/2, -Math.PI/2, 0]} scale={[1, 1, -1]}>
-            <extrudeGeometry args={[ogeeProfile, bdTopSettings]} />
+          {/* TOP box INT */}
+          <mesh castShadow receiveShadow position={[(bdL + bdR) / 2, bdT - BW / 2, -halfD - BH / 2]}>
+            <boxGeometry args={[bdFrameW, BW, BH]} />
             <primitive object={mi} attach="material" />
           </mesh>
 
-          {/* BOTTOM bead INT */}
-          <mesh castShadow receiveShadow position={[bdL, bdB, -halfD]} rotation={[-Math.PI/2, -Math.PI/2, 0]} scale={[1, 1, -1]}>
-            <extrudeGeometry args={[ogeeProfile, bdBotSettings]} />
+          {/* BOTTOM box INT */}
+          <mesh castShadow receiveShadow position={[(bdL + bdR) / 2, bdB + BW / 2, -halfD - BH / 2]}>
+            <boxGeometry args={[bdFrameW, BW, BH]} />
             <primitive object={mi} attach="material" />
           </mesh>
 
-          {/* LEFT bead INT */}
-          <mesh castShadow receiveShadow position={[bdL, bdB + BW, -halfD]} rotation={[0, Math.PI/2, 0]} scale={[1, 1, -1]}>
-            <extrudeGeometry args={[ogeeProfile, bdLeftSettings]} />
-            <primitive object={mi} attach="material" />
-          </mesh>
+          {/* LEFT box INT */}
+          {bdSideLen > 0 && (
+            <mesh castShadow receiveShadow position={[bdL + BW / 2, (bdB + bdT) / 2, -halfD - BH / 2]}>
+              <boxGeometry args={[BW, bdSideLen, BH]} />
+              <primitive object={mi} attach="material" />
+            </mesh>
+          )}
 
-          {/* RIGHT bead INT */}
-          <mesh castShadow receiveShadow position={[bdR, bdB + BW, -halfD]} rotation={[0, -Math.PI/2, 0]} scale={[1, 1, -1]}>
-            <extrudeGeometry args={[ogeeProfile, bdRightSettings]} />
-            <primitive object={mi} attach="material" />
-          </mesh>
+          {/* RIGHT box INT */}
+          {bdSideLen > 0 && (
+            <mesh castShadow receiveShadow position={[bdR - BW / 2, (bdB + bdT) / 2, -halfD - BH / 2]}>
+              <boxGeometry args={[BW, bdSideLen, BH]} />
+              <primitive object={mi} attach="material" />
+            </mesh>
+          )}
         </group>
       )}
 
