@@ -330,7 +330,7 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   // Beading = 4 ogee mouldings nailed on top of flat bottom rail (EXT + INT mirrored)
   // Margins identical to panel: 150mm bot, 100mm top, 100mm L/R (but using PM_X=0 would make it touch stile)
   // For beading we override L/R margin to 100mm (unlike panel which is 0)
-  const BEADING_MARGIN_X_MM = 100;
+  const BEADING_MARGIN_X_MM = 0;
   const BEADING_MARGIN_TOP_MM = 100;
   const BEADING_MARGIN_BOTTOM_MM = 150;
   const BEADING_W_MM = 20;   // moulding width (lying flat on rail)
