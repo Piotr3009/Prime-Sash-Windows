@@ -731,6 +731,8 @@ function Scene({ config, isMobile }) {
                 hBars={config.doorHBars || 0}
                 vBars={config.doorVBars || 0}
                 ironmongery={config.ironmongery}
+                sillExtension={config.sillExtension || 0}
+                sillWider={config.sillWider || false}
               />
             ) : (
               <ParametricSashWindow {...config} />

@@ -70,6 +70,8 @@
       threshold: checked('d-threshold') || 'standard',
       thresholdExtension: numVal('d-threshold-extension'),
       doorOpening: (numVal('d-door-opening') || 0) / 100,
+      sillExtension: numVal('d-sill-extension'),
+      sillWider: document.getElementById('d-sill-wider') ? document.getElementById('d-sill-wider').checked : false,
       quantity: numVal('d-quantity') || 1,
       notes: val('d-notes') || '',
       // Colour
@@ -113,7 +115,9 @@
       woodColorExt: config.woodColorExt,
       thresholdType: config.threshold,
       thresholdExtension: config.thresholdExtension,
-      doorOpening: config.doorOpening
+      doorOpening: config.doorOpening,
+      sillExtension: config.sillExtension,
+      sillWider: config.sillWider
     });
 
     window.currentConfig = getDoorConfig();
@@ -190,10 +194,14 @@
     }, 300);
 
     // Dimension inputs
-    ['d-width', 'd-height', 'd-side-left-width', 'd-side-right-width', 'd-threshold-extension', 'd-door-opening'].forEach(function(id) {
+    ['d-width', 'd-height', 'd-side-left-width', 'd-side-right-width', 'd-threshold-extension', 'd-door-opening', 'd-sill-extension'].forEach(function(id) {
       var el = $(id);
       if (el) el.addEventListener('input', debouncedUpdate);
     });
+
+    // Sill wider checkbox
+    var sillWiderEl = $('d-sill-wider');
+    if (sillWiderEl) sillWiderEl.addEventListener('change', debouncedUpdate);
 
     // Radio groups
     [
