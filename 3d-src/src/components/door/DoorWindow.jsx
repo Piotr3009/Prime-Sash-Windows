@@ -514,27 +514,29 @@ export default function DoorWindow({
         );
       })()}
 
-      {/* ═══ Sill Wider — 50mm ear extensions on each side of full configuration ═══ */}
-      {sillWider && (() => {
-        // Calculate outermost edges of full configuration (door + side panels)
+      {/* ═══ Sill Wider — extends threshold extension 50mm past configuration edges ═══ */}
+      {sillWider && thresholdType === 'standard' && thresholdExtension > 0 && (() => {
+        // Ear boxes extend the threshold EXTENSION part only (slope projection beyond frame face)
         const hasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
         const hasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
         const totalLeftX = hasLeft ? -W / 2 - mm(sideLeftWidth) : -W / 2;
         const totalRightX = hasRight ? W / 2 + mm(sideRightWidth) : W / 2;
+
         const earW = mm(50);
-        const earH = mm(40); // THRESHOLD_HEIGHT
-        const earD = mm(93); // FRAME_DEPTH
+        const ext = Math.min(thresholdExtension, 100);
+        const earDepth = mm(ext);    // only the extension projection
+        const earH = mm(40);         // THRESHOLD_HEIGHT
         const earY = -H / 2 + earH / 2;
+        const earZ = halfD + earDepth / 2;  // projects forward from frame face
+
         return (
           <group>
-            {/* Left ear */}
-            <mesh position={[totalLeftX - earW / 2, earY, 0]} castShadow receiveShadow>
-              <boxGeometry args={[earW, earH, earD]} />
+            <mesh position={[totalLeftX - earW / 2, earY, earZ]} castShadow receiveShadow>
+              <boxGeometry args={[earW, earH, earDepth]} />
               <primitive object={extMaterial} attach="material" />
             </mesh>
-            {/* Right ear */}
-            <mesh position={[totalRightX + earW / 2, earY, 0]} castShadow receiveShadow>
-              <boxGeometry args={[earW, earH, earD]} />
+            <mesh position={[totalRightX + earW / 2, earY, earZ]} castShadow receiveShadow>
+              <boxGeometry args={[earW, earH, earDepth]} />
               <primitive object={extMaterial} attach="material" />
             </mesh>
           </group>

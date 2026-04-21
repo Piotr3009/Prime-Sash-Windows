@@ -1160,7 +1160,17 @@ export default function App() {
                 />
               </div>
             </>
-          ) : windowCategory === 'fix-only' ? null : (
+          ) : windowCategory === 'fix-only' ? null : windowCategory === 'door' ? (
+            <Slider
+              label="Opening"
+              value={Math.round(doorOpening * 100)}
+              min={0}
+              max={100}
+              step={1}
+              suffix="%"
+              onChange={(v) => setDoorOpening(v / 100)}
+            />
+          ) : (
             <Slider
               label="Opening"
               value={Math.round(casementOpening * 100)}
