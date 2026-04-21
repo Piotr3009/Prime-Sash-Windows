@@ -92,6 +92,7 @@ export default function DoorSidePanel({
         hBars={hBars}
         vBars={vBars}
         ironmongery="brass"
+        stileWidthMm={57}
         position={[0, openingCenterY, leafZ]}
       />
     </group>
