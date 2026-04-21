@@ -25,6 +25,7 @@
     woodColorInt: '#F6F6F6',
     woodColorExt: '#F6F6F6'
   };
+  window.doorColourState = doorColourState;
 
   // ─── Dimension constraints per door type ───
   var DOOR_DIMS = {
@@ -90,22 +91,21 @@
       doorType: config.doorType,
       doorShape: config.doorShape,
       doorStyle: config.doorStyle,
-      doorPaneling: config.doorPaneling,
+      paneling: config.doorPaneling,
       sidePanels: config.sidePanels,
       centerMullion: config.centerMullion,
       extWidth: config.width,
       extHeight: config.height,
       sideLeftWidth: config.sideLeftWidth,
       sideRightWidth: config.sideRightWidth,
-      hBars: config.hBars,
-      vBars: config.vBars,
+      doorHBars: config.hBars,
+      doorVBars: config.vBars,
       sideHBars: config.sideHBars,
       sideVBars: config.sideVBars,
       sideStyle: config.sideStyle,
-      glassType: config.glassType,
+      glassFinish: config.glassFinish,
       spacerColor: config.spacerColor,
-      hingeSide: config.hingeSide,
-      openDirection: config.openDirection,
+      doorHinge: config.hingeSide,
       sameColor: config.sameColor,
       woodColor: config.woodColor,
       woodColorInt: config.woodColorInt,

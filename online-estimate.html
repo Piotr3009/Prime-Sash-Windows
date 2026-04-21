@@ -1025,7 +1025,6 @@
           <label>Glass Finish:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="d-finish-clear" name="d-glass-finish" value="clear" checked><label for="d-finish-clear" class="radio-label">Clear</label></div>
-            <div class="radio-option"><input type="radio" id="d-finish-obscure" name="d-glass-finish" value="obscure"><label for="d-finish-obscure" class="radio-label">Obscure</label></div>
             <div class="radio-option"><input type="radio" id="d-finish-frosted" name="d-glass-finish" value="frosted"><label for="d-finish-frosted" class="radio-label">Frosted</label></div>
           </div>
         </div>
@@ -4237,6 +4236,13 @@
           containerId: 'door-color-container',
           prefix: 'd',
           onColorChange: function(state) {
+            // Sync doorColourState so door-controller reads correct colors
+            if (window.doorColourState) {
+              window.doorColourState.sameColor = state.sameColor;
+              window.doorColourState.woodColor = state.woodColor;
+              window.doorColourState.woodColorInt = state.woodColorInt;
+              window.doorColourState.woodColorExt = state.woodColorExt;
+            }
             if (window.update3D) window.update3D(state);
           }
         });
