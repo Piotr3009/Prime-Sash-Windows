@@ -742,9 +742,10 @@ class ConfiguratorCore {
   updateAll() {
     if (!this.isInitialized) return;
     
-    // Skip sash price update when casement is active
+    // Skip sash price update when non-sash product is active
+    var productRange = (document.querySelector('input[name="product-range"]:checked') || {}).value;
     var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
-    if (windowType === 'casement') return;
+    if (productRange === 'doors' || windowType === 'casement') return;
     
     // Merge state with currentConfig (currentConfig has color data)
     const stateConfig = this.state.get();
