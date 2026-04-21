@@ -366,6 +366,7 @@ export default function DoorWindow({
   sideRightWidth = 400,
   sideHBars = 0,
   sideVBars = 0,
+  sideStyle = 'full-glass',
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -536,8 +537,13 @@ export default function DoorWindow({
           sameColor={sameColor}
           spacerColor={spacerColor}
           glassFinish={glassFinish}
+          glassType={glassType}
           hBars={sideHBars}
           vBars={sideVBars}
+          sideStyle={sideStyle}
+          doorStyle={doorStyle}
+          paneling={paneling}
+          sealColour={sealColour}
           position={[-W / 2 - mm(sideLeftWidth) / 2, 0, 0]}
         />
       )}
@@ -551,8 +557,13 @@ export default function DoorWindow({
           sameColor={sameColor}
           spacerColor={spacerColor}
           glassFinish={glassFinish}
+          glassType={glassType}
           hBars={sideHBars}
           vBars={sideVBars}
+          sideStyle={sideStyle}
+          doorStyle={doorStyle}
+          paneling={paneling}
+          sealColour={sealColour}
           position={[W / 2 + mm(sideRightWidth) / 2, 0, 0]}
         />
       )}

@@ -872,6 +872,21 @@
           </div>
         </div>
 
+        <!-- Side Panel Style (Same as door / Full Glass) — only relevant when sidePanels != none -->
+        <h3>Side Panel Style</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="door-side-style-full" name="door-side-style" value="full-glass" checked>
+              <label for="door-side-style-full" class="radio-label">Full Glass</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="door-side-style-same" name="door-side-style" value="same">
+              <label for="door-side-style-same" class="radio-label">Same as Door</label>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ═══ DOOR SECTIONS ═══ -->
@@ -3781,7 +3796,7 @@
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
   </style>
-  <script type="module" src="3d/assets/window3d.js?v=33"></script>
+  <script type="module" src="3d/assets/window3d.js?v=34"></script>
   <script>
     // Force close ironmongery gallery after everything loads
     window.addEventListener('load', function() {

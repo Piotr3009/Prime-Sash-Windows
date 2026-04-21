@@ -59,6 +59,7 @@
       vBars: parseInt(checked('d-vbars') || '0'),
       sideHBars: parseInt(checked('d-side-hbars') || '0'),
       sideVBars: parseInt(checked('d-side-vbars') || '0'),
+      sideStyle: checked('door-side-style') || 'full-glass',
       glassType: checked('d-glass-type') || 'double',
       glassFinish: checked('d-glass-finish') || 'clear',
       spacerColor: checked('d-spacer-color') || 'silver',
@@ -99,6 +100,7 @@
       vBars: config.vBars,
       sideHBars: config.sideHBars,
       sideVBars: config.sideVBars,
+      sideStyle: config.sideStyle,
       glassType: config.glassType,
       spacerColor: config.spacerColor,
       hingeSide: config.hingeSide,
@@ -210,7 +212,7 @@
     });
 
     // Door shape/style/paneling changes
-    ['door-shape', 'door-style', 'door-paneling', 'door-side-panels', 'door-center-mullion'].forEach(function(name) {
+    ['door-shape', 'door-style', 'door-paneling', 'door-side-panels', 'door-center-mullion', 'door-side-style'].forEach(function(name) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(function(radio) {
         radio.addEventListener('change', debouncedUpdate);
       });
