@@ -4262,6 +4262,10 @@
           containerId: 'door-color-container',
           prefix: 'd',
           onColorChange: function(state) {
+            console.log('[DOOR COLOR DEBUG] onColorChange fired:', JSON.stringify(state));
+            console.log('[DOOR COLOR DEBUG] doorColourState exists:', !!window.doorColourState);
+            console.log('[DOOR COLOR DEBUG] updateDoor3D exists:', !!window.updateDoor3D);
+            console.log('[DOOR COLOR DEBUG] update3D exists:', !!window.update3D);
             // Sync doorColourState so door-controller reads correct colors
             if (window.doorColourState) {
               window.doorColourState.sameColor = state.sameColor;
@@ -4269,7 +4273,13 @@
               window.doorColourState.woodColorInt = state.woodColorInt;
               window.doorColourState.woodColorExt = state.woodColorExt;
             }
-            if (window.updateDoor3D) window.updateDoor3D();
+            if (window.updateDoor3D) {
+              console.log('[DOOR COLOR DEBUG] calling updateDoor3D()');
+              window.updateDoor3D();
+              console.log('[DOOR COLOR DEBUG] updateDoor3D() completed');
+            } else {
+              console.log('[DOOR COLOR DEBUG] updateDoor3D NOT available!');
+            }
           }
         });
       }
