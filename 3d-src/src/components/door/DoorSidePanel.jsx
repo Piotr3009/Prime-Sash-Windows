@@ -31,6 +31,8 @@ export default function DoorSidePanel({
   doorStyle = 'full-glass',  // used when sideStyle === 'same'
   paneling = 'flat',
   sealColour = 'black',
+  thresholdType = 'standard',
+  thresholdExtension = 0,
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -74,6 +76,8 @@ export default function DoorSidePanel({
         material={extMaterial}
         materialInt={intMaterial}
         sealColour={sealColour}
+        thresholdType={thresholdType}
+        thresholdExtension={thresholdExtension}
       />
 
       {/* Fixed leaf — full SashFrame with chamfer/ovolo beads, beading, paneling */}

@@ -116,35 +116,90 @@ function BottomRail({ width, cuts, mat, matInt, debugColors }) {
   );
 }
 
-// ═══ Threshold (Standard Hardwood) ═══
-// 40mm height, 93mm depth (FRAME_DEPTH), interior flat 68mm, exterior 25mm slope at 7deg
-// Currently rendered in DEBUG color (magenta) so the geometry is clearly visible
-function Threshold({ width, mat }) {
+// ═══ Threshold ═══
+// Three types:
+//   'standard'    — hardwood, 40mm height, 93mm depth, 7° exterior slope + optional extension
+//   'aluminium'   — aluminium strip, FRAME_DEPTH wide (93mm) × 5mm height
+//   'low-profile' — low strip 40mm wide × 3mm height, behind door leaf (visible when open)
+function Threshold({ width, mat, thresholdType = 'standard', extension = 0 }) {
   const len = mm(width);
-  const shape = useMemo(() => {
+
+  // ── Standard Hardwood ──
+  const standardShape = useMemo(() => {
+    if (thresholdType !== 'standard') return null;
+    const ext = Math.max(0, Math.min(100, extension)); // clamp 0-100mm
+    const totalSlopeDepth = THRESHOLD_SLOPE_DEPTH + ext;
+    const outerHeight = THRESHOLD_HEIGHT - totalSlopeDepth * Math.tan(THRESHOLD_SLOPE_ANGLE);
     const s = new THREE.Shape();
-    // Profile in XY (X = depth from exterior, Y = height). After rotation, X maps to depth.
-    // X=0 is exterior outer edge; X=FRAME_DEPTH is interior edge.
-    s.moveTo(0, 0); // exterior bottom corner
-    s.lineTo(0, mm(THRESHOLD_OUTER_HEIGHT)); // exterior top (lower — start of slope)
-    s.lineTo(mm(THRESHOLD_SLOPE_DEPTH), mm(THRESHOLD_HEIGHT)); // end of slope / start of flat
-    s.lineTo(mm(FRAME_DEPTH), mm(THRESHOLD_HEIGHT)); // interior top
-    s.lineTo(mm(FRAME_DEPTH), 0); // interior bottom
+    // Profile in XY: X = depth from new exterior edge, Y = height
+    // X=0 is new exterior outer edge (extended); X = ext+FRAME_DEPTH is interior edge
+    s.moveTo(0, 0);                                        // exterior bottom
+    s.lineTo(0, Math.max(outerHeight, 0));                  // exterior top
+    s.lineTo(mm(totalSlopeDepth), mm(THRESHOLD_HEIGHT));    // end of slope
+    s.lineTo(mm(totalSlopeDepth + THRESHOLD_FLAT_DEPTH), mm(THRESHOLD_HEIGHT)); // interior top
+    s.lineTo(mm(totalSlopeDepth + THRESHOLD_FLAT_DEPTH), 0); // interior bottom
     s.closePath();
     return s;
-  }, []);
-  const settings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
-  const debugMat = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#ff00ff',           // magenta — easy to spot during development
-    roughness: 0.75,
-    metalness: 0.0
-  }), []);
-  return (
-    <mesh castShadow receiveShadow rotation={[0, Math.PI / 2, 0]} position={[-len / 2, 0, halfD]}>
-      <extrudeGeometry args={[shape, settings]} />
-      <primitive object={debugMat} attach="material" />
-    </mesh>
-  );
+  }, [thresholdType, extension]);
+
+  const standardSettings = useMemo(() => ({ depth: len, bevelEnabled: false }), [len]);
+
+  // Standard: offset Z so interior edge aligns with frame interior (-halfD)
+  // Total depth of shape = extension + FRAME_DEPTH
+  // Shape X=0 maps to world Z = halfD + mm(extension) (further exterior)
+  // Using same rotation [0, PI/2, 0]: shape X → world +Z
+  // Position Z: halfD + mm(extension) so X=0 sits at exterior + extension
+  const extMm = Math.max(0, Math.min(100, extension));
+  const standardZOffset = halfD + mm(extMm);
+
+  // ── Aluminium ──
+  const aluMat = useMemo(() => {
+    if (thresholdType !== 'aluminium') return null;
+    return new THREE.MeshStandardMaterial({
+      color: '#a8aaac', roughness: 0.3, metalness: 0.7
+    });
+  }, [thresholdType]);
+
+  // ── Low Profile ──
+  const lowMat = useMemo(() => {
+    if (thresholdType !== 'low-profile') return null;
+    return new THREE.MeshStandardMaterial({
+      color: '#a8aaac', roughness: 0.3, metalness: 0.7
+    });
+  }, [thresholdType]);
+
+  if (thresholdType === 'standard') {
+    return (
+      <mesh castShadow receiveShadow rotation={[0, Math.PI / 2, 0]} position={[-len / 2, 0, standardZOffset]}>
+        <extrudeGeometry args={[standardShape, standardSettings]} />
+        <primitive object={mat} attach="material" />
+      </mesh>
+    );
+  }
+
+  if (thresholdType === 'aluminium') {
+    // 93mm depth (FRAME_DEPTH) × 5mm height, centered on frame depth
+    return (
+      <mesh castShadow receiveShadow position={[0, mm(5) / 2, 0]}>
+        <boxGeometry args={[len, mm(5), mm(FRAME_DEPTH)]} />
+        <primitive object={aluMat} attach="material" />
+      </mesh>
+    );
+  }
+
+  if (thresholdType === 'low-profile') {
+    // 40mm wide × 3mm height, centered under door leaf position
+    // Sits at rebate Z (where door leaf sits)
+    const leafZ = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
+    return (
+      <mesh castShadow receiveShadow position={[0, mm(3) / 2, leafZ]}>
+        <boxGeometry args={[len, mm(3), mm(40)]} />
+        <primitive object={lowMat} attach="material" />
+      </mesh>
+    );
+  }
+
+  return null;
 }
 
 // ═══ Top Rail ═══
@@ -375,6 +430,7 @@ function Transom({ transomWidth, intCuts, mat, matInt, debugColors }) {
 export default function DoorFrame({
   width = 800, height = 1200, material, materialInt, sealColour = 'black',
   mullions = [], transoms = [], debugColors = false,
+  thresholdType = 'standard', thresholdExtension = 0,
 }) {
   const W = mm(width);
   const H = mm(height);
@@ -489,7 +545,7 @@ export default function DoorFrame({
   return (
     <group>
       <group position={[0, -H / 2, 0]}>
-        <Threshold width={width} mat={material} />
+        <Threshold width={width} mat={material} thresholdType={thresholdType} extension={thresholdExtension} />
       </group>
       <group position={[0, H / 2 - mm(FRAME_FACE), 0]}>
         <TopRail width={width} cuts={railCuts} mat={material} matInt={materialInt} debugColors={debugColors} />

@@ -914,11 +914,11 @@
           <div class="dim-row">
             <div class="input-group" id="d-side-left-group" style="display:none;">
               <label for="d-side-left-width">Left Panel Width (mm):</label>
-              <input type="number" id="d-side-left-width" min="200" max="800" value="400" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+              <input type="number" id="d-side-left-width" min="200" max="800" value="500" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
             </div>
             <div class="input-group" id="d-side-right-group" style="display:none;">
               <label for="d-side-right-width">Right Panel Width (mm):</label>
-              <input type="number" id="d-side-right-width" min="200" max="800" value="400" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+              <input type="number" id="d-side-right-width" min="200" max="800" value="500" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
             </div>
           </div>
           <p style="font-size:0.65rem;color:#999;margin-top:2px;">Side panels: 200–800mm</p>
@@ -1000,9 +1000,12 @@
             <div class="radio-option"><input type="radio" id="d-threshold-low" name="d-threshold" value="low-profile"><label for="d-threshold-low" class="radio-label">Low Profile (wheelchair accessible)</label></div>
           </div>
         </div>
+        <div class="input-group" id="d-threshold-extension-row">
+          <label for="d-threshold-extension">Sill Extension (mm):</label>
+          <input type="number" id="d-threshold-extension" min="0" max="100" value="0" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+          <small style="color:#888;font-size:11px;margin-top:4px;display:block;">Extension beyond frame (0–100mm). Slope angle stays the same — longer extension = lower sill edge.</small>
+        </div>
       </div>
-
-      <!-- Door Glass Type -->
       <div class="config-section" data-for="door" data-category="door-glass" style="display:none;">
         <h3>Step 3: Glass Type</h3>
         <div class="input-group">
@@ -3796,7 +3799,7 @@
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
   </style>
-  <script type="module" src="3d/assets/window3d.js?v=36"></script>
+  <script type="module" src="3d/assets/window3d.js?v=37"></script>
   <script>
     // Force close ironmongery gallery after everything loads
     window.addEventListener('load', function() {

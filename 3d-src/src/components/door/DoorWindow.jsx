@@ -367,6 +367,8 @@ export default function DoorWindow({
   sideHBars = 0,
   sideVBars = 0,
   sideStyle = 'full-glass',
+  thresholdType = 'standard',
+  thresholdExtension = 0,
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -412,6 +414,8 @@ export default function DoorWindow({
         mullions={layoutDef.mullions || []}
         transoms={layoutDef.transoms || []}
         debugColors={false}
+        thresholdType={thresholdType}
+        thresholdExtension={thresholdExtension}
       />
 
       {/* ─── Panels (leaves) ─── */}
@@ -544,6 +548,8 @@ export default function DoorWindow({
           doorStyle={doorStyle}
           paneling={paneling}
           sealColour={sealColour}
+          thresholdType={thresholdType}
+          thresholdExtension={thresholdExtension}
           position={[-W / 2 - mm(sideLeftWidth) / 2, 0, 0]}
         />
       )}
@@ -564,6 +570,8 @@ export default function DoorWindow({
           doorStyle={doorStyle}
           paneling={paneling}
           sealColour={sealColour}
+          thresholdType={thresholdType}
+          thresholdExtension={thresholdExtension}
           position={[W / 2 + mm(sideRightWidth) / 2, 0, 0]}
         />
       )}

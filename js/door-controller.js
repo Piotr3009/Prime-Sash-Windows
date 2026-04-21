@@ -67,6 +67,7 @@
       openDirection: checked('d-open-direction') || 'inward',
       lockType: checked('d-lock-type') || 'multipoint',
       threshold: checked('d-threshold') || 'standard',
+      thresholdExtension: numVal('d-threshold-extension'),
       quantity: numVal('d-quantity') || 1,
       notes: val('d-notes') || '',
       // Colour
@@ -108,7 +109,9 @@
       sameColor: config.sameColor,
       woodColor: config.woodColor,
       woodColorInt: config.woodColorInt,
-      woodColorExt: config.woodColorExt
+      woodColorExt: config.woodColorExt,
+      thresholdType: config.threshold,
+      thresholdExtension: config.thresholdExtension
     });
 
     window.currentConfig = getDoorConfig();
@@ -185,7 +188,7 @@
     }, 300);
 
     // Dimension inputs
-    ['d-width', 'd-height', 'd-side-left-width', 'd-side-right-width'].forEach(function(id) {
+    ['d-width', 'd-height', 'd-side-left-width', 'd-side-right-width', 'd-threshold-extension'].forEach(function(id) {
       var el = $(id);
       if (el) el.addEventListener('input', debouncedUpdate);
     });
@@ -195,8 +198,7 @@
       'd-hbars', 'd-vbars',
       'd-side-hbars', 'd-side-vbars',
       'd-glass-type', 'd-glass-finish', 'd-spacer-color',
-      'd-hinge-side', 'd-open-direction', 'd-lock-type',
-      'd-threshold'
+      'd-hinge-side', 'd-open-direction', 'd-lock-type'
     ].forEach(function(name) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(function(radio) {
         radio.addEventListener('change', debouncedUpdate);
@@ -221,6 +223,20 @@
     // Quantity
     var qtyEl = $('d-quantity');
     if (qtyEl) qtyEl.addEventListener('input', debouncedUpdate);
+
+    // Threshold type → show/hide extension input
+    function updateThresholdUI() {
+      var type = checked('d-threshold') || 'standard';
+      var extRow = $('d-threshold-extension-row');
+      if (extRow) extRow.style.display = type === 'standard' ? '' : 'none';
+    }
+    document.querySelectorAll('input[name="d-threshold"]').forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        updateThresholdUI();
+        debouncedUpdate();
+      });
+    });
+    updateThresholdUI(); // initial state
   }
 
   // ─── Add to estimate ───
