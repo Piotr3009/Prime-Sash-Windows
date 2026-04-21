@@ -582,16 +582,30 @@ export default function DoorWindow({
         const firstPanel = layoutDef.panels && layoutDef.panels[0];
         if (!firstPanel || firstPanel.hinge === 'fixed' || firstPanel.hinge === 'top') return null;
 
+        // Leaf dimensions — same calculation as DoorPanel positioning above
+        const leafGap = 4;
+        const leafW = firstPanel.w + REBATE_STEP * 2 - leafGap * 2;
+        const leafH = firstPanel.h + REBATE_STEP * 2 - leafGap * 2;
+        const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
+
+        // Hinge X: at leaf edge (junction of door and frame), NOT frame outer edge
         const hingeSide = firstPanel.hinge; // 'left' or 'right'
-        const hingeX = hingeSide === 'left' ? -W / 2 : W / 2;
-        const hingeZ = halfD + mm(5); // barrel protrudes slightly from exterior face
+        const hingeX = hingeSide === 'left' ? -mm(leafW) / 2 : mm(leafW) / 2;
+
+        // Hinge Z: barrel center at frame exterior face
+        const hingeZ = halfD;
+
         const hingeR = mm(5);  // 10mm diameter = 5mm radius
         const hingeH = mm(100); // 100mm tall barrel
 
-        // Hinge Y positions (relative to door center)
-        const topY    = H / 2 - mm(100);    // 100mm from top
-        const middleY = mm(100);              // 100mm above center
-        const bottomY = -H / 2 + mm(150);   // 150mm from bottom
+        // Hinge Y positions — relative to DOOR LEAF, not frame
+        const leafTop    = openingCenterY + mm(leafH) / 2;
+        const leafBottom = openingCenterY - mm(leafH) / 2;
+        const leafCenter = openingCenterY;
+
+        const topY    = leafTop - mm(100);       // 100mm below door top edge
+        const middleY = leafCenter + mm(100);    // 100mm above door center
+        const bottomY = leafBottom + mm(150);    // 150mm above door bottom edge
 
         const positions = [topY, middleY, bottomY];
 
