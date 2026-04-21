@@ -1020,10 +1020,14 @@ export default function App() {
       if (cfg.doorType !== undefined) setDoorType(cfg.doorType);
       if (cfg.doorShape !== undefined) setDoorShape(cfg.doorShape);
       if (cfg.doorStyle !== undefined) setDoorStyle(cfg.doorStyle);
+      if (cfg.doorHinge !== undefined) setDoorHinge(cfg.doorHinge);
       if (cfg.hingeSide !== undefined) setDoorHinge(cfg.hingeSide);
+      if (cfg.doorHBars !== undefined) setDoorHBars(cfg.doorHBars);
+      if (cfg.doorVBars !== undefined) setDoorVBars(cfg.doorVBars);
       if (cfg.hBars !== undefined && categoryRef.current === 'door') setDoorHBars(cfg.hBars);
       if (cfg.vBars !== undefined && categoryRef.current === 'door') setDoorVBars(cfg.vBars);
       if (cfg.centerMullion !== undefined) setCenterMullion(cfg.centerMullion);
+      if (cfg.paneling !== undefined) setPaneling(cfg.paneling);
       if (cfg.doorPaneling !== undefined) setPaneling(cfg.doorPaneling);
       if (cfg.sidePanels !== undefined) setSidePanels(cfg.sidePanels);
       if (cfg.sideLeftWidth !== undefined) setSideLeftWidth(cfg.sideLeftWidth);
