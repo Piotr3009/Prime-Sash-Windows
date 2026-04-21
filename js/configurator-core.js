@@ -745,7 +745,12 @@ class ConfiguratorCore {
     // Skip sash price update when non-sash product is active
     var productRange = (document.querySelector('input[name="product-range"]:checked') || {}).value;
     var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
-    if (productRange === 'doors' || windowType === 'casement') return;
+    console.log('[updateAll] productRange:', productRange, 'windowType:', windowType);
+    if (productRange === 'doors' || windowType === 'casement') {
+      console.log('[updateAll] SKIPPED (non-sash)');
+      return;
+    }
+    console.log('[updateAll] RUNNING for sash');
     
     // Merge state with currentConfig (currentConfig has color data)
     const stateConfig = this.state.get();

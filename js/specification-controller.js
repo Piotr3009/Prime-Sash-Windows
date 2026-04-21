@@ -892,6 +892,8 @@ class SpecificationController {
   }
 
   applyColor() {
+    console.log('[applyColor] called');
+    console.trace('[applyColor] stack trace');
     const colorType = document.querySelector('input[name="color-type"]:checked')?.value;
 
     document.getElementById('spec-color').style.display = 'block';
