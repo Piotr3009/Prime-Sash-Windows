@@ -134,7 +134,7 @@ function Threshold({ width, mat, thresholdType = 'standard', extension = 0 }) {
     // Profile in XY: X = depth from new exterior edge, Y = height
     // X=0 is new exterior outer edge (extended); X = ext+FRAME_DEPTH is interior edge
     s.moveTo(0, 0);                                        // exterior bottom
-    s.lineTo(0, Math.max(outerHeight, 0));                  // exterior top
+    s.lineTo(0, mm(Math.max(outerHeight, 0)));              // exterior top
     s.lineTo(mm(totalSlopeDepth), mm(THRESHOLD_HEIGHT));    // end of slope
     s.lineTo(mm(totalSlopeDepth + THRESHOLD_FLAT_DEPTH), mm(THRESHOLD_HEIGHT)); // interior top
     s.lineTo(mm(totalSlopeDepth + THRESHOLD_FLAT_DEPTH), 0); // interior bottom
@@ -178,9 +178,9 @@ function Threshold({ width, mat, thresholdType = 'standard', extension = 0 }) {
   }
 
   if (thresholdType === 'aluminium') {
-    // 93mm depth (FRAME_DEPTH) × 5mm height, centered on frame depth
+    // 93mm depth (FRAME_DEPTH) × 5mm height, top aligned with standard threshold top
     return (
-      <mesh castShadow receiveShadow position={[0, mm(5) / 2, 0]}>
+      <mesh castShadow receiveShadow position={[0, mm(THRESHOLD_HEIGHT) - mm(5) / 2, 0]}>
         <boxGeometry args={[len, mm(5), mm(FRAME_DEPTH)]} />
         <primitive object={aluMat} attach="material" />
       </mesh>
@@ -188,11 +188,11 @@ function Threshold({ width, mat, thresholdType = 'standard', extension = 0 }) {
   }
 
   if (thresholdType === 'low-profile') {
-    // 40mm wide × 3mm height, centered under door leaf position
+    // 40mm wide × 3mm height, top aligned with standard threshold top
     // Sits at rebate Z (where door leaf sits)
     const leafZ = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
     return (
-      <mesh castShadow receiveShadow position={[0, mm(3) / 2, leafZ]}>
+      <mesh castShadow receiveShadow position={[0, mm(THRESHOLD_HEIGHT) - mm(3) / 2, leafZ]}>
         <boxGeometry args={[len, mm(3), mm(40)]} />
         <primitive object={lowMat} attach="material" />
       </mesh>
