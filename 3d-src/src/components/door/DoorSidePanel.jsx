@@ -1,24 +1,18 @@
 // DoorSidePanel — sidelight panel attached next to main door.
-// Reuses DoorFrame (frame + bottom sill) + DoorGlazing (glass + bars with chamfer/ovolo).
-// For sideStyle='same' with non-full-glass doors: adds a simple bottom rail + panel area
-// that mirrors the door's bottom rail height (not a full DoorPanel leaf, side panel has no leaf).
+// Uses DoorFrame (outer frame + threshold) + DoorPanel with hingeType='fixed'
+// so the side panel gets the same leaf structure as the main door:
+//   - chamfer EXT + ovolo INT on stiles and rails
+//   - beading / raised-and-fielded panel support
+//   - correct rebate overlap (no gaps)
 //
 // Style modes:
-//   sideStyle='full-glass' → full glass, no bottom rail
-//   sideStyle='same' → matches main door bottom rail height (full/3/4/half)
+//   sideStyle='full-glass' → DoorPanel with doorStyle='full-glass'
+//   sideStyle='same'       → DoorPanel mirrors main door's doorStyle
 
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import DoorFrame, { FRAME_FACE, BOTTOM_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, mm } from './DoorFrame';
-import DoorGlazing from './DoorGlazing';
-
-// Bottom rail heights mirror DoorPanel's logic (effectiveStyle 'three-quarter' / 'half-glazed').
-// For full-glass there is no bottom rail added — DoorFrame's sill is the only wood at bottom.
-function bottomRailHeightMm(doorStyle, totalHeight) {
-  if (doorStyle === 'three-quarter') return Math.round(totalHeight / 3);
-  if (doorStyle === 'half-glazed') return Math.round(totalHeight / 2);
-  return 0; // full-glass
-}
+import DoorFrame, { FRAME_FACE, BOTTOM_FACE, FRAME_DEPTH, EXT_DEPTH, REBATE_STEP, GASKET_T, mm } from './DoorFrame';
+import DoorPanel from './DoorPanel';
 
 export default function DoorSidePanel({
   width = 400,
@@ -35,7 +29,7 @@ export default function DoorSidePanel({
   position = [0, 0, 0],
   sideStyle = 'full-glass',  // 'full-glass' | 'same'
   doorStyle = 'full-glass',  // used when sideStyle === 'same'
-  paneling = 'flat',         // reserved — not yet wired to side panel (simple bottom rail for now)
+  paneling = 'flat',
   sealColour = 'black',
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
@@ -51,44 +45,29 @@ export default function DoorSidePanel({
     clearcoat: 0.06, clearcoatRoughness: 0.4,
   }), [colorI]);
 
-  // Effective style for this panel
+  // Effective door style for the leaf
   const effectiveStyle = sideStyle === 'same' ? doorStyle : 'full-glass';
-  const bottomRailMm = bottomRailHeightMm(effectiveStyle, height);  // 0 for full-glass
 
-  // Frame (DoorFrame) exposes inner cavity of:
-  //   width: FRAME_FACE left + innerW + FRAME_FACE right  →  innerW = width - 2*FRAME_FACE
-  //   height: FRAME_FACE top + innerH + BOTTOM_FACE bottom → innerH = height - FRAME_FACE - BOTTOM_FACE
+  // Inner cavity dimensions (same calculation as DoorWindow)
   const innerW = width - FRAME_FACE * 2;
   const innerH = height - FRAME_FACE - BOTTOM_FACE;
 
-  // World Y coordinates for inner cavity edges (DoorFrame sits centered with full-height frame)
-  const H = mm(height);
-  const innerBottomY = -H / 2 + mm(BOTTOM_FACE);  // top of bottom sill
-  const innerTopY = H / 2 - mm(FRAME_FACE);       // bottom of top rail
+  // Leaf dimensions — extends into rebate, same as DoorWindow (line 420-422)
+  const leafGap = 4;
+  const leafW = innerW + REBATE_STEP * 2 - leafGap * 2;
+  const leafH = innerH + REBATE_STEP * 2 - leafGap * 2;
 
-  // Bottom rail (for 3/4 or half glazed styles)
-  // The rail fills the space between the frame sill top and (innerBottomY + bottomRail height).
-  // Rail sits flush with the frame on left and right (innerW width), depth matches frame depth.
-  const railHeightM = mm(bottomRailMm);
-  const railBottomY = innerBottomY;
-  const railTopY = innerBottomY + railHeightM;
+  // Leaf Z position — sits on gasket, flush with exterior (same as DoorWindow line 424)
+  const halfD = mm(FRAME_DEPTH) / 2;
+  const leafZ = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
 
-  // Glass area after rail is placed
-  const glassBottomY = railTopY;
-  const glassTopY = innerTopY;
-  const glassHeightM = glassTopY - glassBottomY;
-
-  // DoorGlazing is positioned by its CENTER
-  const glassCenterY = (glassBottomY + glassTopY) / 2;
-  const glassWidthM = mm(innerW);
-
-  // Full-glass mode: glass fills entire inner cavity
-  const fullGlassCenterY = (innerBottomY + innerTopY) / 2;
-  const fullGlassHeightM = innerTopY - innerBottomY;
+  // Opening center Y offset — bottom face (68mm) taller than top face (57mm)
+  // (same as DoorWindow line 426)
+  const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
 
   return (
     <group position={position}>
-      {/* Outer frame + bottom sill — same profile as main door */}
+      {/* Outer frame + threshold — same profile as main door */}
       <DoorFrame
         width={width}
         height={height}
@@ -97,47 +76,24 @@ export default function DoorSidePanel({
         sealColour={sealColour}
       />
 
-      {/* Bottom rail (only for 3/4 or half glazed 'same' mode).
-          Simple box spanning the inner cavity width. Depth matches frame. */}
-      {bottomRailMm > 0 && (
-        <mesh
-          castShadow
-          receiveShadow
-          position={[0, (railBottomY + railTopY) / 2, 0]}
-        >
-          <boxGeometry args={[glassWidthM, railHeightM, mm(FRAME_DEPTH)]} />
-          <primitive object={extMaterial} attach="material" />
-        </mesh>
-      )}
-
-      {/* Glass + bars (DoorGlazing) — reuses chamfer EXT + ovolo INT bar geometry */}
-      {effectiveStyle === 'full-glass' ? (
-        <DoorGlazing
-          width={innerW}
-          height={innerH}
-          glassType={glassType}
-          spacerColor={spacerColor}
-          hBars={hBars}
-          vBars={vBars}
-          barMaterial={extMaterial}
-          barMaterialInt={intMaterial}
-          glassFinish={glassFinish}
-          position={[0, fullGlassCenterY, 0]}
-        />
-      ) : (
-        <DoorGlazing
-          width={innerW}
-          height={Math.round(glassHeightM * 1000)}
-          glassType={glassType}
-          spacerColor={spacerColor}
-          hBars={hBars}
-          vBars={vBars}
-          barMaterial={extMaterial}
-          barMaterialInt={intMaterial}
-          glassFinish={glassFinish}
-          position={[0, glassCenterY, 0]}
-        />
-      )}
+      {/* Fixed leaf — full SashFrame with chamfer/ovolo beads, beading, paneling */}
+      <DoorPanel
+        width={leafW}
+        height={leafH}
+        hingeType="fixed"
+        opening={0}
+        doorStyle={effectiveStyle}
+        centerMullion={false}
+        paneling={sideStyle === 'same' ? paneling : 'flat'}
+        material={extMaterial}
+        materialInt={intMaterial}
+        spacerColor={spacerColor}
+        glassFinish={glassFinish}
+        hBars={hBars}
+        vBars={vBars}
+        ironmongery="brass"
+        position={[0, openingCenterY, leafZ]}
+      />
     </group>
   );
 }
