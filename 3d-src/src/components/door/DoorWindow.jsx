@@ -514,19 +514,30 @@ export default function DoorWindow({
         );
       })()}
 
-      {/* ═══ Sill Extension — flush bottom, sloped profile ═══ */}
-      {sillExtension > 0 && (() => {
-        const sillProj = mm(sillExtension);
-        const extra = sillWider ? mm(50) : 0;
-        const sillW = W + extra * 2;
-        const sillH = mm(25);
-        const sillY = -H / 2 + sillH / 2; // flush — raised by thickness
-        const sillZ = halfD + sillProj / 2;
+      {/* ═══ Sill Wider — 50mm ear extensions on each side of full configuration ═══ */}
+      {sillWider && (() => {
+        // Calculate outermost edges of full configuration (door + side panels)
+        const hasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
+        const hasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
+        const totalLeftX = hasLeft ? -W / 2 - mm(sideLeftWidth) : -W / 2;
+        const totalRightX = hasRight ? W / 2 + mm(sideRightWidth) : W / 2;
+        const earW = mm(50);
+        const earH = mm(40); // THRESHOLD_HEIGHT
+        const earD = mm(93); // FRAME_DEPTH
+        const earY = -H / 2 + earH / 2;
         return (
-          <mesh position={[0, sillY, sillZ]} castShadow receiveShadow>
-            <boxGeometry args={[sillW, sillH, sillProj]} />
-            <primitive object={extMaterial} attach="material" />
-          </mesh>
+          <group>
+            {/* Left ear */}
+            <mesh position={[totalLeftX - earW / 2, earY, 0]} castShadow receiveShadow>
+              <boxGeometry args={[earW, earH, earD]} />
+              <primitive object={extMaterial} attach="material" />
+            </mesh>
+            {/* Right ear */}
+            <mesh position={[totalRightX + earW / 2, earY, 0]} castShadow receiveShadow>
+              <boxGeometry args={[earW, earH, earD]} />
+              <primitive object={extMaterial} attach="material" />
+            </mesh>
+          </group>
         );
       })()}
 

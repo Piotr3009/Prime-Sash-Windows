@@ -926,7 +926,7 @@
         <!-- Door Opening -->
         <div class="input-group" style="margin-top:12px;">
           <label for="d-door-opening">Door Opening: <span id="d-door-opening-val">0</span>%</label>
-          <input type="range" id="d-door-opening" min="0" max="100" value="0" step="5" style="width:100%;">
+          <input type="range" id="d-door-opening" min="0" max="100" value="0" step="1" style="width:100%;">
         </div>
       </div>
 
@@ -1009,11 +1009,6 @@
           <label for="d-threshold-extension">Sill Extension (mm):</label>
           <input type="number" id="d-threshold-extension" min="0" max="100" value="0" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
           <small style="color:#888;font-size:11px;margin-top:4px;display:block;">Extension beyond frame (0–100mm). Slope angle stays the same — longer extension = lower sill edge.</small>
-        </div>
-        <div class="input-group" style="margin-top:12px;">
-          <label for="d-sill-extension">Window Sill Projection (mm):</label>
-          <input type="number" id="d-sill-extension" min="0" max="200" value="0" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
-          <small style="color:#888;font-size:11px;margin-top:4px;display:block;">Exterior sill projection beyond the frame face.</small>
         </div>
         <div class="input-group" style="margin-top:8px;">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
@@ -3814,7 +3809,7 @@
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
   </style>
-  <script type="module" src="3d/assets/window3d.js?v=42"></script>
+  <script type="module" src="3d/assets/window3d.js?v=43"></script>
   <script>
     // Force close ironmongery gallery after everything loads
     window.addEventListener('load', function() {
