@@ -576,6 +576,53 @@ export default function DoorWindow({
         />
       )}
 
+      {/* ═══ Door Hinges — visible barrel cylinders on exterior ═══ */}
+      {(() => {
+        // Determine hinge side from first panel
+        const firstPanel = layoutDef.panels && layoutDef.panels[0];
+        if (!firstPanel || firstPanel.hinge === 'fixed' || firstPanel.hinge === 'top') return null;
+
+        const hingeSide = firstPanel.hinge; // 'left' or 'right'
+        const hingeX = hingeSide === 'left' ? -W / 2 : W / 2;
+        const hingeZ = halfD + mm(5); // barrel protrudes slightly from exterior face
+        const hingeR = mm(5);  // 10mm diameter = 5mm radius
+        const hingeH = mm(100); // 100mm tall barrel
+
+        // Hinge Y positions (relative to door center)
+        const topY    = H / 2 - mm(100);    // 100mm from top
+        const middleY = mm(100);              // 100mm above center
+        const bottomY = -H / 2 + mm(150);   // 150mm from bottom
+
+        const positions = [topY, middleY, bottomY];
+
+        // 4th hinge if door > 2400mm: between top and middle
+        if (height > 2400) {
+          positions.push((topY + middleY) / 2);
+        }
+
+        // Hinge barrel material — matches ironmongery colour
+        const hingeColors = {
+          brass:         '#d4af37',
+          chrome:        '#e8eaec',
+          stainless:     '#c8c8c8',
+          antique_brass: '#9c7722',
+          black:         '#1a1a1a',
+          white:         '#f0f0f0',
+        };
+        const hingeColor = hingeColors[ironmongery] || '#c8c8c8';
+
+        return (
+          <group>
+            {positions.map((y, i) => (
+              <mesh key={`hinge-${i}`} position={[hingeX, y, hingeZ]} castShadow>
+                <cylinderGeometry args={[hingeR, hingeR, hingeH, 16]} />
+                <meshStandardMaterial color={hingeColor} metalness={0.7} roughness={0.3} />
+              </mesh>
+            ))}
+          </group>
+        );
+      })()}
+
       {showGuides && (
         <group>
           {/* Width — top */}

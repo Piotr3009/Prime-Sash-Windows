@@ -69,6 +69,7 @@
       lockType: checked('d-lock-type') || 'multipoint',
       threshold: checked('d-threshold') || 'standard',
       thresholdExtension: numVal('d-threshold-extension'),
+      doorOpening: (numVal('d-door-opening') || 0) / 100,
       quantity: numVal('d-quantity') || 1,
       notes: val('d-notes') || '',
       // Colour
@@ -111,7 +112,8 @@
       woodColorInt: config.woodColorInt,
       woodColorExt: config.woodColorExt,
       thresholdType: config.threshold,
-      thresholdExtension: config.thresholdExtension
+      thresholdExtension: config.thresholdExtension,
+      doorOpening: config.doorOpening
     });
 
     window.currentConfig = getDoorConfig();
@@ -188,7 +190,7 @@
     }, 300);
 
     // Dimension inputs
-    ['d-width', 'd-height', 'd-side-left-width', 'd-side-right-width', 'd-threshold-extension'].forEach(function(id) {
+    ['d-width', 'd-height', 'd-side-left-width', 'd-side-right-width', 'd-threshold-extension', 'd-door-opening'].forEach(function(id) {
       var el = $(id);
       if (el) el.addEventListener('input', debouncedUpdate);
     });
@@ -237,6 +239,15 @@
       });
     });
     updateThresholdUI(); // initial state
+
+    // Opening slider display
+    var openSlider = $('d-door-opening');
+    var openVal = $('d-door-opening-val');
+    if (openSlider && openVal) {
+      openSlider.addEventListener('input', function() {
+        openVal.textContent = openSlider.value;
+      });
+    }
   }
 
   // ─── Add to estimate ───

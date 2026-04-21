@@ -923,6 +923,11 @@
           </div>
           <p style="font-size:0.65rem;color:#999;margin-top:2px;">Side panels: 200–800mm</p>
         </div>
+        <!-- Door Opening -->
+        <div class="input-group" style="margin-top:12px;">
+          <label for="d-door-opening">Door Opening: <span id="d-door-opening-val">0</span>%</label>
+          <input type="range" id="d-door-opening" min="0" max="100" value="0" step="5" style="width:100%;">
+        </div>
       </div>
 
       <!-- Door Bars -->
@@ -3798,7 +3803,7 @@
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
   </style>
-  <script type="module" src="3d/assets/window3d.js?v=39"></script>
+  <script type="module" src="3d/assets/window3d.js?v=40"></script>
   <script>
     // Force close ironmongery gallery after everything loads
     window.addEventListener('load', function() {
