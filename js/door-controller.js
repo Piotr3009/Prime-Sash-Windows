@@ -192,7 +192,7 @@
     }, 300);
 
     // Dimension inputs
-    ['d-width', 'd-height', 'd-side-left-width', 'd-side-right-width', 'd-threshold-extension', 'd-door-opening'].forEach(function(id) {
+    ['d-width', 'd-height', 'd-side-left-width', 'd-side-right-width', 'd-threshold-extension'].forEach(function(id) {
       var el = $(id);
       if (el) el.addEventListener('input', debouncedUpdate);
     });
@@ -246,12 +246,15 @@
     });
     updateThresholdUI(); // initial state
 
-    // Opening slider display
+    // Opening slider — immediate update (no debounce) for smooth animation
     var openSlider = $('d-door-opening');
     var openVal = $('d-door-opening-val');
     if (openSlider && openVal) {
       openSlider.addEventListener('input', function() {
         openVal.textContent = openSlider.value;
+        if (window.update3D) {
+          window.update3D({ doorOpening: (parseInt(openSlider.value) || 0) / 100 });
+        }
       });
     }
   }

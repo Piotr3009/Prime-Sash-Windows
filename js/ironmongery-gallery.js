@@ -27,7 +27,7 @@ class IronmongeryGallery {
   setupWindowTypeTabs() {
     document.querySelectorAll('.wt-tab').forEach(tab => {
       tab.addEventListener('click', () => {
-        if (tab.dataset.wt === 'doors') return; // disabled
+        if (false) return; // doors tab enabled
         document.querySelectorAll('.wt-tab').forEach(t => {
           t.classList.remove('active');
           t.style.background = 'transparent';
