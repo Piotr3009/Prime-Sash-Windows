@@ -892,8 +892,10 @@ class SpecificationController {
   }
 
   applyColor() {
-    console.log('[applyColor] called');
-    console.trace('[applyColor] stack trace');
+    // Skip when doors tab is active — door-controller handles its own colors
+    var productRange = (document.querySelector('input[name="product-range"]:checked') || {}).value;
+    if (productRange === 'doors') return;
+
     const colorType = document.querySelector('input[name="color-type"]:checked')?.value;
 
     document.getElementById('spec-color').style.display = 'block';

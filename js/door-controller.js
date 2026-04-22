@@ -88,7 +88,6 @@
     if (typeof window.update3D !== 'function') return;
 
     var config = getDoorConfig();
-    console.log('[DOOR 3D DEBUG] updateDoor3D called, colors:', config.sameColor, config.woodColor, config.woodColorInt, config.woodColorExt);
     window.update3D({
       windowCategory: 'door',
       doorType: config.doorType,
