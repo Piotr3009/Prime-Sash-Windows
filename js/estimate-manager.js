@@ -424,7 +424,36 @@ class EstimateManager {
             });
         }
 
-        // Przycisk "Create New Estimate"
+        // Przycisk "Add Door to Estimate"
+        const doorAddBtn = document.getElementById('d-add-to-estimate');
+        if (doorAddBtn) {
+            doorAddBtn.addEventListener('click', async () => {
+                if (window.estimateSelectorManager) {
+                    const isNew = window.estimateSelectorManager.selectedEstimateId === 'new';
+                    const estimateId = await window.estimateSelectorManager.getOrCreateEstimate();
+                    if (!estimateId) {
+                        console.log('No estimate selected or creation cancelled');
+                        return;
+                    }
+
+                    if (isNew) {
+                        console.log('New estimate created — waiting for user to configure door first');
+                        return;
+                    }
+
+                    // Use door config
+                    const doorConfig = window.getDoorConfig ? window.getDoorConfig() : this.getCurrentWindowConfig();
+                    doorConfig.windowCategory = 'door';
+                    doorConfig.windowName = document.getElementById('d-window-name')?.value || 'Door';
+                    doorConfig.quantity = parseInt(document.getElementById('d-quantity')?.value) || 1;
+                    doorConfig.notes = document.getElementById('d-notes')?.value || '';
+                    const price = this.getCurrentPrice();
+                    await this.addWindowToEstimate(doorConfig, price, estimateId);
+                }
+            });
+        }
+
+        // Przycisk "Create New Estimate" (original)
         const createBtn = document.getElementById('create-new-estimate-btn');
         if (createBtn) {
             createBtn.addEventListener('click', () => {
