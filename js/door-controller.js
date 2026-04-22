@@ -124,6 +124,7 @@
   // ─── Update spec panel ───
   function updateSpecPanel() {
     var config = getDoorConfig();
+    var glassLabels = { 'double': 'Double Glazing', 'triple': 'Triple Glazing', 'passive': 'Passive Glass' };
 
     // Update hints
     var hintDim = $('hint-door-dim');
@@ -131,7 +132,6 @@
 
     var hintGlass = $('hint-door-glass');
     if (hintGlass) {
-      var glassLabels = { 'double': 'Double Glazing', 'triple': 'Triple Glazing', 'passive': 'Passive Glass' };
       hintGlass.textContent = glassLabels[config.glassType] || 'Standard DG';
     }
 
@@ -139,6 +139,117 @@
     if (hintColour) {
       hintColour.textContent = config.sameColor ? 'Single' : 'Dual Colour';
     }
+
+    // ─── Spec panel sections ───
+
+    // Dimensions
+    var specW = $('spec-d-width');
+    var specH = $('spec-d-height');
+    if (specW) specW.textContent = config.width + 'mm';
+    if (specH) specH.textContent = config.height + 'mm';
+
+    var panelsItem = $('spec-d-panels-item');
+    var panelsVal = $('spec-d-panels');
+    var sp = config.sidePanels || 'none';
+    if (panelsItem && panelsVal) {
+      if (sp !== 'none') {
+        panelsItem.style.display = '';
+        var panelDesc = [];
+        if (sp === 'left' || sp === 'both') panelDesc.push('Left ' + (config.sideLeftWidth || 500) + 'mm');
+        if (sp === 'right' || sp === 'both') panelDesc.push('Right ' + (config.sideRightWidth || 500) + 'mm');
+        panelsVal.textContent = panelDesc.join(' + ');
+      } else {
+        panelsItem.style.display = 'none';
+      }
+    }
+
+    // Bars
+    var specBars = $('spec-d-bars');
+    if (specBars) {
+      var hb = config.hBars || 0;
+      var vb = config.vBars || 0;
+      if (hb === 0 && vb === 0) {
+        specBars.textContent = 'None';
+      } else {
+        specBars.textContent = hb + 'H × ' + vb + 'V';
+      }
+    }
+
+    var sideBarsItem = $('spec-d-side-bars-item');
+    var sideBarsVal = $('spec-d-side-bars');
+    if (sideBarsItem && sideBarsVal) {
+      if (sp !== 'none') {
+        sideBarsItem.style.display = '';
+        var sh = config.sideHBars || 0;
+        var sv = config.sideVBars || 0;
+        sideBarsVal.textContent = (sh === 0 && sv === 0) ? 'None' : sh + 'H × ' + sv + 'V';
+      } else {
+        sideBarsItem.style.display = 'none';
+      }
+    }
+
+    // Design
+    var specHinge = $('spec-d-hinge');
+    if (specHinge) specHinge.textContent = (config.hingeSide || 'left') === 'left' ? 'Left' : 'Right';
+
+    var specOpening = $('spec-d-opening');
+    if (specOpening) specOpening.textContent = (config.openDirection || 'inward') === 'inward' ? 'Inward' : 'Outward';
+
+    var specThreshold = $('spec-d-threshold');
+    var thresholdLabels = { 'standard': 'Standard Hardwood', 'aluminium': 'Aluminium', 'low-profile': 'Low Profile' };
+    if (specThreshold) specThreshold.textContent = thresholdLabels[config.threshold] || 'Standard Hardwood';
+
+    var extItem = $('spec-d-extension-item');
+    var extVal = $('spec-d-extension');
+    if (extItem && extVal) {
+      var ext = config.thresholdExtension || 0;
+      if (ext > 0 && config.threshold === 'standard') {
+        extItem.style.display = '';
+        extVal.textContent = ext + 'mm' + (config.sillWider ? ' (wider)' : '');
+      } else {
+        extItem.style.display = 'none';
+      }
+    }
+
+    // Glass
+    var specGlassType = $('spec-d-glass-type');
+    if (specGlassType) specGlassType.textContent = glassLabels[config.glassType] || 'Double Glazing';
+
+    var specGlassFinish = $('spec-d-glass-finish');
+    if (specGlassFinish) {
+      var finishLabels = { 'clear': 'Clear', 'frosted': 'Frosted' };
+      specGlassFinish.textContent = finishLabels[config.glassFinish] || 'Clear';
+    }
+
+    var specSpacer = $('spec-d-spacer');
+    if (specSpacer) {
+      var spacerLabels = { 'silver': 'Silver', 'white': 'White', 'black': 'Black' };
+      specSpacer.textContent = spacerLabels[config.spacerColor] || 'Silver';
+    }
+
+    // Colour
+    var singleEl = $('spec-d-single-color');
+    var dualEl = $('spec-d-dual-color');
+    if (singleEl && dualEl) {
+      if (doorColourState.sameColor) {
+        singleEl.style.display = '';
+        dualEl.style.display = 'none';
+        var nameEl = $('spec-d-color-name');
+        if (nameEl) nameEl.textContent = doorColourState.woodColor || '#F6F6F6';
+      } else {
+        singleEl.style.display = 'none';
+        dualEl.style.display = '';
+        var intEl = $('spec-d-int-color');
+        var extEl = $('spec-d-ext-color');
+        if (intEl) intEl.textContent = doorColourState.woodColorInt || '#F6F6F6';
+        if (extEl) extEl.textContent = doorColourState.woodColorExt || '#F6F6F6';
+      }
+    }
+
+    // Hardware
+    var specLock = $('spec-d-lock');
+    var lockLabels = { 'multipoint': 'Multipoint Lock', 'deadbolt': 'Deadbolt' };
+    if (specLock) specLock.textContent = lockLabels[config.lockType] || 'Multipoint Lock';
 
     // Store config globally
     window.currentConfig = config;

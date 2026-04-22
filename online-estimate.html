@@ -3369,6 +3369,98 @@
         </div>
         
 
+        <!-- Door-specific spec sections -->
+        <div class="spec-section" id="spec-door-dimensions" style="display: none;">
+          <h4>Door Dimensions</h4>
+          <div class="spec-item">
+            <span class="spec-label">Width:</span>
+            <span class="spec-value" id="spec-d-width">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Height:</span>
+            <span class="spec-value" id="spec-d-height">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-panels-item" style="display:none;">
+            <span class="spec-label">Side Panels:</span>
+            <span class="spec-value" id="spec-d-panels">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-bars" style="display: none;">
+          <h4>Georgian Bars</h4>
+          <div class="spec-item">
+            <span class="spec-label">Door Bars:</span>
+            <span class="spec-value" id="spec-d-bars">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-side-bars-item" style="display:none;">
+            <span class="spec-label">Panel Bars:</span>
+            <span class="spec-value" id="spec-d-side-bars">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-design" style="display: none;">
+          <h4>Door Design</h4>
+          <div class="spec-item">
+            <span class="spec-label">Hinge Side:</span>
+            <span class="spec-value" id="spec-d-hinge">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Opening:</span>
+            <span class="spec-value" id="spec-d-opening">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Threshold:</span>
+            <span class="spec-value" id="spec-d-threshold">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-extension-item" style="display:none;">
+            <span class="spec-label">Sill Extension:</span>
+            <span class="spec-value" id="spec-d-extension">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-glass" style="display: none;">
+          <h4>Glass</h4>
+          <div class="spec-item">
+            <span class="spec-label">Type:</span>
+            <span class="spec-value" id="spec-d-glass-type">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Finish:</span>
+            <span class="spec-value" id="spec-d-glass-finish">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Spacer:</span>
+            <span class="spec-value" id="spec-d-spacer">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-colour" style="display: none;">
+          <h4>Colour</h4>
+          <div id="spec-d-single-color" style="display:none;">
+            <div class="spec-item">
+              <span class="spec-label">Colour:</span>
+              <span class="spec-value" id="spec-d-color-name">-</span>
+            </div>
+          </div>
+          <div id="spec-d-dual-color" style="display:none;">
+            <div class="spec-item">
+              <span class="spec-label">Interior:</span>
+              <span class="spec-value" id="spec-d-int-color">-</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Exterior:</span>
+              <span class="spec-value" id="spec-d-ext-color">-</span>
+            </div>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-hardware" style="display: none;">
+          <h4>Hardware</h4>
+          <div class="spec-item">
+            <span class="spec-label">Lock:</span>
+            <span class="spec-value" id="spec-d-lock">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-ironmongery-item" style="display:none;">
+            <span class="spec-label">Ironmongery:</span>
+            <span class="spec-value" id="spec-d-ironmongery">-</span>
+          </div>
+        </div>
+
         <!-- Casement-specific spec sections -->
         <div class="spec-section" id="spec-casement-glass" style="display: none;">
           <h4>Glass Specification</h4>
@@ -4012,6 +4104,7 @@
         var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
         var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+        var isDoors = !isWindows;
 
         console.log('🔄 updateSections: isWindows=' + isWindows);
 
@@ -4026,6 +4119,29 @@
         fixShapeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         doorTypeSection.style.display = isWindows ? 'none' : 'block';
         if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
+
+        // Show/hide door spec sections
+        var doorSpecs = ['spec-door-dimensions', 'spec-door-bars', 'spec-door-design', 'spec-door-glass', 'spec-door-colour', 'spec-door-hardware'];
+        doorSpecs.forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.style.display = isDoors ? '' : 'none';
+        });
+
+        // Hide sash spec sections when doors active
+        if (isDoors) {
+          var sashSpecs = ['spec-window-type', 'spec-dimensions', 'spec-bars', 'spec-fix-bars', 'spec-frame', 'spec-color', 'spec-glass', 'spec-opening', 'spec-pas24', 'spec-details', 'spec-glass-spec'];
+          sashSpecs.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+          });
+        }
+
+        // Update spec panel title
+        var specTitle = document.querySelector('.window-specification h2');
+        if (specTitle) specTitle.textContent = isDoors ? 'Door Specification' : 'Window Specification';
+
+        // Trigger door spec update
+        if (isDoors && window.updateDoorSpec) window.updateDoorSpec();
 
         // Update product range hint
         var hintEl = document.getElementById('hint-product-range');
@@ -4273,6 +4389,7 @@
               window.doorColourState.woodColorExt = state.woodColorExt;
             }
             if (window.updateDoor3D) window.updateDoor3D();
+            if (window.updateDoorSpec) window.updateDoorSpec();
           }
         });
       }
