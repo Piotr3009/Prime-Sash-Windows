@@ -78,6 +78,13 @@
       woodColor: doorColourState.woodColor,
       woodColorInt: doorColourState.woodColorInt,
       woodColorExt: doorColourState.woodColorExt,
+      colorType: doorColourState.sameColor ? 'single' : 'dual',
+      colorSingleName: doorColourState.colorName || '',
+      colorSingleRal: doorColourState.colorRal || '',
+      colorInteriorName: doorColourState.colorIntName || '',
+      colorInteriorRal: doorColourState.colorIntRal || '',
+      colorExteriorName: doorColourState.colorExtName || '',
+      colorExteriorRal: doorColourState.colorExtRal || '',
       // Ironmongery
       ironmongery: (window.currentConfig && window.currentConfig.ironmongery) ? window.currentConfig.ironmongery : {}
     };
@@ -142,6 +149,27 @@
 
     // ─── Spec panel sections ───
 
+    // Door Type / Shape / Style
+    var specShape = $('spec-d-shape');
+    var shapeLabels = { 'standard': 'Standard', 'arched': 'Arched', 'glazed-arch': 'Glazed Arch' };
+    if (specShape) specShape.textContent = shapeLabels[config.doorShape] || 'Standard';
+
+    var specStyle = $('spec-d-style');
+    var styleLabels = { 'full-glass': 'Full Glass', '3-4-glass': '¾ Glass', 'half-glass': 'Half Glass', 'flat-panel': 'Flat Panel', 'beading': 'Beading', 'bespoke': 'Bespoke' };
+    if (specStyle) specStyle.textContent = styleLabels[config.doorStyle] || styleLabels[config.doorPaneling] || 'Full Glass';
+
+    var sideStyleItem = $('spec-d-side-style-item');
+    var sideStyleVal = $('spec-d-side-style');
+    var sp = config.sidePanels || 'none';
+    if (sideStyleItem && sideStyleVal) {
+      if (sp !== 'none') {
+        sideStyleItem.style.display = '';
+        sideStyleVal.textContent = styleLabels[config.sideStyle] || 'Full Glass';
+      } else {
+        sideStyleItem.style.display = 'none';
+      }
+    }
+
     // Dimensions
     var specW = $('spec-d-width');
     var specH = $('spec-d-height');
@@ -193,7 +221,7 @@
     if (specHinge) specHinge.textContent = (config.hingeSide || 'left') === 'left' ? 'Left' : 'Right';
 
     var specOpening = $('spec-d-opening');
-    if (specOpening) specOpening.textContent = (config.openDirection || 'inward') === 'inward' ? 'Inward' : 'Outward';
+    if (specOpening) specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Inward' : 'Outward';
 
     var specThreshold = $('spec-d-threshold');
     var thresholdLabels = { 'standard': 'Standard Hardwood', 'aluminium': 'Aluminium', 'low-profile': 'Low Profile' };
@@ -235,14 +263,26 @@
         singleEl.style.display = '';
         dualEl.style.display = 'none';
         var nameEl = $('spec-d-color-name');
-        if (nameEl) nameEl.textContent = doorColourState.woodColor || '#F6F6F6';
+        if (nameEl) {
+          var cn = doorColourState.colorName || '';
+          var cr = doorColourState.colorRal || '';
+          nameEl.textContent = cn ? (cr ? cn + ' (' + cr + ')' : cn) : (doorColourState.woodColor || 'White');
+        }
       } else {
         singleEl.style.display = 'none';
         dualEl.style.display = '';
         var intEl = $('spec-d-int-color');
         var extEl = $('spec-d-ext-color');
-        if (intEl) intEl.textContent = doorColourState.woodColorInt || '#F6F6F6';
-        if (extEl) extEl.textContent = doorColourState.woodColorExt || '#F6F6F6';
+        if (intEl) {
+          var cin = doorColourState.colorIntName || '';
+          var cir = doorColourState.colorIntRal || '';
+          intEl.textContent = cin ? (cir ? cin + ' (' + cir + ')' : cin) : (doorColourState.woodColorInt || 'White');
+        }
+        if (extEl) {
+          var cen = doorColourState.colorExtName || '';
+          var cer = doorColourState.colorExtRal || '';
+          extEl.textContent = cen ? (cer ? cen + ' (' + cer + ')' : cen) : (doorColourState.woodColorExt || 'White');
+        }
       }
     }
 

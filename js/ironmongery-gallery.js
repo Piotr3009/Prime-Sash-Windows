@@ -984,6 +984,10 @@ class IronmongeryGallery {
                 <option value="casementStays">Casement Stays</option>
                 <option value="casementLocks">Casement Locks</option>
               </optgroup>
+              <optgroup label="Doors">
+                <option value="doorHandles">Door Handles</option>
+                <option value="doorLocks">Door Locks</option>
+              </optgroup>
             </select>
           </div>
 
