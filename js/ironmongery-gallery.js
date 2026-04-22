@@ -43,18 +43,28 @@ class IronmongeryGallery {
   }
 
   showTabsForWindowType() {
-    const isCasement = this.windowType === 'casement';
+    const wt = this.windowType;
+    const isCasement = wt === 'casement';
+    const isDoors = wt === 'doors';
     
-    // Show/hide category tabs
+    // Show/hide category tabs based on window type
     document.querySelectorAll('.category-tab').forEach(tab => {
       const cat = tab.dataset.category;
       const isCasementCat = cat && cat.startsWith('casement');
-      tab.style.display = (isCasement === isCasementCat) ? '' : 'none';
+      const isDoorCat = cat && cat.startsWith('door');
+      if (isDoors) {
+        tab.style.display = isDoorCat ? '' : 'none';
+      } else if (isCasement) {
+        tab.style.display = isCasementCat ? '' : 'none';
+      } else {
+        // sash — show tabs that are neither casement nor door
+        tab.style.display = (!isCasementCat && !isDoorCat) ? '' : 'none';
+      }
     });
     
-    // Hide type selector (Standard/PAS24/Horns) for casement
+    // Hide type selector (Standard/PAS24/Horns) for casement and doors
     const typeSelector = document.querySelector('.type-selector');
-    if (typeSelector) typeSelector.style.display = isCasement ? 'none' : '';
+    if (typeSelector) typeSelector.style.display = (isCasement || isDoors) ? 'none' : '';
     
     // Activate first visible tab
     const firstVisible = document.querySelector('.category-tab:not([style*="none"])');
@@ -70,7 +80,7 @@ class IronmongeryGallery {
       if (t.dataset.wt === this.windowType) {
         t.style.background = 'var(--primary-color)';
         t.style.color = 'white';
-      } else if (t.dataset.wt !== 'doors') {
+      } else {
         t.style.background = 'transparent';
         t.style.color = 'var(--primary-color)';
       }
