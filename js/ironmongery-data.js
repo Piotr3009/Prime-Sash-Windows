@@ -379,6 +379,20 @@ const IRONMONGERY_DATA = {
         { id: 'shootbolt-chrome', name: 'Shootbolt', color: 'chrome', prices: { net: 18.00, vat: 21.60 }, image: 'img/ironmongery/shootbolt-chrome.jpg', description: 'Multi-point casement lock' },
       ]
     },
+    doorHandles: {
+      windowType: 'doors',
+      name: 'Door Handles',
+      autoQuantity: 1,
+      mandatory: false,
+      products: []
+    },
+    doorLocks: {
+      windowType: 'doors',
+      name: 'Door Locks',
+      autoQuantity: 1,
+      mandatory: false,
+      products: []
+    },
 
   }
 };
