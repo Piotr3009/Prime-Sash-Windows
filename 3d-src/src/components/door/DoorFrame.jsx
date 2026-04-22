@@ -121,23 +121,33 @@ function BottomRail({ width, cuts, mat, matInt, debugColors }) {
 //   'standard'    — hardwood, 40mm height, 93mm depth, 7° exterior slope + optional extension
 //   'aluminium'   — aluminium strip, FRAME_DEPTH wide (93mm) × 5mm height
 //   'low-profile' — low strip 40mm wide × 3mm height, behind door leaf (visible when open)
-function Threshold({ width, mat, thresholdType = 'standard', extension = 0 }) {
+function Threshold({ width, mat, matInt, thresholdType = 'standard', extension = 0 }) {
   const len = mm(width);
 
-  // ── Standard Hardwood ──
-  const standardShape = useMemo(() => {
+  // ── Standard Hardwood — split into EXT (slope) + INT (flat) for dual colour ──
+  const extShape = useMemo(() => {
     if (thresholdType !== 'standard') return null;
-    const ext = Math.max(0, Math.min(100, extension)); // clamp 0-100mm
+    const ext = Math.max(0, Math.min(100, extension));
     const totalSlopeDepth = THRESHOLD_SLOPE_DEPTH + ext;
     const outerHeight = THRESHOLD_HEIGHT - totalSlopeDepth * Math.tan(THRESHOLD_SLOPE_ANGLE);
     const s = new THREE.Shape();
-    // Profile in XY: X = depth from new exterior edge, Y = height
-    // X=0 is new exterior outer edge (extended); X = ext+FRAME_DEPTH is interior edge
-    s.moveTo(0, 0);                                        // exterior bottom
-    s.lineTo(0, mm(Math.max(outerHeight, 0)));              // exterior top
-    s.lineTo(mm(totalSlopeDepth), mm(THRESHOLD_HEIGHT));    // end of slope
-    s.lineTo(mm(totalSlopeDepth + THRESHOLD_FLAT_DEPTH), mm(THRESHOLD_HEIGHT)); // interior top
-    s.lineTo(mm(totalSlopeDepth + THRESHOLD_FLAT_DEPTH), 0); // interior bottom
+    s.moveTo(0, 0);
+    s.lineTo(0, mm(Math.max(outerHeight, 0)));
+    s.lineTo(mm(totalSlopeDepth), mm(THRESHOLD_HEIGHT));
+    s.lineTo(mm(totalSlopeDepth), 0);
+    s.closePath();
+    return s;
+  }, [thresholdType, extension]);
+
+  const intShape = useMemo(() => {
+    if (thresholdType !== 'standard') return null;
+    const ext = Math.max(0, Math.min(100, extension));
+    const totalSlopeDepth = THRESHOLD_SLOPE_DEPTH + ext;
+    const s = new THREE.Shape();
+    s.moveTo(mm(totalSlopeDepth), 0);
+    s.lineTo(mm(totalSlopeDepth), mm(THRESHOLD_HEIGHT));
+    s.lineTo(mm(totalSlopeDepth + THRESHOLD_FLAT_DEPTH), mm(THRESHOLD_HEIGHT));
+    s.lineTo(mm(totalSlopeDepth + THRESHOLD_FLAT_DEPTH), 0);
     s.closePath();
     return s;
   }, [thresholdType, extension]);
@@ -170,10 +180,18 @@ function Threshold({ width, mat, thresholdType = 'standard', extension = 0 }) {
 
   if (thresholdType === 'standard') {
     return (
-      <mesh castShadow receiveShadow rotation={[0, Math.PI / 2, 0]} position={[-len / 2, 0, standardZOffset]}>
-        <extrudeGeometry args={[standardShape, standardSettings]} />
-        <primitive object={mat} attach="material" />
-      </mesh>
+      <group>
+        {/* EXT — slope portion */}
+        <mesh castShadow receiveShadow rotation={[0, Math.PI / 2, 0]} position={[-len / 2, 0, standardZOffset]}>
+          <extrudeGeometry args={[extShape, standardSettings]} />
+          <primitive object={mat} attach="material" />
+        </mesh>
+        {/* INT — flat portion */}
+        <mesh castShadow receiveShadow rotation={[0, Math.PI / 2, 0]} position={[-len / 2, 0, standardZOffset]}>
+          <extrudeGeometry args={[intShape, standardSettings]} />
+          <primitive object={matInt || mat} attach="material" />
+        </mesh>
+      </group>
     );
   }
 
@@ -545,7 +563,7 @@ export default function DoorFrame({
   return (
     <group>
       <group position={[0, -H / 2, 0]}>
-        <Threshold width={width} mat={material} thresholdType={thresholdType} extension={thresholdExtension} />
+        <Threshold width={width} mat={material} matInt={materialInt} thresholdType={thresholdType} extension={thresholdExtension} />
       </group>
       <group position={[0, H / 2 - mm(FRAME_FACE), 0]}>
         <TopRail width={width} cuts={railCuts} mat={material} matInt={materialInt} debugColors={debugColors} />
@@ -597,12 +615,6 @@ export default function DoorFrame({
 
         return (
           <group>
-            {/* Bottom rail gasket — between stiles */}
-            <mesh position={[openCenterX, openBottom + gW / 2, gZ]}>
-              <boxGeometry args={[openW, gW, gT]} />
-              <meshStandardMaterial color={gasketColor} roughness={0.9} />
-            </mesh>
-
             {/* Top rail gasket — between stiles */}
             <mesh position={[openCenterX, openTop - gW / 2, gZ]}>
               <boxGeometry args={[openW, gW, gT]} />

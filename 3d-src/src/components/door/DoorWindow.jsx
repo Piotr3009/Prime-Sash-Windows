@@ -650,31 +650,69 @@ export default function DoorWindow({
         );
       })()}
 
-      {showGuides && (
-        <group>
-          {/* Width — top */}
-          <DimensionGuide
-            from={[-W/2, H/2 + mm(80), 0]}
-            to={[W/2, H/2 + mm(80), 0]}
-            label={`${width}mm`}
-            offset={[0, 0.05, 0]}
-          />
-          {/* Height — right side */}
-          <DimensionGuide
-            from={[W/2 + mm(130), -H/2, 0]}
-            to={[W/2 + mm(130), H/2, 0]}
-            label={`${height}mm`}
-            offset={[0.07, 0, 0]}
-          />
-          {/* Depth — left side */}
-          <DimensionGuide
-            from={[-W/2 - mm(130), 0, -halfD]}
-            to={[-W/2 - mm(130), 0, halfD]}
-            label={`${FRAME_DEPTH}mm`}
-            offset={[-0.07, 0, 0]}
-          />
-        </group>
-      )}
+      {showGuides && (() => {
+        const hasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
+        const hasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
+        const hasPanels = hasLeft || hasRight;
+        const totalLeftX = hasLeft ? -W / 2 - mm(sideLeftWidth) : -W / 2;
+        const totalRightX = hasRight ? W / 2 + mm(sideRightWidth) : W / 2;
+        const totalWidthMm = width + (hasLeft ? sideLeftWidth : 0) + (hasRight ? sideRightWidth : 0);
+
+        return (
+          <group>
+            {/* Total width — top */}
+            <DimensionGuide
+              from={[totalLeftX, H/2 + mm(hasPanels ? 140 : 80), 0]}
+              to={[totalRightX, H/2 + mm(hasPanels ? 140 : 80), 0]}
+              label={`${totalWidthMm}mm`}
+              offset={[0, 0.05, 0]}
+            />
+
+            {/* Individual widths — below total, only when panels present */}
+            {hasPanels && (
+              <group>
+                {hasLeft && (
+                  <DimensionGuide
+                    from={[totalLeftX, H/2 + mm(60), 0]}
+                    to={[-W / 2, H/2 + mm(60), 0]}
+                    label={`${sideLeftWidth}`}
+                    offset={[0, 0.04, 0]}
+                  />
+                )}
+                <DimensionGuide
+                  from={[-W / 2, H/2 + mm(60), 0]}
+                  to={[W / 2, H/2 + mm(60), 0]}
+                  label={`${width}`}
+                  offset={[0, 0.04, 0]}
+                />
+                {hasRight && (
+                  <DimensionGuide
+                    from={[W / 2, H/2 + mm(60), 0]}
+                    to={[totalRightX, H/2 + mm(60), 0]}
+                    label={`${sideRightWidth}`}
+                    offset={[0, 0.04, 0]}
+                  />
+                )}
+              </group>
+            )}
+
+            {/* Height — right side */}
+            <DimensionGuide
+              from={[totalRightX + mm(80), -H/2, 0]}
+              to={[totalRightX + mm(80), H/2, 0]}
+              label={`${height}mm`}
+              offset={[0.07, 0, 0]}
+            />
+            {/* Depth — left side */}
+            <DimensionGuide
+              from={[totalLeftX - mm(80), 0, -halfD]}
+              to={[totalLeftX - mm(80), 0, halfD]}
+              label={`${FRAME_DEPTH}mm`}
+              offset={[-0.07, 0, 0]}
+            />
+          </group>
+        );
+      })()}
     </group>
   );
 }
