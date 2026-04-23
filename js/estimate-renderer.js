@@ -10,6 +10,33 @@ class EstimateRenderer {
         }).format(price);
     }
 
+    static async deleteItem(itemId, estimateId) {
+        if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) return;
+        try {
+            const { error: deleteError } = await supabaseClient.from('estimate_items').delete().eq('id', itemId);
+            if (deleteError) throw deleteError;
+
+            const { data: remaining } = await supabaseClient.from('estimate_items').select('total_price').eq('estimate_id', estimateId);
+            const newTotal = (remaining || []).reduce((s, r) => s + (parseFloat(r.total_price) || 0), 0);
+            await supabaseClient.from('estimates').update({ total_price: newTotal, updated_at: new Date().toISOString() }).eq('id', estimateId);
+
+            // Re-render: try dashboard first, fallback to reload
+            if (window.dashboard && window.dashboard.viewOrderDetails) {
+                if ((remaining || []).length === 0) { window.dashboard.closeModal(); await window.dashboard.loadEstimates(); }
+                else { await window.dashboard.viewOrderDetails(estimateId); }
+            } else {
+                // On online-estimate.html — reload estimate selector and close modal
+                if (window.estimateSelectorManager) await window.estimateSelectorManager.loadEstimates();
+                const modal = document.querySelector('.estimate-modal-overlay, .modal-overlay');
+                if (modal) modal.remove();
+                alert('Item deleted successfully.');
+            }
+        } catch (e) {
+            console.error('Delete error:', e);
+            alert('Failed to delete item.');
+        }
+    }
+
     static getStatusConfig(status) {
         const configs = {
             draft: { label: 'Sent', color: '#17a2b8' },
@@ -400,7 +427,7 @@ class EstimateRenderer {
                         <span style="font-family:'Jost',sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#fff;">${p.windowType === 'door' ? 'Door' : 'Window'} ${item.window_number}</span>
                         ${isEditable && !isAdmin ? `
                         <button onclick="dashboard.renameWindow('${item.id}','${(item.window_number || '').replace(/'/g, "\\'")}','${estimate.id}')" style="background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.6);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Rename</button>
-                        <button onclick="dashboard.deleteWindow('${item.id}','${estimate.id}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.7);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Delete</button>
+                        <button onclick="EstimateRenderer.deleteItem('${item.id}','${estimate.id}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.7);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Delete</button>
                         ` : ''}
                     </div>
                     <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${p.quantity} · £${R.formatPrice(item.total_price)}</span>
@@ -536,9 +563,6 @@ class EstimateRenderer {
                 <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:.85rem;color:#1a1a1a;line-height:1.7;margin-bottom:.7rem;">Welcome to Prime Sash Windows, where craftsmanship meets functionality. We specialise in creating high-quality timber windows and doors that enhance both the aesthetic appeal and energy efficiency of your home.</p>
                 <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:.85rem;color:#1a1a1a;line-height:1.7;margin-bottom:.7rem;">Serving London and surrounding areas, we bring over a decade of expertise in bespoke timber window and door manufacturing and installation. As members of The Joinery Network and FENSA registered installers, we offer free site surveys within 25 miles of London.</p>
                 <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:.85rem;color:#1a1a1a;line-height:1.7;margin-bottom:1rem;">Every window is produced in our in-house workshop using the Lignum engineered timber system — hardwood only, PAS24 security certified, finished with premium Sikkens coatings. Traditional appearance, modern performance.</p>
-                <div style="padding:.9rem 1.2rem;background:${CREAM_LIGHT};border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.78rem;color:var(--muted);line-height:1.55;">
-                    <strong style="color:var(--navy);font-weight:500;">Prime Sash Windows</strong> is a trading name of <strong style="color:var(--navy);font-weight:500;">Skylon Joinery Ltd</strong> — a London-based bespoke joinery company registered in England and Wales (Company No. 12946103). All contracts, invoices and payments are issued by Skylon Joinery Ltd.
-                </div>
             </div>
         `;
 
@@ -823,6 +847,10 @@ class EstimateRenderer {
             ${summaryHTML}
             ${paymentHTML}
             ${termsHTML}
+
+            <div style="padding:.9rem 1.2rem;margin:1.5rem 0;background:${CREAM_LIGHT};border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.78rem;color:var(--muted);line-height:1.55;">
+                <strong style="color:var(--navy);font-weight:500;">Prime Sash Windows</strong> is a trading name of <strong style="color:var(--navy);font-weight:500;">Skylon Joinery Ltd</strong> — a London-based bespoke joinery company registered in England and Wales (Company No. 12946103). All contracts, invoices and payments are issued by Skylon Joinery Ltd.
+            </div>
 
             <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;padding-top:1.5rem;border-top:1px solid rgba(158,158,144,.15);">
                 ${adminButtons}

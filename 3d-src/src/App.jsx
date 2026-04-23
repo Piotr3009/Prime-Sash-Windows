@@ -484,7 +484,7 @@ function ScreenshotHelper({ config }) {
       return new Promise((resolve) => {
         const target = new THREE.Vector3(0, 0.18, 0);
         // Screenshot canvas is square (600×600) → aspect = 1 for fitDistance
-        const distance = fitDistance(config?.width, config?.height, 45, 1);
+        const distance = fitDistance(config?.width, config?.height, 45, 1) * 0.75; // 25% closer for estimate
 
         // Save current camera state
         const savedPos = camera.position.clone();
