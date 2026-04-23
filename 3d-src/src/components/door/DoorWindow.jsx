@@ -30,6 +30,7 @@ import * as THREE from 'three';
 import { Text, Line } from '@react-three/drei';
 import DoorFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, GASKET_T, mm } from './DoorFrame';
 import DoorPanel, { SASH_RAIL } from './DoorPanel';
+import DoorSidePanel from './DoorSidePanel';
 
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
@@ -357,6 +358,17 @@ export default function DoorWindow({
   hBars = 0,
   vBars = 0,
   ironmongery = 'brass',
+  doorStyle = 'full-glass',
+  centerMullion = false,
+  paneling = 'flat',
+  sidePanels = 'none',
+  sideLeftWidth = 400,
+  sideRightWidth = 400,
+  sideHBars = 0,
+  sideVBars = 0,
+  sideStyle = 'full-glass',
+  thresholdType = 'standard',
+  thresholdExtension = 0,
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -402,6 +414,8 @@ export default function DoorWindow({
         mullions={layoutDef.mullions || []}
         transoms={layoutDef.transoms || []}
         debugColors={false}
+        thresholdType={thresholdType}
+        thresholdExtension={thresholdExtension}
       />
 
       {/* ─── Panels (leaves) ─── */}
@@ -423,6 +437,9 @@ export default function DoorWindow({
             height={leafH}
             hingeType={p.hinge}
             opening={p.hinge === 'fixed' ? 0 : opening}
+            doorStyle={doorStyle}
+            centerMullion={centerMullion}
+            paneling={paneling}
             material={extMaterial}
             materialInt={intMaterial}
             spacerColor={spacerColor}
@@ -497,47 +514,205 @@ export default function DoorWindow({
         );
       })()}
 
-      {/* ═══ Sill Extension — flush bottom, sloped profile ═══ */}
-      {sillExtension > 0 && (() => {
-        const sillProj = mm(sillExtension);
-        const extra = sillWider ? mm(50) : 0;
-        const sillW = W + extra * 2;
-        const sillH = mm(25);
-        const sillY = -H / 2 + sillH / 2; // flush — raised by thickness
-        const sillZ = halfD + sillProj / 2;
+      {/* ═══ Sill Wider — extends threshold extension 50mm past configuration edges ═══ */}
+      {sillWider && thresholdType === 'standard' && thresholdExtension > 0 && (() => {
+        // Ear boxes extend the threshold EXTENSION part only (slope projection beyond frame face)
+        const hasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
+        const hasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
+        const totalLeftX = hasLeft ? -W / 2 - mm(sideLeftWidth) : -W / 2;
+        const totalRightX = hasRight ? W / 2 + mm(sideRightWidth) : W / 2;
+
+        const earW = mm(50);
+        const ext = Math.min(thresholdExtension, 100);
+        const earDepth = mm(ext);    // only the extension projection
+        const earH = mm(40);         // THRESHOLD_HEIGHT
+        const earY = -H / 2 + earH / 2;
+        const earZ = halfD + earDepth / 2;  // projects forward from frame face
+
         return (
-          <mesh position={[0, sillY, sillZ]} castShadow receiveShadow>
-            <boxGeometry args={[sillW, sillH, sillProj]} />
-            <primitive object={extMaterial} attach="material" />
-          </mesh>
+          <group>
+            <mesh position={[totalLeftX - earW / 2, earY, earZ]} castShadow receiveShadow>
+              <boxGeometry args={[earW, earH, earDepth]} />
+              <primitive object={extMaterial} attach="material" />
+            </mesh>
+            <mesh position={[totalRightX + earW / 2, earY, earZ]} castShadow receiveShadow>
+              <boxGeometry args={[earW, earH, earDepth]} />
+              <primitive object={extMaterial} attach="material" />
+            </mesh>
+          </group>
         );
       })()}
 
-      {showGuides && (
-        <group>
-          {/* Width — top */}
-          <DimensionGuide
-            from={[-W/2, H/2 + mm(80), 0]}
-            to={[W/2, H/2 + mm(80), 0]}
-            label={`${width}mm`}
-            offset={[0, 0.05, 0]}
-          />
-          {/* Height — right side */}
-          <DimensionGuide
-            from={[W/2 + mm(130), -H/2, 0]}
-            to={[W/2 + mm(130), H/2, 0]}
-            label={`${height}mm`}
-            offset={[0.07, 0, 0]}
-          />
-          {/* Depth — left side */}
-          <DimensionGuide
-            from={[-W/2 - mm(130), 0, -halfD]}
-            to={[-W/2 - mm(130), 0, halfD]}
-            label={`${FRAME_DEPTH}mm`}
-            offset={[-0.07, 0, 0]}
-          />
-        </group>
+      {/* ─── Side panels (sidelights) — attached next to main door frame ─── */}
+      {(sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0 && (
+        <DoorSidePanel
+          width={sideLeftWidth}
+          height={height}
+          woodColor={woodColor}
+          woodColorExt={woodColorExt}
+          woodColorInt={woodColorInt}
+          sameColor={sameColor}
+          spacerColor={spacerColor}
+          glassFinish={glassFinish}
+          glassType={glassType}
+          hBars={sideHBars}
+          vBars={sideVBars}
+          sideStyle={sideStyle}
+          doorStyle={doorStyle}
+          paneling={paneling}
+          sealColour={sealColour}
+          thresholdType={thresholdType}
+          thresholdExtension={thresholdExtension}
+          position={[-W / 2 - mm(sideLeftWidth) / 2, 0, 0]}
+        />
       )}
+      {(sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0 && (
+        <DoorSidePanel
+          width={sideRightWidth}
+          height={height}
+          woodColor={woodColor}
+          woodColorExt={woodColorExt}
+          woodColorInt={woodColorInt}
+          sameColor={sameColor}
+          spacerColor={spacerColor}
+          glassFinish={glassFinish}
+          glassType={glassType}
+          hBars={sideHBars}
+          vBars={sideVBars}
+          sideStyle={sideStyle}
+          doorStyle={doorStyle}
+          paneling={paneling}
+          sealColour={sealColour}
+          thresholdType={thresholdType}
+          thresholdExtension={thresholdExtension}
+          position={[W / 2 + mm(sideRightWidth) / 2, 0, 0]}
+        />
+      )}
+
+      {/* ═══ Door Hinges — visible barrel cylinders on exterior ═══ */}
+      {(() => {
+        // Determine hinge side from first panel
+        const firstPanel = layoutDef.panels && layoutDef.panels[0];
+        if (!firstPanel || firstPanel.hinge === 'fixed' || firstPanel.hinge === 'top') return null;
+
+        // Leaf dimensions — same calculation as DoorPanel positioning above
+        const leafGap = 4;
+        const leafW = firstPanel.w + REBATE_STEP * 2 - leafGap * 2;
+        const leafH = firstPanel.h + REBATE_STEP * 2 - leafGap * 2;
+        const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
+
+        // Hinge X: at leaf edge (junction of door and frame), NOT frame outer edge
+        const hingeSide = firstPanel.hinge; // 'left' or 'right'
+        const hingeX = hingeSide === 'left' ? -mm(leafW) / 2 : mm(leafW) / 2;
+
+        // Hinge Z: barrel center at frame exterior face
+        const hingeZ = halfD;
+
+        const hingeR = mm(5);  // 10mm diameter = 5mm radius
+        const hingeH = mm(100); // 100mm tall barrel
+
+        // Hinge Y positions — relative to DOOR LEAF, not frame
+        const leafTop    = openingCenterY + mm(leafH) / 2;
+        const leafBottom = openingCenterY - mm(leafH) / 2;
+        const leafCenter = openingCenterY;
+
+        const topY    = leafTop - mm(100);       // 100mm below door top edge
+        const middleY = leafCenter + mm(100);    // 100mm above door center
+        const bottomY = leafBottom + mm(150);    // 150mm above door bottom edge
+
+        const positions = [topY, middleY, bottomY];
+
+        // 4th hinge if door > 2400mm: between top and middle
+        if (height > 2400) {
+          positions.push((topY + middleY) / 2);
+        }
+
+        // Hinge barrel material — matches ironmongery colour
+        const hingeColors = {
+          brass:         '#d4af37',
+          chrome:        '#e8eaec',
+          stainless:     '#c8c8c8',
+          antique_brass: '#9c7722',
+          black:         '#1a1a1a',
+          white:         '#f0f0f0',
+        };
+        const hingeColor = hingeColors[ironmongery] || '#c8c8c8';
+
+        return (
+          <group>
+            {positions.map((y, i) => (
+              <mesh key={`hinge-${i}`} position={[hingeX, y, hingeZ]} castShadow>
+                <cylinderGeometry args={[hingeR, hingeR, hingeH, 16]} />
+                <meshStandardMaterial color={hingeColor} metalness={0.7} roughness={0.3} />
+              </mesh>
+            ))}
+          </group>
+        );
+      })()}
+
+      {showGuides && (() => {
+        const hasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
+        const hasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
+        const hasPanels = hasLeft || hasRight;
+        const totalLeftX = hasLeft ? -W / 2 - mm(sideLeftWidth) : -W / 2;
+        const totalRightX = hasRight ? W / 2 + mm(sideRightWidth) : W / 2;
+        const totalWidthMm = width + (hasLeft ? sideLeftWidth : 0) + (hasRight ? sideRightWidth : 0);
+
+        return (
+          <group>
+            {/* Total width — top */}
+            <DimensionGuide
+              from={[totalLeftX, H/2 + mm(hasPanels ? 140 : 80), 0]}
+              to={[totalRightX, H/2 + mm(hasPanels ? 140 : 80), 0]}
+              label={`${totalWidthMm}mm`}
+              offset={[0, 0.05, 0]}
+            />
+
+            {/* Individual widths — below total, only when panels present */}
+            {hasPanels && (
+              <group>
+                {hasLeft && (
+                  <DimensionGuide
+                    from={[totalLeftX, H/2 + mm(60), 0]}
+                    to={[-W / 2, H/2 + mm(60), 0]}
+                    label={`${sideLeftWidth}`}
+                    offset={[0, 0.04, 0]}
+                  />
+                )}
+                <DimensionGuide
+                  from={[-W / 2, H/2 + mm(60), 0]}
+                  to={[W / 2, H/2 + mm(60), 0]}
+                  label={`${width}`}
+                  offset={[0, 0.04, 0]}
+                />
+                {hasRight && (
+                  <DimensionGuide
+                    from={[W / 2, H/2 + mm(60), 0]}
+                    to={[totalRightX, H/2 + mm(60), 0]}
+                    label={`${sideRightWidth}`}
+                    offset={[0, 0.04, 0]}
+                  />
+                )}
+              </group>
+            )}
+
+            {/* Height — right side */}
+            <DimensionGuide
+              from={[totalRightX + mm(80), -H/2, 0]}
+              to={[totalRightX + mm(80), H/2, 0]}
+              label={`${height}mm`}
+              offset={[0.07, 0, 0]}
+            />
+            {/* Depth — left side */}
+            <DimensionGuide
+              from={[totalLeftX - mm(80), 0, -halfD]}
+              to={[totalLeftX - mm(80), 0, halfD]}
+              label={`${FRAME_DEPTH}mm`}
+              offset={[-0.07, 0, 0]}
+            />
+          </group>
+        );
+      })()}
     </group>
   );
 }

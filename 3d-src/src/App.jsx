@@ -11,6 +11,44 @@ import DoorWindow from './components/door/DoorWindow';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+// Auto-fit camera distance to window dimensions (view frustum math)
+function fitDistance(widthMm, heightMm, fovDeg = 45, aspect = 1.78, margin = 1.75) {
+  if (!widthMm || !heightMm) return 2.2; // fallback (approx. current default)
+  const W = widthMm / 1000;
+  const H = heightMm / 1000;
+  const fov = (fovDeg * Math.PI) / 180;
+  const distH = (H / 2) / Math.tan(fov / 2);
+  const distW = (W / 2) / (Math.tan(fov / 2) * aspect);
+  return Math.max(distH, distW) * margin;
+}
+
+// Auto-zoom camera when window dimensions change (keeps angle, only adjusts distance)
+function AutoZoom({ width, height }) {
+  const camera = useThree(s => s.camera);
+  const controls = useThree(s => s.controls);
+
+  useEffect(() => {
+    if (!width || !height) return;
+    const aspect = camera.aspect || 1.78;
+    const dist = fitDistance(width, height, camera.fov, aspect);
+
+    const target = new THREE.Vector3(0, 0.18, 0);
+    const direction = new THREE.Vector3().subVectors(camera.position, target);
+
+    if (direction.lengthSq() < 0.001) {
+      direction.set(1.4, 0.52, 1.6);
+    }
+    direction.normalize();
+
+    camera.position.copy(target).addScaledVector(direction, dist);
+    camera.updateProjectionMatrix();
+
+    if (controls && controls.update) controls.update();
+  }, [width, height, camera, controls]);
+
+  return null;
+}
+
 function Slider({ label, value, min, max, step, suffix = ' mm', onChange }) {
   return (
     <label className="control">
@@ -438,14 +476,15 @@ function MicrocementFloor() {
 
 
 
-function ScreenshotHelper() {
+function ScreenshotHelper({ config }) {
   const { gl, scene, camera } = useThree();
 
   useEffect(() => {
     window.captureWindowScreenshots = async () => {
       return new Promise((resolve) => {
         const target = new THREE.Vector3(0, 0.18, 0);
-        const distance = 2.0;
+        // Screenshot canvas is square (600×600) → aspect = 1 for fitDistance
+        const distance = fitDistance(config?.width, config?.height, 45, 1);
 
         // Save current camera state
         const savedPos = camera.position.clone();
@@ -524,7 +563,7 @@ function ScreenshotHelper() {
     };
 
     return () => { delete window.captureWindowScreenshots; };
-  }, [gl, scene, camera]);
+  }, [gl, scene, camera, config?.width, config?.height]);
 
   return null;
 }
@@ -542,6 +581,8 @@ function Scene({ config, isMobile }) {
     <>
 
       <PerspectiveCamera makeDefault position={[1.4, 0.7, 1.6]} fov={45} />
+
+      <AutoZoom width={config.width} height={config.height} />
 
       {/* Ambient */}
       <ambientLight intensity={0.56 * b} />
@@ -666,7 +707,18 @@ function Scene({ config, isMobile }) {
                 width={config.extWidth}
                 height={config.extHeight}
                 layout={config.doorHinge === 'right' ? '040R' : '040L'}
-                opening={0}
+                opening={config.doorOpening || 0}
+                doorStyle={config.doorStyle}
+                centerMullion={config.centerMullion}
+                paneling={config.paneling}
+                sidePanels={config.sidePanels}
+                sideLeftWidth={config.sideLeftWidth}
+                sideRightWidth={config.sideRightWidth}
+                sideHBars={config.sideHBars}
+                sideVBars={config.sideVBars}
+                sideStyle={config.sideStyle}
+                thresholdType={config.thresholdType}
+                thresholdExtension={config.thresholdExtension}
                 woodColor={config.woodColor}
                 woodColorExt={config.woodColorExt}
                 woodColorInt={config.woodColorInt}
@@ -679,6 +731,8 @@ function Scene({ config, isMobile }) {
                 hBars={config.doorHBars || 0}
                 vBars={config.doorVBars || 0}
                 ironmongery={config.ironmongery}
+                sillExtension={config.sillExtension || 0}
+                sillWider={config.sillWider || false}
               />
             ) : (
               <ParametricSashWindow {...config} />
@@ -706,7 +760,7 @@ function Scene({ config, isMobile }) {
         autoRotateSpeed={0.45}
       />
 
-      <ScreenshotHelper />
+      <ScreenshotHelper config={config} />
 
 
     </>
@@ -792,6 +846,17 @@ export default function App() {
   const [doorHinge, setDoorHinge] = useState('left');
   const [doorHBars, setDoorHBars] = useState(0);
   const [doorVBars, setDoorVBars] = useState(0);
+  const [centerMullion, setCenterMullion] = useState(false);
+  const [paneling, setPaneling] = useState('flat');
+  const [sidePanels, setSidePanels] = useState('none');
+  const [sideLeftWidth, setSideLeftWidth] = useState(500);
+  const [sideRightWidth, setSideRightWidth] = useState(500);
+  const [sideHBars, setSideHBars] = useState(0);
+  const [sideVBars, setSideVBars] = useState(0);
+  const [sideStyle, setSideStyle] = useState('full-glass');
+  const [thresholdType, setThresholdType] = useState('standard');
+  const [thresholdExtension, setThresholdExtension] = useState(0);
+  const [doorOpening, setDoorOpening] = useState(0);
 
   // ─── State bucket system — isolates state per window type ───
   const categoryRef = useRef('sash');
@@ -801,12 +866,12 @@ export default function App() {
     sash: { extWidth: 1000, extHeight: 1500, woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', showHorns: true, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3, casementHBars: 0, casementVBars: 0 },
     casement: { extWidth: 800, extHeight: 1500, glassFinish: 'clear', trickleVent: 'none', trickleColour: 'white', sillExtension: 0, sillWider: false, sealColour: 'black', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', showHorns: false, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3, casementHBars: 0, casementVBars: 0 },
     'fix-only': { extWidth: 1000, extHeight: 1500, glassFinish: 'clear', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'fixed', boxType: 'standard', showHorns: false, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '010', casementOpening: 0, fanlightRatio: 0.3, casementHBars: 0, casementVBars: 0 },
-    door: { extWidth: 900, extHeight: 2100, glassFinish: 'clear', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', doorType: 'single-external', doorShape: 'standard', doorStyle: 'full-glass', doorHinge: 'left', doorHBars: 0, doorVBars: 0 },
+    door: { extWidth: 900, extHeight: 2100, glassFinish: 'clear', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', doorType: 'single-external', doorShape: 'standard', doorStyle: 'full-glass', doorHinge: 'left', doorHBars: 0, doorVBars: 0, centerMullion: false, paneling: 'flat', sidePanels: 'none', sideLeftWidth: 500, sideRightWidth: 500, sideHBars: 0, sideVBars: 0, sideStyle: 'full-glass', thresholdType: 'standard', thresholdExtension: 0, doorOpening: 0 },
   };
 
   // Capture current state snapshot
   function captureState() {
-    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge, doorType, doorShape, doorStyle, doorHinge, doorHBars, doorVBars };
+    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge, doorType, doorShape, doorStyle, doorHinge, doorHBars, doorVBars, centerMullion, paneling, sidePanels, sideLeftWidth, sideRightWidth, sideHBars, sideVBars, sideStyle, thresholdType, thresholdExtension, doorOpening };
   }
 
   // Restore state from bucket
@@ -864,6 +929,17 @@ export default function App() {
     if (s.doorHinge !== undefined) setDoorHinge(s.doorHinge);
     if (s.doorHBars !== undefined) setDoorHBars(s.doorHBars);
     if (s.doorVBars !== undefined) setDoorVBars(s.doorVBars);
+    if (s.centerMullion !== undefined) setCenterMullion(s.centerMullion);
+    if (s.paneling !== undefined) setPaneling(s.paneling);
+    if (s.sidePanels !== undefined) setSidePanels(s.sidePanels);
+    if (s.sideLeftWidth !== undefined) setSideLeftWidth(s.sideLeftWidth);
+    if (s.sideRightWidth !== undefined) setSideRightWidth(s.sideRightWidth);
+    if (s.sideHBars !== undefined) setSideHBars(s.sideHBars);
+    if (s.sideVBars !== undefined) setSideVBars(s.sideVBars);
+    if (s.sideStyle !== undefined) setSideStyle(s.sideStyle);
+    if (s.thresholdType !== undefined) setThresholdType(s.thresholdType);
+    if (s.thresholdExtension !== undefined) setThresholdExtension(s.thresholdExtension);
+    if (s.doorOpening !== undefined) setDoorOpening(s.doorOpening);
   }
 
   const maxSashOpening = Math.max(0, height / 2 - 120);
@@ -948,9 +1024,24 @@ export default function App() {
       if (cfg.doorType !== undefined) setDoorType(cfg.doorType);
       if (cfg.doorShape !== undefined) setDoorShape(cfg.doorShape);
       if (cfg.doorStyle !== undefined) setDoorStyle(cfg.doorStyle);
+      if (cfg.doorHinge !== undefined) setDoorHinge(cfg.doorHinge);
       if (cfg.hingeSide !== undefined) setDoorHinge(cfg.hingeSide);
+      if (cfg.doorHBars !== undefined) setDoorHBars(cfg.doorHBars);
+      if (cfg.doorVBars !== undefined) setDoorVBars(cfg.doorVBars);
       if (cfg.hBars !== undefined && categoryRef.current === 'door') setDoorHBars(cfg.hBars);
       if (cfg.vBars !== undefined && categoryRef.current === 'door') setDoorVBars(cfg.vBars);
+      if (cfg.centerMullion !== undefined) setCenterMullion(cfg.centerMullion);
+      if (cfg.paneling !== undefined) setPaneling(cfg.paneling);
+      if (cfg.doorPaneling !== undefined) setPaneling(cfg.doorPaneling);
+      if (cfg.sidePanels !== undefined) setSidePanels(cfg.sidePanels);
+      if (cfg.sideLeftWidth !== undefined) setSideLeftWidth(cfg.sideLeftWidth);
+      if (cfg.sideRightWidth !== undefined) setSideRightWidth(cfg.sideRightWidth);
+      if (cfg.sideHBars !== undefined) setSideHBars(cfg.sideHBars);
+      if (cfg.sideVBars !== undefined) setSideVBars(cfg.sideVBars);
+      if (cfg.sideStyle !== undefined) setSideStyle(cfg.sideStyle);
+      if (cfg.thresholdType !== undefined) setThresholdType(cfg.thresholdType);
+      if (cfg.thresholdExtension !== undefined) setThresholdExtension(cfg.thresholdExtension);
+      if (cfg.doorOpening !== undefined) setDoorOpening(cfg.doorOpening);
     };
     return () => { delete window.update3D; };
   }, []);
@@ -1019,8 +1110,19 @@ export default function App() {
       doorHinge,
       doorHBars,
       doorVBars,
+      centerMullion,
+      paneling,
+      sidePanels,
+      sideLeftWidth,
+      sideRightWidth,
+      sideHBars,
+      sideVBars,
+      sideStyle,
+      thresholdType,
+      thresholdExtension,
+      doorOpening,
     }),
-    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge, doorType, doorShape, doorStyle, doorHinge, doorHBars, doorVBars],
+    [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge, doorType, doorShape, doorStyle, doorHinge, doorHBars, doorVBars, centerMullion, paneling, sidePanels, sideLeftWidth, sideRightWidth, sideHBars, sideVBars, sideStyle, thresholdType, thresholdExtension, doorOpening],
   );
 
   return (
@@ -1058,7 +1160,17 @@ export default function App() {
                 />
               </div>
             </>
-          ) : windowCategory === 'fix-only' ? null : (
+          ) : windowCategory === 'fix-only' ? null : windowCategory === 'door' ? (
+            <Slider
+              label="Opening"
+              value={Math.round(doorOpening * 100)}
+              min={0}
+              max={100}
+              step={1}
+              suffix="%"
+              onChange={(v) => setDoorOpening(v / 100)}
+            />
+          ) : (
             <Slider
               label="Opening"
               value={Math.round(casementOpening * 100)}

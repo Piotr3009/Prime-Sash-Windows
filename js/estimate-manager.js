@@ -149,22 +149,25 @@ class EstimateManager {
             if (countError) throw countError;
 
             // Sprawdź czy użytkownik podał custom nazwę
-            const customNameInput = document.getElementById('window-custom-name');
-            let windowNumber = customNameInput ? customNameInput.value.trim() : '';
+            const isDoor = windowConfig && windowConfig.windowCategory === 'door';
+            const customNameInput = isDoor ? document.getElementById('d-custom-name') : document.getElementById('window-custom-name');
+            let windowNumber = (windowConfig && windowConfig.windowName) || (customNameInput ? customNameInput.value.trim() : '');
+            const prefix = isDoor ? 'D' : 'W';
 
-            // Jeśli nie ma custom nazwy, wygeneruj automatyczną (W1, W2, W3...)
+            // Jeśli nie ma custom nazwy, wygeneruj automatyczną (W1, W2... lub D1, D2...)
             if (!windowNumber) {
-                windowNumber = 'W1';
+                windowNumber = prefix + '1';
                 if (items && items.length > 0) {
-                    // Wyciągnij numery tylko z okien o formacie W[number]
+                    // Wyciągnij numery tylko z okien o formacie W[number] lub D[number]
+                    const re = new RegExp('^' + prefix + '\\d+$');
                     const numbers = items
-                        .filter(item => /^W\d+$/.test(item.window_number))
-                        .map(item => parseInt(item.window_number.substring(1)))
+                        .filter(item => re.test(item.window_number))
+                        .map(item => parseInt(item.window_number.substring(prefix.length)))
                         .filter(n => !isNaN(n));
                     
                     if (numbers.length > 0) {
                         const maxNumber = Math.max(...numbers);
-                        windowNumber = `W${maxNumber + 1}`;
+                        windowNumber = `${prefix}${maxNumber + 1}`;
                     }
                 }
             }
@@ -424,7 +427,36 @@ class EstimateManager {
             });
         }
 
-        // Przycisk "Create New Estimate"
+        // Przycisk "Add Door to Estimate"
+        const doorAddBtn = document.getElementById('d-add-to-estimate');
+        if (doorAddBtn) {
+            doorAddBtn.addEventListener('click', async () => {
+                if (window.estimateSelectorManager) {
+                    const isNew = window.estimateSelectorManager.selectedEstimateId === 'new';
+                    const estimateId = await window.estimateSelectorManager.getOrCreateEstimate();
+                    if (!estimateId) {
+                        console.log('No estimate selected or creation cancelled');
+                        return;
+                    }
+
+                    if (isNew) {
+                        console.log('New estimate created — waiting for user to configure door first');
+                        return;
+                    }
+
+                    // Use door config
+                    const doorConfig = window.getDoorConfig ? window.getDoorConfig() : this.getCurrentWindowConfig();
+                    doorConfig.windowCategory = 'door';
+                    doorConfig.windowName = document.getElementById('d-custom-name')?.value || '';
+                    doorConfig.quantity = parseInt(document.getElementById('d-quantity')?.value) || 1;
+                    doorConfig.notes = document.getElementById('d-notes')?.value || '';
+                    const price = this.getCurrentPrice();
+                    await this.addWindowToEstimate(doorConfig, price, estimateId);
+                }
+            });
+        }
+
+        // Przycisk "Create New Estimate" (original)
         const createBtn = document.getElementById('create-new-estimate-btn');
         if (createBtn) {
             createBtn.addEventListener('click', () => {

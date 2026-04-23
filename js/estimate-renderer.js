@@ -271,6 +271,51 @@ class EstimateRenderer {
         const fixSpacer = fc.spacer || fc.spacerColor || 'silver';
         const fixSpacerText = fixSpacer === 'black' ? 'Black' : fixSpacer === 'white' ? 'White' : 'Silver (Stainless Steel)';
 
+        // ═══ DOOR FIELDS ═══
+        const doorShape = fc.doorShape || 'standard';
+        const doorStyle = fc.doorStyle || fc.doorPaneling || 'full-glass';
+        const doorSideStyle = fc.sideStyle || 'full-glass';
+        const doorHingeSide = fc.hingeSide || 'left';
+        const doorOpenDirection = fc.openDirection || 'outward';
+        const doorLockType = fc.lockType || 'multipoint';
+        const doorThreshold = fc.threshold || 'standard';
+        const doorThresholdExtension = fc.thresholdExtension || 0;
+        const doorSillWider = fc.sillWider || false;
+        const doorSidePanels = fc.sidePanels || 'none';
+        const doorSideLeftWidth = fc.sideLeftWidth || 500;
+        const doorSideRightWidth = fc.sideRightWidth || 500;
+        const doorHBars = fc.hBars || fc.doorHBars || 0;
+        const doorVBars = fc.vBars || fc.doorVBars || 0;
+        const doorSideHBars = fc.sideHBars || 0;
+        const doorSideVBars = fc.sideVBars || 0;
+
+        const doorThresholdLabels = { 'standard': 'Standard Hardwood', 'aluminium': 'Aluminium', 'low-profile': 'Low Profile (Wheelchair)' };
+        const doorShapeLabels = { 'standard': 'Standard', 'arched': 'Arched', 'glazed-arch': 'Glazed Arch' };
+        const doorStyleLabels = { 'full-glass': 'Full Glass', 'three-quarter': '¾ Glass', 'half-glazed': 'Half Glass' };
+        const doorPanelingLabels = { 'flat': 'Flat', 'panel': 'Recessed Panel', 'beading': 'Beading', 'bespoke': 'Bespoke' };
+        const doorSideStyleLabels = { 'full-glass': 'Full Glass', 'same': 'Same as Door' };
+        const doorShapeText = doorShapeLabels[doorShape] || 'Standard';
+        const doorStyleText = doorStyleLabels[doorStyle] || 'Full Glass';
+        const doorPaneling = fc.doorPaneling || 'flat';
+        const doorPanelingText = doorPanelingLabels[doorPaneling] || 'Flat';
+        const doorCenterMullion = fc.centerMullion || false;
+        const doorSideStyleText = doorSideStyleLabels[doorSideStyle] || 'Full Glass';
+
+        let doorBarsText = 'None';
+        if (doorHBars > 0 || doorVBars > 0) doorBarsText = doorHBars + 'H × ' + doorVBars + 'V';
+        let doorSideBarsText = '';
+        if (doorSidePanels !== 'none' && (doorSideHBars > 0 || doorSideVBars > 0)) doorSideBarsText = doorSideHBars + 'H × ' + doorSideVBars + 'V';
+        let doorPanelsText = '';
+        if (doorSidePanels !== 'none') {
+            const parts = [];
+            if (doorSidePanels === 'left' || doorSidePanels === 'both') parts.push('Left ' + doorSideLeftWidth + 'mm');
+            if (doorSidePanels === 'right' || doorSidePanels === 'both') parts.push('Right ' + doorSideRightWidth + 'mm');
+            doorPanelsText = parts.join(' + ');
+        }
+        let doorThresholdText = doorThresholdLabels[doorThreshold] || 'Standard Hardwood';
+        if (doorThreshold === 'standard' && doorThresholdExtension > 0) doorThresholdText += ' (+' + doorThresholdExtension + 'mm ext)';
+        if (doorSillWider) doorThresholdText += ' (wider)';
+
         return {
             fc, spec, windowType, sashType, headType, splitRatio,
             width, height, originalWidth, originalHeight, measurementType,
@@ -289,7 +334,13 @@ class EstimateRenderer {
             sillExtension, sillText, trickleVent, trickleColour, trickleText,
             sealColour, safetyGlass, safetyGlassText,
             glassSpecCasement, glassSpecCasementText, fanlightHeight,
-            fixShape, fixType, fixCircleBarPattern, fixCircleOffset, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText
+            fixShape, fixType, fixCircleBarPattern, fixCircleOffset, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText,
+            doorHingeSide, doorOpenDirection, doorLockType,
+            doorThreshold, doorThresholdExtension, doorSillWider, doorThresholdText,
+            doorSidePanels, doorSideLeftWidth, doorSideRightWidth, doorPanelsText,
+            doorHBars, doorVBars, doorBarsText, doorSideHBars, doorSideVBars, doorSideBarsText,
+            doorShape, doorShapeText, doorStyle, doorStyleText, doorSideStyle, doorSideStyleText,
+            doorPaneling, doorPanelingText, doorCenterMullion
         };
     }
 
@@ -346,7 +397,7 @@ class EstimateRenderer {
             <div style="background:var(--cream2);border:1px solid rgba(158,158,144,.15);margin-bottom:1.5rem;padding:0;border-radius:2px;overflow:hidden;break-inside:avoid;page-break-inside:avoid;">
                 <div style="background:var(--navy);padding:.8rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
                     <div style="display:flex;align-items:center;gap:.8rem;">
-                        <span style="font-family:'Jost',sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#fff;">Window ${item.window_number}</span>
+                        <span style="font-family:'Jost',sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#fff;">${p.windowType === 'door' ? 'Door' : 'Window'} ${item.window_number}</span>
                         ${isEditable && !isAdmin ? `
                         <button onclick="dashboard.renameWindow('${item.id}','${(item.window_number || '').replace(/'/g, "\\'")}','${estimate.id}')" style="background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.6);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Rename</button>
                         <button onclick="dashboard.deleteWindow('${item.id}','${estimate.id}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.7);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Delete</button>
@@ -393,6 +444,26 @@ class EstimateRenderer {
                             ${R.specRow('Glass Finish', p.glassFinishText)}
                             ${R.specRow('Colour', p.colorDisplay)}
                             ${R.specRow('Bars', p.fixBarsFull)}
+                            ` : p.windowType === 'door' ? `
+                            ${R.specRow('Type', 'Single Patio Door')}
+                            ${R.specRow('Shape', p.doorShapeText)}
+                            ${R.specRow('Style', p.doorStyleText)}
+                            ${p.doorStyle !== 'full-glass' ? R.specRow('Paneling', p.doorPanelingText) : ''}
+                            ${p.doorStyle !== 'full-glass' ? R.specRow('Center Mullion', p.doorCenterMullion ? 'Yes' : 'No') : ''}
+                            ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
+                            ${p.doorPanelsText ? R.specRow('Side Panels', p.doorPanelsText) : ''}
+                            ${p.doorSidePanels !== 'none' ? R.specRow('Side Panel Style', p.doorSideStyleText) : ''}
+                            ${R.specRow('Open Side', p.doorHingeSide === 'right' ? 'Right' : 'Left')}
+                            ${R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Inward' : 'Outward')}
+                            ${R.specRow('Threshold', p.doorThresholdText)}
+                            ${R.specRow('Glass', p.glassText)}
+                            ${R.specRow('Glass Finish', p.glassFinishText)}
+                            ${R.specRow('Spacer Bar', p.spacerText)}
+                            ${R.specRow('Colour', p.colorDisplay)}
+                            ${R.specRow('Bars', p.doorBarsText)}
+                            ${p.doorSideBarsText ? R.specRow('Panel Bars', p.doorSideBarsText) : ''}
+                            ${R.specRow('Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock')}
+                            ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
                             ` : `
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
@@ -494,7 +565,8 @@ class EstimateRenderer {
         // Summary — Windows table
         const summaryWindowsRows = items.map((it, idx) => {
             const p = R.parseItem(it);
-            const typeShort = p.windowType === 'casement' ? 'Casement'
+            const typeShort = p.windowType === 'door' ? 'Door'
+                : p.windowType === 'casement' ? 'Casement'
                 : p.windowType === 'fix-only' ? 'Fix Frame'
                 : p.sashType === 'triple' ? 'Triple Sash'
                 : p.sashType === 'single' ? 'Single Sash'
@@ -818,6 +890,11 @@ class EstimateRenderer {
         // ═══ FIX-ONLY SVG ═══
         if (windowType === 'fix-only') {
             return EstimateRenderer.generateFixFrameSVG(item, fc);
+        }
+
+        // ═══ DOOR SVG ═══
+        if (windowType === 'door') {
+            return EstimateRenderer.generateDoorSVG(item, fc);
         }
 
         // ═══ SASH SVG (existing code below) ═══
@@ -1843,6 +1920,174 @@ class EstimateRenderer {
         }
     }
 
+    // ─── Door SVG Drawing ───
+    static generateDoorSVG(item, fc) {
+        const w = fc.actualFrameWidth || item.width || 900;
+        const h = fc.actualFrameHeight || item.height || 2100;
+        const hingeSide = fc.hingeSide || 'left';
+        const sidePanels = fc.sidePanels || 'none';
+        const sideLeftW = fc.sideLeftWidth || 500;
+        const sideRightW = fc.sideRightWidth || 500;
+        const hBars = fc.hBars || fc.doorHBars || 0;
+        const vBars = fc.vBars || fc.doorVBars || 0;
+        const sideHBars = fc.sideHBars || 0;
+        const sideVBars = fc.sideVBars || 0;
+        const sideStyle = fc.sideStyle || 'full-glass';
+        const doorStyle = fc.doorStyle || 'full-glass';
+
+        // Bottom rail ratio based on door style
+        const bottomRailRatio = doorStyle === 'half-glazed' ? 0.50 : doorStyle === 'three-quarter' ? 0.28 : 0;
+
+        const hasLeft = sidePanels === 'left' || sidePanels === 'both';
+        const hasRight = sidePanels === 'right' || sidePanels === 'both';
+        const totalW = w + (hasLeft ? sideLeftW : 0) + (hasRight ? sideRightW : 0);
+
+        // SVG sizing
+        const svgW = 280, svgH = 260;
+        const maxDrawW = 240, maxDrawH = 200;
+        const scale = Math.min(maxDrawW / totalW, maxDrawH / h);
+        const drawW = totalW * scale;
+        const drawH = h * scale;
+        const ox = (svgW - drawW) / 2;
+        const oy = 10;
+        const frameT = 8; // frame thickness in SVG px
+
+        const dark = '#1a2a3a';
+        const mid = '#4a5568';
+        const light = '#a0aec0';
+        const glass = '#dbeafe';
+        const panel = '#e8e4dc';
+
+        let svg = `<svg viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Jost',sans-serif;">`;
+
+        // Outer frame
+        svg += `<rect x="${ox}" y="${oy}" width="${drawW}" height="${drawH}" fill="none" stroke="${dark}" stroke-width="2.5" rx="1"/>`;
+
+        let doorX = ox;
+        if (hasLeft) doorX += sideLeftW * scale;
+        const doorW = w * scale;
+
+        // Helper: draw side panel (full-glass or same-as-door)
+        function drawSidePanel(px, py, pw, ph, shBars, svBars) {
+            if (sideStyle === 'same' && bottomRailRatio > 0) {
+                // Same as door: glass top + bottom rail
+                const brH = ph * bottomRailRatio;
+                const glH = ph - brH;
+                svg += `<rect x="${px + 4}" y="${py + 4}" width="${pw - 8}" height="${glH - 4}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                svg += `<rect x="${px}" y="${py + glH}" width="${pw}" height="${brH}" fill="${panel}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                // Bars on glass area only
+                for (let i = 1; i <= shBars; i++) {
+                    const by = py + 4 + (glH - 4) * i / (shBars + 1);
+                    svg += `<line x1="${px + 4}" y1="${by}" x2="${px + pw - 4}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+                }
+                for (let i = 1; i <= svBars; i++) {
+                    const bx = px + 4 + (pw - 8) * i / (svBars + 1);
+                    svg += `<line x1="${bx}" y1="${py + 4}" x2="${bx}" y2="${py + glH}" stroke="${light}" stroke-width="1"/>`;
+                }
+            } else {
+                // Full glass
+                svg += `<rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="${glass}" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
+                for (let i = 1; i <= shBars; i++) {
+                    const by = py + ph * i / (shBars + 1);
+                    svg += `<line x1="${px}" y1="${by}" x2="${px + pw}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+                }
+                for (let i = 1; i <= svBars; i++) {
+                    const bx = px + pw * i / (svBars + 1);
+                    svg += `<line x1="${bx}" y1="${py}" x2="${bx}" y2="${py + ph}" stroke="${light}" stroke-width="1"/>`;
+                }
+            }
+        }
+
+        // ── Left side panel ──
+        if (hasLeft) {
+            drawSidePanel(ox + frameT, oy + frameT, sideLeftW * scale - frameT * 2, drawH - frameT * 2, sideHBars, sideVBars);
+        }
+
+        // ── Right side panel ──
+        if (hasRight) {
+            drawSidePanel(doorX + doorW + frameT, oy + frameT, sideRightW * scale - frameT * 2, drawH - frameT * 2, sideHBars, sideVBars);
+        }
+
+        // ── Mullion lines between panels and door ──
+        if (hasLeft) {
+            const mx = doorX;
+            svg += `<line x1="${mx}" y1="${oy}" x2="${mx}" y2="${oy + drawH}" stroke="${dark}" stroke-width="2"/>`;
+        }
+        if (hasRight) {
+            const mx = doorX + doorW;
+            svg += `<line x1="${mx}" y1="${oy}" x2="${mx}" y2="${oy + drawH}" stroke="${dark}" stroke-width="2"/>`;
+        }
+
+        // ── Door leaf ──
+        const leafX = doorX + frameT;
+        const leafY = oy + frameT;
+        const leafW = doorW - frameT * 2;
+        const leafH = drawH - frameT * 2;
+        svg += `<rect x="${leafX}" y="${leafY}" width="${leafW}" height="${leafH}" fill="none" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
+
+        // Door bottom rail (solid area)
+        const bottomRailH = bottomRailRatio > 0 ? leafH * bottomRailRatio : 0;
+        const glassY = leafY;
+        const glassH = leafH - bottomRailH;
+        // Glass area
+        const glassX = leafX + 4;
+        const glassW2 = leafW - 8;
+        svg += `<rect x="${glassX}" y="${glassY + 4}" width="${glassW2}" height="${glassH - 4}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+        // Bottom rail fill (only for non-full-glass styles)
+        if (bottomRailH > 0) {
+            svg += `<rect x="${leafX}" y="${leafY + glassH}" width="${leafW}" height="${bottomRailH}" fill="${panel}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+        }
+        // Georgian bars on door glass
+        for (let i = 1; i <= hBars; i++) {
+            const by = glassY + 4 + (glassH - 4) * i / (hBars + 1);
+            svg += `<line x1="${glassX}" y1="${by}" x2="${glassX + glassW2}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+        }
+        for (let i = 1; i <= vBars; i++) {
+            const bx = glassX + glassW2 * i / (vBars + 1);
+            svg += `<line x1="${bx}" y1="${glassY + 4}" x2="${bx}" y2="${glassY + glassH}" stroke="${light}" stroke-width="1"/>`;
+        }
+
+        // Handle (circle on opposite side of hinge)
+        const handleX = hingeSide === 'left' ? leafX + leafW - 12 : leafX + 12;
+        const handleY = leafY + leafH * 0.48;
+        svg += `<circle cx="${handleX}" cy="${handleY}" r="4" fill="${dark}" stroke="none"/>`;
+        svg += `<line x1="${handleX}" y1="${handleY - 8}" x2="${handleX}" y2="${handleY + 8}" stroke="${dark}" stroke-width="2" stroke-linecap="round"/>`;
+
+        // Hinge indicators (small triangles)
+        const hingeX = hingeSide === 'left' ? leafX - 1 : leafX + leafW + 1;
+        const hingeDir = hingeSide === 'left' ? -1 : 1;
+        [0.12, 0.5, 0.88].forEach(ratio => {
+            const hy = leafY + leafH * ratio;
+            svg += `<polygon points="${hingeX},${hy - 4} ${hingeX + hingeDir * 5},${hy} ${hingeX},${hy + 4}" fill="${mid}"/>`;
+        });
+
+        // ── Dimensions ──
+        const dimY = oy + drawH + 15;
+        const fontSize = '9';
+        const dimColor = '#666';
+
+        // Total width
+        svg += `<text x="${ox + drawW / 2}" y="${dimY}" text-anchor="middle" font-size="${fontSize}" fill="${dimColor}">${totalW}mm</text>`;
+
+        // Individual widths if panels
+        if (hasLeft || hasRight) {
+            const dimY2 = dimY + 13;
+            let parts = [];
+            if (hasLeft) parts.push({ x: ox + sideLeftW * scale / 2, label: sideLeftW });
+            parts.push({ x: doorX + doorW / 2, label: w });
+            if (hasRight) parts.push({ x: doorX + doorW + sideRightW * scale / 2, label: sideRightW });
+            parts.forEach(pt => {
+                svg += `<text x="${pt.x}" y="${dimY2}" text-anchor="middle" font-size="8" fill="${dimColor}">${pt.label}</text>`;
+            });
+        }
+
+        // Height
+        svg += `<text x="${ox + drawW + 14}" y="${oy + drawH / 2}" text-anchor="middle" font-size="${fontSize}" fill="${dimColor}" transform="rotate(90,${ox + drawW + 14},${oy + drawH / 2})">${h}mm</text>`;
+
+        svg += '</svg>';
+        return svg;
+    }
+
     // ─── PDF Window Drawing ───
     static generateWindowPDF(doc, p, ox, oy) {
         const maxW = 50, maxH = 55;
@@ -2171,6 +2416,26 @@ class EstimateRenderer {
                     specs.push(['Glass Finish', p.glassFinishText]);
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.fixBarsFull]);
+                } else if (p.windowType === 'door') {
+                    specs.push(['Type', 'Single Patio Door']);
+                    specs.push(['Shape', p.doorShapeText]);
+                    specs.push(['Style', p.doorStyleText]);
+                    if (p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                    if (p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
+                    specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+                    if (p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
+                    if (p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
+                    specs.push(['Open Side', p.doorHingeSide === 'right' ? 'Right' : 'Left']);
+                    specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Inward' : 'Outward']);
+                    specs.push(['Threshold', p.doorThresholdText]);
+                    specs.push(['Glass', p.glassText]);
+                    specs.push(['Glass Finish', p.glassFinishText]);
+                    specs.push(['Spacer Bar', p.spacerText]);
+                    specs.push(['Colour', p.colorDisplay]);
+                    specs.push(['Bars', p.doorBarsText]);
+                    if (p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
+                    specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
+                    if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 } else {
                     if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
                     if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
@@ -2266,7 +2531,8 @@ class EstimateRenderer {
             // ──────── PAGE -2: SUMMARY + PAYMENT 50/50 ────────
             const summaryRows = items.map((it, idx) => {
                 const p = R.parseItem(it);
-                const typeShort = p.windowType === 'casement' ? 'Casement'
+                const typeShort = p.windowType === 'door' ? 'Door'
+                : p.windowType === 'casement' ? 'Casement'
                     : p.windowType === 'fix-only' ? 'Fix Frame'
                     : p.sashType === 'triple' ? 'Triple Sash'
                     : p.sashType === 'single' ? 'Single Sash'
@@ -2616,6 +2882,26 @@ class EstimateRenderer {
                 specs.push(['Glass Finish', p.glassFinishText]);
                 specs.push(['Colour', p.colorDisplay]);
                 specs.push(['Bars', p.fixBarsFull]);
+            } else if (p.windowType === 'door') {
+                specs.push(['Type', 'Single Patio Door']);
+                specs.push(['Shape', p.doorShapeText]);
+                specs.push(['Style', p.doorStyleText]);
+                if (p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                if (p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
+                specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+                if (p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
+                if (p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
+                specs.push(['Open Side', p.doorHingeSide === 'right' ? 'Right' : 'Left']);
+                specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Inward' : 'Outward']);
+                specs.push(['Threshold', p.doorThresholdText]);
+                specs.push(['Glass', p.glassText]);
+                specs.push(['Glass Finish', p.glassFinishText]);
+                specs.push(['Spacer Bar', p.spacerText]);
+                specs.push(['Colour', p.colorDisplay]);
+                specs.push(['Bars', p.doorBarsText]);
+                if (p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
+                specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
+                if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
             } else {
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
@@ -2651,7 +2937,7 @@ class EstimateRenderer {
                 </div>
             `).join('');
 
-            const typeLabel = p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+            const typeLabel = p.windowType === 'door' ? 'Door' : p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
             const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
 
             return `
@@ -2748,7 +3034,7 @@ class EstimateRenderer {
 
             estimate.estimate_items?.forEach(item => {
                 const p = R.parseItemForExport(item);
-                const typeLabel = p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+                const typeLabel = p.windowType === 'door' ? 'Door' : p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
                 const headLabel = p.headType !== 'flat' ? ` (${p.headType})` : '';
                 wsData.push([
                     item.window_number,

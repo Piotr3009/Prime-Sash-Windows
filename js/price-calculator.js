@@ -69,6 +69,11 @@ class PriceCalculator {
       return this.calculateFixOnly(configuration, sqm, frameWidth, frameHeight);
     }
 
+    // ═══ DOOR PRICING ═══
+    if (configuration.productType === 'door' || configuration.windowCategory === 'door') {
+      return this.calculateDoor(configuration, frameWidth, frameHeight);
+    }
+
     // 1. CENA BAZOWA (SASH)
     let basePrice;
     let sizeMultiplier;
@@ -81,6 +86,13 @@ class PriceCalculator {
       // Double: £800/sqm with degressive multiplier
       sizeMultiplier = this.getSizeMultiplier(sqm);
       basePrice = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
+    }
+
+    // 5% discount above 1.5 sqm
+    if (sqm > 1.5) {
+      const sashDiscount = basePrice * 0.05;
+      basePrice -= sashDiscount;
+      console.log('Sash >1.5m² discount: -5% = -£' + sashDiscount.toFixed(2) + ' → £' + basePrice.toFixed(2));
     }
     
     // 2. CENA ZA SZPROSY (bars) — center sash
@@ -266,7 +278,9 @@ class PriceCalculator {
       galleryIronmongery.horns,
       galleryIronmongery.casementHandles,
       galleryIronmongery.casementStays,
-      galleryIronmongery.casementLocks
+      galleryIronmongery.casementLocks,
+      galleryIronmongery.doorHandles,
+      galleryIronmongery.doorLocks
     ].filter(p => p !== null && p !== undefined);
     
     if (selectedProducts.length > 0) {
@@ -502,6 +516,145 @@ class PriceCalculator {
         quantity: quantity,
         discount: (discount * 100) + '%',
         discountAmount: discountAmount.toFixed(2),
+        unitPrice: unitPrice.toFixed(2),
+        totalPrice: totalPrice.toFixed(2),
+        vatAmount: (totalPrice * this.pricing.vatRate).toFixed(2),
+        totalWithVat: (totalPrice * (1 + this.pricing.vatRate)).toFixed(2)
+      }
+    };
+  }
+
+  // ═══ DOOR PRICING ═══
+  calculateDoor(configuration, frameWidth, frameHeight) {
+    const DOOR_BASE_PER_SQM = 900;
+    const PANEL_BASE_PER_SQM = 450; // side panels = half door rate
+    const SILL_EXTENSION_PRICE = 80;
+    const BEADING_DOOR = 80;
+    const BEADING_PANEL = 40;
+    const RECESSED_DOOR = 120;
+    const RECESSED_PANEL = 80;
+    const SINGLE_COLOUR_SURCHARGE = 0.05;
+    const DUAL_COLOUR_SURCHARGE = 0.15;
+
+    console.log('=== DOOR PRICING ===');
+
+    // ── 1. Door leaf base price ──
+    const doorW = configuration.width || 900;
+    const doorH = configuration.height || 2100;
+    const doorSqm = (doorW / 1000) * (doorH / 1000);
+    let basePrice = DOOR_BASE_PER_SQM * doorSqm;
+    console.log('Door leaf:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + DOOR_BASE_PER_SQM, '= £' + basePrice.toFixed(2));
+
+    // ── 2. Side panels ──
+    let panelPrice = 0;
+    const sidePanels = configuration.sidePanels || 'none';
+    const hasLeft = sidePanels === 'left' || sidePanels === 'both';
+    const hasRight = sidePanels === 'right' || sidePanels === 'both';
+    let panelCount = 0;
+
+    if (hasLeft) {
+      const leftW = configuration.sideLeftWidth || 500;
+      const leftSqm = (leftW / 1000) * (doorH / 1000);
+      panelPrice += PANEL_BASE_PER_SQM * leftSqm;
+      panelCount++;
+      console.log('Left panel:', leftW + 'x' + doorH, '=', leftSqm.toFixed(2) + 'm² × £' + PANEL_BASE_PER_SQM + ' = £' + (PANEL_BASE_PER_SQM * leftSqm).toFixed(2));
+    }
+    if (hasRight) {
+      const rightW = configuration.sideRightWidth || 500;
+      const rightSqm = (rightW / 1000) * (doorH / 1000);
+      panelPrice += PANEL_BASE_PER_SQM * rightSqm;
+      panelCount++;
+      console.log('Right panel:', rightW + 'x' + doorH, '=', rightSqm.toFixed(2) + 'm² × £' + PANEL_BASE_PER_SQM + ' = £' + (PANEL_BASE_PER_SQM * rightSqm).toFixed(2));
+    }
+
+    // ── 3. Bars (from DB price) ──
+    const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 20;
+    const doorHBars = configuration.hBars || 0;
+    const doorVBars = configuration.vBars || 0;
+    const doorBarCount = doorHBars + doorVBars;
+    let barsPrice = doorBarCount * barRate;
+
+    const sideHBars = configuration.sideHBars || 0;
+    const sideVBars = configuration.sideVBars || 0;
+    const sideBarCount = sideHBars + sideVBars;
+    barsPrice += sideBarCount * panelCount * barRate;
+
+    if (barsPrice > 0) console.log('Bars: door(' + doorBarCount + ') + panels(' + sideBarCount + '×' + panelCount + ') × £' + barRate + ' = £' + barsPrice.toFixed(2));
+
+    // ── 4. Sill extension ──
+    let sillPrice = 0;
+    if (configuration.thresholdExtension > 0) {
+      sillPrice = SILL_EXTENSION_PRICE;
+      console.log('Sill extension: £' + sillPrice);
+    }
+
+    // ── 5. Paneling (only when not full-glass) ──
+    let panelingPrice = 0;
+    const paneling = configuration.doorPaneling || 'flat';
+    const doorStyleForPrice = configuration.doorStyle || 'full-glass';
+    const sideStyle = configuration.sideStyle || 'full-glass';
+    const chargeablePanels = sideStyle === 'same' ? panelCount : 0;
+    if (doorStyleForPrice !== 'full-glass') {
+      if (paneling === 'beading') {
+        panelingPrice = BEADING_DOOR + (chargeablePanels * BEADING_PANEL);
+        console.log('Beading: door £' + BEADING_DOOR + ' + ' + chargeablePanels + ' panels × £' + BEADING_PANEL + ' = £' + panelingPrice);
+      } else if (paneling === 'panel') {
+        panelingPrice = RECESSED_DOOR + (chargeablePanels * RECESSED_PANEL);
+        console.log('Recessed: door £' + RECESSED_DOOR + ' + ' + chargeablePanels + ' panels × £' + RECESSED_PANEL + ' = £' + panelingPrice);
+      }
+    }
+
+    // ── 6. Glass (from DB — uses calculateAdditionalOptions) ──
+    const totalSqm = doorSqm + (hasLeft ? (configuration.sideLeftWidth || 500) / 1000 * doorH / 1000 : 0)
+                              + (hasRight ? (configuration.sideRightWidth || 500) / 1000 * doorH / 1000 : 0);
+    const additionalPrice = this.calculateAdditionalOptions(configuration, totalSqm, basePrice + panelPrice);
+
+    // ── Subtotal ──
+    let subtotal = basePrice + panelPrice + barsPrice + sillPrice + panelingPrice + additionalPrice;
+    console.log('Subtotal: £' + subtotal.toFixed(2));
+
+    // ── 7. Colour surcharge ──
+    let colourSurcharge = 0;
+    const isWhite = !configuration.woodColor || configuration.woodColor === '#FAFAFA' || configuration.woodColor === '#F6F6F6' || configuration.woodColor === '#ffffff';
+    if (!configuration.sameColor) {
+      colourSurcharge = subtotal * DUAL_COLOUR_SURCHARGE;
+      console.log('Dual colour: 15% × £' + subtotal.toFixed(2) + ' = £' + colourSurcharge.toFixed(2));
+    } else if (!isWhite) {
+      colourSurcharge = subtotal * SINGLE_COLOUR_SURCHARGE;
+      console.log('Single colour: 5% × £' + subtotal.toFixed(2) + ' = £' + colourSurcharge.toFixed(2));
+    }
+    subtotal += colourSurcharge;
+
+    // ── Quantity ──
+    const quantity = configuration.quantity || 1;
+    const discount = this.getQuantityDiscount(quantity);
+    const discountAmount = subtotal * discount;
+    const unitPrice = subtotal - discountAmount;
+    const totalPrice = unitPrice * quantity;
+
+    console.log('Unit: £' + unitPrice.toFixed(2), 'Qty:', quantity, 'Total: £' + totalPrice.toFixed(2));
+    console.log('=== END DOOR PRICING ===');
+
+    return {
+      unitPrice: Math.round(unitPrice * 100) / 100,
+      totalPrice: Math.round(totalPrice * 100) / 100,
+      total: Math.round(unitPrice * 100) / 100,
+      breakdown: {
+        windowType: 'door',
+        doorWidth: doorW,
+        doorHeight: doorH,
+        doorSqm: doorSqm.toFixed(2),
+        basePrice: basePrice.toFixed(2),
+        panelPrice: panelPrice.toFixed(2),
+        panelCount: panelCount,
+        barsPrice: barsPrice.toFixed(2),
+        sillPrice: sillPrice.toFixed(2),
+        panelingPrice: panelingPrice.toFixed(2),
+        additionalOptions: additionalPrice,
+        colourSurcharge: colourSurcharge.toFixed(2),
+        subtotal: subtotal.toFixed(2),
+        quantity: quantity,
+        discount: (discount * 100) + '%',
         unitPrice: unitPrice.toFixed(2),
         totalPrice: totalPrice.toFixed(2),
         vatAmount: (totalPrice * this.pricing.vatRate).toFixed(2),

@@ -27,7 +27,7 @@ class IronmongeryGallery {
   setupWindowTypeTabs() {
     document.querySelectorAll('.wt-tab').forEach(tab => {
       tab.addEventListener('click', () => {
-        if (tab.dataset.wt === 'doors') return; // disabled
+        if (false) return; // doors tab enabled
         document.querySelectorAll('.wt-tab').forEach(t => {
           t.classList.remove('active');
           t.style.background = 'transparent';
@@ -43,18 +43,28 @@ class IronmongeryGallery {
   }
 
   showTabsForWindowType() {
-    const isCasement = this.windowType === 'casement';
+    const wt = this.windowType;
+    const isCasement = wt === 'casement';
+    const isDoors = wt === 'doors';
     
-    // Show/hide category tabs
+    // Show/hide category tabs based on window type
     document.querySelectorAll('.category-tab').forEach(tab => {
       const cat = tab.dataset.category;
       const isCasementCat = cat && cat.startsWith('casement');
-      tab.style.display = (isCasement === isCasementCat) ? '' : 'none';
+      const isDoorCat = cat && cat.startsWith('door');
+      if (isDoors) {
+        tab.style.display = isDoorCat ? '' : 'none';
+      } else if (isCasement) {
+        tab.style.display = isCasementCat ? '' : 'none';
+      } else {
+        // sash — show tabs that are neither casement nor door
+        tab.style.display = (!isCasementCat && !isDoorCat) ? '' : 'none';
+      }
     });
     
-    // Hide type selector (Standard/PAS24/Horns) for casement
+    // Hide type selector (Standard/PAS24/Horns) for casement and doors
     const typeSelector = document.querySelector('.type-selector');
-    if (typeSelector) typeSelector.style.display = isCasement ? 'none' : '';
+    if (typeSelector) typeSelector.style.display = (isCasement || isDoors) ? 'none' : '';
     
     // Activate first visible tab
     const firstVisible = document.querySelector('.category-tab:not([style*="none"])');
@@ -70,7 +80,7 @@ class IronmongeryGallery {
       if (t.dataset.wt === this.windowType) {
         t.style.background = 'var(--primary-color)';
         t.style.color = 'white';
-      } else if (t.dataset.wt !== 'doors') {
+      } else {
         t.style.background = 'transparent';
         t.style.color = 'var(--primary-color)';
       }
@@ -226,7 +236,10 @@ class IronmongeryGallery {
     
     // Always start with Standard view - user can switch to PAS24 if needed
     this.switchType('standard');
-    
+
+    // Apply window type filtering (sash vs casement)
+    this.showTabsForWindowType();
+
     // Render products
     this.renderProducts();
   }
@@ -763,6 +776,10 @@ class IronmongeryGallery {
     if (typeof window.updateCasementPrice === 'function') {
       window.updateCasementPrice();
     }
+    // Door: updatePrice skips doors via guard, recalc manually
+    if (typeof window.updateDoorPrice === 'function') {
+      window.updateDoorPrice();
+    }
 
     // Wywołaj applyDetails (specyfikacja)
     if (window.specificationController) {
@@ -970,6 +987,10 @@ class IronmongeryGallery {
                 <option value="casementHandles">Casement Handles</option>
                 <option value="casementStays">Casement Stays</option>
                 <option value="casementLocks">Casement Locks</option>
+              </optgroup>
+              <optgroup label="Doors">
+                <option value="doorHandles">Door Handles</option>
+                <option value="doorLocks">Door Locks</option>
               </optgroup>
             </select>
           </div>

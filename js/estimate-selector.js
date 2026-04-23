@@ -65,44 +65,76 @@ class EstimateSelectorManager {
     }
 
     renderEstimateOptions() {
-        const selector = document.getElementById('estimate-selector');
-        if (!selector) return;
+        // Populate all estimate dropdowns (sash + door)
+        const selectors = [
+            document.getElementById('estimate-selector'),
+            document.getElementById('d-estimate-selector')
+        ];
 
-        // Clear existing options except "Create New"
-        selector.innerHTML = '<option value="new">+ Create New Estimate</option>';
+        selectors.forEach(selector => {
+            if (!selector) return;
 
-        // Add estimates
-        this.estimates.forEach(estimate => {
-            const itemCount = estimate.estimate_items?.[0]?.count || 0;
-            const option = document.createElement('option');
-            option.value = estimate.id;
-            option.textContent = `${estimate.estimate_number} - ${estimate.project_name} (${itemCount} windows, £${this.formatPrice(estimate.total_price)})`;
-            selector.appendChild(option);
+            // Clear existing options except "Create New"
+            selector.innerHTML = '<option value="new">+ Create New Estimate</option>';
+
+            // Add estimates
+            this.estimates.forEach(estimate => {
+                const itemCount = estimate.estimate_items?.[0]?.count || 0;
+                const option = document.createElement('option');
+                option.value = estimate.id;
+                option.textContent = `${estimate.estimate_number} - ${estimate.project_name} (${itemCount} windows, £${this.formatPrice(estimate.total_price)})`;
+                selector.appendChild(option);
+            });
+
+            // Sync selected value
+            if (this.selectedEstimateId) {
+                selector.value = this.selectedEstimateId;
+            }
         });
 
         this.updateEstimateInfo();
     }
 
-    updateEstimateInfo() {
-        const info = document.getElementById('estimate-info');
-        const addBtn = document.getElementById('add-to-estimate');
-        
-        if (!info || !addBtn) return;
+    // Keep all estimate dropdowns in sync
+    syncDropdowns(source) {
+        const allSelectors = [
+            document.getElementById('estimate-selector'),
+            document.getElementById('d-estimate-selector')
+        ];
+        allSelectors.forEach(sel => {
+            if (sel && sel !== source) sel.value = this.selectedEstimateId;
+        });
+    }
 
-        if (this.selectedEstimateId === 'new') {
-            info.textContent = 'Create a new estimate first, then configure and add windows';
-            info.style.color = '#666';
-            info.style.fontWeight = 'normal';
-            addBtn.textContent = 'Create New Estimate';
-        } else {
-            const estimate = this.estimates.find(e => e.id === this.selectedEstimateId);
-            if (estimate) {
-                info.textContent = `Window will be added to: ${estimate.project_name}`;
-                info.style.color = 'var(--primary-color)';
-                info.style.fontWeight = '600';
-                addBtn.textContent = `Add Window to "${estimate.project_name}"`;
+    updateEstimateInfo() {
+        // Update both sash and door info elements
+        const pairs = [
+            { info: document.getElementById('estimate-info'), btn: document.getElementById('add-to-estimate'), label: 'Window' },
+            { info: document.getElementById('d-estimate-info'), btn: document.getElementById('d-add-to-estimate'), label: 'Door' }
+        ];
+
+        pairs.forEach(({ info, btn, label }) => {
+            if (!info && !btn) return;
+
+            if (this.selectedEstimateId === 'new') {
+                if (info) {
+                    info.textContent = 'Create a new estimate first, then configure and add items';
+                    info.style.color = '#666';
+                    info.style.fontWeight = 'normal';
+                }
+                if (btn) btn.textContent = 'Create New Estimate';
+            } else {
+                const estimate = this.estimates.find(e => e.id === this.selectedEstimateId);
+                if (estimate) {
+                    if (info) {
+                        info.textContent = `${label} will be added to: ${estimate.project_name}`;
+                        info.style.color = 'var(--primary-color)';
+                        info.style.fontWeight = '600';
+                    }
+                    if (btn) btn.textContent = `Add ${label} to "${estimate.project_name}"`;
+                }
             }
-        }
+        });
     }
 
     disableSelector() {
@@ -114,13 +146,25 @@ class EstimateSelectorManager {
     }
 
     attachEventListeners() {
-        // Selector change
+        // Selector change — sash
         const selector = document.getElementById('estimate-selector');
         if (selector) {
             selector.addEventListener('change', (e) => {
                 this.selectedEstimateId = e.target.value;
+                this.syncDropdowns(e.target);
                 this.updateEstimateInfo();
                 console.log('Selected estimate:', this.selectedEstimateId);
+            });
+        }
+
+        // Selector change — door
+        const doorSelector = document.getElementById('d-estimate-selector');
+        if (doorSelector) {
+            doorSelector.addEventListener('change', (e) => {
+                this.selectedEstimateId = e.target.value;
+                this.syncDropdowns(e.target);
+                this.updateEstimateInfo();
+                console.log('Selected estimate (door):', this.selectedEstimateId);
             });
         }
 

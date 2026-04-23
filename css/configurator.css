@@ -715,6 +715,21 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   -webkit-text-fill-color: var(--secondary-color);
 }
 
+/* Disabled radio options (Coming Soon) */
+.radio-option input:disabled + .radio-label.disabled-option,
+.radio-label.disabled-option {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.radio-label.disabled-option small {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
 /* Dual colour section - greyed until selected */
 .colour-greyed {
   opacity: 0.35;

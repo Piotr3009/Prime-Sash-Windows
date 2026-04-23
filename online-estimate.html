@@ -284,8 +284,8 @@
               <label for="range-windows" class="radio-label">Timber Windows</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="range-doors" name="product-range" value="doors" disabled>
-              <label for="range-doors" class="radio-label" style="opacity:0.4;cursor:not-allowed;position:relative;">Timber Doors<br><span style="font-size:0.6rem;letter-spacing:1px;color:var(--secondary-color);">COMING SOON</span></label>
+              <input type="radio" id="range-doors" name="product-range" value="doors">
+              <label for="range-doors" class="radio-label">Timber Doors</label>
             </div>
           </div>
         </div>
@@ -752,19 +752,19 @@
           <div class="radio-group">
             <div class="radio-option">
               <input type="radio" id="type-single-ext" name="door-type" value="single-external">
-              <label for="type-single-ext" class="radio-label">Single External Door</label>
+              <label for="type-single-ext" class="radio-label">Single Patio Door</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="type-french" name="door-type" value="french">
-              <label for="type-french" class="radio-label">French Doors</label>
+              <input type="radio" id="type-french" name="door-type" value="french" disabled>
+              <label for="type-french" class="radio-label disabled-option">French Doors<br><small>(Coming Soon)</small></label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="type-sliding" name="door-type" value="sliding">
-              <label for="type-sliding" class="radio-label">Sliding Door</label>
+              <input type="radio" id="type-sliding" name="door-type" value="sliding" disabled>
+              <label for="type-sliding" class="radio-label disabled-option">Sliding Door<br><small>(Coming Soon)</small></label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="type-bifold" name="door-type" value="bifold">
-              <label for="type-bifold" class="radio-label">Bi-Fold Door</label>
+              <input type="radio" id="type-bifold" name="door-type" value="bifold" disabled>
+              <label for="type-bifold" class="radio-label disabled-option">Bi-Fold Door<br><small>(Coming Soon)</small></label>
             </div>
           </div>
         </div>
@@ -782,12 +782,12 @@
               <label for="door-shape-standard" class="radio-label">Standard</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="door-shape-arched" name="door-shape" value="arched">
-              <label for="door-shape-arched" class="radio-label">Arched</label>
+              <input type="radio" id="door-shape-arched" name="door-shape" value="arched" disabled>
+              <label for="door-shape-arched" class="radio-label disabled-option">Arched<br><small>(Coming Soon)</small></label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="door-shape-glazed-arch" name="door-shape" value="glazed-arch">
-              <label for="door-shape-glazed-arch" class="radio-label">Glazed Arch</label>
+              <input type="radio" id="door-shape-glazed-arch" name="door-shape" value="glazed-arch" disabled>
+              <label for="door-shape-glazed-arch" class="radio-label disabled-option">Glazed Arch<br><small>(Coming Soon)</small></label>
             </div>
           </div>
         </div>
@@ -811,12 +811,31 @@
           </div>
         </div>
 
+        <!-- Center Mullion (glass split) -->
+        <h3>Center Mullion</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="door-center-mullion-off" name="door-center-mullion" value="off" checked>
+              <label for="door-center-mullion-off" class="radio-label">None</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="door-center-mullion-on" name="door-center-mullion" value="on">
+              <label for="door-center-mullion-on" class="radio-label">Split Glass</label>
+            </div>
+          </div>
+        </div>
+
         <!-- Paneling -->
         <h3>Paneling</h3>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
-              <input type="radio" id="door-panel-recessed" name="door-paneling" value="panel" checked>
+              <input type="radio" id="door-panel-flat" name="door-paneling" value="flat" checked>
+              <label for="door-panel-flat" class="radio-label">Flat</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="door-panel-recessed" name="door-paneling" value="panel">
               <label for="door-panel-recessed" class="radio-label">Panel</label>
             </div>
             <div class="radio-option">
@@ -853,6 +872,21 @@
           </div>
         </div>
 
+        <!-- Side Panel Style (Same as door / Full Glass) — only relevant when sidePanels != none -->
+        <h3>Side Panel Style</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="door-side-style-full" name="door-side-style" value="full-glass" checked>
+              <label for="door-side-style-full" class="radio-label">Full Glass</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="door-side-style-same" name="door-side-style" value="same">
+              <label for="door-side-style-same" class="radio-label">Same as Door</label>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ═══ DOOR SECTIONS ═══ -->
@@ -880,14 +914,19 @@
           <div class="dim-row">
             <div class="input-group" id="d-side-left-group" style="display:none;">
               <label for="d-side-left-width">Left Panel Width (mm):</label>
-              <input type="number" id="d-side-left-width" min="200" max="800" value="400" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+              <input type="number" id="d-side-left-width" min="200" max="800" value="500" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
             </div>
             <div class="input-group" id="d-side-right-group" style="display:none;">
               <label for="d-side-right-width">Right Panel Width (mm):</label>
-              <input type="number" id="d-side-right-width" min="200" max="800" value="400" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+              <input type="number" id="d-side-right-width" min="200" max="800" value="500" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
             </div>
           </div>
           <p style="font-size:0.65rem;color:#999;margin-top:2px;">Side panels: 200–800mm</p>
+        </div>
+        <!-- Door Opening -->
+        <div class="input-group" style="margin-top:12px;">
+          <label for="d-door-opening">Door Opening: <span id="d-door-opening-val">0</span>%</label>
+          <input type="range" id="d-door-opening" min="0" max="100" value="0" step="1" style="width:100%;">
         </div>
       </div>
 
@@ -916,13 +955,36 @@
             <div class="radio-option"><input type="radio" id="d-vbars-5" name="d-vbars" value="5"><label for="d-vbars-5" class="radio-label">5</label></div>
           </div>
         </div>
+
+        <!-- Side Panel Bars (only relevant when side panels are selected) -->
+        <h3>Side Panel Bars</h3>
+        <div class="input-group">
+          <label>Side Panel Horizontal Bars:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-side-hbars-0" name="d-side-hbars" value="0" checked><label for="d-side-hbars-0" class="radio-label">None</label></div>
+            <div class="radio-option"><input type="radio" id="d-side-hbars-1" name="d-side-hbars" value="1"><label for="d-side-hbars-1" class="radio-label">1</label></div>
+            <div class="radio-option"><input type="radio" id="d-side-hbars-2" name="d-side-hbars" value="2"><label for="d-side-hbars-2" class="radio-label">2</label></div>
+            <div class="radio-option"><input type="radio" id="d-side-hbars-3" name="d-side-hbars" value="3"><label for="d-side-hbars-3" class="radio-label">3</label></div>
+            <div class="radio-option"><input type="radio" id="d-side-hbars-4" name="d-side-hbars" value="4"><label for="d-side-hbars-4" class="radio-label">4</label></div>
+            <div class="radio-option"><input type="radio" id="d-side-hbars-5" name="d-side-hbars" value="5"><label for="d-side-hbars-5" class="radio-label">5</label></div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Side Panel Vertical Bars:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-side-vbars-0" name="d-side-vbars" value="0" checked><label for="d-side-vbars-0" class="radio-label">None</label></div>
+            <div class="radio-option"><input type="radio" id="d-side-vbars-1" name="d-side-vbars" value="1"><label for="d-side-vbars-1" class="radio-label">1</label></div>
+            <div class="radio-option"><input type="radio" id="d-side-vbars-2" name="d-side-vbars" value="2"><label for="d-side-vbars-2" class="radio-label">2</label></div>
+            <div class="radio-option"><input type="radio" id="d-side-vbars-3" name="d-side-vbars" value="3"><label for="d-side-vbars-3" class="radio-label">3</label></div>
+          </div>
+        </div>
       </div>
 
       <!-- Door Design Options -->
       <div class="config-section" data-for="door" data-category="door-dimensions" style="display:none;">
         <h3>Step 3: Door Design</h3>
         <div class="input-group">
-          <label>Hinge Side:</label>
+          <label>Open Side:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="d-hinge-left" name="d-hinge-side" value="left" checked><label for="d-hinge-left" class="radio-label">Left</label></div>
             <div class="radio-option"><input type="radio" id="d-hinge-right" name="d-hinge-side" value="right"><label for="d-hinge-right" class="radio-label">Right</label></div>
@@ -931,8 +993,8 @@
         <div class="input-group">
           <label>Opening Direction:</label>
           <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-open-inward" name="d-open-direction" value="inward" checked><label for="d-open-inward" class="radio-label">Inward</label></div>
-            <div class="radio-option"><input type="radio" id="d-open-outward" name="d-open-direction" value="outward"><label for="d-open-outward" class="radio-label">Outward</label></div>
+            <div class="radio-option"><input type="radio" id="d-open-inward" name="d-open-direction" value="outward" checked><label for="d-open-inward" class="radio-label">Inward</label></div>
+            <div class="radio-option"><input type="radio" id="d-open-outward" name="d-open-direction" value="inward"><label for="d-open-outward" class="radio-label">Outward</label></div>
           </div>
         </div>
         <div class="input-group">
@@ -943,9 +1005,18 @@
             <div class="radio-option"><input type="radio" id="d-threshold-low" name="d-threshold" value="low-profile"><label for="d-threshold-low" class="radio-label">Low Profile (wheelchair accessible)</label></div>
           </div>
         </div>
+        <div class="input-group" id="d-threshold-extension-row">
+          <label for="d-threshold-extension">Sill Extension (mm):</label>
+          <input type="number" id="d-threshold-extension" min="0" max="100" value="0" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+          <small style="color:#888;font-size:11px;margin-top:4px;display:block;">Extension beyond frame (0–100mm). Slope angle stays the same — longer extension = lower sill edge.</small>
+        </div>
+        <div class="input-group" style="margin-top:8px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="d-sill-wider" style="width:18px;height:18px;">
+            Sill wider than frame (+50mm each side)
+          </label>
+        </div>
       </div>
-
-      <!-- Door Glass Type -->
       <div class="config-section" data-for="door" data-category="door-glass" style="display:none;">
         <h3>Step 3: Glass Type</h3>
         <div class="input-group">
@@ -965,7 +1036,6 @@
           <label>Glass Finish:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="d-finish-clear" name="d-glass-finish" value="clear" checked><label for="d-finish-clear" class="radio-label">Clear</label></div>
-            <div class="radio-option"><input type="radio" id="d-finish-obscure" name="d-glass-finish" value="obscure"><label for="d-finish-obscure" class="radio-label">Obscure</label></div>
             <div class="radio-option"><input type="radio" id="d-finish-frosted" name="d-glass-finish" value="frosted"><label for="d-finish-frosted" class="radio-label">Frosted</label></div>
           </div>
         </div>
@@ -997,7 +1067,7 @@
         </div>
         <div class="input-group" style="margin-top:12px;">
           <button class="btn btn-primary" style="width:100%; padding:12px; font-size:0.85rem; cursor:pointer;"
-                  onclick="openIronmongeryGallery('door')">
+                  onclick="openIronmongeryGallery('doors')">
             🔧 Browse Door Hardware
           </button>
         </div>
@@ -1005,9 +1075,25 @@
       </div>
 
       <!-- Door Finalise -->
-      <div class="config-section" data-for="door" data-category="door-finalise" style="display:none;">
-        <h3>Step 7: Finalise</h3>
-        <div class="input-group">
+      <div class="config-section estimate-selector-section" data-for="door" data-category="door-finalise" style="display:none;">
+        <h3>Add Door To:</h3>
+        <div class="estimate-selector-container">
+          <select id="d-estimate-selector" class="estimate-dropdown">
+            <option value="new">+ Create New Estimate</option>
+          </select>
+        </div>
+        <p class="estimate-info" id="d-estimate-info">Click the button below to proceed</p>
+
+        <div class="input-group" style="margin-top: 15px;">
+          <label for="d-custom-name">Door Name/Reference (optional):</label>
+          <input type="text" id="d-custom-name" placeholder="e.g. FD01, Front Door, or leave blank for D1, D2..."
+                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
+          <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 5px;">
+            Leave blank to use automatic numbering (D1, D2, D3...). Or enter your own reference from architectural plans.
+          </small>
+        </div>
+
+        <div class="input-group" style="margin-top:12px;">
           <label for="d-quantity">Number of doors with this configuration:</label>
           <input type="number" id="d-quantity" min="1" max="100" value="1" step="1">
           <p class="quantity-info">For multiple identical doors with the same configuration</p>
@@ -1016,11 +1102,10 @@
           <label for="d-notes">Notes (optional):</label>
           <textarea id="d-notes" rows="3" placeholder="Any additional requirements..." style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-family:'Jost',sans-serif;font-size:0.85rem;"></textarea>
         </div>
-        <div class="input-group" style="margin-top:16px;">
-          <button class="btn btn-primary" id="d-add-to-estimate" style="width:100%;padding:14px;font-size:0.9rem;cursor:pointer;">
-            Add Door to Estimate
-          </button>
-        </div>
+      </div>
+      <div class="config-section" data-for="door" data-category="door-finalise" style="display:none;background:transparent!important;border:none!important;padding:0!important;">
+        <button class="btn" id="d-add-to-estimate" style="width:100%;padding:14px;font-size:0.9rem;cursor:pointer;">Add Door to Estimate</button>
+        <button class="btn btn-secondary" id="d-view-estimates" style="margin-top:8px;width:100%;">View My Estimates</button>
       </div>
 
       <!-- ═══ END DOOR SECTIONS ═══ -->
@@ -2794,23 +2879,7 @@
             <div class="radio-option"><input type="radio" id="c-finish-frosted" name="c-glass-finish" value="frosted"><label for="c-finish-frosted" class="radio-label">Frosted</label></div>
           </div>
         </div>
-        <div class="input-group">
-          <label>Spacer Bar:</label>
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="c-spacer-silver" name="c-spacer-color" value="silver" checked>
-              <label for="c-spacer-silver" class="radio-label">Silver</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="c-spacer-white" name="c-spacer-color" value="white">
-              <label for="c-spacer-white" class="radio-label">White</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="c-spacer-black" name="c-spacer-color" value="black">
-              <label for="c-spacer-black" class="radio-label">Black</label>
-            </div>
-          </div>
-        </div>
+
 
 
       </div>
@@ -3284,6 +3353,121 @@
         </div>
         
 
+        <!-- Door-specific spec sections -->
+        <div class="spec-section" id="spec-door-type" style="display: none;">
+          <h4>Door Type</h4>
+          <div class="spec-item">
+            <span class="spec-label">Shape:</span>
+            <span class="spec-value" id="spec-d-shape">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Style:</span>
+            <span class="spec-value" id="spec-d-style">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-paneling-item">
+            <span class="spec-label">Paneling:</span>
+            <span class="spec-value" id="spec-d-paneling">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-mullion-item">
+            <span class="spec-label">Center Mullion:</span>
+            <span class="spec-value" id="spec-d-mullion">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-side-style-item" style="display:none;">
+            <span class="spec-label">Side Panel Style:</span>
+            <span class="spec-value" id="spec-d-side-style">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-dimensions" style="display: none;">
+          <h4>Door Dimensions</h4>
+          <div class="spec-item">
+            <span class="spec-label">Width:</span>
+            <span class="spec-value" id="spec-d-width">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Height:</span>
+            <span class="spec-value" id="spec-d-height">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-panels-item" style="display:none;">
+            <span class="spec-label">Side Panels:</span>
+            <span class="spec-value" id="spec-d-panels">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-bars" style="display: none;">
+          <h4>Georgian Bars</h4>
+          <div class="spec-item">
+            <span class="spec-label">Door Bars:</span>
+            <span class="spec-value" id="spec-d-bars">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-side-bars-item" style="display:none;">
+            <span class="spec-label">Panel Bars:</span>
+            <span class="spec-value" id="spec-d-side-bars">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-design" style="display: none;">
+          <h4>Door Design</h4>
+          <div class="spec-item">
+            <span class="spec-label">Open Side:</span>
+            <span class="spec-value" id="spec-d-hinge">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Opening:</span>
+            <span class="spec-value" id="spec-d-opening">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Threshold:</span>
+            <span class="spec-value" id="spec-d-threshold">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-extension-item" style="display:none;">
+            <span class="spec-label">Sill Extension:</span>
+            <span class="spec-value" id="spec-d-extension">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-glass" style="display: none;">
+          <h4>Glass</h4>
+          <div class="spec-item">
+            <span class="spec-label">Type:</span>
+            <span class="spec-value" id="spec-d-glass-type">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Finish:</span>
+            <span class="spec-value" id="spec-d-glass-finish">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Spacer:</span>
+            <span class="spec-value" id="spec-d-spacer">-</span>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-colour" style="display: none;">
+          <h4>Colour</h4>
+          <div id="spec-d-single-color" style="display:none;">
+            <div class="spec-item">
+              <span class="spec-label">Colour:</span>
+              <span class="spec-value" id="spec-d-color-name">-</span>
+            </div>
+          </div>
+          <div id="spec-d-dual-color" style="display:none;">
+            <div class="spec-item">
+              <span class="spec-label">Interior:</span>
+              <span class="spec-value" id="spec-d-int-color">-</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Exterior:</span>
+              <span class="spec-value" id="spec-d-ext-color">-</span>
+            </div>
+          </div>
+        </div>
+        <div class="spec-section" id="spec-door-hardware" style="display: none;">
+          <h4>Hardware</h4>
+          <div class="spec-item">
+            <span class="spec-label">Lock:</span>
+            <span class="spec-value" id="spec-d-lock">-</span>
+          </div>
+          <div class="spec-item" id="spec-d-ironmongery-item" style="display:none;">
+            <span class="spec-label">Ironmongery:</span>
+            <span class="spec-value" id="spec-d-ironmongery">-</span>
+          </div>
+        </div>
+
         <!-- Casement-specific spec sections -->
         <div class="spec-section" id="spec-casement-glass" style="display: none;">
           <h4>Glass Specification</h4>
@@ -3537,6 +3721,9 @@
       <button class="category-tab" data-category="horns">Sash Horns</button>
       <!-- Casement tabs (hidden by default, shown when windowType=casement) -->
       <button class="category-tab casement-tab" data-category="casementHandles" style="display:none;">Casement Handles</button>
+      <!-- Door tabs (hidden by default, shown when windowType=doors) -->
+      <button class="category-tab" data-category="doorHandles" style="display:none;">Door Handles</button>
+      <button class="category-tab" data-category="doorLocks" style="display:none;">Door Locks</button>
     </div>
 
     <!-- Products Grid -->
@@ -3739,7 +3926,7 @@
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
   </style>
-  <script type="module" src="3d/assets/window3d.js?v=11"></script>
+  <script type="module" src="3d/assets/window3d.js?v=47"></script>
   <script>
     // Force close ironmongery gallery after everything loads
     window.addEventListener('load', function() {
@@ -3924,6 +4111,7 @@
         var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
         var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+        var isDoors = !isWindows;
 
         console.log('🔄 updateSections: isWindows=' + isWindows);
 
@@ -3939,11 +4127,35 @@
         doorTypeSection.style.display = isWindows ? 'none' : 'block';
         if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
 
+        // Show/hide door spec sections
+        var doorSpecs = ['spec-door-type', 'spec-door-dimensions', 'spec-door-bars', 'spec-door-design', 'spec-door-glass', 'spec-door-colour', 'spec-door-hardware'];
+        doorSpecs.forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.style.display = isDoors ? '' : 'none';
+        });
+
+        // Hide sash spec sections when doors active
+        if (isDoors) {
+          var sashSpecs = ['spec-window-type', 'spec-dimensions', 'spec-bars', 'spec-fix-bars', 'spec-frame', 'spec-color', 'spec-glass', 'spec-opening', 'spec-pas24', 'spec-details', 'spec-glass-spec'];
+          sashSpecs.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+          });
+        }
+
+        // Update spec panel title
+        var specTitle = document.querySelector('.window-specification h2');
+        if (specTitle) specTitle.textContent = isDoors ? 'Door Specification' : 'Window Specification';
+
+        // Trigger door spec update
+        if (isDoors && window.updateDoorSpec) window.updateDoorSpec();
+        if (isDoors && window.updateDoorPrice) window.updateDoorPrice();
+
         // Update product range hint
         var hintEl = document.getElementById('hint-product-range');
         if (hintEl) {
           if (!isWindows) {
-            var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+            var doorLabels = {'single-external':'Single Patio Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
             hintEl.textContent = doorLabels[doorType] || 'Timber Door';
           } else {
             var winLabels = {'sash':'Sash Window','casement':'Casement Window','fix-only':'Fix Frame'};
@@ -4043,7 +4255,7 @@
         });
       });
 
-      // ── AUTO-SWITCH: Casement layout click → update 3D + switch to Dimensions ──
+      // ── Casement layout click → update 3D (no auto-switch — let user explore Product Range) ──
       var layoutRadios = document.querySelectorAll('input[name="casement-layout"]');
       layoutRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -4053,18 +4265,12 @@
           if (typeof window.updateCasement3D === 'function') {
             window.updateCasement3D();
           }
-          // Auto-switch to Dimensions after 300ms
-          setTimeout(function() {
-            if (typeof window.showCategory === 'function') {
-              window.showCategory('dim-design');
-            }
-          }, 300);
+          // Auto-switch removed
         });
       });
 
-      // ── AUTO-SWITCH: Door type → update 3D + switch to door-dimensions ──
+      // ── AUTO-SWITCH: Door type → update 3D (no auto-switch — user has more options below) ──
       // (Door type radios already have change handler for hint updates above)
-      // Add auto-switch on door-type change
       document.querySelectorAll('input[name="door-type"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
           if (window.update3D) {
@@ -4073,12 +4279,23 @@
           if (typeof window.updateDoor3D === 'function') {
             window.updateDoor3D();
           }
-          // Auto-switch to door dimensions after 300ms
-          setTimeout(function() {
-            if (typeof window.showCategory === 'function') {
-              window.showCategory('door-dimensions');
+          // Auto-switch removed — user still has door-shape, door-style, paneling, sidelights to choose
+        });
+      });
+
+      // ── Paneling: when Bespoke selected → show info in global info-panel ──
+      document.querySelectorAll('input[name="door-paneling"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          if (this.value === 'bespoke') {
+            var infoPanel = document.getElementById('info-panel-content');
+            if (infoPanel) {
+              infoPanel.innerHTML =
+                '<p class="info-title">Bespoke Paneling</p>' +
+                '<p>Dear Customer, if you have chosen <strong>Bespoke</strong> paneling, please send us your drawings and details to:</p>' +
+                '<p><a href="mailto:info@primesashwindows.co.uk">info@primesashwindows.co.uk</a></p>' +
+                '<p class="info-note">This information will be added to your specification.</p>';
             }
-          }, 300);
+          }
         });
       });
 
@@ -4145,7 +4362,7 @@
           // Update hint
           var hintEl = document.getElementById('hint-product-range');
           if (hintEl) {
-            var doorLabels = {'single-external':'Single External Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+            var doorLabels = {'single-external':'Single Patio Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
             hintEl.textContent = doorLabels[r.value] || 'Timber Door';
           }
         });
@@ -4172,7 +4389,38 @@
           containerId: 'door-color-container',
           prefix: 'd',
           onColorChange: function(state) {
-            if (window.update3D) window.update3D(state);
+            // Sync doorColourState so door-controller reads correct colors
+            if (window.doorColourState) {
+              window.doorColourState.sameColor = state.sameColor;
+              window.doorColourState.woodColor = state.woodColor;
+              window.doorColourState.woodColorInt = state.woodColorInt;
+              window.doorColourState.woodColorExt = state.woodColorExt;
+
+              // Read color names from preview elements (always correct for tiles, dropdowns, RAL input)
+              if (state.sameColor) {
+                var pn = document.getElementById('d-single-preview-name');
+                var pr = document.getElementById('d-single-preview-ral');
+                window.doorColourState.colorName = pn ? pn.textContent : '';
+                window.doorColourState.colorRal = pr ? pr.textContent : '';
+              } else {
+                var pi = document.getElementById('d-dual-preview-interior');
+                var pe = document.getElementById('d-dual-preview-exterior');
+                // Format is "Name (code)" — parse it
+                if (pi) {
+                  var m = pi.textContent.match(/^(.+?)\s*\((.+)\)$/);
+                  window.doorColourState.colorIntName = m ? m[1] : pi.textContent;
+                  window.doorColourState.colorIntRal = m ? m[2] : '';
+                }
+                if (pe) {
+                  var m2 = pe.textContent.match(/^(.+?)\s*\((.+)\)$/);
+                  window.doorColourState.colorExtName = m2 ? m2[1] : pe.textContent;
+                  window.doorColourState.colorExtRal = m2 ? m2[2] : '';
+                }
+              }
+            }
+            if (window.updateDoor3D) window.updateDoor3D();
+            if (window.updateDoorSpec) window.updateDoorSpec();
+            if (window.updateDoorPrice) window.updateDoorPrice();
           }
         });
       }
@@ -4266,12 +4514,7 @@
               if (window.update3D) window.update3D({ extHeight: 1500 });
             }
           }
-          // Auto-switch to Dimensions after shape selection
-          setTimeout(function() {
-            if (typeof window.showCategory === 'function') {
-              window.showCategory('dim-design');
-            }
-          }, 300);
+          // Auto-switch removed — user may want to continue choosing in Product Range
         });
       });
 
