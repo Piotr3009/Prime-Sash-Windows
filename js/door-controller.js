@@ -18,6 +18,10 @@
     return function() { clearTimeout(t); t = setTimeout(fn, ms); };
   }
 
+  function isDoorActive() {
+    return (document.querySelector('input[name="product-range"]:checked') || {}).value === 'doors';
+  }
+
   // ─── Door colour state ───
   var doorColourState = {
     sameColor: true,
@@ -125,7 +129,7 @@
       sillWider: config.sillWider
     });
 
-    window.currentConfig = getDoorConfig();
+    if (isDoorActive()) window.currentConfig = getDoorConfig();
   }
 
   // ─── Update spec panel ───
@@ -303,12 +307,14 @@
     var lockLabels = { 'multipoint': 'Multipoint Lock', 'deadbolt': 'Deadbolt' };
     if (specLock) specLock.textContent = lockLabels[config.lockType] || 'Multipoint Lock';
 
-    // Store config globally
-    window.currentConfig = config;
+    // Store config globally (only when doors tab active)
+    if (isDoorActive()) window.currentConfig = config;
   }
 
   // ─── Update price ───
   function updateDoorPrice() {
+    if (!isDoorActive()) return;
+
     var config = getDoorConfig();
     window.currentConfig = config;
 
