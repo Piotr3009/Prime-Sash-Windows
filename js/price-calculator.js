@@ -87,13 +87,6 @@ class PriceCalculator {
       sizeMultiplier = this.getSizeMultiplier(sqm);
       basePrice = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
     }
-
-    // 5% discount above 1.5 sqm
-    if (sqm > 1.5) {
-      const sashDiscount = basePrice * 0.05;
-      basePrice -= sashDiscount;
-      console.log('Sash >1.5m² discount: -5% = -£' + sashDiscount.toFixed(2) + ' → £' + basePrice.toFixed(2));
-    }
     
     // 2. CENA ZA SZPROSY (bars) — center sash
     const barsPrice = this.calculateBarsPrice(

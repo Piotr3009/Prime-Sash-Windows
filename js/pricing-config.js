@@ -1,11 +1,11 @@
 // pricing-config.js - Zaawansowana konfiguracja cennika
 const pricingConfig = {
   // Cena bazowa za m²
-  basePricePerSqm: 800,
+  basePricePerSqm: 850,
   
   // Mnożniki degresywne - im większe okno, tym taniej za m²
   sizeMultipliers: [
-    { maxSqm: 0.6, multiplier: 1.25 },   // małe okna +25%
+    { maxSqm: 0.8, multiplier: 1.25 },   // małe okna +25%
     { maxSqm: 1.0, multiplier: 1.0 },    // bazowa cena
     { maxSqm: 1.5, multiplier: 0.95 },   // -5%
     { maxSqm: 2.0, multiplier: 0.9 },    // -10%
@@ -118,10 +118,10 @@ const pricingConfig = {
   
   // Rabaty ilościowe
   quantityDiscounts: [
-    { minQty: 1, discount: 0 },      // 1-5 okna: 0%
-    { minQty: 6, discount: 0.05 },   // 6-11 okien: -5%
-    { minQty: 12, discount: 0.10 },  // 12-23 okien: -10%
-    { minQty: 24, discount: 0.15 }   // 24+ okien: -15%
+    { minQty: 1, discount: 0 },
+    { minQty: 6, discount: 0 },
+    { minQty: 12, discount: 0 },
+    { minQty: 24, discount: 0 }
   ],
   
   // VAT
