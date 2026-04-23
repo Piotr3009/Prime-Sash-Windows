@@ -1655,6 +1655,11 @@ class EstimateRenderer {
         const vBars = fc.vBars || fc.doorVBars || 0;
         const sideHBars = fc.sideHBars || 0;
         const sideVBars = fc.sideVBars || 0;
+        const sideStyle = fc.sideStyle || 'full-glass';
+        const doorStyle = fc.doorStyle || 'full-glass';
+
+        // Bottom rail ratio based on door style
+        const bottomRailRatio = doorStyle === 'half-glazed' ? 0.50 : doorStyle === 'three-quarter' ? 0.28 : 0;
 
         const hasLeft = sidePanels === 'left' || sidePanels === 'both';
         const hasRight = sidePanels === 'right' || sidePanels === 'both';
@@ -1674,6 +1679,7 @@ class EstimateRenderer {
         const mid = '#4a5568';
         const light = '#a0aec0';
         const glass = '#dbeafe';
+        const panel = '#e8e4dc';
 
         let svg = `<svg viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Jost',sans-serif;">`;
 
@@ -1684,40 +1690,45 @@ class EstimateRenderer {
         if (hasLeft) doorX += sideLeftW * scale;
         const doorW = w * scale;
 
+        // Helper: draw side panel (full-glass or same-as-door)
+        function drawSidePanel(px, py, pw, ph, shBars, svBars) {
+            if (sideStyle === 'same' && bottomRailRatio > 0) {
+                // Same as door: glass top + bottom rail
+                const brH = ph * bottomRailRatio;
+                const glH = ph - brH;
+                svg += `<rect x="${px + 4}" y="${py + 4}" width="${pw - 8}" height="${glH - 4}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                svg += `<rect x="${px}" y="${py + glH}" width="${pw}" height="${brH}" fill="${panel}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                // Bars on glass area only
+                for (let i = 1; i <= shBars; i++) {
+                    const by = py + 4 + (glH - 4) * i / (shBars + 1);
+                    svg += `<line x1="${px + 4}" y1="${by}" x2="${px + pw - 4}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+                }
+                for (let i = 1; i <= svBars; i++) {
+                    const bx = px + 4 + (pw - 8) * i / (svBars + 1);
+                    svg += `<line x1="${bx}" y1="${py + 4}" x2="${bx}" y2="${py + glH}" stroke="${light}" stroke-width="1"/>`;
+                }
+            } else {
+                // Full glass
+                svg += `<rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="${glass}" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
+                for (let i = 1; i <= shBars; i++) {
+                    const by = py + ph * i / (shBars + 1);
+                    svg += `<line x1="${px}" y1="${by}" x2="${px + pw}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+                }
+                for (let i = 1; i <= svBars; i++) {
+                    const bx = px + pw * i / (svBars + 1);
+                    svg += `<line x1="${bx}" y1="${py}" x2="${bx}" y2="${py + ph}" stroke="${light}" stroke-width="1"/>`;
+                }
+            }
+        }
+
         // ── Left side panel ──
         if (hasLeft) {
-            const px = ox + frameT;
-            const py = oy + frameT;
-            const pw = sideLeftW * scale - frameT * 2;
-            const ph = drawH - frameT * 2;
-            // Panel frame
-            svg += `<rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="${glass}" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
-            // Panel bars
-            for (let i = 1; i <= sideHBars; i++) {
-                const by = py + ph * i / (sideHBars + 1);
-                svg += `<line x1="${px}" y1="${by}" x2="${px + pw}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
-            }
-            for (let i = 1; i <= sideVBars; i++) {
-                const bx = px + pw * i / (sideVBars + 1);
-                svg += `<line x1="${bx}" y1="${py}" x2="${bx}" y2="${py + ph}" stroke="${light}" stroke-width="1"/>`;
-            }
+            drawSidePanel(ox + frameT, oy + frameT, sideLeftW * scale - frameT * 2, drawH - frameT * 2, sideHBars, sideVBars);
         }
 
         // ── Right side panel ──
         if (hasRight) {
-            const px = doorX + doorW + frameT;
-            const py = oy + frameT;
-            const pw = sideRightW * scale - frameT * 2;
-            const ph = drawH - frameT * 2;
-            svg += `<rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="${glass}" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
-            for (let i = 1; i <= sideHBars; i++) {
-                const by = py + ph * i / (sideHBars + 1);
-                svg += `<line x1="${px}" y1="${by}" x2="${px + pw}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
-            }
-            for (let i = 1; i <= sideVBars; i++) {
-                const bx = px + pw * i / (sideVBars + 1);
-                svg += `<line x1="${bx}" y1="${py}" x2="${bx}" y2="${py + ph}" stroke="${light}" stroke-width="1"/>`;
-            }
+            drawSidePanel(doorX + doorW + frameT, oy + frameT, sideRightW * scale - frameT * 2, drawH - frameT * 2, sideHBars, sideVBars);
         }
 
         // ── Mullion lines between panels and door ──
@@ -1738,16 +1749,17 @@ class EstimateRenderer {
         svg += `<rect x="${leafX}" y="${leafY}" width="${leafW}" height="${leafH}" fill="none" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
 
         // Door bottom rail (solid area)
-        const bottomRailH = leafH * 0.28;
+        const bottomRailH = bottomRailRatio > 0 ? leafH * bottomRailRatio : 0;
         const glassY = leafY;
         const glassH = leafH - bottomRailH;
         // Glass area
         const glassX = leafX + 4;
         const glassW2 = leafW - 8;
         svg += `<rect x="${glassX}" y="${glassY + 4}" width="${glassW2}" height="${glassH - 4}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
-        // Bottom rail fill
-        svg += `<rect x="${leafX}" y="${leafY + glassH}" width="${leafW}" height="${bottomRailH}" fill="#e8e4dc" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
-
+        // Bottom rail fill (only for non-full-glass styles)
+        if (bottomRailH > 0) {
+            svg += `<rect x="${leafX}" y="${leafY + glassH}" width="${leafW}" height="${bottomRailH}" fill="${panel}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+        }
         // Georgian bars on door glass
         for (let i = 1; i <= hBars; i++) {
             const by = glassY + 4 + (glassH - 4) * i / (hBars + 1);
