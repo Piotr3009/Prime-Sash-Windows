@@ -4411,23 +4411,26 @@
               window.doorColourState.woodColorInt = state.woodColorInt;
               window.doorColourState.woodColorExt = state.woodColorExt;
 
-              // Read color names from DOM for spec/estimate
+              // Read color names from preview elements (always correct for tiles, dropdowns, RAL input)
               if (state.sameColor) {
-                var sel = document.querySelector('#d-single-color-selector .d-co.selected');
-                if (sel) {
-                  window.doorColourState.colorName = sel.dataset.name || '';
-                  window.doorColourState.colorRal = sel.dataset.ral || '';
-                }
-                var dd = document.querySelector('#d-single-ral-select, #d-single-fb-select');
-                if (dd && dd.value) {
-                  window.doorColourState.colorName = dd.options[dd.selectedIndex].text || '';
-                  window.doorColourState.colorRal = dd.value;
-                }
+                var pn = document.getElementById('d-single-preview-name');
+                var pr = document.getElementById('d-single-preview-ral');
+                window.doorColourState.colorName = pn ? pn.textContent : '';
+                window.doorColourState.colorRal = pr ? pr.textContent : '';
               } else {
-                var intSel = document.querySelector('.d-interior.selected');
-                var extSel = document.querySelector('.d-exterior.selected');
-                if (intSel) { window.doorColourState.colorIntName = intSel.dataset.name || ''; window.doorColourState.colorIntRal = intSel.dataset.ral || ''; }
-                if (extSel) { window.doorColourState.colorExtName = extSel.dataset.name || ''; window.doorColourState.colorExtRal = extSel.dataset.ral || ''; }
+                var pi = document.getElementById('d-dual-preview-interior');
+                var pe = document.getElementById('d-dual-preview-exterior');
+                // Format is "Name (code)" — parse it
+                if (pi) {
+                  var m = pi.textContent.match(/^(.+?)\s*\((.+)\)$/);
+                  window.doorColourState.colorIntName = m ? m[1] : pi.textContent;
+                  window.doorColourState.colorIntRal = m ? m[2] : '';
+                }
+                if (pe) {
+                  var m2 = pe.textContent.match(/^(.+?)\s*\((.+)\)$/);
+                  window.doorColourState.colorExtName = m2 ? m2[1] : pe.textContent;
+                  window.doorColourState.colorExtRal = m2 ? m2[2] : '';
+                }
               }
             }
             if (window.updateDoor3D) window.updateDoor3D();
