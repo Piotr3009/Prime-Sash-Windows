@@ -520,7 +520,7 @@ class PriceCalculator {
   // ═══ DOOR PRICING ═══
   calculateDoor(configuration, frameWidth, frameHeight) {
     const DOOR_BASE_PER_SQM = 900;
-    const PANEL_BASE_PER_SQM = 450; // side panels = half door rate
+    const PANEL_BASE_PER_SQM = 600; // side panels
     const SILL_EXTENSION_PRICE = 80;
     const BEADING_DOOR = 80;
     const BEADING_PANEL = 40;
