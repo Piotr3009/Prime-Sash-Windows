@@ -776,6 +776,10 @@ class IronmongeryGallery {
     if (typeof window.updateCasementPrice === 'function') {
       window.updateCasementPrice();
     }
+    // Door: updatePrice skips doors via guard, recalc manually
+    if (typeof window.updateDoorPrice === 'function') {
+      window.updateDoorPrice();
+    }
 
     // Wywołaj applyDetails (specyfikacja)
     if (window.specificationController) {

@@ -4165,6 +4165,7 @@
 
         // Trigger door spec update
         if (isDoors && window.updateDoorSpec) window.updateDoorSpec();
+        if (isDoors && window.updateDoorPrice) window.updateDoorPrice();
 
         // Update product range hint
         var hintEl = document.getElementById('hint-product-range');
@@ -4435,6 +4436,7 @@
             }
             if (window.updateDoor3D) window.updateDoor3D();
             if (window.updateDoorSpec) window.updateDoorSpec();
+            if (window.updateDoorPrice) window.updateDoorPrice();
           }
         });
       }
