@@ -87,6 +87,13 @@ class PriceCalculator {
       sizeMultiplier = this.getSizeMultiplier(sqm);
       basePrice = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
     }
+
+    // 5% discount above 1.5 sqm
+    if (sqm > 1.5) {
+      const sashDiscount = basePrice * 0.05;
+      basePrice -= sashDiscount;
+      console.log('Sash >1.5m² discount: -5% = -£' + sashDiscount.toFixed(2) + ' → £' + basePrice.toFixed(2));
+    }
     
     // 2. CENA ZA SZPROSY (bars) — center sash
     const barsPrice = this.calculateBarsPrice(
@@ -520,6 +527,7 @@ class PriceCalculator {
   // ═══ DOOR PRICING ═══
   calculateDoor(configuration, frameWidth, frameHeight) {
     const DOOR_BASE_PER_SQM = 900;
+    const PANEL_BASE_PER_SQM = 450; // side panels = half door rate
     const SILL_EXTENSION_PRICE = 80;
     const BEADING_DOOR = 80;
     const BEADING_PANEL = 40;
@@ -547,16 +555,16 @@ class PriceCalculator {
     if (hasLeft) {
       const leftW = configuration.sideLeftWidth || 500;
       const leftSqm = (leftW / 1000) * (doorH / 1000);
-      panelPrice += DOOR_BASE_PER_SQM * leftSqm;
+      panelPrice += PANEL_BASE_PER_SQM * leftSqm;
       panelCount++;
-      console.log('Left panel:', leftW + 'x' + doorH, '=', leftSqm.toFixed(2) + 'm² = £' + (DOOR_BASE_PER_SQM * leftSqm).toFixed(2));
+      console.log('Left panel:', leftW + 'x' + doorH, '=', leftSqm.toFixed(2) + 'm² × £' + PANEL_BASE_PER_SQM + ' = £' + (PANEL_BASE_PER_SQM * leftSqm).toFixed(2));
     }
     if (hasRight) {
       const rightW = configuration.sideRightWidth || 500;
       const rightSqm = (rightW / 1000) * (doorH / 1000);
-      panelPrice += DOOR_BASE_PER_SQM * rightSqm;
+      panelPrice += PANEL_BASE_PER_SQM * rightSqm;
       panelCount++;
-      console.log('Right panel:', rightW + 'x' + doorH, '=', rightSqm.toFixed(2) + 'm² = £' + (DOOR_BASE_PER_SQM * rightSqm).toFixed(2));
+      console.log('Right panel:', rightW + 'x' + doorH, '=', rightSqm.toFixed(2) + 'm² × £' + PANEL_BASE_PER_SQM + ' = £' + (PANEL_BASE_PER_SQM * rightSqm).toFixed(2));
     }
 
     // ── 3. Bars (from DB price) ──
