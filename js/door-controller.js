@@ -149,22 +149,34 @@
 
     // ─── Spec panel sections ───
 
-    // Door Type / Shape / Style
+    // Door Type / Shape / Style / Paneling / Mullion
     var specShape = $('spec-d-shape');
     var shapeLabels = { 'standard': 'Standard', 'arched': 'Arched', 'glazed-arch': 'Glazed Arch' };
     if (specShape) specShape.textContent = shapeLabels[config.doorShape] || 'Standard';
 
     var specStyle = $('spec-d-style');
-    var styleLabels = { 'full-glass': 'Full Glass', '3-4-glass': '¾ Glass', 'half-glass': 'Half Glass', 'flat-panel': 'Flat Panel', 'beading': 'Beading', 'bespoke': 'Bespoke' };
-    if (specStyle) specStyle.textContent = styleLabels[config.doorStyle] || styleLabels[config.doorPaneling] || 'Full Glass';
+    var styleLabels = { 'full-glass': 'Full Glass', 'three-quarter': '¾ Glass', 'half-glazed': 'Half Glass' };
+    if (specStyle) specStyle.textContent = styleLabels[config.doorStyle] || 'Full Glass';
+
+    var specPaneling = $('spec-d-paneling');
+    var panelingLabels = { 'flat': 'Flat', 'panel': 'Recessed Panel', 'beading': 'Beading', 'bespoke': 'Bespoke' };
+    var panelingItem = $('spec-d-paneling-item');
+    if (specPaneling) specPaneling.textContent = panelingLabels[config.doorPaneling] || 'Flat';
+    if (panelingItem) panelingItem.style.display = (config.doorStyle === 'full-glass') ? 'none' : '';
+
+    var specMullion = $('spec-d-mullion');
+    var mullionItem = $('spec-d-mullion-item');
+    if (specMullion) specMullion.textContent = config.centerMullion ? 'Yes' : 'No';
+    if (mullionItem) mullionItem.style.display = (config.doorStyle === 'full-glass') ? 'none' : '';
 
     var sideStyleItem = $('spec-d-side-style-item');
     var sideStyleVal = $('spec-d-side-style');
     var sp = config.sidePanels || 'none';
+    var sideStyleLabels = { 'full-glass': 'Full Glass', 'same': 'Same as Door' };
     if (sideStyleItem && sideStyleVal) {
       if (sp !== 'none') {
         sideStyleItem.style.display = '';
-        sideStyleVal.textContent = styleLabels[config.sideStyle] || 'Full Glass';
+        sideStyleVal.textContent = sideStyleLabels[config.sideStyle] || 'Full Glass';
       } else {
         sideStyleItem.style.display = 'none';
       }

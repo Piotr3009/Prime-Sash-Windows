@@ -294,10 +294,15 @@ class EstimateRenderer {
         const doorLockLabels = { 'multipoint': 'Multipoint Lock', 'deadbolt': 'Deadbolt' };
         const doorThresholdLabels = { 'standard': 'Standard Hardwood', 'aluminium': 'Aluminium', 'low-profile': 'Low Profile (Wheelchair)' };
         const doorShapeLabels = { 'standard': 'Standard', 'arched': 'Arched', 'glazed-arch': 'Glazed Arch' };
-        const doorStyleLabels = { 'full-glass': 'Full Glass', '3-4-glass': '¾ Glass', 'half-glass': 'Half Glass', 'flat-panel': 'Flat Panel', 'beading': 'Beading', 'bespoke': 'Bespoke' };
+        const doorStyleLabels = { 'full-glass': 'Full Glass', 'three-quarter': '¾ Glass', 'half-glazed': 'Half Glass' };
+        const doorPanelingLabels = { 'flat': 'Flat', 'panel': 'Recessed Panel', 'beading': 'Beading', 'bespoke': 'Bespoke' };
+        const doorSideStyleLabels = { 'full-glass': 'Full Glass', 'same': 'Same as Door' };
         const doorShapeText = doorShapeLabels[doorShape] || 'Standard';
         const doorStyleText = doorStyleLabels[doorStyle] || 'Full Glass';
-        const doorSideStyleText = doorStyleLabels[doorSideStyle] || 'Full Glass';
+        const doorPaneling = fc.doorPaneling || 'flat';
+        const doorPanelingText = doorPanelingLabels[doorPaneling] || 'Flat';
+        const doorCenterMullion = fc.centerMullion || false;
+        const doorSideStyleText = doorSideStyleLabels[doorSideStyle] || 'Full Glass';
 
         let doorBarsText = 'None';
         if (doorHBars > 0 || doorVBars > 0) doorBarsText = doorHBars + 'H × ' + doorVBars + 'V';
@@ -344,7 +349,8 @@ class EstimateRenderer {
             doorThreshold, doorThresholdExtension, doorSillWider, doorThresholdText,
             doorSidePanels, doorSideLeftWidth, doorSideRightWidth, doorPanelsText,
             doorHBars, doorVBars, doorBarsText, doorSideHBars, doorSideVBars, doorSideBarsText,
-            doorShape, doorShapeText, doorStyle, doorStyleText, doorSideStyle, doorSideStyleText
+            doorShape, doorShapeText, doorStyle, doorStyleText, doorSideStyle, doorSideStyleText,
+            doorPaneling, doorPanelingText, doorCenterMullion
         };
     }
 
@@ -432,9 +438,11 @@ class EstimateRenderer {
                             ${R.specRow('Type', 'Single Patio Door')}
                             ${R.specRow('Shape', p.doorShapeText)}
                             ${R.specRow('Style', p.doorStyleText)}
+                            ${p.doorStyle !== 'full-glass' ? R.specRow('Paneling', p.doorPanelingText) : ''}
+                            ${p.doorStyle !== 'full-glass' ? R.specRow('Center Mullion', p.doorCenterMullion ? 'Yes' : 'No') : ''}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
                             ${p.doorPanelsText ? R.specRow('Side Panels', p.doorPanelsText) : ''}
-                            ${p.doorSidePanels !== 'none' ? R.specRow('Panel Style', p.doorSideStyleText) : ''}
+                            ${p.doorSidePanels !== 'none' ? R.specRow('Side Panel Style', p.doorSideStyleText) : ''}
                             ${R.specRow('Open Side', p.doorHingeSide === 'right' ? 'Right' : 'Left')}
                             ${R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Inward' : 'Outward')}
                             ${R.specRow('Threshold', p.doorThresholdText)}
@@ -2010,9 +2018,11 @@ class EstimateRenderer {
                     specs.push(['Type', 'Single Patio Door']);
                     specs.push(['Shape', p.doorShapeText]);
                     specs.push(['Style', p.doorStyleText]);
+                    if (p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                    if (p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                     if (p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
-                    if (p.doorSidePanels !== 'none') specs.push(['Panel Style', p.doorSideStyleText]);
+                    if (p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
                     specs.push(['Open Side', p.doorHingeSide === 'right' ? 'Right' : 'Left']);
                     specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Inward' : 'Outward']);
                     specs.push(['Threshold', p.doorThresholdText]);
@@ -2202,9 +2212,11 @@ class EstimateRenderer {
                 specs.push(['Type', 'Single Patio Door']);
                 specs.push(['Shape', p.doorShapeText]);
                 specs.push(['Style', p.doorStyleText]);
+                if (p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                if (p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                 if (p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
-                if (p.doorSidePanels !== 'none') specs.push(['Panel Style', p.doorSideStyleText]);
+                if (p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
                 specs.push(['Open Side', p.doorHingeSide === 'right' ? 'Right' : 'Left']);
                 specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Inward' : 'Outward']);
                 specs.push(['Threshold', p.doorThresholdText]);
