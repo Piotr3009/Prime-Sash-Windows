@@ -289,9 +289,6 @@ class EstimateRenderer {
         const doorSideHBars = fc.sideHBars || 0;
         const doorSideVBars = fc.sideVBars || 0;
 
-        const doorHingeLabels = { 'left': 'Left', 'right': 'Right' };
-        const doorOpenLabels = { 'inward': 'Inward', 'outward': 'Outward' };
-        const doorLockLabels = { 'multipoint': 'Multipoint Lock', 'deadbolt': 'Deadbolt' };
         const doorThresholdLabels = { 'standard': 'Standard Hardwood', 'aluminium': 'Aluminium', 'low-profile': 'Low Profile (Wheelchair)' };
         const doorShapeLabels = { 'standard': 'Standard', 'arched': 'Arched', 'glazed-arch': 'Glazed Arch' };
         const doorStyleLabels = { 'full-glass': 'Full Glass', 'three-quarter': '¾ Glass', 'half-glazed': 'Half Glass' };
@@ -306,12 +303,8 @@ class EstimateRenderer {
 
         let doorBarsText = 'None';
         if (doorHBars > 0 || doorVBars > 0) doorBarsText = doorHBars + 'H × ' + doorVBars + 'V';
-
         let doorSideBarsText = '';
-        if (doorSidePanels !== 'none' && (doorSideHBars > 0 || doorSideVBars > 0)) {
-            doorSideBarsText = doorSideHBars + 'H × ' + doorSideVBars + 'V';
-        }
-
+        if (doorSidePanels !== 'none' && (doorSideHBars > 0 || doorSideVBars > 0)) doorSideBarsText = doorSideHBars + 'H × ' + doorSideVBars + 'V';
         let doorPanelsText = '';
         if (doorSidePanels !== 'none') {
             const parts = [];
@@ -319,11 +312,8 @@ class EstimateRenderer {
             if (doorSidePanels === 'right' || doorSidePanels === 'both') parts.push('Right ' + doorSideRightWidth + 'mm');
             doorPanelsText = parts.join(' + ');
         }
-
         let doorThresholdText = doorThresholdLabels[doorThreshold] || 'Standard Hardwood';
-        if (doorThreshold === 'standard' && doorThresholdExtension > 0) {
-            doorThresholdText += ' (+' + doorThresholdExtension + 'mm ext)';
-        }
+        if (doorThreshold === 'standard' && doorThresholdExtension > 0) doorThresholdText += ' (+' + doorThresholdExtension + 'mm ext)';
         if (doorSillWider) doorThresholdText += ' (wider)';
 
         return {
@@ -361,8 +351,28 @@ class EstimateRenderer {
         const isEditable = options.isEditable ?? (estimate.status === 'sent');
         const isAdmin = options.isAdmin ?? false;
 
-        // Customer info (admin only)
+        // Customer info
         const customer = estimate.customers || {};
+        const customerName = customer.full_name || 'Valued Client';
+
+        // Read additional services from DB (loaded by dashboard before calling render)
+        const extras = estimate.extras || [];
+        const installationExtras = extras.filter(e => e.type === 'installation');
+        const deliveryExtras = extras.filter(e => e.type === 'delivery');
+        const customExtras = extras.filter(e => e.type === 'custom');
+        const hasInstallation = installationExtras.length > 0;
+        const hasDelivery = deliveryExtras.length > 0;
+        const hasAnyExtras = extras.length > 0;
+
+        const items = estimate.estimate_items || [];
+        const totalEx = items.reduce((s, i) => s + parseFloat(i.total_price || 0), 0);
+        const installationTotal = installationExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+        const deliveryTotal = deliveryExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+
+        // Payment base = windows + installation (if selected). Delivery NOT in base (paid separately).
+        const depositBase = totalEx + installationTotal;
+        const depositHalf = depositBase / 2;
+
         const customerHTML = isAdmin ? `
             <div style="background:rgba(10,22,40,.04);padding:1.2rem 1.5rem;margin-bottom:1.5rem;border-left:3px solid var(--navy);">
                 <div style="font-family:'Jost',sans-serif;font-size:.60rem;letter-spacing:.2em;text-transform:uppercase;color:var(--silver);margin-bottom:.5rem;">Customer</div>
@@ -393,7 +403,7 @@ class EstimateRenderer {
                         <button onclick="dashboard.deleteWindow('${item.id}','${estimate.id}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.7);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Delete</button>
                         ` : ''}
                     </div>
-                    <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${p.quantity} · £${R.formatPrice(item.total_price)} + VAT</span>
+                    <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${p.quantity} · £${R.formatPrice(item.total_price)}</span>
                 </div>
 
                 <div style="display:grid;grid-template-columns:280px 1fr;gap:0;">
@@ -505,17 +515,294 @@ class EstimateRenderer {
 
         const closeAction = isAdmin ? `closeModal()` : `dashboard.closeModal()`;
 
+        // ─── Shared HTML fragments (match PDF content) ───
+        const GOLD = '#c9a96e';
+        const CREAM_LIGHT = '#f5f4f0';
+        const BORDER = '#e5e4dd';
+
+        // Banner (compact, ~P1b)
+        const bannerHTML = `
+            <div style="background:var(--navy);padding:2rem 2rem 1.6rem;margin:-2rem -2rem 1.5rem;color:#fff;text-align:center;">
+                <div style="font-family:'Jost',sans-serif;font-weight:300;letter-spacing:.4em;font-size:1rem;border-top:1px solid #fff;border-bottom:1px solid #fff;padding:.4rem 0;display:inline-block;">PRIME&nbsp;&nbsp;SASH</div>
+                <div style="font-family:'Jost',sans-serif;font-weight:300;letter-spacing:.35em;font-size:.65rem;margin-top:.3rem;opacity:.9;">W I N D O W S</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.1rem;margin-top:.8rem;opacity:.85;">for ${customerName}</div>
+            </div>
+        `;
+
+        // About section
+        const aboutHTML = `
+            <div style="margin:2rem 0;padding:1.5rem 0;border-top:1px solid ${BORDER};border-bottom:1px solid ${BORDER};">
+                <h2 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.5rem;margin:0 0 .8rem;">About Prime Sash Windows</h2>
+                <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:.85rem;color:#1a1a1a;line-height:1.7;margin-bottom:.7rem;">Welcome to Prime Sash Windows, where craftsmanship meets functionality. We specialise in creating high-quality timber windows and doors that enhance both the aesthetic appeal and energy efficiency of your home.</p>
+                <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:.85rem;color:#1a1a1a;line-height:1.7;margin-bottom:.7rem;">Serving London and surrounding areas, we bring over a decade of expertise in bespoke timber window and door manufacturing and installation. As members of The Joinery Network and FENSA registered installers, we offer free site surveys within 25 miles of London.</p>
+                <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:.85rem;color:#1a1a1a;line-height:1.7;margin-bottom:1rem;">Every window is produced in our in-house workshop using the Lignum engineered timber system — hardwood only, PAS24 security certified, finished with premium Sikkens coatings. Traditional appearance, modern performance.</p>
+                <div style="padding:.9rem 1.2rem;background:${CREAM_LIGHT};border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.78rem;color:var(--muted);line-height:1.55;">
+                    <strong style="color:var(--navy);font-weight:500;">Prime Sash Windows</strong> is a trading name of <strong style="color:var(--navy);font-weight:500;">Skylon Joinery Ltd</strong> — a London-based bespoke joinery company registered in England and Wales (Company No. 12946103). All contracts, invoices and payments are issued by Skylon Joinery Ltd.
+                </div>
+            </div>
+        `;
+
+        // Certifications (P2a: 4 in row)
+        const certCard = (title, text) => `
+            <div style="border:1px solid ${BORDER};padding:1rem;background:#fff;">
+                <h3 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:.95rem;color:var(--navy);margin:0 0 .3rem;">${title}</h3>
+                <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:.72rem;color:var(--muted);line-height:1.5;margin:0;">${text}</p>
+            </div>
+        `;
+        const certificationsHTML = `
+            <div style="margin:2rem 0;">
+                <h2 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.5rem;margin:0 0 .4rem;">Certifications &amp; Technology</h2>
+                <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:.82rem;color:var(--muted);line-height:1.65;margin:0 0 1.2rem;">Every Prime Sash window is backed by independently verified certifications — legally recognised standards that protect your investment, your safety, and the value of your property.</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.8rem;">
+                    ${certCard('FENSA Registered', 'Installer certified under the UK Government\u2011approved FENSA scheme. Compliance with Building Regulations for replacement windows and doors.')}
+                    ${certCard('PAS 24:2022', 'Enhanced security performance tested to PAS 24 standard. Required under Document Q for new dwellings; available as upgrade for retrofit.')}
+                    ${certCard('Made in Britain', 'Hardwood frames and sashes fabricated in our London workshop. Licensed member of the Made in Britain campaign.')}
+                    ${certCard('Lignum Timber System', 'Engineered hardwood with Sikkens factory\u2011applied finish. Superior dimensional stability, thermal performance, and 10\u2011year coating warranty.')}
+                </div>
+            </div>
+        `;
+
+        // Summary — Windows table
+        const summaryWindowsRows = items.map((it, idx) => {
+            const p = R.parseItem(it);
+            const typeShort = p.windowType === 'door' ? 'Door'
+                : p.windowType === 'casement' ? 'Casement'
+                : p.windowType === 'fix-only' ? 'Fix Frame'
+                : p.sashType === 'triple' ? 'Triple Sash'
+                : p.sashType === 'single' ? 'Single Sash'
+                : 'Sash';
+            const desc = `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+            return `
+                <tr>
+                    <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">${String(idx + 1).padStart(2, '0')}</td>
+                    <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">${desc}</td>
+                    <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;">${p.quantity || 1}</td>
+                    <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);">£${R.formatPrice(it.total_price || 0)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        // Additional Services rows (dynamic from DB extras)
+        const extraRow = (label, desc, qty, amount, idx, extraId) => `
+            <tr>
+                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};vertical-align:top;">${idx}</td>
+                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">
+                    <div style="font-weight:500;color:var(--navy);">${label}</div>
+                    ${desc ? `<div style="font-size:.72rem;color:var(--muted);font-style:italic;margin-top:.15rem;">${desc}</div>` : ''}
+                </td>
+                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;">${qty}</td>
+                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);vertical-align:top;">£${R.formatPrice(amount)}</td>
+                ${isAdmin ? `<td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;white-space:nowrap;">
+                    <button onclick="adminEditExtra('${extraId}')" style="background:transparent;border:1px solid rgba(10,22,40,.3);color:var(--navy);font-family:'Jost',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .6rem;cursor:pointer;border-radius:2px;margin-right:.3rem;">Edit</button>
+                    <button onclick="adminDeleteExtra('${extraId}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.8);font-family:'Jost',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .6rem;cursor:pointer;border-radius:2px;">Delete</button>
+                </td>` : ''}
+            </tr>
+        `;
+
+        let extrasRowIdx = 1;
+        const extrasRows = [
+            ...installationExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `I-${String(extrasRowIdx++).padStart(2, '0')}`, e.id)),
+            ...deliveryExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `D-${String(extrasRowIdx++).padStart(2, '0')}`, e.id)),
+            ...customExtras.map(e => extraRow(e.name, e.description, e.quantity, e.total_price, `X-${String(extrasRowIdx++).padStart(2, '0')}`, e.id))
+        ].join('');
+
+        const extrasTotalAll = installationTotal + deliveryTotal + customExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+
+        // Admin: "+ Add Extra" inline form (hidden by default)
+        const adminExtrasControlsHTML = isAdmin ? `
+            <div style="margin-top:1rem;">
+                <button onclick="adminToggleExtraForm(true)" id="admin-add-extra-btn" style="background:var(--navy);color:#fff;border:none;padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;">+ Add Extra</button>
+            </div>
+            <div id="admin-extra-form" style="display:none;margin-top:1rem;padding:1.2rem 1.4rem;background:${CREAM_LIGHT};border:1px solid ${BORDER};">
+                <h4 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1rem;margin:0 0 .8rem;">Add Custom Extra</h4>
+                <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:.6rem;margin-bottom:.6rem;">
+                    <input id="admin-extra-name" type="text" placeholder="Name (e.g. Crane rental)" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;" />
+                    <input id="admin-extra-qty" type="number" min="1" value="1" placeholder="Qty" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;" />
+                    <input id="admin-extra-price" type="number" min="0" step="0.01" placeholder="Unit price" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;" />
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1fr;gap:.6rem;margin-bottom:.8rem;">
+                    <input id="admin-extra-desc" type="text" placeholder="Description (optional)" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;" />
+                    <select id="admin-extra-timing" style="padding:.5rem .7rem;border:1px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;background:#fff;">
+                        <option value="on_completion" selected>Payable on completion</option>
+                        <option value="with_deposit">With deposit</option>
+                        <option value="with_balance">With balance</option>
+                        <option value="on_delivery">On delivery</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:.6rem;">
+                    <button onclick="adminAddExtra()" style="background:var(--navy);color:#fff;border:none;padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;">Save</button>
+                    <button onclick="adminToggleExtraForm(false)" style="background:transparent;border:1px solid ${BORDER};color:var(--muted);padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;">Cancel</button>
+                </div>
+            </div>
+        ` : '';
+
+        const summaryHTML = `
+            <div style="margin:2.5rem 0 1.5rem;">
+                <h2 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.6rem;margin:0 0 1rem;">Summary</h2>
+                <table style="width:100%;border-collapse:collapse;font-family:'Jost',sans-serif;font-size:.82rem;">
+                    <thead>
+                        <tr>
+                            <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:left;">Item</th>
+                            <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:left;">Description</th>
+                            <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:center;">Qty</th>
+                            <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:right;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>${summaryWindowsRows}</tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;font-weight:500;color:var(--navy);">Subtotal — Windows</td>
+                            <td style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;color:var(--navy);font-weight:500;">£${R.formatPrice(totalEx)} <span style="font-size:.7rem;font-weight:400;color:var(--muted);">+ VAT</span></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div style="margin:1.5rem 0;">
+                <h3 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.15rem;margin:0 0 .6rem;">Additional Services</h3>
+                ${hasAnyExtras ? `
+                <table style="width:100%;border-collapse:collapse;font-family:'Jost',sans-serif;font-size:.82rem;">
+                    <thead>
+                        <tr>
+                            <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:left;">Item</th>
+                            <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:left;">Description</th>
+                            <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:center;">Qty</th>
+                            <th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:right;">Price</th>
+                            ${isAdmin ? `<th style="background:var(--navy);color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:.65rem;padding:.55rem 1rem;text-align:center;width:1%;">Actions</th>` : ''}
+                        </tr>
+                    </thead>
+                    <tbody>${extrasRows}</tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;font-weight:500;color:var(--navy);">Subtotal — Additional Services</td>
+                            <td style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;color:var(--navy);font-weight:500;">£${R.formatPrice(extrasTotalAll)} <span style="font-size:.7rem;font-weight:400;color:var(--muted);">+ VAT</span></td>
+                            ${isAdmin ? `<td style="padding:.7rem 1rem;border-top:2px solid var(--navy);"></td>` : ''}
+                        </tr>
+                    </tfoot>
+                </table>
+                ` : `
+                <div style="padding:1rem 1.3rem;background:${CREAM_LIGHT};border-left:3px solid ${BORDER};font-family:'Jost',sans-serif;font-size:.82rem;color:var(--muted);line-height:1.55;">
+                    No additional services selected. Installation and delivery can be added to this estimate.
+                </div>
+                `}
+                ${adminExtrasControlsHTML}
+            </div>
+
+            <div style="margin:1rem 0 2rem;padding:.8rem 1.2rem;background:#fff8ed;border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.75rem;color:var(--muted);line-height:1.55;">
+                <strong style="color:var(--navy);">All prices exclude VAT.</strong> VAT will be applied at the applicable rate (0%, 5%, or 20%) depending on your property status and project type. The correct rate will be confirmed prior to invoicing.
+            </div>
+        `;
+
+        // Payment Schedule — dynamic cards based on what's selected
+        // I. Deposit 50%, II. Balance 50% (both on windows + installation if selected)
+        // III. Installation (only if installation selected) — 100% after installation
+        // IV. Delivery (only if delivery selected) — 100% on delivery
+        const paymentCard = (roman, label, percent, amount, note, highlight = false) => `
+            <div style="border:1px solid ${BORDER};padding:1.2rem;position:relative;${highlight ? 'background:#fbfaf7;' : ''}">
+                <div style="position:absolute;top:.5rem;right:.8rem;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:2.2rem;color:#D4D4C8;line-height:1;">${roman}</div>
+                <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:.6rem;color:var(--muted);margin-bottom:.4rem;">${label}</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.6rem;color:var(--navy);line-height:1;margin-bottom:.5rem;">${percent}</div>
+                <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:.9rem;color:${GOLD};margin-bottom:.5rem;">£${R.formatPrice(amount)} <span style="font-size:.65rem;font-weight:400;color:var(--muted);">+ VAT</span></div>
+                <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:.7rem;color:var(--muted);line-height:1.55;">${note}</div>
+            </div>
+        `;
+
+        // Group custom extras by payment_timing
+        const customByTiming = {
+            with_deposit: customExtras.filter(e => e.payment_timing === 'with_deposit'),
+            with_balance: customExtras.filter(e => e.payment_timing === 'with_balance'),
+            on_delivery: customExtras.filter(e => e.payment_timing === 'on_delivery'),
+            on_completion: customExtras.filter(e => !e.payment_timing || e.payment_timing === 'on_completion')
+        };
+        const sumTiming = (list) => list.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+        const customDepositAdd = sumTiming(customByTiming.with_deposit);
+        const customBalanceAdd = sumTiming(customByTiming.with_balance);
+        const customDeliveryAdd = sumTiming(customByTiming.on_delivery);
+
+        const listIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} £${R.formatPrice(e.total_price)}`).join(', ')}.` : '';
+
+        // Deposit / Balance: add half of (with_deposit → deposit, with_balance → balance)
+        // Note: we add the FULL amount of with_deposit to deposit card (100% at deposit time), same for balance
+        const depositAmount = depositHalf + customDepositAdd;
+        const balanceAmount = depositHalf + customBalanceAdd;
+        const deliveryAmount = deliveryTotal + customDeliveryAdd;
+
+        const depositBaseNote = hasInstallation ? 'Calculated on windows + installation.' : 'Calculated on windows only.';
+        const depositIncludes = listIncludes(customByTiming.with_deposit);
+        const balanceIncludes = listIncludes(customByTiming.with_balance);
+        const deliveryIncludes = listIncludes(customByTiming.on_delivery);
+
+        // Roman numeral generator
+        const romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+        let romanIdx = 0;
+        const nextRoman = () => romans[romanIdx++] || `${romanIdx}`;
+
+        const paymentCards = [
+            paymentCard(nextRoman(), 'Initial Deposit', '50%', depositAmount, `Non-refundable deposit upon acceptance. Secures the order and reserves workshop capacity. ${depositBaseNote}${depositIncludes}`),
+            paymentCard(nextRoman(), 'Balance', '50%', balanceAmount, `Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. ${depositBaseNote}${balanceIncludes}`),
+            hasInstallation ? paymentCard(nextRoman(), 'Installation', '100%', installationTotal, 'Payable after installation is completed on site.', true) : '',
+            (hasDelivery || customDeliveryAdd > 0) ? paymentCard(nextRoman(), 'Delivery', '100%', deliveryAmount, `Payable upon delivery to site. Separate from windows schedule.${deliveryIncludes}`, true) : '',
+            // Each on_completion custom extra = own card
+            ...customByTiming.on_completion.map(e => paymentCard(nextRoman(), e.name, '100%', e.total_price, `${e.description ? e.description + '. ' : ''}Payable on completion.`, true))
+        ].filter(Boolean);
+
+        const numCards = paymentCards.length;
+        const paymentGridCols = numCards === 1 ? '1fr'
+            : numCards === 2 ? '1fr 1fr'
+            : numCards === 3 ? '1fr 1fr 1fr'
+            : numCards === 4 ? '1fr 1fr 1fr 1fr'
+            : 'repeat(auto-fit, minmax(180px, 1fr))';
+
+        const paymentHTML = `
+            <div style="margin:2rem 0;">
+                <h2 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.5rem;margin:0 0 .8rem;">Payment Schedule</h2>
+                <div style="display:grid;grid-template-columns:${paymentGridCols};gap:.8rem;">
+                    ${paymentCards.join('')}
+                </div>
+            </div>
+        `;
+
+        // Terms
+        const term = (num, title, body) => `
+            <li style="list-style:none;margin-bottom:1rem;padding-left:1.8rem;position:relative;line-height:1.6;">
+                <span style="position:absolute;left:0;top:0;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:.95rem;color:var(--navy);">${num}.</span>
+                <h4 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:.9rem;color:var(--navy);margin:0 0 .2rem;letter-spacing:.02em;">${title}</h4>
+                <p style="font-weight:300;font-family:'Jost',sans-serif;font-size:.8rem;color:#1a1a1a;margin:0;">${body}</p>
+            </li>
+        `;
+        const termsHTML = `
+            <div style="margin:2rem 0;">
+                <h2 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.5rem;margin:0 0 1rem;">Terms &amp; Conditions</h2>
+                <ol style="padding:0;margin:0;">
+                    ${term(1, 'Validity', 'This quotation is valid for a period of 30 (thirty) days from the date of issuance. After this period, the terms, pricing, and availability of the quoted items and services are subject to change without prior notice.')}
+                    ${term(2, 'Basis of Quotation', 'This quotation has been prepared based on the specifications, dimensions and project details provided at the time of request. Any changes — including scope of work, materials, site measurements taken at survey, or schedule — may result in an updated quotation and revised pricing.')}
+                    ${term(3, 'Exclusions', 'Unless otherwise stated, all prices are exclusive of VAT. Additional costs for scaffolding, making good, redecoration, electrical alterations, or removal of non-standard existing windows (stained glass, leaded lights) will be invoiced separately where applicable.')}
+                    ${term(4, 'Acceptance', 'Acceptance of this quotation constitutes an agreement to proceed under the terms outlined herein. Written confirmation (via email or signed acceptance) and the initial deposit are required to initiate the order and scheduling process.')}
+                    ${term(5, 'Amendments', 'Any modifications, additions, or extra services requested after acceptance will require a written change order and may result in additional charges. Once fabrication drawings are approved, no further changes can be accepted.')}
+                    ${term(6, 'Lead Time', 'Within 1 (one) week from acceptance, fabrication drawings will be issued for your approval. From the approval of drawings, the production and delivery timeline is estimated at 8 to 10 weeks. Lead time may vary depending on order size and complexity.')}
+                </ol>
+            </div>
+            <div style="margin:1.5rem 0 2rem;padding:1rem 1.3rem;background:${CREAM_LIGHT};border-left:3px solid var(--navy);font-family:'Jost',sans-serif;font-size:.78rem;color:#1a1a1a;line-height:1.65;">
+                <strong style="color:var(--navy);">Payment:</strong> Payable to Skylon Joinery Ltd · Sort code <strong>20-25-19</strong> · Account <strong>43982947</strong>. Alternative payment methods may be arranged in writing prior to acceptance.
+            </div>
+        `;
+
         return `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(158,158,144,.2);">
-                <div>
-                    <div style="font-family:'Jost',sans-serif;font-size:.50rem;letter-spacing:.5em;text-transform:uppercase;color:var(--silver);margin-bottom:.5rem;">Prime Sash Windows</div>
-                    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--navy);">Estimate ${estimate.estimate_number || ''}</div>
+            ${bannerHTML}
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid rgba(158,158,144,.2);gap:1rem;flex-wrap:wrap;">
+                <div style="flex:1;min-width:200px;">
+                    <div style="font-family:'Jost',sans-serif;font-size:.50rem;letter-spacing:.5em;text-transform:uppercase;color:var(--silver);margin-bottom:.5rem;">Estimate</div>
+                    <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--navy);">${estimate.estimate_number || ''}</div>
                     <div style="font-family:'Jost',sans-serif;font-size:.78rem;color:var(--muted);margin-top:.3rem;">
                         Created ${new Date(estimate.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}
                         ${estimate.project_name ? ` · ${estimate.project_name}` : ''}
                     </div>
                 </div>
-                <span class="estimate-status status-${estimate.status}" style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;padding:.4rem 1rem;">${R.getStatusConfig(estimate.status).label}</span>
+                <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
+                    <span class="estimate-status status-${estimate.status}" style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;padding:.4rem 1rem;">${R.getStatusConfig(estimate.status).label}</span>
+                    <button class="btn-sm btn-download-pdf" style="background:var(--navy);color:#fff;border:none;padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;">Download PDF</button>
+                </div>
             </div>
 
             ${customerHTML}
@@ -527,29 +814,19 @@ class EstimateRenderer {
             </div>
             ` : ''}
 
-            <div style="font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:var(--silver);margin-bottom:1rem;">Windows · ${estimate.estimate_items?.length || 0}</div>
+            ${aboutHTML}
+            ${certificationsHTML}
+
+            <div style="font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:var(--silver);margin:2rem 0 1rem;">Windows · ${items.length}</div>
             ${itemsHTML}
 
-            <div style="display:flex;justify-content:flex-end;padding:1.5rem 0;border-top:2px solid var(--navy);margin-top:1rem;">
-                <div style="text-align:right;">
-                    <div style="display:flex;justify-content:space-between;gap:3rem;margin-bottom:.4rem;">
-                        <span style="font-family:'Jost',sans-serif;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--silver);">Subtotal (excl. VAT)</span>
-                        <span style="font-family:'Jost',sans-serif;font-size:.9rem;color:var(--navy);">£${R.formatPrice(estimate.total_price)}</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;gap:3rem;margin-bottom:.6rem;">
-                        <span style="font-family:'Jost',sans-serif;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--silver);">VAT (20%)</span>
-                        <span style="font-family:'Jost',sans-serif;font-size:.9rem;color:var(--navy);">£${R.formatPrice(estimate.total_price * 0.2)}</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;gap:3rem;padding-top:.6rem;border-top:1px solid rgba(158,158,144,.3);">
-                        <span style="font-family:'Jost',sans-serif;font-size:.60rem;letter-spacing:.3em;text-transform:uppercase;color:var(--silver);">Total (incl. VAT)</span>
-                        <span style="font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--navy);">£${R.formatPrice(estimate.total_price * 1.2)}</span>
-                    </div>
-                </div>
-            </div>
+            ${summaryHTML}
+            ${paymentHTML}
+            ${termsHTML}
 
             <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;padding-top:1.5rem;border-top:1px solid rgba(158,158,144,.15);">
                 ${adminButtons}
-                <button class="btn-sm" id="download-estimate-pdf">Download PDF</button>
+                <button class="btn-sm btn-download-pdf">Download PDF</button>
                 <button class="btn-sm" id="download-estimate-excel">Download Excel</button>
                 <button class="btn-sm" onclick="${closeAction}">Close</button>
             </div>
@@ -638,7 +915,7 @@ class EstimateRenderer {
         const dimFont = 'font-family="Jost,sans-serif" font-size="7" fill="' + dimColor + '"';
 
         // Box frame dimensions in mm
-        const boxLeft = 80, boxRight = 80, mullionW = 50;
+        const boxLeft = 100, boxRight = 100, mullionW = 50;
         const beadGap = 12; // visual gap for beading
 
         if (sashType === 'triple') {
@@ -1959,7 +2236,7 @@ class EstimateRenderer {
         });
     }
 
-    // ─── Download PDF (smart page-breaking — never cuts cards) ───
+    // ─── Download Professional PDF (6-page: Cover, Quote+About, Certs, Items, Summary, Terms) ───
     static async downloadEstimatePDF(estimate) {
         const R = EstimateRenderer;
         try {
@@ -1967,36 +2244,154 @@ class EstimateRenderer {
             if (!jsPDF) throw new Error('jsPDF library not loaded. Please refresh the page.');
             if (!window.html2canvas) throw new Error('html2canvas library not loaded. Please refresh the page.');
 
-            // Build separate blocks: header, each window, footer
-            const blocks = [];
-
-            // HEADER block
+            // ──────── DATA PREP ────────
             const customer = estimate.customers || {};
-            const customerBlock = customer.full_name ? `
-                <div style="margin-bottom:15px;">
-                    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;">Customer</div>
-                    <div style="font-size:14px;"><strong>${customer.full_name}</strong>${customer.company_name ? ` · ${customer.company_name}` : ''}${customer.customer_code ? ` · ${customer.customer_code}` : ''}</div>
-                    <div style="font-size:12px;color:#666;">${customer.email || ''}${customer.phone ? ` · ${customer.phone}` : ''}</div>
-                </div>
-            ` : '';
+            const customerName = customer.full_name || 'Valued Client';
+            const customerFirstLine = [customer.full_name, customer.company_name, customer.customer_code].filter(Boolean).join(' · ');
+            const customerContact = [customer.email, customer.phone].filter(Boolean).join(' · ');
+            const customerAddress = estimate.delivery_address || '';
+            const projectName = estimate.project_name || '';
 
-            blocks.push(`
-                <div style="text-align:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #0a1628;">
-                    <div style="font-size:28px;font-weight:700;color:#0a1628;letter-spacing:2px;">Prime Sash Windows</div>
-                    <div style="font-size:11px;color:#999;margin-top:3px;">A trading name of Skylon Joinery LTD</div>
-                    <div style="font-size:18px;font-weight:600;color:#0a1628;margin-top:15px;">Estimate: ${estimate.estimate_number || ''}</div>
-                </div>
-                ${customerBlock}
-                <div style="margin-bottom:10px;font-size:12px;color:#555;line-height:1.8;">
-                    ${estimate.project_name ? `<div><strong>Project:</strong> ${estimate.project_name}</div>` : ''}
-                    ${estimate.delivery_address ? `<div><strong>Address:</strong> ${estimate.delivery_address}</div>` : ''}
-                    <div><strong>Date:</strong> ${new Date(estimate.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}</div>
-                    <div><strong>Status:</strong> ${R.getStatusConfig(estimate.status).label}</div>
-                </div>
-            `);
+            const createdAt = estimate.created_at ? new Date(estimate.created_at) : new Date();
+            const validUntil = new Date(createdAt);
+            validUntil.setDate(validUntil.getDate() + 30);
+            const fmtDate = d => d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
 
-            // WINDOW blocks — each window is a separate block
-            (estimate.estimate_items || []).forEach(item => {
+            const estimateNumber = estimate.estimate_number || (estimate.id ? estimate.id.substring(0, 8) : 'DRAFT');
+            const items = estimate.estimate_items || [];
+            const totalEx = items.reduce((s, i) => s + parseFloat(i.total_price || 0), 0);
+
+            // Additional services — read from DB extras (loaded by dashboard before calling downloadPDF)
+            const extras = estimate.extras || [];
+            const installationExtras = extras.filter(e => e.type === 'installation');
+            const deliveryExtras = extras.filter(e => e.type === 'delivery');
+            const customExtras = extras.filter(e => e.type === 'custom');
+            const hasInstallation = installationExtras.length > 0;
+            const hasDelivery = deliveryExtras.length > 0;
+            const hasAnyExtras = extras.length > 0;
+            const installationTotal = installationExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+            const deliveryTotal = deliveryExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+            const customTotal = customExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+            const extrasTotalAll = installationTotal + deliveryTotal + customTotal;
+            // Payment base = windows + installation (if selected). Delivery & custom NOT in base.
+            const depositBase = totalEx + installationTotal;
+            const depositHalf = depositBase / 2;
+
+            // ──────── SHARED STYLES ────────
+            const pageStyle = `width:210mm;height:297mm;background:#fff;font-family:'Jost',sans-serif;color:#1a1a1a;box-sizing:border-box;overflow:hidden;position:relative;`;
+            const serif = `'Cormorant Garamond', Georgia, serif`;
+
+            const headerBar = `
+                <div style="background:#0A1628;padding:16mm 20mm 10mm;color:#fff;">
+                    <div style="font-family:'Jost',sans-serif;font-weight:300;letter-spacing:.4em;font-size:14px;border-top:1px solid #fff;border-bottom:1px solid #fff;padding:6px 0;display:inline-block;">PRIME&nbsp;&nbsp;SASH</div>
+                    <div style="font-family:'Jost',sans-serif;font-weight:300;letter-spacing:.35em;font-size:9px;margin-top:4px;opacity:.9;">W I N D O W S</div>
+                </div>
+            `;
+
+            // ──────── PAGE 1: COVER ────────
+            const pageCover = `
+                <div style="${pageStyle}background:#0A1628;display:flex;align-items:center;justify-content:center;">
+                    <div style="background:#fff;width:140mm;height:180mm;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16mm;text-align:center;">
+                        <div style="font-family:'Jost',sans-serif;font-weight:300;letter-spacing:.45em;font-size:42px;color:#0A1628;border-top:2px solid #0A1628;border-bottom:2px solid #0A1628;padding:22px 0;margin-bottom:14px;white-space:nowrap;">PRIME&nbsp;&nbsp;SASH</div>
+                        <div style="font-family:'Jost',sans-serif;font-weight:300;letter-spacing:.6em;font-size:18px;color:#0A1628;">W I N D O W S</div>
+                        <div style="margin-top:22mm;font-family:${serif};font-style:italic;font-weight:500;font-size:14px;color:#9E9E90;letter-spacing:.08em;">London</div>
+                        <div style="margin-top:4mm;font-family:${serif};font-style:italic;font-weight:600;font-size:19px;color:#0A1628;letter-spacing:.03em;">for ${customerName}</div>
+                    </div>
+                </div>
+            `;
+
+            // ──────── PAGE 2: QUOTE + ABOUT ────────
+            const customerLine = customerFirstLine || 'Client details to confirm';
+            const addressLine = customerAddress || customerContact || '';
+            const pageQuote = `
+                <div style="${pageStyle}">
+                    ${headerBar}
+                    <div style="padding:0 20mm;">
+                        <div style="background:#0A1628;color:#fff;margin:10mm -20mm 0;padding:10mm 20mm;display:flex;justify-content:space-between;align-items:baseline;">
+                            <span style="font-family:${serif};font-weight:700;font-size:42px;letter-spacing:.02em;">Quote</span>
+                            <span style="font-family:'Jost',sans-serif;font-weight:400;font-size:20px;letter-spacing:.1em;">${estimateNumber}</span>
+                        </div>
+                        <table style="margin:10mm 0 6mm;border:1px solid #e5e4dd;border-collapse:collapse;width:100%;font-family:'Jost',sans-serif;font-size:12px;">
+                            <tr style="border-bottom:1px solid #e5e4dd;">
+                                <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Date</th>
+                                <td style="padding:10px 14px;color:#0A1628;font-weight:500;">${fmtDate(createdAt)}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #e5e4dd;">
+                                <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Requested by</th>
+                                <td style="padding:10px 14px;">${customerLine}${addressLine ? ' · ' + addressLine : ''}</td>
+                            </tr>
+                            ${projectName ? `
+                            <tr style="border-bottom:1px solid #e5e4dd;">
+                                <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Project</th>
+                                <td style="padding:10px 14px;">${projectName}</td>
+                            </tr>` : ''}
+                            <tr style="border-bottom:1px solid #e5e4dd;">
+                                <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Made by</th>
+                                <td style="padding:10px 14px;color:#0A1628;font-weight:500;">Piotr Tarasek</td>
+                            </tr>
+                            <tr>
+                                <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Valid until</th>
+                                <td style="padding:10px 14px;">${fmtDate(validUntil)} (30 days from issue)</td>
+                            </tr>
+                        </table>
+                        <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 5mm;">About Prime Sash Windows</h2>
+                        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11.5px;color:#1a1a1a;line-height:1.75;margin-bottom:3.5mm;">Welcome to Prime Sash Windows, where craftsmanship meets functionality. We specialise in creating high-quality timber windows and doors that enhance both the aesthetic appeal and energy efficiency of your home.</p>
+                        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11.5px;color:#1a1a1a;line-height:1.75;margin-bottom:3.5mm;">Serving London and surrounding areas, we bring over a decade of expertise in bespoke timber window and door manufacturing and installation. As members of The Joinery Network and FENSA registered installers, we offer free site surveys within 25 miles of London.</p>
+                        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11.5px;color:#1a1a1a;line-height:1.75;margin-bottom:3.5mm;">Every window is produced in our in-house workshop using the Lignum engineered timber system — hardwood only, PAS24 security certified, finished with premium Sikkens coatings. Traditional appearance, modern performance.</p>
+                        <div style="margin-top:6mm;padding:6mm;background:#f5f4f0;border-left:3px solid #c9a96e;font-family:'Jost',sans-serif;font-size:10.5px;color:#6b6b6b;line-height:1.65;">
+                            <strong style="color:#0A1628;font-weight:500;">Prime Sash Windows</strong> is a trading name of <strong style="color:#0A1628;font-weight:500;">Skylon Joinery Ltd</strong> — a London-based bespoke joinery company registered in England and Wales (Company No. 12946103). All contracts, invoices and payments are issued by Skylon Joinery Ltd.
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // ──────── PAGE 3: CERTIFICATIONS ────────
+            const certCard = (imgSrc, title, text) => `
+                <div style="border:1px solid #e5e4dd;padding:8mm;display:flex;gap:6mm;align-items:flex-start;background:#fff;">
+                    <img src="${imgSrc}" alt="${title}" crossorigin="anonymous" style="width:24mm;height:24mm;object-fit:contain;flex-shrink:0;">
+                    <div>
+                        <h3 style="font-family:${serif};font-weight:600;font-size:15px;color:#0A1628;margin:0 0 3px;letter-spacing:.01em;">${title}</h3>
+                        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:10px;color:#6b6b6b;line-height:1.55;margin:0;">${text}</p>
+                    </div>
+                </div>
+            `;
+
+            const pageCerts = `
+                <div style="${pageStyle}">
+                    ${headerBar}
+                    <div style="padding:0 20mm;">
+                        <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 5mm;">Certifications &amp; Technology</h2>
+                        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:12px;color:#6b6b6b;line-height:1.7;margin:8mm 0 10mm;max-width:160mm;">Every Prime Sash window is backed by independently verified certifications. These are not marketing badges — they are legally recognised standards that protect your investment, your safety, and the value of your property.</p>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8mm;">
+                            ${certCard('img/MIB/fensa.webp', 'FENSA Registered', 'Government-authorised scheme ensuring compliance with UK Building Regulations. Every installation automatically registered with your local authority — essential for property sales.')}
+                            ${certCard('img/MIB/PAS24.webp', 'PAS24 Security', 'Enhanced security performance standard. Tested against manipulation, cutting, and forced entry. Specified by Secured by Design and required for new-build.')}
+                            ${certCard('img/MIB/mib-colour.webp', 'Made in Britain', 'Every window manufactured in the UK. Short supply chain, full traceability, and support for British craftsmanship and manufacturing.')}
+                            ${certCard('img/MIB/lignum.webp', 'Lignum System', 'Engineered timber window system — hardwood only, certified components, lead-weight balanced, passive glass technology. Built to last decades.')}
+                        </div>
+                        <div style="margin-top:10mm;padding:8mm;background:#0A1628;color:#fff;">
+                            <h3 style="font-family:${serif};font-weight:600;font-size:18px;margin:0 0 3mm;letter-spacing:.02em;">Crafting a Greener Future</h3>
+                            <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:10.5px;line-height:1.6;opacity:.9;margin:0;">Timber is a renewable resource — when sourced responsibly, it is one of the most sustainable building materials available. Our commitment goes beyond compliance.</p>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6mm;margin-top:5mm;">
+                                <div>
+                                    <h4 style="font-family:'Jost',sans-serif;font-weight:500;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 2mm;color:#D4D4C8;">FSC Certified Timber</h4>
+                                    <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:9.5px;line-height:1.6;opacity:.9;margin:0;">All timber from sustainably managed forests with full chain-of-custody documentation.</p>
+                                </div>
+                                <div>
+                                    <h4 style="font-family:'Jost',sans-serif;font-weight:500;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 2mm;color:#D4D4C8;">Sustainable Manufacturing</h4>
+                                    <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:9.5px;line-height:1.6;opacity:.9;margin:0;">Low-VOC Sikkens coatings, waste-heat recovery, and closed-loop spray booth systems.</p>
+                                </div>
+                                <div>
+                                    <h4 style="font-family:'Jost',sans-serif;font-weight:500;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 2mm;color:#D4D4C8;">Minimising Waste</h4>
+                                    <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:9.5px;line-height:1.6;opacity:.9;margin:0;">Offcuts used for smaller components. All timber waste recycled or used as biofuel.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // ──────── PAGES 4+: ITEMS (max 2 per page) ────────
+            const buildItemCard = (item, idx) => {
                 const p = R.parseItem(item);
                 const svg = R.generateWindowSVG(item);
                 const screenshots = p.fc.screenshots || p.spec.screenshots || item.screenshots || null;
@@ -2007,16 +2402,11 @@ class EstimateRenderer {
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                     if (p.fanlightHeight > 0) specs.push(['Fanlight Height', p.fanlightHeight + 'mm']);
                     specs.push(['Glass', p.glassText]);
-                    specs.push(['Glass Spec', p.glassSpecCasementText]);
                     specs.push(['Glass Finish', p.glassFinishText]);
                     specs.push(['Spacer Bar', p.spacerText]);
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.casementBarsText]);
                     specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
-                    specs.push(['Safety Glass', p.safetyGlassText]);
-                    specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
-                    if (p.sillExtension !== 'none') specs.push(['Sill Projection', p.sillText]);
-                    specs.push(['Trickle Vent', p.trickleText]);
                     if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 } else if (p.windowType === 'fix-only') {
                     specs.push(['Type', p.fixTypeText]);
@@ -2049,126 +2439,398 @@ class EstimateRenderer {
                 } else {
                     if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
                     if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
-                    if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
-                    if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
-                        specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
-                        specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
-                    } else {
-                        specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
-                    }
+                    specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                     specs.push(['Frame', p.frameText]);
                     specs.push(['Opening', p.openingText]);
                     specs.push(['Glass', p.glassText]);
-                    specs.push(['Glass Spec', p.glassSpecText]);
                     specs.push(['Glass Finish', p.glassFinishText]);
                     specs.push(['Spacer Bar', p.spacerText]);
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Georgian Bars', p.barsText]);
-                    if (p.fixBarsText) specs.push(['Fix Panel Bars', p.fixBarsText]);
                     specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
                     specs.push(['Horns', p.hornsText]);
                     if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 }
 
-                const ironText = p.ironList.length > 0
-                    ? p.ironList.map(pr => `${pr.qty > 1 ? pr.qty + 'x ' : ''}${pr.name}`).join(', ')
-                    : '-';
-
-                const specRowsHTML = specs.map(([label, value]) => `
-                    <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f0f0f0;">
-                        <span style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${label}</span>
-                        <span style="font-size:12px;color:#0a1628;text-align:right;max-width:60%;">${value}</span>
+                const specRows2Col = specs.map(([l, v]) => `
+                    <div>
+                        <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.18em;text-transform:uppercase;font-size:8px;color:#6b6b6b;margin-bottom:1mm;">${l}</div>
+                        <div style="font-family:'Jost',sans-serif;font-size:10px;color:#0A1628;margin-bottom:3mm;line-height:1.35;">${v}</div>
                     </div>
                 `).join('');
 
-                const typeLabel = p.windowType === 'door' ? 'Door' : p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
-                const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
-
-                blocks.push(`
-                    <div style="border:1px solid #ddd;border-radius:3px;overflow:hidden;">
-                        <div style="background:#0a1628;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#fff;">Window ${item.window_number} — ${typeLabel}${headLabel}</span>
-                            <span style="font-size:11px;color:rgba(255,255,255,.5);">Qty: ${p.quantity} · £${R.formatPrice(item.total_price)} + VAT</span>
+                const ironItemsHTML = (p.ironList && p.ironList.length > 0)
+                    ? p.ironList.map(pr => `
+                        <div style="display:flex;align-items:center;gap:3mm;margin-bottom:2mm;">
+                            ${pr.img ? `<img src="${pr.img}" crossorigin="anonymous" style="width:10mm;height:10mm;object-fit:cover;border:1px solid #e5e4dd;border-radius:1mm;flex-shrink:0;background:#f5f4f0;" onerror="this.style.visibility='hidden'">` : `<div style="width:10mm;height:10mm;border:1px solid #e5e4dd;background:#f5f4f0;border-radius:1mm;flex-shrink:0;"></div>`}
+                            <span style="font-family:'Jost',sans-serif;font-size:9.5px;color:#0A1628;line-height:1.4;">${pr.qty > 1 ? `<strong>${pr.qty}×</strong> ` : ''}${pr.name}${pr.color ? ` — ${pr.color}` : ''}</span>
                         </div>
-                        <div style="display:flex;gap:0;">
-                            <div style="width:280px;min-width:280px;padding:15px;display:flex;flex-direction:column;align-items:center;gap:10px;background:#f8f8f6;border-right:1px solid #eee;">
-                                ${screenshots?.interior ? `<img src="${screenshots.interior}" style="width:250px;border:1px solid #ddd;border-radius:2px;" />` : ''}
-                                <div>${svg}</div>
-                            </div>
-                            <div style="flex:1;padding:15px 20px;">
-                                ${specRowsHTML}
-                                <div style="margin-top:10px;padding-top:8px;border-top:1px solid #ddd;">
-                                    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Ironmongery</div>
-                                    <div style="font-size:12px;color:#0a1628;">${ironText}</div>
+                    `).join('')
+                    : `<div style="font-family:'Jost',sans-serif;font-size:9.5px;color:#888;font-style:italic;">No ironmongery specified for this item.</div>`;
+
+                const typeLabel = p.windowType === 'casement' ? 'Casement Window'
+                    : p.windowType === 'fix-only' ? 'Fix Frame'
+                    : p.sashType === 'triple' ? 'Triple Sash Window'
+                    : p.sashType === 'single' ? 'Single Sash Window'
+                    : 'Traditional Sash Window';
+
+                const idxStr = String(idx + 1).padStart(2, '0');
+                const priceStr = '£' + R.formatPrice(item.total_price || 0);
+
+                return `
+                    <div style="border:1px solid #e5e4dd;margin-bottom:5mm;overflow:hidden;">
+                        <div style="background:#0A1628;color:#fff;padding:5mm 7mm;display:flex;justify-content:space-between;align-items:center;">
+                            <div style="font-family:${serif};font-weight:600;font-size:18px;letter-spacing:.02em;"><span style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;opacity:.65;letter-spacing:.25em;margin-right:10px;">ITEM ${idxStr}</span>${typeLabel}</div>
+                            <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:18px;letter-spacing:.02em;">${priceStr}</div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:70mm 1fr;gap:6mm;padding:6mm;">
+                            ${screenshots?.interior ? `
+                                <div style="background:#f5f4f0;border:1px solid #e5e4dd;padding:4mm;display:flex;flex-direction:column;gap:3mm;">
+                                    <div style="width:100%;height:48mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
+                                    <div style="width:100%;height:48mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;">${svg}</div>
                                 </div>
+                            ` : `
+                                <div style="background:#f5f4f0;border:1px solid #e5e4dd;display:flex;align-items:center;justify-content:center;padding:4mm;">
+                                    <div style="width:100%;max-height:100mm;">${svg}</div>
+                                </div>
+                            `}
+                            <div>
+                                <h4 style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.18em;text-transform:uppercase;font-size:9px;color:#6b6b6b;margin:0 0 3mm;border-bottom:1px solid #e5e4dd;padding-bottom:2mm;">Specification</h4>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 6mm;">${specRows2Col}</div>
+                                <h4 style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.18em;text-transform:uppercase;font-size:9px;color:#6b6b6b;margin:4mm 0 3mm;border-top:1px solid #e5e4dd;border-bottom:1px solid #e5e4dd;padding:3mm 0 2mm;">Ironmongery</h4>
+                                ${ironItemsHTML}
                             </div>
                         </div>
                     </div>
-                `);
-            });
+                `;
+            };
 
-            // FOOTER block (totals)
-            const totalEx = (estimate.estimate_items || []).reduce((s, i) => s + parseFloat(i.total_price || 0), 0);
-            const vat = totalEx * 0.20;
-            blocks.push(`
-                <div style="border-top:2px solid #0a1628;padding-top:15px;margin-top:10px;text-align:right;">
-                    <div style="font-size:14px;margin-bottom:5px;">Subtotal (excl. VAT): <strong>£${R.formatPrice(totalEx)}</strong></div>
-                    <div style="font-size:14px;margin-bottom:5px;">VAT (20%): <strong>£${R.formatPrice(vat)}</strong></div>
-                    <div style="font-size:20px;font-weight:700;color:#0a1628;margin-top:8px;">Total: £${R.formatPrice(totalEx + vat)}</div>
+            // ──────── ITEMS: title block + per-item blocks (for smart page-breaking) ────────
+            const titleBlockHTML = items.length > 0 ? `
+                <div style="font-family:'Jost',sans-serif;padding:20px 30px;background:#fff;">
+                    <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:30px;letter-spacing:.02em;margin:0;display:flex;justify-content:space-between;align-items:baseline;">
+                        Your Estimate
+                        <span style="font-family:'Jost',sans-serif;font-weight:300;font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:#6b6b6b;">${items.length} Item${items.length !== 1 ? 's' : ''}</span>
+                    </h2>
+                </div>
+            ` : `
+                <div style="font-family:'Jost',sans-serif;padding:20px 30px;background:#fff;">
+                    <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:0 0 5mm;">Your Estimate</h2>
+                    <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:12px;color:#6b6b6b;">No items added to this estimate yet.</p>
+                </div>
+            `;
+
+            const itemBlocksHTML = items.map((item, idx) => `
+                <div style="font-family:'Jost',sans-serif;padding:10px 30px;background:#fff;">
+                    ${buildItemCard(item, idx)}
                 </div>
             `);
 
-            // Render each block to canvas
-            const canvases = [];
-            for (const blockHTML of blocks) {
+
+
+            // ──────── PAGE -2: SUMMARY + PAYMENT 50/50 ────────
+            const summaryRows = items.map((it, idx) => {
+                const p = R.parseItem(it);
+                const typeShort = p.windowType === 'door' ? 'Door'
+                : p.windowType === 'casement' ? 'Casement'
+                    : p.windowType === 'fix-only' ? 'Fix Frame'
+                    : p.sashType === 'triple' ? 'Triple Sash'
+                    : p.sashType === 'single' ? 'Single Sash'
+                    : 'Sash';
+                const desc = `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+                return `
+                    <tr>
+                        <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;">${String(idx + 1).padStart(2, '0')}</td>
+                        <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;">${desc}</td>
+                        <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;text-align:center;">${p.quantity || 1}</td>
+                        <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;text-align:right;font-weight:500;color:#0A1628;">£${R.formatPrice(it.total_price || 0)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // PDF Additional Services rows (dynamic from extras)
+            const pdfExtraRow = (label, desc, qty, amount, idx) => `
+                <tr>
+                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;vertical-align:top;">${idx}</td>
+                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;">
+                        <div style="font-weight:500;color:#0A1628;">${label}</div>
+                        ${desc ? `<div style="font-size:9px;color:#6b6b6b;font-style:italic;margin-top:1mm;">${desc}</div>` : ''}
+                    </td>
+                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;text-align:center;vertical-align:top;">${qty}</td>
+                    <td style="padding:3mm 5mm;border-bottom:1px solid #e5e4dd;text-align:right;font-weight:500;color:#0A1628;vertical-align:top;">£${R.formatPrice(amount)}</td>
+                </tr>
+            `;
+
+            let pdfExtrasIdx = 1;
+            const pdfExtrasRows = [
+                ...installationExtras.map(e => pdfExtraRow(e.name, e.description, e.quantity, e.total_price, `I-${String(pdfExtrasIdx++).padStart(2, '0')}`)),
+                ...deliveryExtras.map(e => pdfExtraRow(e.name, e.description, e.quantity, e.total_price, `D-${String(pdfExtrasIdx++).padStart(2, '0')}`)),
+                ...customExtras.map(e => pdfExtraRow(e.name, e.description, e.quantity, e.total_price, `X-${String(pdfExtrasIdx++).padStart(2, '0')}`))
+            ].join('');
+
+            const pageSummary = `
+                <div style="${pageStyle}">
+                    ${headerBar}
+                    <div style="padding:0 20mm;">
+                        <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:26px;letter-spacing:.02em;margin:8mm 0 4mm;">Summary</h2>
+
+                        <!-- ─── WINDOWS TABLE ─── -->
+                        <table style="width:100%;border-collapse:collapse;margin:0 0 5mm;font-family:'Jost',sans-serif;font-size:10.5px;">
+                            <thead>
+                                <tr>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:left;">Item</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:left;">Description</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:center;">Qty</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:right;">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>${summaryRows}</tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;font-weight:500;color:#0A1628;font-size:11px;">Subtotal — Windows</td>
+                                    <td style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;color:#0A1628;font-weight:500;">£${R.formatPrice(totalEx)} <span style="font-size:9px;font-weight:400;color:#6b6b6b;">+ VAT</span></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <!-- ─── ADDITIONAL SERVICES TABLE ─── -->
+                        <h3 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:18px;letter-spacing:.02em;margin:8mm 0 3mm;">Additional Services</h3>
+                        ${hasAnyExtras ? `
+                        <table style="width:100%;border-collapse:collapse;font-family:'Jost',sans-serif;font-size:10.5px;">
+                            <thead>
+                                <tr>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:left;">Item</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:left;">Description</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:center;">Qty</th>
+                                    <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;text-transform:uppercase;font-size:9px;padding:2.5mm 5mm;text-align:right;">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>${pdfExtrasRows}</tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;font-weight:500;color:#0A1628;font-size:11px;">Subtotal — Additional Services</td>
+                                    <td style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;color:#0A1628;font-weight:500;">£${R.formatPrice(extrasTotalAll)} <span style="font-size:9px;font-weight:400;color:#6b6b6b;">+ VAT</span></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        ` : `
+                        <div style="padding:4mm 5mm;background:#f5f4f0;border-left:3px solid #e5e4dd;font-family:'Jost',sans-serif;font-size:10.5px;color:#6b6b6b;line-height:1.55;">
+                            No additional services selected. Installation and delivery can be added to this estimate.
+                        </div>
+                        `}
+
+                        <!-- ─── VAT NOTE ─── -->
+                        <div style="margin-top:6mm;padding:3mm 5mm;background:#fff8ed;border-left:3px solid #c9a96e;font-family:'Jost',sans-serif;font-size:9.5px;color:#6b6b6b;line-height:1.55;">
+                            <strong style="color:#0A1628;">All prices exclude VAT.</strong> VAT will be applied at the applicable rate (0%, 5%, or 20%) depending on your property status and project type. The correct rate will be confirmed prior to invoicing.
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // ──────── PAGE: PAYMENT SCHEDULE (own page) ────────
+            // PDF Payment card helper
+            const pdfPaymentCard = (roman, label, percent, amount, note, highlight = false) => `
+                <div style="border:1px solid #e5e4dd;padding:5mm;position:relative;min-height:60mm;${highlight ? 'background:#fbfaf7;' : ''}">
+                    <div style="position:absolute;top:3mm;right:4mm;font-family:${serif};font-weight:700;font-size:36px;color:#D4D4C8;line-height:1;">${roman}</div>
+                    <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.2em;text-transform:uppercase;font-size:8.5px;color:#6b6b6b;margin-bottom:1.5mm;">${label}</div>
+                    <div style="font-family:${serif};font-weight:700;font-size:24px;color:#0A1628;line-height:1;margin-bottom:2mm;">${percent}</div>
+                    <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:13px;color:#c9a96e;margin-bottom:2mm;">£${R.formatPrice(amount)} <span style="font-size:9px;font-weight:400;color:#6b6b6b;">+ VAT</span></div>
+                    <div style="font-family:'Jost',sans-serif;font-weight:300;font-size:9px;color:#6b6b6b;line-height:1.5;">${note}</div>
+                </div>
+            `;
+
+            // PDF — Group custom extras by payment_timing (same hybrid logic as dashboard)
+            const pdfCustomByTiming = {
+                with_deposit: customExtras.filter(e => e.payment_timing === 'with_deposit'),
+                with_balance: customExtras.filter(e => e.payment_timing === 'with_balance'),
+                on_delivery: customExtras.filter(e => e.payment_timing === 'on_delivery'),
+                on_completion: customExtras.filter(e => !e.payment_timing || e.payment_timing === 'on_completion')
+            };
+            const pdfSumTiming = (list) => list.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+            const pdfCustomDepositAdd = pdfSumTiming(pdfCustomByTiming.with_deposit);
+            const pdfCustomBalanceAdd = pdfSumTiming(pdfCustomByTiming.with_balance);
+            const pdfCustomDeliveryAdd = pdfSumTiming(pdfCustomByTiming.on_delivery);
+            const pdfListIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} £${R.formatPrice(e.total_price)}`).join(', ')}.` : '';
+
+            const pdfDepositAmount = depositHalf + pdfCustomDepositAdd;
+            const pdfBalanceAmount = depositHalf + pdfCustomBalanceAdd;
+            const pdfDeliveryAmountTotal = deliveryTotal + pdfCustomDeliveryAdd;
+
+            const pdfDepositBaseNote = hasInstallation ? 'Calculated on windows + installation.' : 'Calculated on windows only.';
+            const pdfDepositIncludes = pdfListIncludes(pdfCustomByTiming.with_deposit);
+            const pdfBalanceIncludes = pdfListIncludes(pdfCustomByTiming.with_balance);
+            const pdfDeliveryIncludes = pdfListIncludes(pdfCustomByTiming.on_delivery);
+
+            const pdfRomans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+            let pdfRomanIdx = 0;
+            const pdfNextRoman = () => pdfRomans[pdfRomanIdx++] || `${pdfRomanIdx}`;
+
+            const pdfPaymentCards = [
+                pdfPaymentCard(pdfNextRoman(), 'Initial Deposit', '50%', pdfDepositAmount, `Non-refundable deposit payable upon acceptance of this quotation. Secures the order, reserves workshop capacity, and funds material procurement. ${pdfDepositBaseNote}${pdfDepositIncludes}`),
+                pdfPaymentCard(pdfNextRoman(), 'Balance', '50%', pdfBalanceAmount, `Due prior to dispatch or installation. Windows will not leave the workshop until full payment is received. Bank transfer to Skylon Joinery Ltd. ${pdfDepositBaseNote}${pdfBalanceIncludes}`),
+                hasInstallation ? pdfPaymentCard(pdfNextRoman(), 'Installation', '100%', installationTotal, 'Payable after installation is completed on site. Covers labour and installation services.', true) : '',
+                (hasDelivery || pdfCustomDeliveryAdd > 0) ? pdfPaymentCard(pdfNextRoman(), 'Delivery', '100%', pdfDeliveryAmountTotal, `Payable upon delivery to site. Separate from windows payment schedule. Covers transport, logistics, and safe unloading.${pdfDeliveryIncludes}`, true) : '',
+                ...pdfCustomByTiming.on_completion.map(e => pdfPaymentCard(pdfNextRoman(), e.name, '100%', e.total_price, `${e.description ? e.description + '. ' : ''}Payable on completion.`, true))
+            ].filter(Boolean);
+
+            const pdfNumCards = pdfPaymentCards.length;
+            const pdfPaymentGrid = pdfNumCards === 1 ? '1fr'
+                : pdfNumCards === 2 ? '1fr 1fr'
+                : pdfNumCards === 3 ? '1fr 1fr 1fr'
+                : pdfNumCards === 4 ? '1fr 1fr 1fr 1fr'
+                : pdfNumCards <= 6 ? '1fr 1fr 1fr'
+                : 'repeat(auto-fit, minmax(50mm, 1fr))';
+            const pdfIntroText = pdfNumCards === 2
+                ? 'Payments are structured as a two-stage deposit and balance, both based on the total for windows.'
+                : 'Payments are structured to protect both parties. Deposit secures the order, balance is required prior to dispatch, and additional services are billed separately upon completion.';
+
+            const pagePayment = `
+                <div style="${pageStyle}">
+                    ${headerBar}
+                    <div style="padding:0 20mm;">
+                        <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 4mm;">Payment Schedule</h2>
+                        <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;color:#6b6b6b;line-height:1.65;margin-bottom:8mm;max-width:160mm;">
+                            ${pdfIntroText}
+                        </p>
+
+                        <div style="display:grid;grid-template-columns:${pdfPaymentGrid};gap:5mm;">
+                            ${pdfPaymentCards.join('')}
+                        </div>
+
+                        <div style="margin-top:10mm;padding:5mm 6mm;background:#f5f4f0;border-left:3px solid #0A1628;font-family:'Jost',sans-serif;font-size:10.5px;color:#1a1a1a;line-height:1.65;">
+                            <strong style="color:#0A1628;">Bank transfer details</strong> are provided on the final Terms &amp; Conditions page. Alternative payment methods may be arranged in writing prior to acceptance.
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // ──────── PAGE -1: TERMS + FOOTER ────────
+            const term = (num, title, body) => `
+                <li style="list-style:none;margin-bottom:5mm;padding-left:10mm;position:relative;line-height:1.6;">
+                    <span style="position:absolute;left:0;top:0;font-family:${serif};font-weight:700;font-size:14px;color:#0A1628;">${num}.</span>
+                    <h4 style="font-family:${serif};font-weight:600;font-size:13px;color:#0A1628;margin:0 0 1.5mm;letter-spacing:.02em;">${title}</h4>
+                    <p style="font-weight:300;color:#1a1a1a;margin:0;">${body}</p>
+                </li>
+            `;
+
+            const pageTerms = `
+                <div style="${pageStyle}display:flex;flex-direction:column;">
+                    ${headerBar}
+                    <div style="padding:0 20mm;flex:1;">
+                        <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 5mm;">Terms and Conditions</h2>
+                        <ol style="font-family:'Jost',sans-serif;font-size:10.5px;color:#1a1a1a;margin:6mm 0 0;padding:0;">
+                            ${term(1, 'Validity', 'This quotation is valid for a period of 30 (thirty) days from the date of issuance. After this period, the terms, pricing, and availability of the quoted items and services are subject to change without prior notice.')}
+                            ${term(2, 'Basis of Quotation', 'This quotation has been prepared based on the specifications, dimensions and project details provided at the time of request. Any changes — including scope of work, materials, site measurements taken at survey, or schedule — may result in an updated quotation and revised pricing.')}
+                            ${term(3, 'Exclusions', 'Unless otherwise stated, all prices are exclusive of VAT. Additional costs for scaffolding, making good, redecoration, electrical alterations, or removal of non-standard existing windows (stained glass, leaded lights) will be invoiced separately where applicable.')}
+                            ${term(4, 'Acceptance', 'Acceptance of this quotation constitutes an agreement to proceed under the terms outlined herein. Written confirmation (via email or signed acceptance) and the initial deposit are required to initiate the order and scheduling process.')}
+                            ${term(5, 'Amendments', 'Any modifications, additions, or extra services requested after acceptance will require a written change order and may result in additional charges. Once fabrication drawings are approved, no further changes can be accepted.')}
+                            ${term(6, 'Lead Time', 'Within 1 (one) week from acceptance, fabrication drawings will be issued for your approval. From the approval of drawings, the production and delivery timeline is estimated at 8 to 10 weeks. Lead time may vary depending on order size and complexity.')}
+                        </ol>
+                        <div style="margin-top:8mm;padding:6mm;background:#f5f4f0;border-left:3px solid #c9a96e;font-family:'Jost',sans-serif;font-weight:300;font-size:10.5px;color:#1a1a1a;line-height:1.65;">
+                            <strong style="color:#0A1628;font-weight:500;">Payment Terms — Prime Sash Windows.</strong> A two-stage payment structure applies: 50% non-refundable deposit upon acceptance, and 50% final payment due prior to dispatch or installation. All payments by bank transfer to <strong style="color:#0A1628;font-weight:500;">Skylon Joinery Ltd</strong>. Late payments may be subject to interest charges in accordance with the Late Payment of Commercial Debts (Interest) Act 1998.
+                        </div>
+                        <div style="margin-top:8mm;padding-top:5mm;border-top:1px solid #e5e4dd;font-family:'Jost',sans-serif;font-size:9.5px;color:#6b6b6b;line-height:1.7;">
+                            <strong style="color:#0A1628;font-weight:500;">Bank Details:</strong> Skylon Joinery Ltd · Sort Code: 20-25-19 · Account Number: 43982947<br>
+                            <strong style="color:#0A1628;font-weight:500;">Company:</strong> Skylon Joinery Limited · Registered in England and Wales No. 12946103 · Registered office: 31 Roe Hill Close, Hatfield, AL10 9JE
+                        </div>
+                    </div>
+                    <div style="background:#0A1628;color:#fff;padding:8mm 20mm;display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:8mm;align-items:center;font-family:'Jost',sans-serif;font-size:9.5px;">
+                        <div style="font-weight:300;letter-spacing:.3em;font-size:11px;border-top:1px solid #fff;border-bottom:1px solid #fff;padding:4px 0;white-space:nowrap;">PRIME&nbsp;SASH</div>
+                        <div style="display:flex;flex-direction:column;gap:2px;">
+                            <span style="font-size:10px;color:#D4D4C8;letter-spacing:.15em;text-transform:uppercase;">Web</span>
+                            <span style="font-size:9.5px;font-weight:300;">www.primesashwindows.co.uk</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:2px;">
+                            <span style="font-size:10px;color:#D4D4C8;letter-spacing:.15em;text-transform:uppercase;">Email</span>
+                            <span style="font-size:9.5px;font-weight:300;">info@primesashwindows.co.uk</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:2px;">
+                            <span style="font-size:10px;color:#D4D4C8;letter-spacing:.15em;text-transform:uppercase;">Phone</span>
+                            <span style="font-size:9.5px;font-weight:300;">+44 7842 510060</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // ──────── RENDER HELPERS ────────
+            async function renderToCanvas(html, width) {
                 const container = document.createElement('div');
-                container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;padding:20px 30px;font-family:Jost,sans-serif;color:#0a1628;';
-                container.innerHTML = blockHTML;
+                container.style.cssText = `position:fixed;left:-9999px;top:0;width:${width};background:#fff;`;
+                container.innerHTML = html;
                 document.body.appendChild(container);
 
-                const images = container.querySelectorAll('img');
-                if (images.length > 0) {
-                    await Promise.all([...images].map(img => {
-                        if (img.complete) return Promise.resolve();
-                        return new Promise(res => { img.onload = res; img.onerror = res; });
+                const imgs = container.querySelectorAll('img');
+                if (imgs.length > 0) {
+                    await Promise.all([...imgs].map(img => {
+                        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+                        return new Promise(res => {
+                            img.onload = res;
+                            img.onerror = res;
+                            setTimeout(res, 3000);
+                        });
                     }));
                 }
 
                 const canvas = await window.html2canvas(container, {
-                    scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false
+                    scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
+                    logging: false, width: container.offsetWidth, height: container.offsetHeight
                 });
-                canvases.push(canvas);
                 document.body.removeChild(container);
+                return canvas;
             }
 
-            // Build PDF — smart page-breaking
+            // ──────── ASSEMBLE PDF ────────
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageW = 210, pageH = 297, margin = 8;
             const usableW = pageW - margin * 2;
-            const usableH = pageH - margin * 2;
+
+            // Full A4 page (cover, quote, certs, summary, terms)
+            async function addFullPage(html, isFirst = false) {
+                if (!isFirst) doc.addPage();
+                const canvas = await renderToCanvas(html, '210mm');
+                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH);
+            }
+
+            // Smart page-breaking block (items section only)
             let curY = margin;
+            async function addBlock(html) {
+                const canvas = await renderToCanvas(html, '800px');
+                const blockH = (canvas.height / canvas.width) * usableW;
 
-            canvases.forEach((canvas, i) => {
-                const ratio = usableW / canvas.width;
-                const blockH = canvas.height * ratio;
-
-                // If block doesn't fit on current page → new page
                 if (curY + blockH > pageH - margin && curY > margin + 1) {
                     doc.addPage();
                     curY = margin;
                 }
 
-                // If single block is taller than a page → scale to fit
-                const finalH = Math.min(blockH, usableH);
-                const finalRatio = finalH < blockH ? (finalH / blockH) : 1;
-                const finalW = usableW * finalRatio;
-
                 const imgData = canvas.toDataURL('image/jpeg', 0.92);
-                doc.addImage(imgData, 'JPEG', margin, curY, finalW, finalH);
-                curY += finalH + 4;
-            });
+                doc.addImage(imgData, 'JPEG', margin, curY, usableW, blockH);
+                curY += blockH + 4;
+            }
 
-            doc.save(`Estimate_${estimate.estimate_number || estimate.id.substring(0, 8)}.pdf`);
+            // 1. Cover
+            await addFullPage(pageCover, true);
+            // 2. Quote
+            await addFullPage(pageQuote);
+            // 3. Certifications
+            await addFullPage(pageCerts);
+
+            // 4. Items — new page + smart page-breaking
+            doc.addPage();
+            curY = margin;
+            await addBlock(titleBlockHTML);
+            for (const itemHTML of itemBlocksHTML) {
+                await addBlock(itemHTML);
+            }
+
+            // 5. Summary (windows + additional services + grand total + VAT note)
+            await addFullPage(pageSummary);
+            // 5b. Payment Schedule (own page)
+            await addFullPage(pagePayment);
+            // 6. Terms
+            await addFullPage(pageTerms);
+
+            doc.save(`PrimeSashWindows_Quote_${estimateNumber}.pdf`);
 
         } catch (error) {
             console.error('Error downloading PDF:', error);
@@ -2423,8 +3085,8 @@ class EstimateRenderer {
 
     // ─── Attach PDF/Excel buttons after rendering ───
     static attachExportButtons(estimate) {
-        const pdfBtn = document.getElementById('download-estimate-pdf');
-        if (pdfBtn) pdfBtn.addEventListener('click', () => EstimateRenderer.downloadEstimatePDF(estimate));
+        const pdfBtns = document.querySelectorAll('.btn-download-pdf');
+        pdfBtns.forEach(btn => btn.addEventListener('click', () => EstimateRenderer.downloadEstimatePDF(estimate)));
         const excelBtn = document.getElementById('download-estimate-excel');
         if (excelBtn) excelBtn.addEventListener('click', () => EstimateRenderer.downloadEstimateExcel(estimate));
     }
