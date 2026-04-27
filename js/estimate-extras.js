@@ -3,8 +3,8 @@
 // ═══════════════════════════════════════════════════════════════════
 // Usage:
 //   EstimateExtras.load(estimateId)                 → returns array of extras
-//   EstimateExtras.addInstallation(estimateId, qty) → customer adds Installation
-//   EstimateExtras.addDelivery(estimateId)          → customer adds Delivery
+//   EstimateExtras.addInstallation(estimateId, items) → per-type pricing (sash £400, casement £250, fix £200, door £450)
+//   EstimateExtras.addDelivery(estimateId, totalQty)  → £300 base + £30/window above 10
 //   EstimateExtras.addCustom(estimateId, data)      → admin adds custom extra
 //   EstimateExtras.update(extraId, data)            → admin edits extra
 //   EstimateExtras.delete(extraId)                  → delete by ID
@@ -12,7 +12,18 @@
 // ═══════════════════════════════════════════════════════════════════
 
 class EstimateExtras {
-    // Defaults (same as PDF hardcoded values — PR 1)
+    // Installation per-type pricing
+    static INSTALL_PRICE_SASH = 400;
+    static INSTALL_PRICE_CASEMENT = 250;
+    static INSTALL_PRICE_FIX = 200;
+    static INSTALL_PRICE_DOOR = 450;
+
+    // Delivery: base + per-window surcharge above threshold
+    static DELIVERY_BASE_PRICE = 300;
+    static DELIVERY_SURCHARGE_PER_WINDOW = 30;
+    static DELIVERY_SURCHARGE_THRESHOLD = 10;
+
+    // Legacy compat
     static INSTALLATION_UNIT_PRICE = 400;
     static DELIVERY_FLAT_PRICE = 300;
 
@@ -43,18 +54,62 @@ class EstimateExtras {
         return (data || []).length > 0;
     }
 
-    // ─── Customer: Add Installation (£400 × totalQty) ───
-    static async addInstallation(estimateId, totalQty) {
+    // ─── Customer: Add Installation (per-type pricing) ───
+    static async addInstallation(estimateId, totalQtyOrItems) {
         if (!estimateId) throw new Error('estimateId required');
-        if (!totalQty || totalQty < 1) throw new Error('totalQty must be ≥ 1');
 
         // Prevent duplicate
         if (await EstimateExtras.hasType(estimateId, 'installation')) {
             throw new Error('Installation already added to this estimate');
         }
 
-        const unitPrice = EstimateExtras.INSTALLATION_UNIT_PRICE;
-        const totalPrice = unitPrice * totalQty;
+        let totalPrice = 0;
+        let totalQty = 0;
+        let breakdownParts = [];
+
+        // If array of items passed → per-type pricing
+        if (Array.isArray(totalQtyOrItems)) {
+            const items = totalQtyOrItems;
+            let countSash = 0, countCasement = 0, countFix = 0, countDoor = 0;
+
+            items.forEach(item => {
+                const qty = parseInt(item.quantity) || 1;
+                let spec = {};
+                try { spec = typeof item.specification === 'string' ? JSON.parse(item.specification) : (item.specification || {}); } catch(e) {}
+                const fc = spec.fullConfig || spec;
+                const wType = fc.windowType || fc.windowCategory || 'sash';
+
+                if (wType === 'casement') { countCasement += qty; }
+                else if (wType === 'fix-only') { countFix += qty; }
+                else if (wType === 'door') { countDoor += qty; }
+                else { countSash += qty; }
+            });
+
+            totalQty = countSash + countCasement + countFix + countDoor;
+            if (totalQty < 1) throw new Error('No windows in estimate');
+
+            const sashTotal = countSash * EstimateExtras.INSTALL_PRICE_SASH;
+            const casementTotal = countCasement * EstimateExtras.INSTALL_PRICE_CASEMENT;
+            const fixTotal = countFix * EstimateExtras.INSTALL_PRICE_FIX;
+            const doorTotal = countDoor * EstimateExtras.INSTALL_PRICE_DOOR;
+            totalPrice = sashTotal + casementTotal + fixTotal + doorTotal;
+
+            if (countSash > 0) breakdownParts.push(`${countSash}× Sash £${sashTotal}`);
+            if (countCasement > 0) breakdownParts.push(`${countCasement}× Casement £${casementTotal}`);
+            if (countFix > 0) breakdownParts.push(`${countFix}× Fix £${fixTotal}`);
+            if (countDoor > 0) breakdownParts.push(`${countDoor}× Door £${doorTotal}`);
+
+            console.log('Installation breakdown:', breakdownParts.join(', '), '= £' + totalPrice);
+        } else {
+            // Legacy fallback: flat rate × qty
+            totalQty = totalQtyOrItems;
+            if (!totalQty || totalQty < 1) throw new Error('totalQty must be ≥ 1');
+            totalPrice = EstimateExtras.INSTALLATION_UNIT_PRICE * totalQty;
+        }
+
+        const description = breakdownParts.length > 0
+            ? `${breakdownParts.join(' + ')}. Final amount subject to site survey.`
+            : 'Standard rate. Final amount subject to site survey.';
 
         const { data, error } = await supabaseClient
             .from('estimate_extras')
@@ -62,9 +117,9 @@ class EstimateExtras {
                 estimate_id: estimateId,
                 type: 'installation',
                 name: 'Installation',
-                description: 'Standard rate. Final amount subject to site survey.',
+                description: description,
                 quantity: totalQty,
-                unit_price: unitPrice,
+                unit_price: Math.round((totalPrice / totalQty) * 100) / 100,
                 total_price: totalPrice,
                 added_by: 'customer',
                 payment_timing: 'on_completion'
@@ -76,15 +131,26 @@ class EstimateExtras {
         return data;
     }
 
-    // ─── Customer: Add Delivery (£300 flat) ───
-    static async addDelivery(estimateId) {
+    // ─── Customer: Add Delivery (£300 base + £30/window above 10) ───
+    static async addDelivery(estimateId, totalQty = 1) {
         if (!estimateId) throw new Error('estimateId required');
 
         if (await EstimateExtras.hasType(estimateId, 'delivery')) {
             throw new Error('Delivery already added to this estimate');
         }
 
-        const flatPrice = EstimateExtras.DELIVERY_FLAT_PRICE;
+        const base = EstimateExtras.DELIVERY_BASE_PRICE;
+        const threshold = EstimateExtras.DELIVERY_SURCHARGE_THRESHOLD;
+        const perWindow = EstimateExtras.DELIVERY_SURCHARGE_PER_WINDOW;
+        const extraWindows = Math.max(0, totalQty - threshold);
+        const surcharge = extraWindows * perWindow;
+        const totalPrice = base + surcharge;
+
+        const description = extraWindows > 0
+            ? `Base £${base} + ${extraWindows} extra windows × £${perWindow} = £${totalPrice}. Subject to location confirmation.`
+            : 'Standard delivery charge. Subject to location confirmation.';
+
+        console.log('Delivery:', totalQty, 'windows, base £' + base + ', surcharge £' + surcharge + ', total £' + totalPrice);
 
         const { data, error } = await supabaseClient
             .from('estimate_extras')
@@ -92,10 +158,10 @@ class EstimateExtras {
                 estimate_id: estimateId,
                 type: 'delivery',
                 name: 'Delivery',
-                description: 'Standard delivery charge. Subject to location confirmation.',
+                description: description,
                 quantity: 1,
-                unit_price: flatPrice,
-                total_price: flatPrice,
+                unit_price: totalPrice,
+                total_price: totalPrice,
                 added_by: 'customer',
                 payment_timing: 'on_delivery'
             })

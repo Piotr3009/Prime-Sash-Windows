@@ -416,8 +416,17 @@ class CustomerDashboard {
                     this.showError('Cannot add installation: no windows in estimate');
                     return;
                 }
-                await EstimateExtras.addInstallation(estimateId, totalQty);
-                this.showSuccessMessage(`Installation added (${totalQty} × £${EstimateExtras.INSTALLATION_UNIT_PRICE})`);
+                await EstimateExtras.addInstallation(estimateId, items);
+                const totalPrice = items.reduce((s, item) => {
+                    const qty = parseInt(item.quantity) || 1;
+                    let spec = {};
+                    try { spec = typeof item.specification === 'string' ? JSON.parse(item.specification) : (item.specification || {}); } catch(e) {}
+                    const fc = spec.fullConfig || spec;
+                    const wType = fc.windowType || fc.windowCategory || 'sash';
+                    const rate = wType === 'casement' ? 250 : wType === 'fix-only' ? 200 : wType === 'door' ? 450 : 400;
+                    return s + (qty * rate);
+                }, 0);
+                this.showSuccessMessage(`Installation added (${totalQty} windows — £${totalPrice.toLocaleString()})`);
             }
             await this.loadEstimates();
         } catch (error) {
@@ -434,8 +443,13 @@ class CustomerDashboard {
                 await EstimateExtras.removeByType(estimateId, 'delivery');
                 this.showSuccessMessage('Delivery removed');
             } else {
-                await EstimateExtras.addDelivery(estimateId);
-                this.showSuccessMessage(`Delivery added (£${EstimateExtras.DELIVERY_FLAT_PRICE})`);
+                const order = this.orders.find(o => o.id === estimateId);
+                const items = order ? (order.estimate_items || []) : [];
+                const totalQty = items.reduce((s, i) => s + (parseInt(i.quantity) || 1), 0);
+                await EstimateExtras.addDelivery(estimateId, totalQty);
+                const extraWindows = Math.max(0, totalQty - 10);
+                const deliveryPrice = 300 + (extraWindows * 30);
+                this.showSuccessMessage(`Delivery added (£${deliveryPrice}${extraWindows > 0 ? ` — includes £${extraWindows * 30} surcharge for ${extraWindows} extra windows` : ''})`);
             }
             await this.loadEstimates();
         } catch (error) {
