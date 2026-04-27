@@ -51,12 +51,17 @@
 
         .contact-grid {
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
+            grid-template-columns: 1.2fr 1fr 1fr;
             gap: 2.5rem;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1100px) {
+            .contact-grid { grid-template-columns: 1fr 1fr; }
+            .contact-grid > :first-child { grid-column: 1 / -1; }
+        }
+        @media (max-width: 700px) {
             .contact-grid { grid-template-columns: 1fr; }
+            .contact-grid > :first-child { grid-column: auto; }
         }
 
         .contact-section {
@@ -224,6 +229,13 @@
         }
         .success-message p { font-size: .9rem; color: var(--muted); margin: 0; }
 
+        /* ── MESSAGE FORM ── */
+        .msg-form { display: flex; flex-direction: column; gap: .9rem; }
+        .msg-success { display: none; text-align: center; padding: 2rem 1rem; }
+        .msg-success.show { display: block; }
+        .msg-success h3 { font-family: var(--serif); font-size: 1.4rem; color: var(--navy); margin: 0 0 .5rem; }
+        .msg-success p { font-size: .9rem; color: var(--muted); margin: 0; }
+
         /* ── CONTACT DETAILS BAR ── */
         .contact-bar {
             background: var(--navy); padding: 2.5rem 5vw; margin-top: 3rem;
@@ -266,7 +278,7 @@
     <section class="page-hero">
         <p class="eyebrow">Book a Visit</p>
         <h1>Get in Touch</h1>
-        <p class="hero-subtitle">Select up to 3 preferred time slots from our calendar and we'll confirm your measurement appointment. Visits typically take 1–2 hours.</p>
+        <p class="hero-subtitle">Book a measurement visit, send us a message, or call us directly. We're here to help with your timber window project.</p>
     </section>
 
     <!-- MAIN CONTENT -->
@@ -338,6 +350,41 @@
                 </form>
             </div>
 
+            <!-- Message Form Section -->
+            <div class="contact-section">
+                <h3>Send us a Message</h3>
+                <p style="font-size:.88rem;color:var(--muted);margin:0 0 1.2rem;line-height:1.6;">Have a question? Send us a message and we'll get back to you within 24 hours.</p>
+
+                <div id="msg-success" class="msg-success">
+                    <h3>Message Sent</h3>
+                    <p>Thank you — we'll get back to you shortly.</p>
+                </div>
+
+                <form id="message-form" class="msg-form">
+                    <div class="form-group">
+                        <label for="msg-name">Your Name *</label>
+                        <input type="text" id="msg-name" required placeholder="John Smith">
+                    </div>
+                    <div class="form-group">
+                        <label for="msg-email">Email *</label>
+                        <input type="email" id="msg-email" required placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="msg-phone">Phone</label>
+                        <input type="tel" id="msg-phone" placeholder="07123 456789">
+                    </div>
+                    <div class="form-group">
+                        <label for="msg-text">Message *</label>
+                        <textarea id="msg-text" required placeholder="Tell us about your project, ask a question, or request a callback..." style="min-height:120px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit" id="msg-submit-btn">Send Message</button>
+                </form>
+
+                <div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid var(--cream3);text-align:center;">
+                    <p style="font-size:.8rem;color:var(--muted);margin:0;">Or email us directly: <a href="mailto:info@primesashwindows.co.uk" style="color:var(--navy);font-weight:500;">info@primesashwindows.co.uk</a></p>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -352,7 +399,7 @@
             </div>
             <div>
                 <p class="cb-label">Email</p>
-                <p><a href="mailto:info@skylonjoinery.co.uk">info@skylonjoinery.co.uk</a></p>
+                <p><a href="mailto:info@primesashwindows.co.uk">info@primesashwindows.co.uk</a></p>
             </div>
             <div>
                 <p class="cb-label">Address</p>
@@ -641,6 +688,15 @@
                 document.getElementById('selected-slots-container').style.display = 'none';
                 document.getElementById('success-message').classList.add('show');
                 
+                // Send email notification
+                try {
+                    await fetch('/api/send-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'appointment', data: formData })
+                    });
+                } catch (emailErr) { console.warn('Email notification failed:', emailErr); }
+                
                 // Google Ads conversion tracking
                 if (typeof gtag === 'function') {
                     gtag('event', 'conversion', {
@@ -655,6 +711,47 @@
             }
         });
         
+        // ── Message Form submission ──
+        document.getElementById('message-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('msg-submit-btn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            const msgData = {
+                name: document.getElementById('msg-name').value.trim(),
+                email: document.getElementById('msg-email').value.trim(),
+                phone: document.getElementById('msg-phone').value.trim() || null,
+                message: document.getElementById('msg-text').value.trim()
+            };
+            
+            try {
+                const resp = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'contact', data: msgData })
+                });
+                
+                if (!resp.ok) throw new Error('Send failed');
+                
+                document.getElementById('message-form').style.display = 'none';
+                document.getElementById('msg-success').classList.add('show');
+                
+                // Google Ads conversion tracking
+                if (typeof gtag === 'function') {
+                    gtag('event', 'conversion', {
+                        'send_to': 'AW-3481705735/contact_message',
+                    });
+                }
+            } catch (error) {
+                console.error('Message send error:', error);
+                alert('Error sending message. Please try again or email us directly at info@primesashwindows.co.uk');
+                btn.disabled = false;
+                btn.textContent = 'Send Message';
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => BookingCalendar.init());
     </script>
 </body>
