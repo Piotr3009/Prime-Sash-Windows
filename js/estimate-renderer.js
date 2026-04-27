@@ -3025,7 +3025,7 @@ class EstimateRenderer {
 
             <div style="text-align:center;margin-top:30px;padding-top:15px;border-top:1px solid #eee;font-size:10px;color:#aaa;">
                 Prime Sash Windows | A trading name of Skylon Joinery LTD<br>
-                info@skylonjoinery.co.uk | 07842 510 060 | 01992 450 848<br>
+                info@skylonjoinery.co.uk | 07842 510 060 | 07842 510 066<br>
                 Unit 3, Leaside Industrial Park, Sedge Green, Nazeing, EN9 2BF
             </div>
         `;

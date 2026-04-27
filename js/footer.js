@@ -34,7 +34,7 @@
       </ul></div>
       <div class="ft-col"><h4>Contact</h4><ul>
         <li><a href="tel:+447842510060">07842 510 060</a></li>
-        <li><a href="tel:+441992450848">01992 450 848</a></li>
+        <li><a href="tel:+447842510066">07842 510 066</a></li>
         <li><a href="mailto:info@skylonjoinery.co.uk">info@skylonjoinery.co.uk</a></li>
         <li>Unit 3, Leaside Industrial Park,<br>Sedge Green, Nazeing, EN9 2BF</li>
       </ul></div>
