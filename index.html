@@ -351,5 +351,13 @@
   </script>
   <!-- 3D Hero Window -->
   <script type="module" src="3d/assets/window3d.js?v=4"></script>
+  <!-- Visit tracking -->
+  <script>
+    fetch('/api/track-visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: 'landing' })
+    }).catch(() => {});
+  </script>
 </body>
 </html>

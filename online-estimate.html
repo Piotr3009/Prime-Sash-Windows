@@ -5219,5 +5219,13 @@
       }
     });
     </script>
+    <!-- Visit tracking -->
+    <script>
+      fetch('/api/track-visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: 'online-estimate' })
+      }).catch(() => {});
+    </script>
 </body>
 </html>
