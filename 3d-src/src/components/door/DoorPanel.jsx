@@ -935,6 +935,19 @@ export default function DoorPanel({
   }
   // hingeType === 'top' or 'fixed' → no handle (handled below)
 
+  // ─── Weather bar — quarter-round drip bar on exterior bottom ───
+  const weatherBarShape = useMemo(() => {
+    const bH = mm(40);  // height (downward)
+    const bD = mm(30);  // depth (outward projection)
+    const k = 0.5523;   // bezier approximation for quarter ellipse
+    const s = new THREE.Shape();
+    s.moveTo(0, 0);
+    s.lineTo(bD, 0);
+    s.bezierCurveTo(bD, -bH * k, bD * k, -bH, 0, -bH);
+    s.closePath();
+    return s;
+  }, []);
+
   const content = (
     <group>
       <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} stileWidthMm={stileWidthMm} />
@@ -956,6 +969,11 @@ export default function DoorPanel({
           />
         </>
       )}
+      {/* Weather bar — quarter-round drip bar, exterior bottom */}
+      <mesh castShadow receiveShadow position={[W / 2, -H / 2, halfD]} rotation={[0, -Math.PI / 2, 0]}>
+        <extrudeGeometry args={[weatherBarShape, { depth: W, bevelEnabled: false }]} />
+        <primitive object={mat} attach="material" />
+      </mesh>
     </group>
   );
 
