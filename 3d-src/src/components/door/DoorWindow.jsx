@@ -349,7 +349,8 @@ export default function DoorWindow({
   width = 800,
   height = 1200,
   layout = '040L',
-  opening = 0.3,
+  opening = 0,
+  primaryLeaf = 'left',
   fanlightRatio = 0.3,
   woodColor = '#F6F6F6',
   woodColorExt = '#F6F6F6',
@@ -440,13 +441,33 @@ export default function DoorWindow({
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
         // Bars: only on main (large) panels, not fanlights
         const isFanlight = p.h < innerH * 0.5;
+
+        // ─── French doors: sequential opening ───
+        // Primary opens first; when primary reaches 45° (of 70° max), secondary starts
+        let panelOpening = p.hinge === 'fixed' ? 0 : opening;
+        if (layout === '040F' && p.hinge !== 'fixed') {
+          const isPrimary = p.hinge === primaryLeaf;
+          const PHASE1_END = 0.5; // slider midpoint
+          const TARGET_45 = 45 / 70; // opening fraction = 45° of 70° max
+          if (isPrimary) {
+            if (opening <= PHASE1_END) {
+              panelOpening = (opening / PHASE1_END) * TARGET_45;
+            } else {
+              panelOpening = TARGET_45 + ((opening - PHASE1_END) / (1 - PHASE1_END)) * (1 - TARGET_45);
+            }
+          } else {
+            // Secondary: stays closed until slider > PHASE1_END
+            panelOpening = opening <= PHASE1_END ? 0 : ((opening - PHASE1_END) / (1 - PHASE1_END));
+          }
+        }
+
         return (
           <DoorPanel
             key={`panel-${i}`}
             width={leafW}
             height={leafH}
             hingeType={p.hinge}
-            opening={p.hinge === 'fixed' ? 0 : opening}
+            opening={panelOpening}
             doorStyle={doorStyle}
             centerMullion={centerMullion}
             paneling={paneling}

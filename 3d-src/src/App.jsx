@@ -708,6 +708,7 @@ function Scene({ config, isMobile }) {
                 height={config.extHeight}
                 layout={config.doorType === 'french' ? '040F' : (config.doorHinge === 'right' ? '040R' : '040L')}
                 opening={config.doorOpening || 0}
+                primaryLeaf={config.doorHinge || 'left'}
                 doorStyle={config.doorStyle}
                 centerMullion={config.centerMullion}
                 paneling={config.paneling}
