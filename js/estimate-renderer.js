@@ -481,7 +481,7 @@ class EstimateRenderer {
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
                             ${p.doorPanelsText ? R.specRow('Side Panels', p.doorPanelsText) : ''}
                             ${p.doorSidePanels !== 'none' ? R.specRow('Side Panel Style', p.doorSideStyleText) : ''}
-                            ${R.specRow('Open Side', p.doorHingeSide === 'right' ? 'Left' : 'Right')}
+                            ${R.specRow('Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right')}
                             ${R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward')}
                             ${R.specRow('Threshold', p.doorThresholdText)}
                             ${R.specRow('Glass', p.glassText)}
@@ -2468,7 +2468,7 @@ class EstimateRenderer {
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                     if (p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
                     if (p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
-                    specs.push(['Open Side', p.doorHingeSide === 'right' ? 'Left' : 'Right']);
+                    specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']);
                     specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
                     specs.push(['Threshold', p.doorThresholdText]);
                     specs.push(['Glass', p.glassText]);
@@ -2934,7 +2934,7 @@ class EstimateRenderer {
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                 if (p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
                 if (p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
-                specs.push(['Open Side', p.doorHingeSide === 'right' ? 'Left' : 'Right']);
+                specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']);
                 specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
                 specs.push(['Threshold', p.doorThresholdText]);
                 specs.push(['Glass', p.glassText]);
