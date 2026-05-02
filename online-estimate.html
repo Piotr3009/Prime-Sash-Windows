@@ -1020,14 +1020,39 @@
               <label for="sl-panel-2" class="radio-label">2 Panels</label>
             </div>
             <div class="radio-option">
+              <input type="radio" id="sl-panel-3" name="sl-door-panel-count" value="3">
+              <label for="sl-panel-3" class="radio-label">3 Panels</label>
+            </div>
+            <div class="radio-option">
               <input type="radio" id="sl-panel-4" name="sl-door-panel-count" value="4">
               <label for="sl-panel-4" class="radio-label">4 Panels</label>
             </div>
           </div>
         </div>
 
-        <!-- Slide Direction -->
-        <h3>Slide Direction</h3>
+        <!-- Extra Width -->
+        <h3>Panel Width</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="sl-width-normal" name="sl-door-extra-width" value="normal" checked>
+              <label for="sl-width-normal" class="radio-label">Standard<br><small>up to 1600mm glass</small></label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="sl-width-extra" name="sl-door-extra-width" value="extra">
+              <label for="sl-width-extra" class="radio-label">Extra Width<br><small>up to 2000mm glass</small></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Glass Width Calculator (live) -->
+        <div id="sl-glass-calc" style="background:rgba(10,22,40,0.05);border-left:2px solid var(--primary-color);padding:10px 14px;margin-bottom:16px;font-size:0.75rem;color:var(--secondary-color);">
+          Glass per panel: <strong id="sl-glass-width">—</strong>mm
+          <span id="sl-glass-warning" style="color:#e74c3c;display:none;margin-left:8px;"></span>
+        </div>
+
+        <!-- Slide Direction (only for 2 panels) -->
+        <h3 id="sl-direction-heading">Slide Direction</h3>
         <div class="input-group" id="sl-direction-2panel">
           <div class="radio-group">
             <div class="radio-option">
@@ -4386,6 +4411,7 @@
         // Trigger door spec update
         if (isDoors && window.updateDoorSpec) window.updateDoorSpec();
         if (isDoors && window.updateDoorPrice) window.updateDoorPrice();
+        if (isSliding && window.updateSlidingGlassCalc) window.updateSlidingGlassCalc();
 
         // Update product range hint
         var hintEl = document.getElementById('hint-product-range');
@@ -4665,17 +4691,71 @@
             var doorLabels = {'single-external':'Single Patio Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
             hintEl.textContent = doorLabels[r.value] || 'Timber Door';
           }
+
+          // Trigger glass calc when switching to sliding
+          if (r.value === 'sliding' && window.updateSlidingGlassCalc) window.updateSlidingGlassCalc();
         });
       });
 
-      // Sliding door: panel count change — hide direction for 4-panel (always symmetric)
+      // ─── Sliding door: glass width calculator ───
+      function updateSlidingGlassCalc() {
+        var panelCount = parseInt((document.querySelector('input[name="sl-door-panel-count"]:checked') || {}).value) || 2;
+        var extraWidth = (document.querySelector('input[name="sl-door-extra-width"]:checked') || {}).value === 'extra';
+        var totalWidth = parseInt(document.getElementById('d-width') ? document.getElementById('d-width').value : 0) || 0;
+        var maxGlass = extraWidth ? 2000 : 1600;
+
+        // Formula: glass = ((total - 100) / panels) - 94
+        var glassWidth = Math.round(((totalWidth - 100) / panelCount) - 94);
+
+        var glassEl = document.getElementById('sl-glass-width');
+        var warnEl = document.getElementById('sl-glass-warning');
+        if (glassEl) glassEl.textContent = glassWidth > 0 ? glassWidth : '—';
+        if (warnEl) {
+          if (glassWidth > maxGlass) {
+            warnEl.style.display = '';
+            warnEl.textContent = '⚠ Too wide! Max ' + maxGlass + 'mm. Add more panels or enable Extra Width.';
+          } else if (glassWidth <= 0) {
+            warnEl.style.display = '';
+            warnEl.textContent = '⚠ Door too narrow for ' + panelCount + ' panels.';
+          } else {
+            warnEl.style.display = 'none';
+            warnEl.textContent = '';
+          }
+        }
+      }
+
+      // Sliding door: panel count change — hide direction for 3+, recalc glass
       var slPanelRadios = document.querySelectorAll('input[name="sl-door-panel-count"]');
       slPanelRadios.forEach(function(r) {
         r.addEventListener('change', function() {
           var dirGroup = document.getElementById('sl-direction-2panel');
-          if (dirGroup) dirGroup.style.display = (r.value === '4') ? 'none' : '';
+          var dirHeading = document.getElementById('sl-direction-heading');
+          var show = (r.value === '2');
+          if (dirGroup) dirGroup.style.display = show ? '' : 'none';
+          if (dirHeading) dirHeading.style.display = show ? '' : 'none';
+          updateSlidingGlassCalc();
         });
       });
+
+      // Sliding door: extra width change — recalc glass
+      var slExtraRadios = document.querySelectorAll('input[name="sl-door-extra-width"]');
+      slExtraRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          updateSlidingGlassCalc();
+        });
+      });
+
+      // Sliding door: width input change — recalc glass
+      var dWidthEl = document.getElementById('d-width');
+      if (dWidthEl) {
+        dWidthEl.addEventListener('input', function() {
+          var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+          if (doorType === 'sliding') updateSlidingGlassCalc();
+        });
+      }
+
+      // Make globally accessible for door-type change
+      window.updateSlidingGlassCalc = updateSlidingGlassCalc;
 
       // Side panels toggle — show/hide side panel dimension inputs
       var sidePanelRadios = document.querySelectorAll('input[name="door-side-panels"]');
