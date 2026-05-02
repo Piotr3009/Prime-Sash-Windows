@@ -622,41 +622,18 @@ export default function DoorWindow({
 
       {/* ═══ Door Hinges — visible barrel cylinders on exterior ═══ */}
       {(() => {
-        // Determine hinge side from first panel
-        const firstPanel = layoutDef.panels && layoutDef.panels[0];
-        if (!firstPanel || firstPanel.hinge === 'fixed' || firstPanel.hinge === 'top') return null;
+        if (!layoutDef.panels) return null;
+        // Collect panels that have side hinges (left or right)
+        const hingePanels = layoutDef.panels.filter(p => p.hinge === 'left' || p.hinge === 'right');
+        if (hingePanels.length === 0) return null;
 
-        // Leaf dimensions — same calculation as DoorPanel positioning above
         const leafGap = 4;
-        const leafW = firstPanel.w + REBATE_STEP * 2 - leafGap * 2;
-        const leafH = firstPanel.h + REBATE_STEP * 2 - leafGap * 2;
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
-
-        // Hinge X: at leaf edge (junction of door and frame), NOT frame outer edge
-        const hingeSide = firstPanel.hinge; // 'left' or 'right'
-        const hingeX = hingeSide === 'left' ? -mm(leafW) / 2 : mm(leafW) / 2;
 
         // Hinge Z: barrel center at frame exterior face
         const hingeZ = halfD;
-
         const hingeR = mm(5);  // 10mm diameter = 5mm radius
         const hingeH = mm(100); // 100mm tall barrel
-
-        // Hinge Y positions — relative to DOOR LEAF, not frame
-        const leafTop    = openingCenterY + mm(leafH) / 2;
-        const leafBottom = openingCenterY - mm(leafH) / 2;
-        const leafCenter = openingCenterY;
-
-        const topY    = leafTop - mm(100);       // 100mm below door top edge
-        const middleY = leafCenter + mm(100);    // 100mm above door center
-        const bottomY = leafBottom + mm(150);    // 150mm above door bottom edge
-
-        const positions = [topY, middleY, bottomY];
-
-        // 4th hinge if door > 2400mm: between top and middle
-        if (height > 2400) {
-          positions.push((topY + middleY) / 2);
-        }
 
         // Hinge barrel material — matches ironmongery colour
         const hingeColors = {
@@ -671,12 +648,34 @@ export default function DoorWindow({
 
         return (
           <group>
-            {positions.map((y, i) => (
-              <mesh key={`hinge-${i}`} position={[hingeX, y, hingeZ]} castShadow>
-                <cylinderGeometry args={[hingeR, hingeR, hingeH, 16]} />
-                <meshStandardMaterial color={hingeColor} metalness={0.7} roughness={0.3} />
-              </mesh>
-            ))}
+            {hingePanels.map((p, pi) => {
+              const leafW = p.w + REBATE_STEP * 2 - leafGap * 2;
+              const leafH = p.h + REBATE_STEP * 2 - leafGap * 2;
+
+              // Hinge X: panel center + offset to hinge edge
+              const hingeX = mm(p.x) + (p.hinge === 'left' ? -mm(leafW) / 2 : mm(leafW) / 2);
+
+              // Hinge Y positions — relative to DOOR LEAF
+              const leafTop    = openingCenterY + mm(leafH) / 2;
+              const leafBottom = openingCenterY - mm(leafH) / 2;
+              const leafCenter = openingCenterY;
+
+              const topY    = leafTop - mm(100);
+              const middleY = leafCenter + mm(100);
+              const bottomY = leafBottom + mm(150);
+
+              const positions = [topY, middleY, bottomY];
+              if (height > 2400) {
+                positions.push((topY + middleY) / 2);
+              }
+
+              return positions.map((y, i) => (
+                <mesh key={`hinge-${pi}-${i}`} position={[hingeX, y, hingeZ]} castShadow>
+                  <cylinderGeometry args={[hingeR, hingeR, hingeH, 16]} />
+                  <meshStandardMaterial color={hingeColor} metalness={0.7} roughness={0.3} />
+                </mesh>
+              ));
+            })}
           </group>
         );
       })()}
