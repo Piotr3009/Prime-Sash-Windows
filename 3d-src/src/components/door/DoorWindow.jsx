@@ -424,7 +424,9 @@ export default function DoorWindow({
   thresholdType = 'standard',
   thresholdExtension = 0,
   panelCount = 2,
-  slideDirection = 'left-behind-right',
+  slideDirection = 'left-to-right',
+  slidingFrameDepth = 93,
+  slidingPanelDepth = 57,
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -488,12 +490,14 @@ export default function DoorWindow({
 
   const W = mm(width);
   const H = mm(height);
-  const halfD = mm(FRAME_DEPTH) / 2;
+  const isSliding = layout.endsWith('S');
+  const effectiveFrameDepth = isSliding ? slidingFrameDepth : FRAME_DEPTH;
+  const halfD = mm(effectiveFrameDepth) / 2;
 
   return (
     <group>
-      {/* Outer frame — mirrored on Z for inward opening */}
-      <group scale={[1, 1, openDirection === 'inward' ? -1 : 1]}>
+      {/* Outer frame — mirrored on Z for inward opening, scaled for sliding depth */}
+      <group scale={[1, 1, (openDirection === 'inward' ? -1 : 1) * (isSliding ? effectiveFrameDepth / FRAME_DEPTH : 1)]}>
         <DoorFrame
           width={width}
           height={height}
@@ -518,10 +522,9 @@ export default function DoorWindow({
         // Leaf Z: sits ON gasket — exterior side (outward) or interior side (inward)
         const leafZbase = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
         let leafZ = openDirection === 'inward' ? -leafZbase : leafZbase;
-        // Sliding panels: Z offset per track layer (trackIdx × panel depth + gap)
-        const isSliding = layout.endsWith('S');
+        // Sliding panels: Z offset per track layer (panelDepth + gap per track)
         if (isSliding && p.trackIdx > 0) {
-          leafZ += mm(57 + 4) * p.trackIdx; // push rear-track panels behind front-track
+          leafZ += mm(slidingPanelDepth + 5) * p.trackIdx;
         }
         // Opening center Y offset (bottom rail taller than top rail)
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
