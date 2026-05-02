@@ -1172,6 +1172,13 @@
       <div class="config-section" data-for="door" data-category="door-colour" style="display:none;">
         <h3>Step 5: Colour Selection</h3>
         <div id="door-color-container"></div>
+        <div class="input-group" style="margin-top:18px;">
+          <label>Seal Colour:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-seal-black" name="d-seal-colour" value="black" checked><label for="d-seal-black" class="radio-label">Black</label></div>
+            <div class="radio-option"><input type="radio" id="d-seal-white" name="d-seal-colour" value="white"><label for="d-seal-white" class="radio-label">White</label></div>
+          </div>
+        </div>
       </div>
 
       <!-- Door Hardware -->
@@ -1182,6 +1189,20 @@
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="d-lock-multi" name="d-lock-type" value="multipoint" checked><label for="d-lock-multi" class="radio-label">Multipoint Lock</label></div>
             <div class="radio-option"><input type="radio" id="d-lock-deadbolt" name="d-lock-type" value="deadbolt"><label for="d-lock-deadbolt" class="radio-label">Deadbolt</label></div>
+          </div>
+        </div>
+        <div class="input-group" style="margin-top:12px;">
+          <label>Trickle Ventilation:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-trickle-none" name="d-trickle-vent" value="none" checked><label for="d-trickle-none" class="radio-label">None</label></div>
+            <div class="radio-option"><input type="radio" id="d-trickle-frame" name="d-trickle-vent" value="frame"><label for="d-trickle-frame" class="radio-label">On Frame</label></div>
+          </div>
+        </div>
+        <div class="input-group" id="d-trickle-colour-row" style="display:none;margin-top:8px;">
+          <label>Trickle Vent Colour:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-trickle-white" name="d-trickle-colour" value="white" checked><label for="d-trickle-white" class="radio-label">White</label></div>
+            <div class="radio-option"><input type="radio" id="d-trickle-brown" name="d-trickle-colour" value="brown"><label for="d-trickle-brown" class="radio-label">Brown</label></div>
           </div>
         </div>
         <div class="input-group" style="margin-top:12px;">
@@ -3589,9 +3610,15 @@
             <span class="spec-label">Ironmongery:</span>
             <span class="spec-value" id="spec-d-ironmongery">-</span>
           </div>
+          <div class="spec-item">
+            <span class="spec-label">Seal Colour:</span>
+            <span class="spec-value" id="spec-d-seal">-</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Trickle Vent:</span>
+            <span class="spec-value" id="spec-d-trickle">-</span>
+          </div>
         </div>
-
-        <!-- Casement-specific spec sections -->
         <div class="spec-section" id="spec-casement-glass" style="display: none;">
           <h4>Glass Specification</h4>
           <div class="spec-item">
@@ -4442,6 +4469,14 @@
                 '<p class="info-note">This information will be added to your specification.</p>';
             }
           }
+        });
+      });
+
+      // ── Door trickle vent: show/hide colour row ──
+      document.querySelectorAll('input[name="d-trickle-vent"]').forEach(function(r) {
+        r.addEventListener('change', function() {
+          var colourRow = document.getElementById('d-trickle-colour-row');
+          if (colourRow) colourRow.style.display = r.value === 'none' ? 'none' : 'block';
         });
       });
 

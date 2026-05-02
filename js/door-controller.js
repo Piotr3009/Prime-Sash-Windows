@@ -91,6 +91,11 @@
       colorInteriorRal: doorColourState.colorIntRal || '',
       colorExteriorName: doorColourState.colorExtName || '',
       colorExteriorRal: doorColourState.colorExtRal || '',
+      // Seal & Ventilation
+      sealColour: checked('d-seal-colour') || 'black',
+      trickleVent: checked('d-trickle-vent') || 'none',
+      trickleColour: checked('d-trickle-colour') || 'white',
+      safetyGlass: 'toughened',
       // Ironmongery
       ironmongery: (window.currentConfig && window.currentConfig.ironmongery) ? window.currentConfig.ironmongery : {}
     };
@@ -129,7 +134,10 @@
       thresholdExtension: config.thresholdExtension,
       doorOpening: config.doorOpening,
       sillWider: config.sillWider,
-      doorOpenDirection: config.openDirection
+      doorOpenDirection: config.openDirection,
+      sealColour: config.sealColour,
+      trickleVent: config.trickleVent,
+      trickleColour: config.trickleColour
     });
 
     if (isDoorActive()) window.currentConfig = getDoorConfig();
@@ -315,6 +323,15 @@
     var lockLabels = { 'multipoint': 'Multipoint Lock', 'deadbolt': 'Deadbolt' };
     if (specLock) specLock.textContent = lockLabels[config.lockType] || 'Multipoint Lock';
 
+    var specSeal = $('spec-d-seal');
+    if (specSeal) specSeal.textContent = (config.sealColour || 'black') === 'black' ? 'Black' : 'White';
+
+    var specTrickle = $('spec-d-trickle');
+    if (specTrickle) {
+      var tv = config.trickleVent || 'none';
+      specTrickle.textContent = tv === 'none' ? 'None' : 'On Frame (' + (config.trickleColour === 'brown' ? 'Brown' : 'White') + ')';
+    }
+
     // Store config globally (only when doors tab active)
     if (isDoorActive()) window.currentConfig = config;
   }
@@ -400,7 +417,8 @@
 
     // Door shape/style/paneling changes (single + french)
     ['door-shape', 'door-style', 'door-paneling', 'door-side-panels', 'door-center-mullion', 'door-side-style',
-     'fd-door-shape', 'fd-door-style', 'fd-door-paneling', 'fd-door-side-panels', 'fd-door-center-mullion', 'fd-door-side-style'].forEach(function(name) {
+     'fd-door-shape', 'fd-door-style', 'fd-door-paneling', 'fd-door-side-panels', 'fd-door-center-mullion', 'fd-door-side-style',
+     'd-seal-colour', 'd-trickle-vent', 'd-trickle-colour'].forEach(function(name) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(function(radio) {
         radio.addEventListener('change', debouncedUpdate);
       });
