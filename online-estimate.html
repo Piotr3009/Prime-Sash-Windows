@@ -759,8 +759,8 @@
               <label for="type-french" class="radio-label">French Doors</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="type-sliding" name="door-type" value="sliding" disabled>
-              <label for="type-sliding" class="radio-label disabled-option">Sliding Door<br><small>(Coming Soon)</small></label>
+              <input type="radio" id="type-sliding" name="door-type" value="sliding">
+              <label for="type-sliding" class="radio-label">Sliding Door</label>
             </div>
             <div class="radio-option">
               <input type="radio" id="type-bifold" name="door-type" value="bifold" disabled>
@@ -1008,19 +1008,54 @@
 
       </div>
 
+      <!-- ═══ SLIDING DOOR OPTIONS ═══ -->
+      <div class="config-section" data-category="product-range" id="door-sliding-options" style="display:none;">
+
+        <!-- Panel Count -->
+        <h3>Panel Count</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="sl-panel-2" name="sl-door-panel-count" value="2" checked>
+              <label for="sl-panel-2" class="radio-label">2 Panels</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="sl-panel-4" name="sl-door-panel-count" value="4">
+              <label for="sl-panel-4" class="radio-label">4 Panels</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide Direction -->
+        <h3>Slide Direction</h3>
+        <div class="input-group" id="sl-direction-2panel">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="sl-dir-left" name="sl-door-slide-direction" value="left-behind-right" checked>
+              <label for="sl-dir-left" class="radio-label">Left slides behind Right</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="sl-dir-right" name="sl-door-slide-direction" value="right-behind-left">
+              <label for="sl-dir-right" class="radio-label">Right slides behind Left</label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- ═══ DOOR SECTIONS ═══ -->
 
       <!-- Door Dimensions -->
       <div class="config-section" data-for="door" data-category="door-dimensions" style="display:none;">
         <h3>Step 1: Door Dimensions</h3>
-        <div style="background:rgba(10,22,40,0.05);border-left:2px solid var(--primary-color);padding:10px 14px;margin-bottom:16px;font-size:0.75rem;color:var(--secondary-color);">
+        <div id="d-dim-hint" style="background:rgba(10,22,40,0.05);border-left:2px solid var(--primary-color);padding:10px 14px;margin-bottom:16px;font-size:0.75rem;color:var(--secondary-color);">
           Door leaf thickness: 57mm &nbsp;|&nbsp; Frame depth: 93mm
         </div>
         <div class="dim-row">
           <div class="input-group">
             <label for="d-width">Door Width (mm):</label>
             <input type="number" id="d-width" min="600" max="1100" value="900" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
-            <p style="font-size:0.65rem;color:#999;margin-top:2px;">Single door: 600–1100mm</p>
+            <p id="d-width-hint" style="font-size:0.65rem;color:#999;margin-top:2px;">Single door: 600–1100mm</p>
           </div>
           <div class="input-group">
             <label for="d-height">Door Height (mm):</label>
@@ -1076,6 +1111,7 @@
         </div>
 
         <!-- Side Panel Bars (only relevant when side panels are selected) -->
+        <div id="d-side-bars-group">
         <h3>Side Panel Bars</h3>
         <div class="input-group">
           <label>Side Panel Horizontal Bars:</label>
@@ -1097,26 +1133,27 @@
             <div class="radio-option"><input type="radio" id="d-side-vbars-3" name="d-side-vbars" value="3"><label for="d-side-vbars-3" class="radio-label">3</label></div>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Door Design Options -->
       <div class="config-section" data-for="door" data-category="door-dimensions" style="display:none;">
         <h3>Step 3: Door Design</h3>
-        <div class="input-group">
+        <div class="input-group" id="d-hinge-group">
           <label>Open First:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="d-hinge-left" name="d-hinge-side" value="left" checked><label for="d-hinge-left" class="radio-label">Right</label></div>
             <div class="radio-option"><input type="radio" id="d-hinge-right" name="d-hinge-side" value="right"><label for="d-hinge-right" class="radio-label">Left</label></div>
           </div>
         </div>
-        <div class="input-group">
+        <div class="input-group" id="d-opening-group">
           <label>Opening Direction:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="d-open-inward" name="d-open-direction" value="outward" checked><label for="d-open-inward" class="radio-label">Outward</label></div>
             <div class="radio-option"><input type="radio" id="d-open-outward" name="d-open-direction" value="inward"><label for="d-open-outward" class="radio-label">Inward</label></div>
           </div>
         </div>
-        <div class="input-group">
+        <div class="input-group" id="d-threshold-group">
           <label>Threshold:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="d-threshold-standard" name="d-threshold" value="standard" checked><label for="d-threshold-standard" class="radio-label">Standard Hardwood</label></div>
@@ -1184,7 +1221,7 @@
       <!-- Door Hardware -->
       <div class="config-section" data-for="door" data-category="door-hardware" style="display:none;">
         <h3>Step 6: Door Hardware</h3>
-        <div class="input-group">
+        <div class="input-group" id="d-lock-group">
           <label>Lock Type:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="d-lock-multi" name="d-lock-type" value="multipoint" checked><label for="d-lock-multi" class="radio-label">Multipoint Lock</label></div>
@@ -3959,6 +3996,11 @@
         var doorType2 = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
         dfo.style.display = (!isWindows && doorType2 === 'french') ? 'block' : 'none';
       }
+      var dslo = document.getElementById('door-sliding-options');
+      if (dslo) {
+        var doorType3 = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+        dslo.style.display = (!isWindows && doorType3 === 'sliding') ? 'block' : 'none';
+      }
     }
     // Fix bars: only show for triple
     if (cat === 'dim-design') {
@@ -4283,6 +4325,43 @@
         if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
         var doorFrenchOptions = document.getElementById('door-french-options');
         if (doorFrenchOptions) doorFrenchOptions.style.display = (!isWindows && doorType === 'french') ? 'block' : 'none';
+        var doorSlidingOptions = document.getElementById('door-sliding-options');
+        if (doorSlidingOptions) doorSlidingOptions.style.display = (!isWindows && doorType === 'sliding') ? 'block' : 'none';
+
+        // Hide shared elements that don't apply to sliding doors
+        var isSliding = (isDoors && doorType === 'sliding');
+        var hingeGroup = document.getElementById('d-hinge-group');
+        var openingGroup = document.getElementById('d-opening-group');
+        var thresholdGroup = document.getElementById('d-threshold-group');
+        var lockGroup = document.getElementById('d-lock-group');
+        var sideBarsGroup = document.getElementById('d-side-bars-group');
+        var sidePanelDims = document.getElementById('d-side-panel-dims');
+        if (hingeGroup) hingeGroup.style.display = isSliding ? 'none' : '';
+        if (openingGroup) openingGroup.style.display = isSliding ? 'none' : '';
+        if (thresholdGroup) thresholdGroup.style.display = isSliding ? 'none' : '';
+        if (lockGroup) lockGroup.style.display = isSliding ? 'none' : '';
+        if (sideBarsGroup) sideBarsGroup.style.display = isSliding ? 'none' : '';
+        if (isSliding && sidePanelDims) sidePanelDims.style.display = 'none';
+
+        // Update dimension hint for sliding
+        var dimHint = document.getElementById('d-dim-hint');
+        var widthHint = document.getElementById('d-width-hint');
+        if (dimHint) {
+          if (isSliding) {
+            dimHint.textContent = 'Door leaf thickness: 57mm | Track system top + bottom';
+          } else {
+            dimHint.innerHTML = 'Door leaf thickness: 57mm &nbsp;|&nbsp; Frame depth: 93mm';
+          }
+        }
+        if (widthHint) {
+          var hintTexts = {
+            'single-external': 'Single door: 600–1100mm',
+            'french': 'French doors: 1000–2000mm',
+            'sliding': 'Sliding doors: 1500–4000mm (total width)',
+            'bifold': 'Bi-fold doors: 1800–6000mm'
+          };
+          widthHint.textContent = hintTexts[doorType] || 'Single door: 600–1100mm';
+        }
 
         // Show/hide door spec sections
         var doorSpecs = ['spec-door-type', 'spec-door-dimensions', 'spec-door-bars', 'spec-door-design', 'spec-door-glass', 'spec-door-colour', 'spec-door-hardware'];
@@ -4540,14 +4619,61 @@
         r.addEventListener('change', function() {
           var dso = document.getElementById('door-single-options');
           var dfo = document.getElementById('door-french-options');
+          var dslo = document.getElementById('door-sliding-options');
           if (dso) dso.style.display = r.value === 'single-external' ? 'block' : 'none';
           if (dfo) dfo.style.display = r.value === 'french' ? 'block' : 'none';
+          if (dslo) dslo.style.display = r.value === 'sliding' ? 'block' : 'none';
+
+          // Hide shared elements that don't apply to sliding
+          var isSliding = (r.value === 'sliding');
+          var hingeGroup = document.getElementById('d-hinge-group');
+          var openingGroup = document.getElementById('d-opening-group');
+          var thresholdGroup = document.getElementById('d-threshold-group');
+          var lockGroup = document.getElementById('d-lock-group');
+          var sideBarsGroup = document.getElementById('d-side-bars-group');
+          var sidePanelDims = document.getElementById('d-side-panel-dims');
+          if (hingeGroup) hingeGroup.style.display = isSliding ? 'none' : '';
+          if (openingGroup) openingGroup.style.display = isSliding ? 'none' : '';
+          if (thresholdGroup) thresholdGroup.style.display = isSliding ? 'none' : '';
+          if (lockGroup) lockGroup.style.display = isSliding ? 'none' : '';
+          if (sideBarsGroup) sideBarsGroup.style.display = isSliding ? 'none' : '';
+          if (isSliding && sidePanelDims) sidePanelDims.style.display = 'none';
+
+          // Update dimension hints
+          var dimHint = document.getElementById('d-dim-hint');
+          var widthHint = document.getElementById('d-width-hint');
+          if (dimHint) {
+            if (isSliding) {
+              dimHint.textContent = 'Door leaf thickness: 57mm | Track system top + bottom';
+            } else {
+              dimHint.innerHTML = 'Door leaf thickness: 57mm &nbsp;|&nbsp; Frame depth: 93mm';
+            }
+          }
+          if (widthHint) {
+            var hintTexts = {
+              'single-external': 'Single door: 600–1100mm',
+              'french': 'French doors: 1000–2000mm',
+              'sliding': 'Sliding doors: 1500–4000mm (total width)',
+              'bifold': 'Bi-fold doors: 1800–6000mm'
+            };
+            widthHint.textContent = hintTexts[r.value] || 'Single door: 600–1100mm';
+          }
+
           // Update hint
           var hintEl = document.getElementById('hint-product-range');
           if (hintEl) {
             var doorLabels = {'single-external':'Single Patio Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
             hintEl.textContent = doorLabels[r.value] || 'Timber Door';
           }
+        });
+      });
+
+      // Sliding door: panel count change — hide direction for 4-panel (always symmetric)
+      var slPanelRadios = document.querySelectorAll('input[name="sl-door-panel-count"]');
+      slPanelRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          var dirGroup = document.getElementById('sl-direction-2panel');
+          if (dirGroup) dirGroup.style.display = (r.value === '4') ? 'none' : '';
         });
       });
 
