@@ -706,7 +706,7 @@ function Scene({ config, isMobile }) {
               <DoorWindow
                 width={config.extWidth}
                 height={config.extHeight}
-                layout={config.doorHinge === 'right' ? '040R' : '040L'}
+                layout={config.doorType === 'french' ? '040F' : (config.doorHinge === 'right' ? '040R' : '040L')}
                 opening={config.doorOpening || 0}
                 doorStyle={config.doorStyle}
                 centerMullion={config.centerMullion}

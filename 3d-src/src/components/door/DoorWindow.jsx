@@ -66,6 +66,16 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
         ],
       };
     }
+    // ─── FRENCH DOORS (no mullion, both leaves meet in center) ───
+    case '040F': {
+      const panelW = innerW / 2;
+      return {
+        panels: [
+          { x: -panelW / 2, y: 0, w: panelW, h: innerH, hinge: 'left' },
+          { x:  panelW / 2, y: 0, w: panelW, h: innerH, hinge: 'right' },
+        ],
+      };
+    }
 
     // ─── DOUBLE SIDE-BY-SIDE ───
     case '120': {
