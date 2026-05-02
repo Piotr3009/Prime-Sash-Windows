@@ -43,12 +43,35 @@
   function getDoorConfig() {
     var doorType = checked('door-type') || 'single-external';
     var isFrench = doorType === 'french';
+    var isSliding = doorType === 'sliding';
     var prefix = isFrench ? 'fd-door-' : 'door-';
-    var doorShape = checked(prefix + 'shape') || 'standard';
-    var doorStyle = checked(prefix + 'style') || 'full-glass';
-    var doorPaneling = checked(prefix + 'paneling') || 'flat';
-    var sidePanels = checked(prefix + 'side-panels') || 'none';
-    var centerMullion = checked(prefix + 'center-mullion') === 'on';
+
+    // Sliding: fixed defaults (no shape/style/paneling/sidePanels in UI)
+    var doorShape, doorStyle, doorPaneling, sidePanels, centerMullion;
+    if (isSliding) {
+      doorShape = 'standard';
+      doorStyle = 'full-glass';
+      doorPaneling = 'flat';
+      sidePanels = 'none';
+      centerMullion = false;
+    } else {
+      doorShape = checked(prefix + 'shape') || 'standard';
+      doorStyle = checked(prefix + 'style') || 'full-glass';
+      doorPaneling = checked(prefix + 'paneling') || 'flat';
+      sidePanels = checked(prefix + 'side-panels') || 'none';
+      centerMullion = checked(prefix + 'center-mullion') === 'on';
+    }
+
+    // Sliding-specific fields
+    var panelCount = isSliding ? (parseInt(checked('sl-door-panel-count')) || 2) : 0;
+    var extraWidth = isSliding ? (checked('sl-door-extra-width') === 'extra') : false;
+    var slideDirection = isSliding ? (checked('sl-door-slide-direction') || 'left-behind-right') : '';
+    var width = numVal('d-width');
+    var glassWidth = 0;
+    if (isSliding && panelCount > 0) {
+      glassWidth = Math.round(((width - 100) / panelCount) - 94);
+      if (glassWidth < 0) glassWidth = 0;
+    }
 
     return {
       productType: 'door',
@@ -58,7 +81,7 @@
       doorPaneling: doorPaneling,
       sidePanels: sidePanels,
       centerMullion: centerMullion,
-      width: numVal('d-width'),
+      width: width,
       height: numVal('d-height'),
       sideLeftWidth: numVal('d-side-left-width'),
       sideRightWidth: numVal('d-side-right-width'),
@@ -66,19 +89,24 @@
       vBars: parseInt(checked('d-vbars') || '0'),
       sideHBars: parseInt(checked('d-side-hbars') || '0'),
       sideVBars: parseInt(checked('d-side-vbars') || '0'),
-      sideStyle: checked(prefix + 'side-style') || 'full-glass',
+      sideStyle: isSliding ? 'full-glass' : (checked(prefix + 'side-style') || 'full-glass'),
       glassType: checked('d-glass-type') || 'double',
       glassFinish: checked('d-glass-finish') || 'clear',
       spacerColor: checked('d-spacer-color') || 'silver',
-      hingeSide: checked('d-hinge-side') || 'left',
-      openDirection: checked('d-open-direction') || 'inward',
-      lockType: checked('d-lock-type') || 'multipoint',
-      threshold: checked('d-threshold') || 'standard',
+      hingeSide: isSliding ? '' : (checked('d-hinge-side') || 'left'),
+      openDirection: isSliding ? '' : (checked('d-open-direction') || 'inward'),
+      lockType: isSliding ? 'standard' : (checked('d-lock-type') || 'multipoint'),
+      threshold: isSliding ? 'standard' : (checked('d-threshold') || 'standard'),
       thresholdExtension: numVal('d-threshold-extension'),
       doorOpening: (numVal('d-door-opening') || 0) / 100,
       sillWider: document.getElementById('d-sill-wider') ? document.getElementById('d-sill-wider').checked : false,
       quantity: numVal('d-quantity') || 1,
       notes: val('d-notes') || '',
+      // Sliding-specific
+      panelCount: panelCount,
+      extraWidth: extraWidth,
+      slideDirection: slideDirection,
+      glassWidth: glassWidth,
       // Colour
       sameColor: doorColourState.sameColor,
       woodColor: doorColourState.woodColor,
@@ -137,7 +165,12 @@
       doorOpenDirection: config.openDirection,
       sealColour: config.sealColour,
       trickleVent: config.trickleVent,
-      trickleColour: config.trickleColour
+      trickleColour: config.trickleColour,
+      // Sliding-specific
+      panelCount: config.panelCount,
+      slideDirection: config.slideDirection,
+      extraWidth: config.extraWidth,
+      glassWidth: config.glassWidth
     });
 
     if (isDoorActive()) window.currentConfig = getDoorConfig();
@@ -166,10 +199,12 @@
 
     // Door Type name
     var specDoorType = $('spec-d-door-type');
-    var doorTypeLabels = { 'single-external': 'Single Patio Door', 'french': 'French Doors' };
+    var doorTypeLabels = { 'single-external': 'Single Patio Door', 'french': 'French Doors', 'sliding': 'Sliding Door' };
     if (specDoorType) specDoorType.textContent = doorTypeLabels[config.doorType] || 'Single Patio Door';
 
-    // Shape / Style / Paneling / Mullion
+    // Shape / Style / Paneling / Mullion — hide for sliding
+    var isSliding = config.doorType === 'sliding';
+
     var specShape = $('spec-d-shape');
     var shapeLabels = { 'standard': 'Standard', 'arched': 'Arched', 'glazed-arch': 'Glazed Arch' };
     if (specShape) specShape.textContent = shapeLabels[config.doorShape] || 'Standard';
@@ -250,10 +285,31 @@
 
     // Design
     var specHinge = $('spec-d-hinge');
-    if (specHinge) specHinge.textContent = (config.hingeSide || 'left') === 'left' ? 'Right' : 'Left';
+    if (specHinge) {
+      if (isSliding) {
+        specHinge.textContent = config.panelCount + ' Panels' + (config.extraWidth ? ' (Extra Width)' : '');
+      } else {
+        specHinge.textContent = (config.hingeSide || 'left') === 'left' ? 'Right' : 'Left';
+      }
+    }
+
+    // Update hinge label for sliding
+    var hingeLabel = $('spec-d-hinge-label');
+    if (hingeLabel) hingeLabel.textContent = isSliding ? 'Panels:' : 'Open First:';
 
     var specOpening = $('spec-d-opening');
-    if (specOpening) specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Outward' : 'Inward';
+    if (specOpening) {
+      if (isSliding) {
+        var dirLabels = { 'left-behind-right': 'Left → Right', 'right-behind-left': 'Right → Left' };
+        specOpening.textContent = config.panelCount > 2 ? 'Symmetric' : (dirLabels[config.slideDirection] || 'Left → Right');
+      } else {
+        specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Outward' : 'Inward';
+      }
+    }
+
+    // Update opening label for sliding
+    var openingLabel = $('spec-d-opening-label');
+    if (openingLabel) openingLabel.textContent = isSliding ? 'Slide Direction:' : 'Opening:';
 
     var specThreshold = $('spec-d-threshold');
     var thresholdLabels = { 'standard': 'Standard Hardwood', 'aluminium': 'Aluminium', 'low-profile': 'Low Profile' };
@@ -415,9 +471,10 @@
       });
     });
 
-    // Door shape/style/paneling changes (single + french)
+    // Door shape/style/paneling changes (single + french + sliding)
     ['door-shape', 'door-style', 'door-paneling', 'door-side-panels', 'door-center-mullion', 'door-side-style',
      'fd-door-shape', 'fd-door-style', 'fd-door-paneling', 'fd-door-side-panels', 'fd-door-center-mullion', 'fd-door-side-style',
+     'sl-door-panel-count', 'sl-door-extra-width', 'sl-door-slide-direction',
      'd-seal-colour', 'd-trickle-vent', 'd-trickle-colour'].forEach(function(name) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(function(radio) {
         radio.addEventListener('change', debouncedUpdate);
