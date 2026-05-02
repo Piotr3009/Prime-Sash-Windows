@@ -937,13 +937,13 @@ export default function DoorPanel({
 
   // ─── Weather bar — quarter-round drip bar on exterior bottom ───
   const weatherBarShape = useMemo(() => {
-    const bH = mm(40);  // height (downward)
+    const bH = mm(40);  // height (upward curve)
     const bD = mm(30);  // depth (outward projection)
     const k = 0.5523;   // bezier approximation for quarter ellipse
     const s = new THREE.Shape();
-    s.moveTo(0, 0);
-    s.lineTo(bD, 0);
-    s.bezierCurveTo(bD, -bH * k, bD * k, -bH, 0, -bH);
+    s.moveTo(0, 0);      // bottom-back (flat bottom, against door)
+    s.lineTo(bD, 0);     // bottom-front (projects outward)
+    s.bezierCurveTo(bD, bH * k, bD * k, bH, 0, bH); // quarter curve UP
     s.closePath();
     return s;
   }, []);
@@ -970,7 +970,7 @@ export default function DoorPanel({
         </>
       )}
       {/* Weather bar — quarter-round drip bar, exterior bottom */}
-      <mesh castShadow receiveShadow position={[W / 2, -H / 2, halfD]} rotation={[0, -Math.PI / 2, 0]}>
+      <mesh castShadow receiveShadow position={[W / 2, -H / 2 + mm(40), halfD]} rotation={[0, -Math.PI / 2, 0]}>
         <extrudeGeometry args={[weatherBarShape, { depth: W, bevelEnabled: false }]} />
         <primitive object={mat} attach="material" />
       </mesh>
