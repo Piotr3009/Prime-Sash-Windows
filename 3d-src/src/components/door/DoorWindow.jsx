@@ -487,17 +487,19 @@ export default function DoorWindow({
 
       {/* ═══ EXT / INT labels — subtle text on door faces ═══ */}
       {showGuides && (() => {
-        const labelY = -H / 2 + mm(80); // 80mm above bottom of frame
+        const labelY = H / 2 - H / 3; // 1/3 from top of door
         const labelZext = halfD + mm(2);  // just outside exterior face
         const labelZint = -halfD - mm(2); // just outside interior face
         return (
           <group>
-            <Text position={[0, labelY, labelZext]} fontSize={0.025} color="#22324a"
-              anchorX="center" anchorY="middle" transparent opacity={0.35}>
+            <Text position={[0, labelY, labelZext]} fontSize={0.025} color="#ffffff"
+              anchorX="center" anchorY="middle" outlineColor="#22324a" outlineWidth={0.003}
+              transparent opacity={0.5}>
               EXT
             </Text>
-            <Text position={[0, labelY, labelZint]} fontSize={0.025} color="#22324a"
-              anchorX="center" anchorY="middle" rotation={[0, Math.PI, 0]} transparent opacity={0.35}>
+            <Text position={[0, labelY, labelZint]} fontSize={0.025} color="#ffffff"
+              anchorX="center" anchorY="middle" rotation={[0, Math.PI, 0]} outlineColor="#22324a" outlineWidth={0.003}
+              transparent opacity={0.5}>
               INT
             </Text>
           </group>
