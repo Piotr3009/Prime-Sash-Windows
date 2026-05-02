@@ -3927,6 +3927,11 @@
         var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
         dso.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
       }
+      var dfo = document.getElementById('door-french-options');
+      if (dfo) {
+        var doorType2 = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+        dfo.style.display = (!isWindows && doorType2 === 'french') ? 'block' : 'none';
+      }
     }
     // Fix bars: only show for triple
     if (cat === 'dim-design') {
