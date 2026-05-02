@@ -351,6 +351,7 @@ export default function DoorWindow({
   layout = '040L',
   opening = 0,
   primaryLeaf = 'left',
+  openDirection = 'outward',
   fanlightRatio = 0.3,
   woodColor = '#F6F6F6',
   woodColorExt = '#F6F6F6',
@@ -435,8 +436,9 @@ export default function DoorWindow({
         const leafGap = 4;
         const leafW = p.w + REBATE_STEP * 2 - leafGap * 2;
         const leafH = p.h + REBATE_STEP * 2 - leafGap * 2;
-        // Leaf Z: sits ON gasket, flush with exterior
-        const leafZ = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
+        // Leaf Z: sits ON gasket — exterior side (outward) or interior side (inward)
+        const leafZbase = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
+        const leafZ = openDirection === 'inward' ? -leafZbase : leafZbase;
         // Opening center Y offset (bottom rail taller than top rail)
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
         // Bars: only on main (large) panels, not fanlights
@@ -468,6 +470,7 @@ export default function DoorWindow({
             height={leafH}
             hingeType={p.hinge}
             opening={panelOpening}
+            openDirection={openDirection}
             doorStyle={doorStyle}
             centerMullion={centerMullion}
             paneling={paneling}
@@ -652,7 +655,7 @@ export default function DoorWindow({
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
 
         // Hinge Z: barrel center at frame exterior face
-        const hingeZ = halfD;
+        const hingeZ = openDirection === 'inward' ? -halfD : halfD;
         const hingeR = mm(5);  // 10mm diameter = 5mm radius
         const hingeH = mm(100); // 100mm tall barrel
 

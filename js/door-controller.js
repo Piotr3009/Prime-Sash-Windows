@@ -128,7 +128,8 @@
       thresholdType: config.threshold,
       thresholdExtension: config.thresholdExtension,
       doorOpening: config.doorOpening,
-      sillWider: config.sillWider
+      sillWider: config.sillWider,
+      doorOpenDirection: config.openDirection
     });
 
     if (isDoorActive()) window.currentConfig = getDoorConfig();
