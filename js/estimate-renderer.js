@@ -2046,48 +2046,63 @@ class EstimateRenderer {
             svg += `<line x1="${mx}" y1="${oy}" x2="${mx}" y2="${oy + drawH}" stroke="${dark}" stroke-width="2"/>`;
         }
 
-        // ── Door leaf ──
-        const leafX = doorX + frameT;
+        // ── Door leaf(s) ──
+        const doorType = fc.doorType || 'single-external';
+        const isFrench = doorType === 'french';
         const leafY = oy + frameT;
-        const leafW = doorW - frameT * 2;
         const leafH = drawH - frameT * 2;
-        svg += `<rect x="${leafX}" y="${leafY}" width="${leafW}" height="${leafH}" fill="none" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
-
-        // Door bottom rail (solid area)
         const bottomRailH = bottomRailRatio > 0 ? leafH * bottomRailRatio : 0;
-        const glassY = leafY;
         const glassH = leafH - bottomRailH;
-        // Glass area
-        const glassX = leafX + 4;
-        const glassW2 = leafW - 8;
-        svg += `<rect x="${glassX}" y="${glassY + 4}" width="${glassW2}" height="${glassH - 4}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
-        // Bottom rail fill (only for non-full-glass styles)
-        if (bottomRailH > 0) {
-            svg += `<rect x="${leafX}" y="${leafY + glassH}" width="${leafW}" height="${bottomRailH}" fill="${panel}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
-        }
-        // Georgian bars on door glass
-        for (let i = 1; i <= hBars; i++) {
-            const by = glassY + 4 + (glassH - 4) * i / (hBars + 1);
-            svg += `<line x1="${glassX}" y1="${by}" x2="${glassX + glassW2}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
-        }
-        for (let i = 1; i <= vBars; i++) {
-            const bx = glassX + glassW2 * i / (vBars + 1);
-            svg += `<line x1="${bx}" y1="${glassY + 4}" x2="${bx}" y2="${glassY + glassH}" stroke="${light}" stroke-width="1"/>`;
+
+        // Helper: draw one door leaf with glass, bars, handle, hinges
+        function drawLeaf(lx, lw, hingeOnLeft) {
+            // Leaf outline
+            svg += `<rect x="${lx}" y="${leafY}" width="${lw}" height="${leafH}" fill="none" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
+            // Glass area
+            const gx = lx + 4, gw = lw - 8, gy = leafY;
+            svg += `<rect x="${gx}" y="${gy + 4}" width="${gw}" height="${glassH - 4}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+            // Bottom rail
+            if (bottomRailH > 0) {
+                svg += `<rect x="${lx}" y="${leafY + glassH}" width="${lw}" height="${bottomRailH}" fill="${panel}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+            }
+            // Georgian bars
+            for (let i = 1; i <= hBars; i++) {
+                const by = gy + 4 + (glassH - 4) * i / (hBars + 1);
+                svg += `<line x1="${gx}" y1="${by}" x2="${gx + gw}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+            }
+            for (let i = 1; i <= vBars; i++) {
+                const bx = gx + gw * i / (vBars + 1);
+                svg += `<line x1="${bx}" y1="${gy + 4}" x2="${bx}" y2="${gy + glassH}" stroke="${light}" stroke-width="1"/>`;
+            }
+            // Handle (opposite side of hinge)
+            const hx = hingeOnLeft ? lx + lw - 12 : lx + 12;
+            const hy = leafY + leafH * 0.48;
+            svg += `<circle cx="${hx}" cy="${hy}" r="4" fill="${dark}" stroke="none"/>`;
+            svg += `<line x1="${hx}" y1="${hy - 8}" x2="${hx}" y2="${hy + 8}" stroke="${dark}" stroke-width="2" stroke-linecap="round"/>`;
+            // Hinge indicators
+            const hix = hingeOnLeft ? lx - 1 : lx + lw + 1;
+            const hdir = hingeOnLeft ? -1 : 1;
+            [0.12, 0.5, 0.88].forEach(ratio => {
+                const hy2 = leafY + leafH * ratio;
+                svg += `<polygon points="${hix},${hy2 - 4} ${hix + hdir * 5},${hy2} ${hix},${hy2 + 4}" fill="${mid}"/>`;
+            });
         }
 
-        // Handle (circle on opposite side of hinge)
-        const handleX = hingeSide === 'left' ? leafX + leafW - 12 : leafX + 12;
-        const handleY = leafY + leafH * 0.48;
-        svg += `<circle cx="${handleX}" cy="${handleY}" r="4" fill="${dark}" stroke="none"/>`;
-        svg += `<line x1="${handleX}" y1="${handleY - 8}" x2="${handleX}" y2="${handleY + 8}" stroke="${dark}" stroke-width="2" stroke-linecap="round"/>`;
-
-        // Hinge indicators (small triangles)
-        const hingeX = hingeSide === 'left' ? leafX - 1 : leafX + leafW + 1;
-        const hingeDir = hingeSide === 'left' ? -1 : 1;
-        [0.12, 0.5, 0.88].forEach(ratio => {
-            const hy = leafY + leafH * ratio;
-            svg += `<polygon points="${hingeX},${hy - 4} ${hingeX + hingeDir * 5},${hy} ${hingeX},${hy + 4}" fill="${mid}"/>`;
-        });
+        if (isFrench) {
+            // Two leaves, no mullion
+            const halfDoorW = (doorW - frameT * 2) / 2;
+            const leftLeafX = doorX + frameT;
+            const rightLeafX = doorX + frameT + halfDoorW;
+            drawLeaf(leftLeafX, halfDoorW, true);    // left leaf: hinge left
+            drawLeaf(rightLeafX, halfDoorW, false);   // right leaf: hinge right
+            // Meeting stile line
+            svg += `<line x1="${rightLeafX}" y1="${leafY}" x2="${rightLeafX}" y2="${leafY + leafH}" stroke="${mid}" stroke-width="1" stroke-dasharray="3,2"/>`;
+        } else {
+            // Single leaf
+            const leafX = doorX + frameT;
+            const leafW = doorW - frameT * 2;
+            drawLeaf(leafX, leafW, hingeSide === 'left');
+        }
 
         // ── Dimensions ──
         const dimY = oy + drawH + 15;
