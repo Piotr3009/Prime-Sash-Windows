@@ -240,7 +240,7 @@
     if (specHinge) specHinge.textContent = (config.hingeSide || 'left') === 'left' ? 'Left' : 'Right';
 
     var specOpening = $('spec-d-opening');
-    if (specOpening) specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Inward' : 'Outward';
+    if (specOpening) specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Outward' : 'Inward';
 
     var specThreshold = $('spec-d-threshold');
     var thresholdLabels = { 'standard': 'Standard Hardwood', 'aluminium': 'Aluminium', 'low-profile': 'Low Profile' };

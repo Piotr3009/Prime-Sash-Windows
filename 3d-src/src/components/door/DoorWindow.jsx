@@ -421,8 +421,8 @@ export default function DoorWindow({
         <DoorFrame
           width={width}
           height={height}
-          material={extMaterial}
-          materialInt={intMaterial}
+          material={openDirection === 'inward' ? intMaterial : extMaterial}
+          materialInt={openDirection === 'inward' ? extMaterial : intMaterial}
           sealColour={sealColour}
           mullions={layoutDef.mullions || []}
           transoms={layoutDef.transoms || []}
