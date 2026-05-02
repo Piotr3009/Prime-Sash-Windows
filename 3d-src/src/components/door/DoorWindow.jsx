@@ -337,6 +337,45 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
       };
     }
 
+    // ─── SLIDING DOORS ───
+    // 020S: 2-panel sliding
+    case '020S': {
+      const stile = SASH_RAIL; // 93mm panel stile
+      const panelW = innerW / 2 + stile; // each panel wider than half (overlap)
+      return {
+        panels: [
+          { x: -innerW / 4, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: 1, track: 'rear' },
+          { x:  innerW / 4, y: 0, w: panelW, h: innerH, hinge: 'fixed', track: 'front' },
+        ],
+      };
+    }
+    // 030S: 3-panel sliding — outer panels slide behind middle
+    case '030S': {
+      const stile = SASH_RAIL;
+      const panelW = innerW / 3 + stile;
+      return {
+        panels: [
+          { x: -innerW / 3, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: 1, track: 'rear' },
+          { x: 0,            y: 0, w: panelW, h: innerH, hinge: 'fixed', track: 'front' },
+          { x:  innerW / 3, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: -1, track: 'rear' },
+        ],
+      };
+    }
+    // 040S: 4-panel sliding — outer panels slide behind inner
+    case '040S': {
+      const stile = SASH_RAIL;
+      const panelW = innerW / 4 + stile;
+      const quarter = innerW / 4;
+      return {
+        panels: [
+          { x: -quarter * 1.5, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: 1, track: 'rear' },
+          { x: -quarter * 0.5, y: 0, w: panelW, h: innerH, hinge: 'fixed', track: 'front' },
+          { x:  quarter * 0.5, y: 0, w: panelW, h: innerH, hinge: 'fixed', track: 'front' },
+          { x:  quarter * 1.5, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: -1, track: 'rear' },
+        ],
+      };
+    }
+
     // Default: single left
     default:
       return {
@@ -381,6 +420,8 @@ export default function DoorWindow({
   sideStyle = 'full-glass',
   thresholdType = 'standard',
   thresholdExtension = 0,
+  panelCount = 2,
+  slideDirection = 'left-behind-right',
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -406,8 +447,18 @@ export default function DoorWindow({
 
   // Get layout definition
   const layoutDef = useMemo(
-    () => getLayout(layout, innerW, innerH, height, fanlightRatio),
-    [layout, innerW, innerH, height, fanlightRatio]
+    () => {
+      const def = getLayout(layout, innerW, innerH, height, fanlightRatio);
+      // 020S: swap sliding direction if needed
+      if (layout === '020S' && slideDirection === 'right-behind-left' && def.panels) {
+        def.panels = [
+          { ...def.panels[0], hinge: 'fixed', track: 'front', slideDir: undefined },
+          { ...def.panels[1], hinge: 'slide', track: 'rear', slideDir: -1 },
+        ];
+      }
+      return def;
+    },
+    [layout, innerW, innerH, height, fanlightRatio, slideDirection]
   );
 
   const W = mm(width);
@@ -441,7 +492,12 @@ export default function DoorWindow({
         const leafH = p.h + REBATE_STEP * 2 - leafGap * 2;
         // Leaf Z: sits ON gasket — exterior side (outward) or interior side (inward)
         const leafZbase = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
-        const leafZ = openDirection === 'inward' ? -leafZbase : leafZbase;
+        let leafZ = openDirection === 'inward' ? -leafZbase : leafZbase;
+        // Sliding panels: rear track offset (panel depth + 4mm gap)
+        const isSliding = layout.endsWith('S');
+        if (isSliding && p.track === 'rear') {
+          leafZ += mm(57 + 4); // push rear-track panel behind front-track panel
+        }
         // Opening center Y offset (bottom rail taller than top rail)
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
         // Bars: only on main (large) panels, not fanlights
@@ -466,6 +522,10 @@ export default function DoorWindow({
           }
         }
 
+        // Sliding door: slide distance = panel width (full slide behind adjacent panel)
+        const slideDistance = isSliding ? mm(p.w) : 0;
+        const slideDir = p.slideDir || 0;
+
         return (
           <DoorPanel
             key={`panel-${i}`}
@@ -474,6 +534,8 @@ export default function DoorWindow({
             hingeType={p.hinge}
             opening={panelOpening}
             openDirection={openDirection}
+            slideDir={slideDir}
+            slideDistance={slideDistance}
             doorStyle={doorStyle}
             centerMullion={centerMullion}
             paneling={paneling}

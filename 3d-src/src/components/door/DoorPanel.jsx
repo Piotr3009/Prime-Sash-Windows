@@ -876,6 +876,8 @@ export default function DoorPanel({
   hingeType = 'left',
   opening = 0,
   openDirection = 'outward',
+  slideDir = 0,
+  slideDistance = 0,
   material,
   materialInt,
   spacerColor = 'silver',
@@ -1023,6 +1025,18 @@ export default function DoorPanel({
               {content}
             </group>
           </group>
+        </group>
+      </group>
+    );
+  }
+
+  if (hingeType === 'slide') {
+    // Linear slide: translate X by opening * slideDistance * slideDir
+    const slideX = clampedOpening * slideDistance * slideDir;
+    return (
+      <group position={position}>
+        <group position={[slideX, 0, 0]}>
+          {content}
         </group>
       </group>
     );
