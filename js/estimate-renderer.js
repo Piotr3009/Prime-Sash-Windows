@@ -492,6 +492,9 @@ class EstimateRenderer {
                             ${p.doorSideBarsText ? R.specRow('Panel Bars', p.doorSideBarsText) : ''}
                             ${R.specRow('Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock')}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
+                            ${R.specRow('Safety Glass', p.safetyGlassText)}
+                            ${R.specRow('Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1))}
+                            ${R.specRow('Trickle Vent', p.trickleText)}
                             ` : `
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
@@ -2479,8 +2482,10 @@ class EstimateRenderer {
                     if (p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
                     specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
                     if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                    specs.push(['Safety Glass', p.safetyGlassText]);
+                    specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
+                    specs.push(['Trickle Vent', p.trickleText]);
                 } else {
-                    if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
                     if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                     specs.push(['Frame', p.frameText]);
@@ -2945,6 +2950,9 @@ class EstimateRenderer {
                 if (p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
                 specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
                 if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                specs.push(['Safety Glass', p.safetyGlassText]);
+                specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
+                specs.push(['Trickle Vent', p.trickleText]);
             } else {
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
