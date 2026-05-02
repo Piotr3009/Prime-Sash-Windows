@@ -564,8 +564,9 @@ export default function DoorFrame({
   return (
     <group>
       {/* Threshold — counter-mirror when inward (parent has Z=-1, so -1×-1=1 = stays in place) */}
+      {/* Materials also counter-swapped: parent DoorFrame gets swapped mats for inward, threshold needs original */}
       <group position={[0, -H / 2, 0]} scale={[1, 1, openDirection === 'inward' ? -1 : 1]}>
-        <Threshold width={width} mat={material} matInt={materialInt} thresholdType={thresholdType} extension={thresholdExtension} />
+        <Threshold width={width} mat={openDirection === 'inward' ? materialInt : material} matInt={openDirection === 'inward' ? material : materialInt} thresholdType={thresholdType} extension={thresholdExtension} />
       </group>
       <group position={[0, H / 2 - mm(FRAME_FACE), 0]}>
         <TopRail width={width} cuts={railCuts} mat={material} matInt={materialInt} debugColors={debugColors} />
