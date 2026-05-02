@@ -499,12 +499,12 @@ export default function DoorWindow({
         const labelOffsetX = mm(150); // offset left/right so they don't overlap
         return (
           <group>
-            <Text position={[-labelOffsetX, labelY, labelZext]} fontSize={0.025} color="#ffffff"
+            <Text position={[-labelOffsetX, labelY, labelZext]} fontSize={0.038} color="#ffffff"
               anchorX="center" anchorY="middle" outlineColor="#22324a" outlineWidth={0.003}
               transparent opacity={0.5}>
               EXT
             </Text>
-            <Text position={[labelOffsetX, labelY, labelZint]} fontSize={0.025} color="#ffffff"
+            <Text position={[labelOffsetX, labelY, labelZint]} fontSize={0.038} color="#ffffff"
               anchorX="center" anchorY="middle" rotation={[0, Math.PI, 0]} outlineColor="#22324a" outlineWidth={0.003}
               transparent opacity={0.5}>
               INT

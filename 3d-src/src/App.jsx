@@ -735,6 +735,9 @@ function Scene({ config, isMobile }) {
                 ironmongery={config.ironmongery}
                 sillExtension={config.sillExtension || 0}
                 sillWider={config.sillWider || false}
+                sealColour={config.sealColour || 'black'}
+                trickleVent={config.trickleVent || 'none'}
+                trickleColour={config.trickleColour || 'white'}
               />
             ) : (
               <ParametricSashWindow {...config} />
