@@ -68,9 +68,16 @@
     var slideDirection = isSliding ? (checked('sl-door-slide-direction') || 'left-to-right') : '';
     var width = numVal('d-width');
     var glassWidth = 0;
+    var panelDepth = 57; // default for non-sliding
+    var frameDepth = 93; // default for non-sliding
     if (isSliding && panelCount > 0) {
       glassWidth = Math.round(((width - 100) / panelCount) - 94);
       if (glassWidth < 0) glassWidth = 0;
+      // Panel depth: glass thickness + 33mm timber (based on glass width)
+      var glassThickness = glassWidth <= 1000 ? 28 : (glassWidth <= 1600 ? 32 : 36); // 6+16+6 / 8+16+8 / 10+16+10
+      panelDepth = glassThickness + 33;
+      // Frame depth: panels stacked + gaps + track walls
+      frameDepth = (panelDepth * panelCount) + (5 * (panelCount - 1)) + 40;
     }
 
     return {
@@ -107,6 +114,8 @@
       extraWidth: extraWidth,
       slideDirection: slideDirection,
       glassWidth: glassWidth,
+      panelDepth: panelDepth,
+      frameDepth: frameDepth,
       // Colour
       sameColor: doorColourState.sameColor,
       woodColor: doorColourState.woodColor,
@@ -170,7 +179,9 @@
       panelCount: config.panelCount,
       slideDirection: config.slideDirection,
       extraWidth: config.extraWidth,
-      glassWidth: config.glassWidth
+      glassWidth: config.glassWidth,
+      panelDepth: config.panelDepth,
+      frameDepth: config.frameDepth
     });
 
     if (isDoorActive()) window.currentConfig = getDoorConfig();

@@ -4707,6 +4707,12 @@
         // Formula: glass = ((total - 100) / panels) - 94
         var glassWidth = Math.round(((totalWidth - 100) / panelCount) - 94);
 
+        // Panel depth: glass thickness + 33mm timber
+        var glassThickness = glassWidth <= 1000 ? 28 : (glassWidth <= 1600 ? 32 : 36);
+        var panelDepth = glassThickness + 33;
+        // Frame depth: panels stacked + gaps + track walls
+        var frameDepth = (panelDepth * panelCount) + (5 * (panelCount - 1)) + 40;
+
         var glassEl = document.getElementById('sl-glass-width');
         var warnEl = document.getElementById('sl-glass-warning');
         if (glassEl) glassEl.textContent = glassWidth > 0 ? glassWidth : '—';
@@ -4720,6 +4726,15 @@
           } else {
             warnEl.style.display = 'none';
             warnEl.textContent = '';
+          }
+        }
+
+        // Update dim hint for sliding
+        var dimHint = document.getElementById('d-dim-hint');
+        if (dimHint) {
+          var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+          if (doorType === 'sliding') {
+            dimHint.textContent = 'Panel depth: ' + panelDepth + 'mm | Frame depth: ' + frameDepth + 'mm | Glass: ' + glassThickness + 'mm DGU';
           }
         }
       }

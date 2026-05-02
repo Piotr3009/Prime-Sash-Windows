@@ -536,13 +536,24 @@ class PriceCalculator {
     const doorW = configuration.width || 900;
     const doorH = configuration.height || 2100;
     const doorSqm = (doorW / 1000) * (doorH / 1000);
-    let basePrice = DOOR_BASE_PER_SQM * doorSqm;
+    const isSlidingDoor = (configuration.doorType || 'single-external') === 'sliding';
     const isFrenchDoor = (configuration.doorType || 'single-external') === 'french';
-    if (isFrenchDoor) {
-      basePrice += FRENCH_SURCHARGE_PER_SQM * doorSqm;
-      console.log('French doors surcharge: +£' + (FRENCH_SURCHARGE_PER_SQM * doorSqm).toFixed(2));
+
+    let basePrice;
+    if (isSlidingDoor) {
+      const SLIDING_STANDARD_PER_SQM = 1200;
+      const SLIDING_EXTRA_PER_SQM = 1600;
+      const slidingRate = configuration.extraWidth ? SLIDING_EXTRA_PER_SQM : SLIDING_STANDARD_PER_SQM;
+      basePrice = slidingRate * doorSqm;
+      console.log('Sliding door:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + slidingRate, (configuration.extraWidth ? '(Extra Width)' : '(Standard)'), '= £' + basePrice.toFixed(2));
+    } else {
+      basePrice = DOOR_BASE_PER_SQM * doorSqm;
+      if (isFrenchDoor) {
+        basePrice += FRENCH_SURCHARGE_PER_SQM * doorSqm;
+        console.log('French doors surcharge: +£' + (FRENCH_SURCHARGE_PER_SQM * doorSqm).toFixed(2));
+      }
+      console.log('Door leaf:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + (isFrenchDoor ? DOOR_BASE_PER_SQM + FRENCH_SURCHARGE_PER_SQM : DOOR_BASE_PER_SQM), '= £' + basePrice.toFixed(2));
     }
-    console.log('Door leaf:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + (isFrenchDoor ? DOOR_BASE_PER_SQM + FRENCH_SURCHARGE_PER_SQM : DOOR_BASE_PER_SQM), '= £' + basePrice.toFixed(2));
 
     // ── 2. Side panels ──
     let panelPrice = 0;
