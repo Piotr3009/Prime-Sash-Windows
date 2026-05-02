@@ -875,7 +875,6 @@ export default function DoorPanel({
   height = 900,
   hingeType = 'left',
   opening = 0,
-  reverseSwing = false,
   material,
   materialInt,
   spacerColor = 'silver',
@@ -907,8 +906,7 @@ export default function DoorPanel({
 
   // Opening angle: 0-1 mapped to 0-MAX_ANGLE degrees
   const clampedOpening = Math.max(0, Math.min(1, opening));
-  const swingSign = reverseSwing ? -1 : 1;
-  const angleRad = THREE.MathUtils.degToRad(clampedOpening * MAX_ANGLE) * swingSign;
+  const angleRad = THREE.MathUtils.degToRad(clampedOpening * MAX_ANGLE);
   const handleDeg = clampedOpening * MAX_ANGLE;
 
   // Handle position: opposite stile from hinges

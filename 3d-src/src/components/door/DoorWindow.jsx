@@ -468,7 +468,6 @@ export default function DoorWindow({
             height={leafH}
             hingeType={p.hinge}
             opening={panelOpening}
-            reverseSwing={layout === '040F'}
             doorStyle={doorStyle}
             centerMullion={centerMullion}
             paneling={paneling}
@@ -485,6 +484,25 @@ export default function DoorWindow({
       })}
 
       {/* ═══ Orientation markers removed — using sash-style dimensions ═══ */}
+
+      {/* ═══ EXT / INT labels — subtle text on door faces ═══ */}
+      {showGuides && (() => {
+        const labelY = -H / 2 + mm(80); // 80mm above bottom of frame
+        const labelZext = halfD + mm(2);  // just outside exterior face
+        const labelZint = -halfD - mm(2); // just outside interior face
+        return (
+          <group>
+            <Text position={[0, labelY, labelZext]} fontSize={0.025} color="#22324a"
+              anchorX="center" anchorY="middle" transparent opacity={0.35}>
+              EXT
+            </Text>
+            <Text position={[0, labelY, labelZint]} fontSize={0.025} color="#22324a"
+              anchorX="center" anchorY="middle" rotation={[0, Math.PI, 0]} transparent opacity={0.35}>
+              INT
+            </Text>
+          </group>
+        );
+      })()}
 
       {/* ═══ Dimensions ═══ */}
 
@@ -661,7 +679,7 @@ export default function DoorWindow({
               const leafBottom = openingCenterY - mm(leafH) / 2;
               const leafCenter = openingCenterY;
 
-              const topY    = leafTop - mm(100);
+              const topY    = leafTop - mm(200);       // 200mm below door top edge
               const middleY = leafCenter + mm(100);
               const bottomY = leafBottom + mm(150);
 
