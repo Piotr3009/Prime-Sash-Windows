@@ -520,6 +520,7 @@ class PriceCalculator {
   // ═══ DOOR PRICING ═══
   calculateDoor(configuration, frameWidth, frameHeight) {
     const DOOR_BASE_PER_SQM = 900;
+    const FRENCH_SURCHARGE_PER_SQM = 50;
     const PANEL_BASE_PER_SQM = 600; // side panels
     const SILL_EXTENSION_PRICE = 80;
     const BEADING_DOOR = 80;
@@ -536,7 +537,12 @@ class PriceCalculator {
     const doorH = configuration.height || 2100;
     const doorSqm = (doorW / 1000) * (doorH / 1000);
     let basePrice = DOOR_BASE_PER_SQM * doorSqm;
-    console.log('Door leaf:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + DOOR_BASE_PER_SQM, '= £' + basePrice.toFixed(2));
+    const isFrenchDoor = (configuration.doorType || 'single-external') === 'french';
+    if (isFrenchDoor) {
+      basePrice += FRENCH_SURCHARGE_PER_SQM * doorSqm;
+      console.log('French doors surcharge: +£' + (FRENCH_SURCHARGE_PER_SQM * doorSqm).toFixed(2));
+    }
+    console.log('Door leaf:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + (isFrenchDoor ? DOOR_BASE_PER_SQM + FRENCH_SURCHARGE_PER_SQM : DOOR_BASE_PER_SQM), '= £' + basePrice.toFixed(2));
 
     // ── 2. Side panels ──
     let panelPrice = 0;
