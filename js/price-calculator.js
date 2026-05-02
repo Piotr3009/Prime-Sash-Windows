@@ -519,7 +519,7 @@ class PriceCalculator {
 
   // ═══ DOOR PRICING ═══
   calculateDoor(configuration, frameWidth, frameHeight) {
-    const DOOR_BASE_PER_SQM = 800;
+    const DOOR_BASE_PER_SQM = 900;
     const FRENCH_SURCHARGE_PER_SQM = 50;
     const PANEL_BASE_PER_SQM = 600; // side panels
     const SILL_EXTENSION_PRICE = 80;
