@@ -156,7 +156,12 @@
 
     // ─── Spec panel sections ───
 
-    // Door Type / Shape / Style / Paneling / Mullion
+    // Door Type name
+    var specDoorType = $('spec-d-door-type');
+    var doorTypeLabels = { 'single-external': 'Single Patio Door', 'french': 'French Doors' };
+    if (specDoorType) specDoorType.textContent = doorTypeLabels[config.doorType] || 'Single Patio Door';
+
+    // Shape / Style / Paneling / Mullion
     var specShape = $('spec-d-shape');
     var shapeLabels = { 'standard': 'Standard', 'arched': 'Arched', 'glazed-arch': 'Glazed Arch' };
     if (specShape) specShape.textContent = shapeLabels[config.doorShape] || 'Standard';
@@ -237,7 +242,7 @@
 
     // Design
     var specHinge = $('spec-d-hinge');
-    if (specHinge) specHinge.textContent = (config.hingeSide || 'left') === 'left' ? 'Left' : 'Right';
+    if (specHinge) specHinge.textContent = (config.hingeSide || 'left') === 'left' ? 'Right' : 'Left';
 
     var specOpening = $('spec-d-opening');
     if (specOpening) specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Outward' : 'Inward';
