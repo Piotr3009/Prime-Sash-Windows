@@ -42,11 +42,13 @@
   // ─── Get current door config ───
   function getDoorConfig() {
     var doorType = checked('door-type') || 'single-external';
-    var doorShape = checked('door-shape') || 'standard';
-    var doorStyle = checked('door-style') || 'full-glass';
-    var doorPaneling = checked('door-paneling') || 'flat';
-    var sidePanels = checked('door-side-panels') || 'none';
-    var centerMullion = checked('door-center-mullion') === 'on';
+    var isFrench = doorType === 'french';
+    var prefix = isFrench ? 'fd-door-' : 'door-';
+    var doorShape = checked(prefix + 'shape') || 'standard';
+    var doorStyle = checked(prefix + 'style') || 'full-glass';
+    var doorPaneling = checked(prefix + 'paneling') || 'flat';
+    var sidePanels = checked(prefix + 'side-panels') || 'none';
+    var centerMullion = checked(prefix + 'center-mullion') === 'on';
 
     return {
       productType: 'door',
@@ -64,7 +66,7 @@
       vBars: parseInt(checked('d-vbars') || '0'),
       sideHBars: parseInt(checked('d-side-hbars') || '0'),
       sideVBars: parseInt(checked('d-side-vbars') || '0'),
-      sideStyle: checked('door-side-style') || 'full-glass',
+      sideStyle: checked(prefix + 'side-style') || 'full-glass',
       glassType: checked('d-glass-type') || 'double',
       glassFinish: checked('d-glass-finish') || 'clear',
       spacerColor: checked('d-spacer-color') || 'silver',
@@ -390,8 +392,9 @@
       });
     });
 
-    // Door shape/style/paneling changes
-    ['door-shape', 'door-style', 'door-paneling', 'door-side-panels', 'door-center-mullion', 'door-side-style'].forEach(function(name) {
+    // Door shape/style/paneling changes (single + french)
+    ['door-shape', 'door-style', 'door-paneling', 'door-side-panels', 'door-center-mullion', 'door-side-style',
+     'fd-door-shape', 'fd-door-style', 'fd-door-paneling', 'fd-door-side-panels', 'fd-door-center-mullion', 'fd-door-side-style'].forEach(function(name) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(function(radio) {
         radio.addEventListener('change', debouncedUpdate);
       });

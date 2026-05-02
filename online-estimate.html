@@ -755,8 +755,8 @@
               <label for="type-single-ext" class="radio-label">Single Patio Door</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="type-french" name="door-type" value="french" disabled>
-              <label for="type-french" class="radio-label disabled-option">French Doors<br><small>(Coming Soon)</small></label>
+              <input type="radio" id="type-french" name="door-type" value="french">
+              <label for="type-french" class="radio-label">French Doors</label>
             </div>
             <div class="radio-option">
               <input type="radio" id="type-sliding" name="door-type" value="sliding" disabled>
@@ -883,6 +883,125 @@
             <div class="radio-option">
               <input type="radio" id="door-side-style-same" name="door-side-style" value="same">
               <label for="door-side-style-same" class="radio-label">Same as Door</label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ═══ FRENCH DOOR OPTIONS ═══ -->
+      <div class="config-section" data-category="product-range" id="door-french-options" style="display:none;">
+
+        <!-- Shape -->
+        <h3>Door Shape</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fd-shape-standard" name="fd-door-shape" value="standard" checked>
+              <label for="fd-shape-standard" class="radio-label">Standard</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-shape-arched" name="fd-door-shape" value="arched" disabled>
+              <label for="fd-shape-arched" class="radio-label disabled-option">Arched<br><small>(Coming Soon)</small></label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-shape-glazed-arch" name="fd-door-shape" value="glazed-arch" disabled>
+              <label for="fd-shape-glazed-arch" class="radio-label disabled-option">Glazed Arch<br><small>(Coming Soon)</small></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Door Style (glazing) -->
+        <h3>Door Style</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fd-style-full" name="fd-door-style" value="full-glass" checked>
+              <label for="fd-style-full" class="radio-label">Full Glass</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-style-34" name="fd-door-style" value="three-quarter">
+              <label for="fd-style-34" class="radio-label">3/4 Glazed</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-style-half" name="fd-door-style" value="half-glazed">
+              <label for="fd-style-half" class="radio-label">Half Glazed</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Mullion (glass split) -->
+        <h3>Center Mullion</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fd-center-mullion-off" name="fd-door-center-mullion" value="off" checked>
+              <label for="fd-center-mullion-off" class="radio-label">None</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-center-mullion-on" name="fd-door-center-mullion" value="on">
+              <label for="fd-center-mullion-on" class="radio-label">Split Glass</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paneling -->
+        <h3>Paneling</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fd-panel-flat" name="fd-door-paneling" value="flat" checked>
+              <label for="fd-panel-flat" class="radio-label">Flat</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-panel-recessed" name="fd-door-paneling" value="panel">
+              <label for="fd-panel-recessed" class="radio-label">Panel</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-panel-beading" name="fd-door-paneling" value="beading">
+              <label for="fd-panel-beading" class="radio-label">Beading</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-panel-bespoke" name="fd-door-paneling" value="bespoke">
+              <label for="fd-panel-bespoke" class="radio-label">Bespoke</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side Panels -->
+        <h3>Side Panels</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fd-side-none" name="fd-door-side-panels" value="none" checked>
+              <label for="fd-side-none" class="radio-label">None</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-side-left" name="fd-door-side-panels" value="left">
+              <label for="fd-side-left" class="radio-label">Left</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-side-right" name="fd-door-side-panels" value="right">
+              <label for="fd-side-right" class="radio-label">Right</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-side-both" name="fd-door-side-panels" value="both">
+              <label for="fd-side-both" class="radio-label">Both</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side Panel Style (Same as door / Full Glass) — only relevant when sidePanels != none -->
+        <h3>Side Panel Style</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fd-side-style-full" name="fd-door-side-style" value="full-glass" checked>
+              <label for="fd-side-style-full" class="radio-label">Full Glass</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fd-side-style-same" name="fd-door-side-style" value="same">
+              <label for="fd-side-style-same" class="radio-label">Same as Door</label>
             </div>
           </div>
         </div>
@@ -4126,6 +4245,8 @@
         fixShapeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         doorTypeSection.style.display = isWindows ? 'none' : 'block';
         if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
+        var doorFrenchOptions = document.getElementById('door-french-options');
+        if (doorFrenchOptions) doorFrenchOptions.style.display = (!isWindows && doorType === 'french') ? 'block' : 'none';
 
         // Show/hide door spec sections
         var doorSpecs = ['spec-door-type', 'spec-door-dimensions', 'spec-door-bars', 'spec-door-design', 'spec-door-glass', 'spec-door-colour', 'spec-door-hardware'];
@@ -4299,6 +4420,22 @@
         });
       });
 
+      // French door paneling bespoke (same logic)
+      document.querySelectorAll('input[name="fd-door-paneling"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          if (this.value === 'bespoke') {
+            var infoPanel = document.getElementById('info-panel-content');
+            if (infoPanel) {
+              infoPanel.innerHTML =
+                '<p class="info-title">Bespoke Paneling</p>' +
+                '<p>Dear Customer, if you have chosen <strong>Bespoke</strong> paneling, please send us your drawings and details to:</p>' +
+                '<p><a href="mailto:info@primesashwindows.co.uk">info@primesashwindows.co.uk</a></p>' +
+                '<p class="info-note">This information will be added to your specification.</p>';
+            }
+          }
+        });
+      });
+
       // ── Casement Type: Standard / Arched toggle ──
       var casTypeRadios = document.querySelectorAll('input[name="casement-type"]');
       var casStandardDiv = document.getElementById('casement-standard-layouts');
@@ -4358,7 +4495,9 @@
       doorTypeRadios.forEach(function(r) {
         r.addEventListener('change', function() {
           var dso = document.getElementById('door-single-options');
+          var dfo = document.getElementById('door-french-options');
           if (dso) dso.style.display = r.value === 'single-external' ? 'block' : 'none';
+          if (dfo) dfo.style.display = r.value === 'french' ? 'block' : 'none';
           // Update hint
           var hintEl = document.getElementById('hint-product-range');
           if (hintEl) {
@@ -4371,6 +4510,21 @@
       // Side panels toggle — show/hide side panel dimension inputs
       var sidePanelRadios = document.querySelectorAll('input[name="door-side-panels"]');
       sidePanelRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+          var container = document.getElementById('d-side-panel-dims');
+          var leftGroup = document.getElementById('d-side-left-group');
+          var rightGroup = document.getElementById('d-side-right-group');
+          if (!container) return;
+          var val = r.value;
+          container.style.display = (val === 'none') ? 'none' : 'block';
+          if (leftGroup) leftGroup.style.display = (val === 'left' || val === 'both') ? 'block' : 'none';
+          if (rightGroup) rightGroup.style.display = (val === 'right' || val === 'both') ? 'block' : 'none';
+        });
+      });
+
+      // French door side panels toggle (same logic)
+      var fdSidePanelRadios = document.querySelectorAll('input[name="fd-door-side-panels"]');
+      fdSidePanelRadios.forEach(function(r) {
         r.addEventListener('change', function() {
           var container = document.getElementById('d-side-panel-dims');
           var leftGroup = document.getElementById('d-side-left-group');
