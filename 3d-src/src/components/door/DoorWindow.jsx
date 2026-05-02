@@ -468,6 +468,7 @@ export default function DoorWindow({
             height={leafH}
             hingeType={p.hinge}
             opening={panelOpening}
+            reverseSwing={layout === '040F'}
             doorStyle={doorStyle}
             centerMullion={centerMullion}
             paneling={paneling}
