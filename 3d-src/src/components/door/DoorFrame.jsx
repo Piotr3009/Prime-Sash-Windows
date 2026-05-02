@@ -449,6 +449,7 @@ export default function DoorFrame({
   width = 800, height = 1200, material, materialInt, sealColour = 'black',
   mullions = [], transoms = [], debugColors = false,
   thresholdType = 'standard', thresholdExtension = 0,
+  openDirection = 'outward',
 }) {
   const W = mm(width);
   const H = mm(height);
@@ -562,7 +563,8 @@ export default function DoorFrame({
 
   return (
     <group>
-      <group position={[0, -H / 2, 0]}>
+      {/* Threshold — counter-mirror when inward (parent has Z=-1, so -1×-1=1 = stays in place) */}
+      <group position={[0, -H / 2, 0]} scale={[1, 1, openDirection === 'inward' ? -1 : 1]}>
         <Threshold width={width} mat={material} matInt={materialInt} thresholdType={thresholdType} extension={thresholdExtension} />
       </group>
       <group position={[0, H / 2 - mm(FRAME_FACE), 0]}>

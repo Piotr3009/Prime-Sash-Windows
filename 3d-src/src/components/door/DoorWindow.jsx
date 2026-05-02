@@ -416,19 +416,22 @@ export default function DoorWindow({
 
   return (
     <group>
-      {/* Outer frame */}
-      <DoorFrame
-        width={width}
-        height={height}
-        material={extMaterial}
-        materialInt={intMaterial}
-        sealColour={sealColour}
-        mullions={layoutDef.mullions || []}
-        transoms={layoutDef.transoms || []}
-        debugColors={false}
-        thresholdType={thresholdType}
-        thresholdExtension={thresholdExtension}
-      />
+      {/* Outer frame — mirrored on Z for inward opening */}
+      <group scale={[1, 1, openDirection === 'inward' ? -1 : 1]}>
+        <DoorFrame
+          width={width}
+          height={height}
+          material={extMaterial}
+          materialInt={intMaterial}
+          sealColour={sealColour}
+          mullions={layoutDef.mullions || []}
+          transoms={layoutDef.transoms || []}
+          debugColors={false}
+          thresholdType={thresholdType}
+          thresholdExtension={thresholdExtension}
+          openDirection={openDirection}
+        />
+      </group>
 
       {/* ─── Panels (leaves) ─── */}
       {layoutDef.panels && layoutDef.panels.map((p, i) => {
