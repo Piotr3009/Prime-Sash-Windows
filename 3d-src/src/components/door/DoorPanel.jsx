@@ -970,8 +970,8 @@ export default function DoorPanel({
         </>
       )}
       {/* Weather bar — quarter-round drip bar, exterior bottom */}
-      <mesh castShadow receiveShadow position={[W / 2, -H / 2 + mm(40), halfD]} rotation={[0, -Math.PI / 2, 0]}>
-        <extrudeGeometry args={[weatherBarShape, { depth: W, bevelEnabled: false }]} />
+      <mesh castShadow receiveShadow position={[W / 2 - mm(10), -H / 2 + mm(40), halfD]} rotation={[0, -Math.PI / 2, 0]}>
+        <extrudeGeometry args={[weatherBarShape, { depth: W - mm(20), bevelEnabled: false }]} />
         <primitive object={mat} attach="material" />
       </mesh>
     </group>
