@@ -338,40 +338,43 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
     }
 
     // ─── SLIDING DOORS ───
-    // 020S: 2-panel sliding
+    // slideDist = total X movement at opening=1 (signed), trackIdx = Z depth layer (0=front)
+    // 020S: 2-panel sliding — default: left slides behind right
     case '020S': {
-      const stile = SASH_RAIL; // 93mm panel stile
-      const panelW = innerW / 2 + stile; // each panel wider than half (overlap)
+      const stile = SASH_RAIL;
+      const panelW = innerW / 2 + stile;
+      const spacing = innerW / 2;
       return {
         panels: [
-          { x: -innerW / 4, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: 1, track: 'rear' },
-          { x:  innerW / 4, y: 0, w: panelW, h: innerH, hinge: 'fixed', track: 'front' },
+          { x: -spacing / 2, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: spacing, trackIdx: 1 },
+          { x:  spacing / 2, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
         ],
       };
     }
-    // 030S: 3-panel sliding — outer panels slide behind middle
+    // 030S: 3-panel sequential stacking — default: all slide right, rightmost fixed
     case '030S': {
       const stile = SASH_RAIL;
       const panelW = innerW / 3 + stile;
+      const spacing = innerW / 3;
       return {
         panels: [
-          { x: -innerW / 3, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: 1, track: 'rear' },
-          { x: 0,            y: 0, w: panelW, h: innerH, hinge: 'fixed', track: 'front' },
-          { x:  innerW / 3, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: -1, track: 'rear' },
+          { x: -spacing, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: 2 * spacing, trackIdx: 2 },
+          { x: 0,         y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: spacing,     trackIdx: 1 },
+          { x:  spacing,  y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
         ],
       };
     }
-    // 040S: 4-panel sliding — outer panels slide behind inner
+    // 040S: 4-panel, 2 pairs — default: open from center
     case '040S': {
       const stile = SASH_RAIL;
       const panelW = innerW / 4 + stile;
       const quarter = innerW / 4;
       return {
         panels: [
-          { x: -quarter * 1.5, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: 1, track: 'rear' },
-          { x: -quarter * 0.5, y: 0, w: panelW, h: innerH, hinge: 'fixed', track: 'front' },
-          { x:  quarter * 0.5, y: 0, w: panelW, h: innerH, hinge: 'fixed', track: 'front' },
-          { x:  quarter * 1.5, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDir: -1, track: 'rear' },
+          { x: -quarter * 1.5, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
+          { x: -quarter * 0.5, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: -quarter, trackIdx: 1 },
+          { x:  quarter * 0.5, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist:  quarter, trackIdx: 1 },
+          { x:  quarter * 1.5, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
         ],
       };
     }
@@ -449,12 +452,34 @@ export default function DoorWindow({
   const layoutDef = useMemo(
     () => {
       const def = getLayout(layout, innerW, innerH, height, fanlightRatio);
-      // 020S: swap sliding direction if needed
-      if (layout === '020S' && slideDirection === 'right-behind-left' && def.panels) {
-        def.panels = [
-          { ...def.panels[0], hinge: 'fixed', track: 'front', slideDir: undefined },
-          { ...def.panels[1], hinge: 'slide', track: 'rear', slideDir: -1 },
-        ];
+      // Sliding direction swap
+      if (layout.endsWith('S') && def.panels) {
+        const isReverse = slideDirection === 'right-to-left';
+        if (isReverse && layout === '020S') {
+          // Swap: right slides behind left
+          const spacing = innerW / 2;
+          def.panels = [
+            { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
+            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -spacing },
+          ];
+        } else if (isReverse && layout === '030S') {
+          // Swap: all slide left, leftmost fixed
+          const spacing = innerW / 3;
+          def.panels = [
+            { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
+            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -spacing },
+            { ...def.panels[2], hinge: 'slide', trackIdx: 2, slideDist: -2 * spacing },
+          ];
+        } else if (isReverse && layout === '040S') {
+          // Swap: open from sides (outer slide inward)
+          const quarter = innerW / 4;
+          def.panels = [
+            { ...def.panels[0], hinge: 'slide', trackIdx: 1, slideDist: quarter },
+            { ...def.panels[1], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
+            { ...def.panels[2], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
+            { ...def.panels[3], hinge: 'slide', trackIdx: 1, slideDist: -quarter },
+          ];
+        }
       }
       return def;
     },
@@ -493,10 +518,10 @@ export default function DoorWindow({
         // Leaf Z: sits ON gasket — exterior side (outward) or interior side (inward)
         const leafZbase = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
         let leafZ = openDirection === 'inward' ? -leafZbase : leafZbase;
-        // Sliding panels: rear track offset (panel depth + 4mm gap)
+        // Sliding panels: Z offset per track layer (trackIdx × panel depth + gap)
         const isSliding = layout.endsWith('S');
-        if (isSliding && p.track === 'rear') {
-          leafZ += mm(57 + 4); // push rear-track panel behind front-track panel
+        if (isSliding && p.trackIdx > 0) {
+          leafZ += mm(57 + 4) * p.trackIdx; // push rear-track panels behind front-track
         }
         // Opening center Y offset (bottom rail taller than top rail)
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
@@ -522,9 +547,8 @@ export default function DoorWindow({
           }
         }
 
-        // Sliding door: slide distance = panel width (full slide behind adjacent panel)
-        const slideDistance = isSliding ? mm(p.w) : 0;
-        const slideDir = p.slideDir || 0;
+        // Sliding door: slide distance from layout definition
+        const slideDist = isSliding ? mm(p.slideDist || 0) : 0;
 
         return (
           <DoorPanel
@@ -534,8 +558,7 @@ export default function DoorWindow({
             hingeType={p.hinge}
             opening={panelOpening}
             openDirection={openDirection}
-            slideDir={slideDir}
-            slideDistance={slideDistance}
+            slideDist={slideDist}
             doorStyle={doorStyle}
             centerMullion={centerMullion}
             paneling={paneling}

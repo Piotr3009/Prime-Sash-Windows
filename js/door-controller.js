@@ -65,7 +65,7 @@
     // Sliding-specific fields
     var panelCount = isSliding ? (parseInt(checked('sl-door-panel-count')) || 2) : 0;
     var extraWidth = isSliding ? (checked('sl-door-extra-width') === 'extra') : false;
-    var slideDirection = isSliding ? (checked('sl-door-slide-direction') || 'left-behind-right') : '';
+    var slideDirection = isSliding ? (checked('sl-door-slide-direction') || 'left-to-right') : '';
     var width = numVal('d-width');
     var glassWidth = 0;
     if (isSliding && panelCount > 0) {
@@ -300,8 +300,11 @@
     var specOpening = $('spec-d-opening');
     if (specOpening) {
       if (isSliding) {
-        var dirLabels = { 'left-behind-right': 'Left → Right', 'right-behind-left': 'Right → Left' };
-        specOpening.textContent = config.panelCount > 2 ? 'Symmetric' : (dirLabels[config.slideDirection] || 'Left → Right');
+        var dirLabels = { 'left-to-right': 'Left → Right', 'right-to-left': 'Right → Left' };
+        if (config.panelCount >= 4) {
+          dirLabels = { 'left-to-right': 'Open from Center', 'right-to-left': 'Open from Sides' };
+        }
+        specOpening.textContent = dirLabels[config.slideDirection] || 'Left → Right';
       } else {
         specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Outward' : 'Inward';
       }

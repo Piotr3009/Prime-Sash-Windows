@@ -1056,12 +1056,12 @@
         <div class="input-group" id="sl-direction-2panel">
           <div class="radio-group">
             <div class="radio-option">
-              <input type="radio" id="sl-dir-left" name="sl-door-slide-direction" value="left-behind-right" checked>
-              <label for="sl-dir-left" class="radio-label">Left slides behind Right</label>
+              <input type="radio" id="sl-dir-left" name="sl-door-slide-direction" value="left-to-right" checked>
+              <label for="sl-dir-left" id="sl-dir-left-label" class="radio-label">Slide Left to Right</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="sl-dir-right" name="sl-door-slide-direction" value="right-behind-left">
-              <label for="sl-dir-right" class="radio-label">Right slides behind Left</label>
+              <input type="radio" id="sl-dir-right" name="sl-door-slide-direction" value="right-to-left">
+              <label for="sl-dir-right" id="sl-dir-right-label" class="radio-label">Slide Right to Left</label>
             </div>
           </div>
         </div>
@@ -4724,15 +4724,19 @@
         }
       }
 
-      // Sliding door: panel count change — hide direction for 3+, recalc glass
+      // Sliding door: panel count change — update direction labels, recalc glass
       var slPanelRadios = document.querySelectorAll('input[name="sl-door-panel-count"]');
       slPanelRadios.forEach(function(r) {
         r.addEventListener('change', function() {
-          var dirGroup = document.getElementById('sl-direction-2panel');
-          var dirHeading = document.getElementById('sl-direction-heading');
-          var show = (r.value === '2');
-          if (dirGroup) dirGroup.style.display = show ? '' : 'none';
-          if (dirHeading) dirHeading.style.display = show ? '' : 'none';
+          var leftLabel = document.getElementById('sl-dir-left-label');
+          var rightLabel = document.getElementById('sl-dir-right-label');
+          if (r.value === '4') {
+            if (leftLabel) leftLabel.textContent = 'Open from Center';
+            if (rightLabel) rightLabel.textContent = 'Open from Sides';
+          } else {
+            if (leftLabel) leftLabel.textContent = 'Slide Left to Right';
+            if (rightLabel) rightLabel.textContent = 'Slide Right to Left';
+          }
           updateSlidingGlassCalc();
         });
       });

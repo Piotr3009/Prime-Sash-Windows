@@ -876,8 +876,7 @@ export default function DoorPanel({
   hingeType = 'left',
   opening = 0,
   openDirection = 'outward',
-  slideDir = 0,
-  slideDistance = 0,
+  slideDist = 0,
   material,
   materialInt,
   spacerColor = 'silver',
@@ -971,11 +970,13 @@ export default function DoorPanel({
           />
         </>
       )}
-      {/* Weather bar — quarter-round drip bar, exterior bottom */}
+      {/* Weather bar — quarter-round drip bar, exterior bottom (not for sliding) */}
+      {hingeType !== 'slide' && (
       <mesh castShadow receiveShadow position={[W / 2 - mm(10), -H / 2 + mm(40), halfD]} rotation={[0, -Math.PI / 2, 0]}>
         <extrudeGeometry args={[weatherBarShape, { depth: W - mm(20), bevelEnabled: false }]} />
         <primitive object={mat} attach="material" />
       </mesh>
+      )}
     </group>
   );
 
@@ -1031,8 +1032,8 @@ export default function DoorPanel({
   }
 
   if (hingeType === 'slide') {
-    // Linear slide: translate X by opening * slideDistance * slideDir
-    const slideX = clampedOpening * slideDistance * slideDir;
+    // Linear slide: translate X by opening * slideDist (signed distance)
+    const slideX = clampedOpening * slideDist;
     return (
       <group position={position}>
         <group position={[slideX, 0, 0]}>
