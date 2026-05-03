@@ -338,43 +338,47 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
     }
 
     // ─── SLIDING DOORS ───
-    // slideDist = total X movement at opening=1 (signed), trackIdx = Z depth layer (0=front)
+    // Overlap: 2 × stile per zone (both stiles fully behind each other in Z)
+    // N panels: N×panelW - (N-1)×2×stile = innerW → panelW = (innerW + (N-1)×2×stile) / N
+    // Stride (distance between centers) = panelW - 2×stile
     // 020S: 2-panel sliding — default: left slides behind right
     case '020S': {
-      const stile = SASH_RAIL;
-      const panelW = innerW / 2 + stile;
-      const spacing = innerW / 2;
+      const S = SASH_RAIL;
+      const panelW = (innerW + 2 * S) / 2;
+      const stride = panelW - 2 * S; // = (innerW - 2*S) / 2
       return {
         panels: [
-          { x: -spacing / 2, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: spacing, trackIdx: 1 },
-          { x:  spacing / 2, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
+          { x: -stride / 2, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: stride, trackIdx: 1 },
+          { x:  stride / 2, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
         ],
       };
     }
     // 030S: 3-panel sequential stacking — default: all slide right, rightmost fixed
     case '030S': {
-      const stile = SASH_RAIL;
-      const panelW = innerW / 3 + stile;
-      const spacing = innerW / 3;
+      const S = SASH_RAIL;
+      const panelW = (innerW + 4 * S) / 3;
+      const stride = panelW - 2 * S; // = (innerW - 2*S) / 3
       return {
         panels: [
-          { x: -spacing, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: 2 * spacing, trackIdx: 2 },
-          { x: 0,         y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: spacing,     trackIdx: 1 },
-          { x:  spacing,  y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
+          { x: -stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: 2 * stride, trackIdx: 2 },
+          { x: 0,        y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: stride,     trackIdx: 1 },
+          { x:  stride,  y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
         ],
       };
     }
     // 040S: 4-panel, 2 pairs — default: open from center
     case '040S': {
-      const stile = SASH_RAIL;
-      const panelW = innerW / 4 + stile;
-      const quarter = innerW / 4;
+      const S = SASH_RAIL;
+      // Each pair covers innerW/2 with 1 overlap zone
+      const panelW = (innerW / 2 + 2 * S) / 2; // = innerW/4 + S
+      const stride = panelW - 2 * S; // = innerW/4 - S
+      const halfSpan = innerW / 4;
       return {
         panels: [
-          { x: -quarter * 1.5, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
-          { x: -quarter * 0.5, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: -quarter, trackIdx: 1 },
-          { x:  quarter * 0.5, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist:  quarter, trackIdx: 1 },
-          { x:  quarter * 1.5, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
+          { x: -halfSpan - stride / 2, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
+          { x: -halfSpan + stride / 2, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: -stride, trackIdx: 1 },
+          { x:  halfSpan - stride / 2, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist:  stride, trackIdx: 1 },
+          { x:  halfSpan + stride / 2, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
         ],
       };
     }
@@ -446,9 +450,14 @@ export default function DoorWindow({
     roughness: 0.85, metalness: 0,
   }), [sealColour]);
 
-  // Inner dimensions (after subtracting outer frame)
-  const innerW = width - FRAME_FACE * 2;
-  const innerH = height - FRAME_FACE - BOTTOM_FACE;
+  // Inner dimensions (after subtracting outer frame — 50mm for sliding, 57mm for others)
+  const isSliding = layout.endsWith('S');
+  const SLIDING_FRAME_FACE = 50;
+  const effectiveFrameDepth = isSliding ? slidingFrameDepth : FRAME_DEPTH;
+  const effectiveFrameFace = isSliding ? SLIDING_FRAME_FACE : FRAME_FACE;
+  const halfD = mm(effectiveFrameDepth) / 2;
+  const innerW = width - effectiveFrameFace * 2;
+  const innerH = height - (isSliding ? SLIDING_FRAME_FACE : FRAME_FACE) - BOTTOM_FACE;
 
   // Get layout definition
   const layoutDef = useMemo(
@@ -457,29 +466,27 @@ export default function DoorWindow({
       // Sliding direction swap
       if (layout.endsWith('S') && def.panels) {
         const isReverse = slideDirection === 'right-to-left';
+        const S = SASH_RAIL;
         if (isReverse && layout === '020S') {
-          // Swap: right slides behind left
-          const spacing = innerW / 2;
+          const stride = (innerW - 2 * S) / 2;
           def.panels = [
             { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
-            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -spacing },
+            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -stride },
           ];
         } else if (isReverse && layout === '030S') {
-          // Swap: all slide left, leftmost fixed
-          const spacing = innerW / 3;
+          const stride = (innerW - 2 * S) / 3;
           def.panels = [
             { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
-            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -spacing },
-            { ...def.panels[2], hinge: 'slide', trackIdx: 2, slideDist: -2 * spacing },
+            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -stride },
+            { ...def.panels[2], hinge: 'slide', trackIdx: 2, slideDist: -2 * stride },
           ];
         } else if (isReverse && layout === '040S') {
-          // Swap: open from sides (outer slide inward)
-          const quarter = innerW / 4;
+          const stride = innerW / 4 - S;
           def.panels = [
-            { ...def.panels[0], hinge: 'slide', trackIdx: 1, slideDist: quarter },
+            { ...def.panels[0], hinge: 'slide', trackIdx: 1, slideDist: stride },
             { ...def.panels[1], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
             { ...def.panels[2], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
-            { ...def.panels[3], hinge: 'slide', trackIdx: 1, slideDist: -quarter },
+            { ...def.panels[3], hinge: 'slide', trackIdx: 1, slideDist: -stride },
           ];
         }
       }
@@ -490,9 +497,6 @@ export default function DoorWindow({
 
   const W = mm(width);
   const H = mm(height);
-  const isSliding = layout.endsWith('S');
-  const effectiveFrameDepth = isSliding ? slidingFrameDepth : FRAME_DEPTH;
-  const halfD = mm(effectiveFrameDepth) / 2;
 
   return (
     <group>
@@ -500,7 +504,7 @@ export default function DoorWindow({
       {isSliding ? (
         /* Sliding: simple rectangular frame — no rebate, no seal */
         (() => {
-          const fW = mm(FRAME_FACE); // 57mm face width (stile visible width)
+          const fW = mm(effectiveFrameFace); // 50mm for sliding, 57mm for others
           const fD = mm(effectiveFrameDepth);
           const mat = extMaterial;
           return (

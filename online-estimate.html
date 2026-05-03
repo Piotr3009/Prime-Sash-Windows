@@ -4095,14 +4095,18 @@
       var panelCount = parseInt((document.querySelector('input[name="sl-door-panel-count"]:checked') || {}).value) || 2;
       var extraWidth = (document.querySelector('input[name="sl-door-extra-width"]:checked') || {}).value === 'extra';
       var totalWidth = parseInt(document.getElementById('d-width') ? document.getElementById('d-width').value : 0) || 0;
-      var glassWidth = Math.round(((totalWidth - 100) / panelCount) - 94);
+      var innerWidth = totalWidth - 100;
+      var stile = 93;
+      var overlaps = Math.min(panelCount - 1, 2);
+      var panelWidth = Math.round((innerWidth + overlaps * 2 * stile) / panelCount);
+      var glassWidth = panelWidth - 2 * stile;
       var glassThickness = glassWidth <= 1000 ? 28 : (glassWidth <= 1600 ? 32 : 36);
       var panelDepth = glassThickness + 33;
       var trackCount = panelCount === 4 ? 2 : panelCount;
       var frameDepth = 15 + (trackCount * panelDepth) + ((trackCount - 1) * 5) + 15;
       infoPanel.innerHTML = 
         '<p class="info-title">Sliding Door Specification</p>' +
-        '<p>Panel: <span class="info-highlight">' + panelDepth + 'mm</span> &nbsp;|&nbsp; Frame: <span class="info-highlight">' + frameDepth + 'mm</span> &nbsp;|&nbsp; Glass: <span class="info-highlight">' + glassThickness + 'mm DGU</span> &nbsp;|&nbsp; Per panel: <span class="info-highlight">' + (glassWidth > 0 ? glassWidth : '—') + 'mm</span></p>';
+        '<p>Panel: <span class="info-highlight">' + panelWidth + ' × ' + panelDepth + 'mm</span> &nbsp;|&nbsp; Frame: <span class="info-highlight">' + frameDepth + 'mm</span> &nbsp;|&nbsp; Glass: <span class="info-highlight">' + (glassWidth > 0 ? glassWidth : '—') + 'mm (' + glassThickness + 'mm DGU)</span></p>';
       return;
     }
 
@@ -4751,9 +4755,14 @@
         var extraWidth = (document.querySelector('input[name="sl-door-extra-width"]:checked') || {}).value === 'extra';
         var totalWidth = parseInt(document.getElementById('d-width') ? document.getElementById('d-width').value : 0) || 0;
         var maxGlass = extraWidth ? 2000 : 1600;
+        var stile = 93;
 
-        // Formula: glass = ((total - 100) / panels) - 94
-        var glassWidth = Math.round(((totalWidth - 100) / panelCount) - 94);
+        // Correct formula matching 3D geometry:
+        // overlaps = N-1 for sequential, 1 for 4-panel pairs
+        var innerWidth = totalWidth - 100;
+        var overlaps = Math.min(panelCount - 1, 2);
+        var panelWidth = Math.round((innerWidth + overlaps * 2 * stile) / panelCount);
+        var glassWidth = panelWidth - 2 * stile;
 
         // Panel depth: glass thickness + 33mm timber
         var glassThickness = glassWidth <= 1000 ? 28 : (glassWidth <= 1600 ? 32 : 36);
