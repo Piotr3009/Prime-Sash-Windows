@@ -496,22 +496,56 @@ export default function DoorWindow({
 
   return (
     <group>
-      {/* Outer frame — mirrored on Z for inward opening, scaled for sliding depth */}
-      <group scale={[1, 1, (openDirection === 'inward' ? -1 : 1) * (isSliding ? effectiveFrameDepth / FRAME_DEPTH : 1)]}>
-        <DoorFrame
-          width={width}
-          height={height}
-          material={openDirection === 'inward' ? intMaterial : extMaterial}
-          materialInt={openDirection === 'inward' ? extMaterial : intMaterial}
-          sealColour={sealColour}
-          mullions={layoutDef.mullions || []}
-          transoms={layoutDef.transoms || []}
-          debugColors={false}
-          thresholdType={thresholdType}
-          thresholdExtension={thresholdExtension}
-          openDirection={openDirection}
-        />
-      </group>
+      {/* ═══ Frame ═══ */}
+      {isSliding ? (
+        /* Sliding: simple rectangular frame — no rebate, no seal */
+        (() => {
+          const fW = mm(FRAME_FACE); // 57mm face width (stile visible width)
+          const fD = mm(effectiveFrameDepth);
+          const mat = extMaterial;
+          return (
+            <group>
+              {/* Top rail */}
+              <mesh castShadow receiveShadow position={[0, H / 2 - fW / 2, 0]}>
+                <boxGeometry args={[W, fW, fD]} />
+                <primitive object={mat} attach="material" />
+              </mesh>
+              {/* Bottom rail */}
+              <mesh castShadow receiveShadow position={[0, -H / 2 + mm(BOTTOM_FACE) / 2, 0]}>
+                <boxGeometry args={[W, mm(BOTTOM_FACE), fD]} />
+                <primitive object={mat} attach="material" />
+              </mesh>
+              {/* Left stile */}
+              <mesh castShadow receiveShadow position={[-W / 2 + fW / 2, mm(BOTTOM_FACE - FRAME_FACE) / 2, 0]}>
+                <boxGeometry args={[fW, H - fW - mm(BOTTOM_FACE) + 0.001, fD]} />
+                <primitive object={mat} attach="material" />
+              </mesh>
+              {/* Right stile */}
+              <mesh castShadow receiveShadow position={[W / 2 - fW / 2, mm(BOTTOM_FACE - FRAME_FACE) / 2, 0]}>
+                <boxGeometry args={[fW, H - fW - mm(BOTTOM_FACE) + 0.001, fD]} />
+                <primitive object={mat} attach="material" />
+              </mesh>
+            </group>
+          );
+        })()
+      ) : (
+        /* Standard doors: profiled frame with rebate and seal */
+        <group scale={[1, 1, openDirection === 'inward' ? -1 : 1]}>
+          <DoorFrame
+            width={width}
+            height={height}
+            material={openDirection === 'inward' ? intMaterial : extMaterial}
+            materialInt={openDirection === 'inward' ? extMaterial : intMaterial}
+            sealColour={sealColour}
+            mullions={layoutDef.mullions || []}
+            transoms={layoutDef.transoms || []}
+            debugColors={false}
+            thresholdType={thresholdType}
+            thresholdExtension={thresholdExtension}
+            openDirection={openDirection}
+          />
+        </group>
+      )}
 
       {/* ─── Panels (leaves) ─── */}
       {layoutDef.panels && layoutDef.panels.map((p, i) => {

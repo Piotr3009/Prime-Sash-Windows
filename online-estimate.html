@@ -4710,8 +4710,10 @@
         // Panel depth: glass thickness + 33mm timber
         var glassThickness = glassWidth <= 1000 ? 28 : (glassWidth <= 1600 ? 32 : 36);
         var panelDepth = glassThickness + 33;
-        // Frame depth: panels stacked + gaps + track walls
-        var frameDepth = (panelDepth * panelCount) + (5 * (panelCount - 1)) + 40;
+        // Track count: 2-panel=2, 3-panel=3, 4-panel=2 (two pairs)
+        var trackCount = panelCount === 4 ? 2 : panelCount;
+        // Frame depth: 15mm wall + tracks × panelDepth + (tracks-1) × 5mm gap + 15mm wall
+        var frameDepth = 15 + (trackCount * panelDepth) + ((trackCount - 1) * 5) + 15;
 
         var glassEl = document.getElementById('sl-glass-width');
         var warnEl = document.getElementById('sl-glass-warning');

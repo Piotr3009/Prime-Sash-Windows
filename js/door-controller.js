@@ -76,8 +76,10 @@
       // Panel depth: glass thickness + 33mm timber (based on glass width)
       var glassThickness = glassWidth <= 1000 ? 28 : (glassWidth <= 1600 ? 32 : 36); // 6+16+6 / 8+16+8 / 10+16+10
       panelDepth = glassThickness + 33;
-      // Frame depth: panels stacked + gaps + track walls
-      frameDepth = (panelDepth * panelCount) + (5 * (panelCount - 1)) + 40;
+      // Track count: 2-panel=2, 3-panel=3, 4-panel=2 (two pairs)
+      var trackCount = panelCount === 4 ? 2 : panelCount;
+      // Frame depth: 15mm wall + tracks × panelDepth + (tracks-1) × 5mm gap + 15mm wall
+      frameDepth = 15 + (trackCount * panelDepth) + ((trackCount - 1) * 5) + 15;
     }
 
     return {
