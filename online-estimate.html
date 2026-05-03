@@ -262,10 +262,6 @@
         <button class="cat-btn" data-target="door-hardware">Hardware<span class="cat-hint" id="hint-door-hardware">Ironmongery</span></button>
         <button class="cat-btn" data-target="door-finalise">Finalise<span class="cat-hint" id="hint-door-finalise">Add to Estimate</span></button>
       </div>
-      <!-- Sliding door info bar -->
-      <div id="sliding-info-bar" style="display:none;background:#e74c3c;color:white;padding:8px 14px;font-size:0.75rem;border-radius:4px;margin:8px 0;text-align:center;">
-        <strong>Panel: <span id="sl-info-panel-depth">—</span>mm</strong> &nbsp;|&nbsp; <strong>Frame: <span id="sl-info-frame-depth">—</span>mm</strong> &nbsp;|&nbsp; <strong>Glass: <span id="sl-info-glass">—</span>mm DGU</strong> &nbsp;|&nbsp; <strong>Per panel: <span id="sl-info-glass-width">—</span>mm</strong>
-      </div>
       <div class="sidebar-price">
         <p class="sidebar-price-label">Total</p>
         <p class="sidebar-price-value" id="sidebar-total-price">£0.00</p>
@@ -4084,6 +4080,24 @@
   function updateInfoPanel() {
     if (!infoPanel) return;
     
+    // Sliding door info
+    var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+    var isWindows = (document.querySelector('input[name="window-category"]:checked') || {}).value === 'windows';
+    if (!isWindows && doorType === 'sliding') {
+      var panelCount = parseInt((document.querySelector('input[name="sl-door-panel-count"]:checked') || {}).value) || 2;
+      var extraWidth = (document.querySelector('input[name="sl-door-extra-width"]:checked') || {}).value === 'extra';
+      var totalWidth = parseInt(document.getElementById('d-width') ? document.getElementById('d-width').value : 0) || 0;
+      var glassWidth = Math.round(((totalWidth - 100) / panelCount) - 94);
+      var glassThickness = glassWidth <= 1000 ? 28 : (glassWidth <= 1600 ? 32 : 36);
+      var panelDepth = glassThickness + 33;
+      var trackCount = panelCount === 4 ? 2 : panelCount;
+      var frameDepth = 15 + (trackCount * panelDepth) + ((trackCount - 1) * 5) + 15;
+      infoPanel.innerHTML = 
+        '<p class="info-title">Sliding Door Specification</p>' +
+        '<p>Panel: <span class="info-highlight">' + panelDepth + 'mm</span> &nbsp;|&nbsp; Frame: <span class="info-highlight">' + frameDepth + 'mm</span> &nbsp;|&nbsp; Glass: <span class="info-highlight">' + glassThickness + 'mm DGU</span> &nbsp;|&nbsp; Per panel: <span class="info-highlight">' + (glassWidth > 0 ? glassWidth : '—') + 'mm</span></p>';
+      return;
+    }
+
     if (activeCategory === 'dimensions' && measureInfo && measureInfo.style.display === 'block') {
       var w = document.getElementById('actual-width');
       var h = document.getElementById('actual-height');
@@ -4098,6 +4112,7 @@
       infoPanel.innerHTML = '';
     }
   }
+  window.updateInfoPanel = updateInfoPanel;
   
   // Watch measurement-info for style changes
   if (measureInfo) {
@@ -4375,9 +4390,8 @@
         if (sideBarsGroup) sideBarsGroup.style.display = isSliding ? 'none' : '';
         if (isSliding && sidePanelDims) sidePanelDims.style.display = 'none';
 
-        // Show/hide sliding info bar
-        var slidingInfoBar = document.getElementById('sliding-info-bar');
-        if (slidingInfoBar) slidingInfoBar.style.display = isSliding ? '' : 'none';
+        // Update info panel for sliding
+        if (window.updateInfoPanel) window.updateInfoPanel();
 
         // Update dimension hint — hide for sliding (info is in red bar)
         var dimHint = document.getElementById('d-dim-hint');
@@ -4677,9 +4691,8 @@
           if (sideBarsGroup) sideBarsGroup.style.display = isSliding ? 'none' : '';
           if (isSliding && sidePanelDims) sidePanelDims.style.display = 'none';
 
-          // Show/hide sliding info bar
-          var slidingInfoBar = document.getElementById('sliding-info-bar');
-          if (slidingInfoBar) slidingInfoBar.style.display = isSliding ? '' : 'none';
+          // Update info panel for sliding
+          if (window.updateInfoPanel) window.updateInfoPanel();
 
           // Update dimension hints — hide for sliding (info in red bar)
           var dimHint = document.getElementById('d-dim-hint');
@@ -4748,19 +4761,8 @@
           }
         }
 
-        // Update red info bar
-        var infoBar = document.getElementById('sliding-info-bar');
-        if (infoBar) {
-          infoBar.style.display = '';
-          var el1 = document.getElementById('sl-info-panel-depth');
-          var el2 = document.getElementById('sl-info-frame-depth');
-          var el3 = document.getElementById('sl-info-glass');
-          var el4 = document.getElementById('sl-info-glass-width');
-          if (el1) el1.textContent = panelDepth;
-          if (el2) el2.textContent = frameDepth;
-          if (el3) el3.textContent = glassThickness;
-          if (el4) el4.textContent = glassWidth > 0 ? glassWidth : '—';
-        }
+        // Update info panel
+        if (window.updateInfoPanel) window.updateInfoPanel();
       }
 
       // Sliding door: panel count change — update direction labels, recalc glass
