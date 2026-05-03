@@ -262,6 +262,10 @@
         <button class="cat-btn" data-target="door-hardware">Hardware<span class="cat-hint" id="hint-door-hardware">Ironmongery</span></button>
         <button class="cat-btn" data-target="door-finalise">Finalise<span class="cat-hint" id="hint-door-finalise">Add to Estimate</span></button>
       </div>
+      <!-- Sliding door info bar -->
+      <div id="sliding-info-bar" style="display:none;background:#e74c3c;color:white;padding:8px 14px;font-size:0.75rem;border-radius:4px;margin:8px 0;text-align:center;">
+        <strong>Panel: <span id="sl-info-panel-depth">—</span>mm</strong> &nbsp;|&nbsp; <strong>Frame: <span id="sl-info-frame-depth">—</span>mm</strong> &nbsp;|&nbsp; <strong>Glass: <span id="sl-info-glass">—</span>mm DGU</strong> &nbsp;|&nbsp; <strong>Per panel: <span id="sl-info-glass-width">—</span>mm</strong>
+      </div>
       <div class="sidebar-price">
         <p class="sidebar-price-label">Total</p>
         <p class="sidebar-price-value" id="sidebar-total-price">£0.00</p>
@@ -1008,66 +1012,6 @@
 
       </div>
 
-      <!-- ═══ SLIDING DOOR OPTIONS ═══ -->
-      <div class="config-section" data-category="product-range" id="door-sliding-options" style="display:none;">
-
-        <!-- Panel Count -->
-        <h3>Panel Count</h3>
-        <div class="input-group">
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="sl-panel-2" name="sl-door-panel-count" value="2" checked>
-              <label for="sl-panel-2" class="radio-label">2 Panels</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="sl-panel-3" name="sl-door-panel-count" value="3">
-              <label for="sl-panel-3" class="radio-label">3 Panels</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="sl-panel-4" name="sl-door-panel-count" value="4">
-              <label for="sl-panel-4" class="radio-label">4 Panels</label>
-            </div>
-          </div>
-        </div>
-
-        <!-- Extra Width -->
-        <h3>Panel Width</h3>
-        <div class="input-group">
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="sl-width-normal" name="sl-door-extra-width" value="normal" checked>
-              <label for="sl-width-normal" class="radio-label">Standard<br><small>up to 1600mm glass</small></label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="sl-width-extra" name="sl-door-extra-width" value="extra">
-              <label for="sl-width-extra" class="radio-label">Extra Width<br><small>up to 2000mm glass</small></label>
-            </div>
-          </div>
-        </div>
-
-        <!-- Glass Width Calculator (live) -->
-        <div id="sl-glass-calc" style="background:rgba(10,22,40,0.05);border-left:2px solid var(--primary-color);padding:10px 14px;margin-bottom:16px;font-size:0.75rem;color:var(--secondary-color);">
-          Glass per panel: <strong id="sl-glass-width">—</strong>mm
-          <span id="sl-glass-warning" style="color:#e74c3c;display:none;margin-left:8px;"></span>
-        </div>
-
-        <!-- Slide Direction (only for 2 panels) -->
-        <h3 id="sl-direction-heading">Slide Direction</h3>
-        <div class="input-group" id="sl-direction-2panel">
-          <div class="radio-group">
-            <div class="radio-option">
-              <input type="radio" id="sl-dir-left" name="sl-door-slide-direction" value="left-to-right" checked>
-              <label for="sl-dir-left" id="sl-dir-left-label" class="radio-label">Slide Left to Right</label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="sl-dir-right" name="sl-door-slide-direction" value="right-to-left">
-              <label for="sl-dir-right" id="sl-dir-right-label" class="radio-label">Slide Right to Left</label>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
       <!-- ═══ DOOR SECTIONS ═══ -->
 
       <!-- Door Dimensions -->
@@ -1109,9 +1053,109 @@
         </div>
       </div>
 
-      <!-- Door Bars -->
+      <!-- Sliding Door Config (Step 2 — only shown for sliding) -->
+      <div class="config-section" data-for="door" data-category="door-dimensions" id="sl-dimensions-step2" style="display:none;">
+        <h3>Step 2: Sliding Configuration</h3>
+
+        <!-- Panel Count -->
+        <div class="input-group">
+          <label>Panel Count:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="sl-panel-2" name="sl-door-panel-count" value="2" checked>
+              <label for="sl-panel-2" class="radio-label">2 Panels</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="sl-panel-3" name="sl-door-panel-count" value="3">
+              <label for="sl-panel-3" class="radio-label">3 Panels</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="sl-panel-4" name="sl-door-panel-count" value="4">
+              <label for="sl-panel-4" class="radio-label">4 Panels</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Width -->
+        <div class="input-group">
+          <label>Panel Width:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="sl-width-normal" name="sl-door-extra-width" value="normal" checked>
+              <label for="sl-width-normal" class="radio-label">Standard<br><small>up to 1600mm glass</small></label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="sl-width-extra" name="sl-door-extra-width" value="extra">
+              <label for="sl-width-extra" class="radio-label">Extra Width<br><small>up to 2000mm glass</small></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide Direction -->
+        <div class="input-group">
+          <label id="sl-direction-heading">Slide Direction:</label>
+          <div class="radio-group" id="sl-direction-2panel">
+            <div class="radio-option">
+              <input type="radio" id="sl-dir-left" name="sl-door-slide-direction" value="left-to-right" checked>
+              <label for="sl-dir-left" id="sl-dir-left-label" class="radio-label">Slide Left to Right</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="sl-dir-right" name="sl-door-slide-direction" value="right-to-left">
+              <label for="sl-dir-right" id="sl-dir-right-label" class="radio-label">Slide Right to Left</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Glass Width Warning -->
+        <div id="sl-glass-calc" style="background:rgba(10,22,40,0.05);border-left:2px solid var(--primary-color);padding:10px 14px;margin-top:12px;font-size:0.75rem;color:var(--secondary-color);">
+          Glass per panel: <strong id="sl-glass-width">—</strong>mm
+          <span id="sl-glass-warning" style="color:#e74c3c;display:none;margin-left:8px;"></span>
+        </div>
+      </div>
+
+
+
+
+      <!-- Door Design Options -->
       <div class="config-section" data-for="door" data-category="door-dimensions" style="display:none;">
-        <h3>Step 2: Georgian Bars</h3>
+        <h3>Step 3: Door Design</h3>
+        <div class="input-group" id="d-hinge-group">
+          <label>Open First:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-hinge-left" name="d-hinge-side" value="left" checked><label for="d-hinge-left" class="radio-label">Right</label></div>
+            <div class="radio-option"><input type="radio" id="d-hinge-right" name="d-hinge-side" value="right"><label for="d-hinge-right" class="radio-label">Left</label></div>
+          </div>
+        </div>
+        <div class="input-group" id="d-opening-group">
+          <label>Opening Direction:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-open-inward" name="d-open-direction" value="outward" checked><label for="d-open-inward" class="radio-label">Outward</label></div>
+            <div class="radio-option"><input type="radio" id="d-open-outward" name="d-open-direction" value="inward"><label for="d-open-outward" class="radio-label">Inward</label></div>
+          </div>
+        </div>
+        <div class="input-group" id="d-threshold-group">
+          <label>Threshold:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="d-threshold-standard" name="d-threshold" value="standard" checked><label for="d-threshold-standard" class="radio-label">Standard Hardwood</label></div>
+            <div class="radio-option"><input type="radio" id="d-threshold-aluminium" name="d-threshold" value="aluminium"><label for="d-threshold-aluminium" class="radio-label">Aluminium</label></div>
+            <div class="radio-option"><input type="radio" id="d-threshold-low" name="d-threshold" value="low-profile"><label for="d-threshold-low" class="radio-label">Low Profile (wheelchair accessible)</label></div>
+          </div>
+        </div>
+        <div class="input-group" id="d-threshold-extension-row">
+          <label for="d-threshold-extension">Sill Extension (mm):</label>
+          <input type="number" id="d-threshold-extension" min="0" max="100" value="0" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
+          <small style="color:#888;font-size:11px;margin-top:4px;display:block;">Extension beyond frame (0–100mm). Slope angle stays the same — longer extension = lower sill edge.</small>
+        </div>
+        <div class="input-group" style="margin-top:8px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="d-sill-wider" style="width:18px;height:18px;">
+            Sill wider than frame (+50mm each side)
+          </label>
+        </div>
+      </div>
+      <!-- Door Bars -->
+      <div class="config-section" data-for="door" data-category="door-glass" style="display:none;">
+        <h3>Georgian Bars</h3>
         <div class="input-group">
           <label>Horizontal Bars:</label>
           <div class="radio-group">
@@ -1161,45 +1205,8 @@
         </div>
       </div>
 
-      <!-- Door Design Options -->
-      <div class="config-section" data-for="door" data-category="door-dimensions" style="display:none;">
-        <h3>Step 3: Door Design</h3>
-        <div class="input-group" id="d-hinge-group">
-          <label>Open First:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-hinge-left" name="d-hinge-side" value="left" checked><label for="d-hinge-left" class="radio-label">Right</label></div>
-            <div class="radio-option"><input type="radio" id="d-hinge-right" name="d-hinge-side" value="right"><label for="d-hinge-right" class="radio-label">Left</label></div>
-          </div>
-        </div>
-        <div class="input-group" id="d-opening-group">
-          <label>Opening Direction:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-open-inward" name="d-open-direction" value="outward" checked><label for="d-open-inward" class="radio-label">Outward</label></div>
-            <div class="radio-option"><input type="radio" id="d-open-outward" name="d-open-direction" value="inward"><label for="d-open-outward" class="radio-label">Inward</label></div>
-          </div>
-        </div>
-        <div class="input-group" id="d-threshold-group">
-          <label>Threshold:</label>
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-threshold-standard" name="d-threshold" value="standard" checked><label for="d-threshold-standard" class="radio-label">Standard Hardwood</label></div>
-            <div class="radio-option"><input type="radio" id="d-threshold-aluminium" name="d-threshold" value="aluminium"><label for="d-threshold-aluminium" class="radio-label">Aluminium</label></div>
-            <div class="radio-option"><input type="radio" id="d-threshold-low" name="d-threshold" value="low-profile"><label for="d-threshold-low" class="radio-label">Low Profile (wheelchair accessible)</label></div>
-          </div>
-        </div>
-        <div class="input-group" id="d-threshold-extension-row">
-          <label for="d-threshold-extension">Sill Extension (mm):</label>
-          <input type="number" id="d-threshold-extension" min="0" max="100" value="0" step="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;">
-          <small style="color:#888;font-size:11px;margin-top:4px;display:block;">Extension beyond frame (0–100mm). Slope angle stays the same — longer extension = lower sill edge.</small>
-        </div>
-        <div class="input-group" style="margin-top:8px;">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="checkbox" id="d-sill-wider" style="width:18px;height:18px;">
-            Sill wider than frame (+50mm each side)
-          </label>
-        </div>
-      </div>
       <div class="config-section" data-for="door" data-category="door-glass" style="display:none;">
-        <h3>Step 3: Glass Type</h3>
+        <h3>Glass Type</h3>
         <div class="input-group">
           <label>Glazing:</label>
           <div class="radio-group">
@@ -1212,7 +1219,7 @@
 
       <!-- Door Glass Specification -->
       <div class="config-section" data-for="door" data-category="door-glass" style="display:none;">
-        <h3>Step 4: Glass Specification</h3>
+        <h3>Glass Specification</h3>
         <div class="input-group">
           <label>Glass Finish:</label>
           <div class="radio-group">
@@ -4021,7 +4028,7 @@
         var doorType2 = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
         dfo.style.display = (!isWindows && doorType2 === 'french') ? 'block' : 'none';
       }
-      var dslo = document.getElementById('door-sliding-options');
+      var dslo = document.getElementById('sl-dimensions-step2');
       if (dslo) {
         var doorType3 = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
         dslo.style.display = (!isWindows && doorType3 === 'sliding') ? 'block' : 'none';
@@ -4350,7 +4357,7 @@
         if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
         var doorFrenchOptions = document.getElementById('door-french-options');
         if (doorFrenchOptions) doorFrenchOptions.style.display = (!isWindows && doorType === 'french') ? 'block' : 'none';
-        var doorSlidingOptions = document.getElementById('door-sliding-options');
+        var doorSlidingOptions = document.getElementById('sl-dimensions-step2');
         if (doorSlidingOptions) doorSlidingOptions.style.display = (!isWindows && doorType === 'sliding') ? 'block' : 'none';
 
         // Hide shared elements that don't apply to sliding doors
@@ -4368,13 +4375,18 @@
         if (sideBarsGroup) sideBarsGroup.style.display = isSliding ? 'none' : '';
         if (isSliding && sidePanelDims) sidePanelDims.style.display = 'none';
 
-        // Update dimension hint for sliding
+        // Show/hide sliding info bar
+        var slidingInfoBar = document.getElementById('sliding-info-bar');
+        if (slidingInfoBar) slidingInfoBar.style.display = isSliding ? '' : 'none';
+
+        // Update dimension hint — hide for sliding (info is in red bar)
         var dimHint = document.getElementById('d-dim-hint');
         var widthHint = document.getElementById('d-width-hint');
         if (dimHint) {
           if (isSliding) {
-            dimHint.textContent = 'Door leaf thickness: 57mm | Track system top + bottom';
+            dimHint.style.display = 'none';
           } else {
+            dimHint.style.display = '';
             dimHint.innerHTML = 'Door leaf thickness: 57mm &nbsp;|&nbsp; Frame depth: 93mm';
           }
         }
@@ -4645,7 +4657,7 @@
         r.addEventListener('change', function() {
           var dso = document.getElementById('door-single-options');
           var dfo = document.getElementById('door-french-options');
-          var dslo = document.getElementById('door-sliding-options');
+          var dslo = document.getElementById('sl-dimensions-step2');
           if (dso) dso.style.display = r.value === 'single-external' ? 'block' : 'none';
           if (dfo) dfo.style.display = r.value === 'french' ? 'block' : 'none';
           if (dslo) dslo.style.display = r.value === 'sliding' ? 'block' : 'none';
@@ -4665,13 +4677,18 @@
           if (sideBarsGroup) sideBarsGroup.style.display = isSliding ? 'none' : '';
           if (isSliding && sidePanelDims) sidePanelDims.style.display = 'none';
 
-          // Update dimension hints
+          // Show/hide sliding info bar
+          var slidingInfoBar = document.getElementById('sliding-info-bar');
+          if (slidingInfoBar) slidingInfoBar.style.display = isSliding ? '' : 'none';
+
+          // Update dimension hints — hide for sliding (info in red bar)
           var dimHint = document.getElementById('d-dim-hint');
           var widthHint = document.getElementById('d-width-hint');
           if (dimHint) {
             if (isSliding) {
-              dimHint.textContent = 'Door leaf thickness: 57mm | Track system top + bottom';
+              dimHint.style.display = 'none';
             } else {
+              dimHint.style.display = '';
               dimHint.innerHTML = 'Door leaf thickness: 57mm &nbsp;|&nbsp; Frame depth: 93mm';
             }
           }
@@ -4731,13 +4748,18 @@
           }
         }
 
-        // Update dim hint for sliding
-        var dimHint = document.getElementById('d-dim-hint');
-        if (dimHint) {
-          var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
-          if (doorType === 'sliding') {
-            dimHint.textContent = 'Panel depth: ' + panelDepth + 'mm | Frame depth: ' + frameDepth + 'mm | Glass: ' + glassThickness + 'mm DGU';
-          }
+        // Update red info bar
+        var infoBar = document.getElementById('sliding-info-bar');
+        if (infoBar) {
+          infoBar.style.display = '';
+          var el1 = document.getElementById('sl-info-panel-depth');
+          var el2 = document.getElementById('sl-info-frame-depth');
+          var el3 = document.getElementById('sl-info-glass');
+          var el4 = document.getElementById('sl-info-glass-width');
+          if (el1) el1.textContent = panelDepth;
+          if (el2) el2.textContent = frameDepth;
+          if (el3) el3.textContent = glassThickness;
+          if (el4) el4.textContent = glassWidth > 0 ? glassWidth : '—';
         }
       }
 

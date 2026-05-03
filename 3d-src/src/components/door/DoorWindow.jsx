@@ -601,6 +601,7 @@ export default function DoorWindow({
             opening={panelOpening}
             openDirection={openDirection}
             slideDist={slideDist}
+            isSliding={isSliding}
             doorStyle={doorStyle}
             centerMullion={centerMullion}
             paneling={paneling}

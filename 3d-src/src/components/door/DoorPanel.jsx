@@ -877,6 +877,7 @@ export default function DoorPanel({
   opening = 0,
   openDirection = 'outward',
   slideDist = 0,
+  isSliding = false,
   material,
   materialInt,
   spacerColor = 'silver',
@@ -933,8 +934,12 @@ export default function DoorPanel({
   } else if (hingeType === 'right') {
     handleX = -W / 2 + stileCenter;
     handleSide = 'left';
+  } else if (isSliding) {
+    // Sliding panels: handle on right stile (meeting edge)
+    handleX = W / 2 - stileCenter;
+    handleSide = 'right';
   }
-  // hingeType === 'top' or 'fixed' → no handle (handled below)
+  // hingeType === 'top' → no handle
 
   // ─── Weather bar — quarter-round drip bar on exterior bottom ───
   const weatherBarShape = useMemo(() => {
@@ -952,7 +957,7 @@ export default function DoorPanel({
   const content = (
     <group>
       <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} stileWidthMm={stileWidthMm} />
-      {handleX !== null && hingeType !== 'fixed' && (
+      {handleX !== null && (hingeType !== 'fixed' || isSliding) && (
         <>
           {/* EXT handle — opposite side (was wrong in v1, flip side to fix) */}
           <DoorHandleChrome
@@ -971,7 +976,7 @@ export default function DoorPanel({
         </>
       )}
       {/* Weather bar — quarter-round drip bar, exterior bottom (not for sliding) */}
-      {hingeType !== 'slide' && (
+      {!isSliding && (
       <mesh castShadow receiveShadow position={[W / 2 - mm(10), -H / 2 + mm(40), halfD]} rotation={[0, -Math.PI / 2, 0]}>
         <extrudeGeometry args={[weatherBarShape, { depth: W - mm(20), bevelEnabled: false }]} />
         <primitive object={mat} attach="material" />
