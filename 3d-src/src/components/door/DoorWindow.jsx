@@ -730,24 +730,25 @@ export default function DoorWindow({
         );
       })()}
 
-      {/* ═══ Sill Wider — extends threshold extension 50mm past configuration edges ═══ */}
-      {sillWider && thresholdExtension > 0 && (() => {
-        if (isSliding) {
-          // Sliding: full-width sill extension from exterior face of frame
-          const ext = Math.min(thresholdExtension, 100);
-          const sillDepth = mm(ext);
-          const sillH = mm(40);
-          const sillY = -H / 2 + sillH / 2;
-          const sillZ = halfD + sillDepth / 2;
-          // Full width + 50mm ears each side
-          const sillW = W + mm(100);
-          return (
-            <mesh position={[0, sillY, sillZ]} castShadow receiveShadow>
-              <boxGeometry args={[sillW, sillH, sillDepth]} />
-              <primitive object={extMaterial} attach="material" />
-            </mesh>
-          );
-        }
+      {/* ═══ Sliding sill extension — always visible when extension > 0 ═══ */}
+      {isSliding && thresholdExtension > 0 && (() => {
+        const ext = Math.min(thresholdExtension, 100);
+        const sillDepth = mm(ext);
+        const sillH = mm(40);
+        const sillY = -H / 2 + sillH / 2;
+        const sillZ = halfD + sillDepth / 2;
+        // sillWider adds 50mm each side
+        const sillW = sillWider ? W + mm(100) : W;
+        return (
+          <mesh position={[0, sillY, sillZ]} castShadow receiveShadow>
+            <boxGeometry args={[sillW, sillH, sillDepth]} />
+            <primitive object={extMaterial} attach="material" />
+          </mesh>
+        );
+      })()}
+
+      {/* ═══ Sill Wider — extends threshold extension 50mm past configuration edges (non-sliding) ═══ */}
+      {!isSliding && sillWider && thresholdExtension > 0 && (() => {
         // Standard doors: ear boxes on sides
         const hasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
         const hasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
