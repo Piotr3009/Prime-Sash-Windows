@@ -519,12 +519,17 @@ export default function DoorWindow({
         const leafGap = 4;
         const leafW = p.w + REBATE_STEP * 2 - leafGap * 2;
         const leafH = p.h + REBATE_STEP * 2 - leafGap * 2;
-        // Leaf Z: sits ON gasket — exterior side (outward) or interior side (inward)
-        const leafZbase = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
-        let leafZ = openDirection === 'inward' ? -leafZbase : leafZbase;
-        // Sliding panels: Z offset per track layer (panelDepth + gap per track)
-        if (isSliding && p.trackIdx > 0) {
-          leafZ += mm(slidingPanelDepth + 5) * p.trackIdx;
+
+        let leafZ;
+        if (isSliding) {
+          // Sliding: panels distributed inside frame from exterior to interior
+          // Frame layout: [20mm wall] [panel] [5mm gap] [panel] ... [20mm wall]
+          // trackIdx 0 = most exterior (front), higher = more interior
+          leafZ = halfD - mm(20) - mm(slidingPanelDepth) / 2 - p.trackIdx * mm(slidingPanelDepth + 5);
+        } else {
+          // Standard doors: leaf sits ON gasket
+          const leafZbase = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
+          leafZ = openDirection === 'inward' ? -leafZbase : leafZbase;
         }
         // Opening center Y offset (bottom rail taller than top rail)
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
@@ -853,7 +858,7 @@ export default function DoorWindow({
             <DimensionGuide
               from={[totalLeftX - mm(80), 0, -halfD]}
               to={[totalLeftX - mm(80), 0, halfD]}
-              label={`${FRAME_DEPTH}mm`}
+              label={`${effectiveFrameDepth}mm`}
               offset={[-0.07, 0, 0]}
             />
           </group>
