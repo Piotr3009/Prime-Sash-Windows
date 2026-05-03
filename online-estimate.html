@@ -4090,7 +4090,7 @@
     
     // Sliding door info
     var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
-    var isWindows = (document.querySelector('input[name="window-category"]:checked') || {}).value === 'windows';
+    var isWindows = (document.querySelector('input[name="product-range"]:checked') || {}).value === 'windows';
     if (!isWindows && doorType === 'sliding') {
       var panelCount = parseInt((document.querySelector('input[name="sl-door-panel-count"]:checked') || {}).value) || 2;
       var extraWidth = (document.querySelector('input[name="sl-door-extra-width"]:checked') || {}).value === 'extra';
