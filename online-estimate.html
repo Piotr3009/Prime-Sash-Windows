@@ -771,10 +771,11 @@
       </div>
 
       <!-- ═══ SINGLE EXTERNAL DOOR OPTIONS ═══ -->
-      <div class="config-section" data-category="product-range" id="door-single-options" style="display:none;">
+      <div class="config-section" data-for="door" data-category="door-dimensions" id="door-single-options" style="display:none;">
+        <h3>Step 2: Door Design</h3>
 
         <!-- Shape -->
-        <h3>Door Shape</h3>
+        <h4>Door Shape</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -793,7 +794,7 @@
         </div>
 
         <!-- Door Style (glazing) -->
-        <h3>Door Style</h3>
+        <h4>Door Style</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -812,7 +813,7 @@
         </div>
 
         <!-- Center Mullion (glass split) -->
-        <h3>Center Mullion</h3>
+        <h4>Center Mullion</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -827,7 +828,7 @@
         </div>
 
         <!-- Paneling -->
-        <h3>Paneling</h3>
+        <h4>Paneling</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -850,7 +851,7 @@
         </div>
 
         <!-- Side Panels -->
-        <h3>Side Panels</h3>
+        <h4>Side Panels</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -873,7 +874,7 @@
         </div>
 
         <!-- Side Panel Style (Same as door / Full Glass) — only relevant when sidePanels != none -->
-        <h3>Side Panel Style</h3>
+        <h4>Side Panel Style</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -890,10 +891,11 @@
       </div>
 
       <!-- ═══ FRENCH DOOR OPTIONS ═══ -->
-      <div class="config-section" data-category="product-range" id="door-french-options" style="display:none;">
+      <div class="config-section" data-for="door" data-category="door-dimensions" id="door-french-options" style="display:none;">
+        <h3>Step 2: Door Design</h3>
 
         <!-- Shape -->
-        <h3>Door Shape</h3>
+        <h4>Door Shape</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -912,7 +914,7 @@
         </div>
 
         <!-- Door Style (glazing) -->
-        <h3>Door Style</h3>
+        <h4>Door Style</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -931,7 +933,7 @@
         </div>
 
         <!-- Center Mullion (glass split) -->
-        <h3>Center Mullion</h3>
+        <h4>Center Mullion</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -946,7 +948,7 @@
         </div>
 
         <!-- Paneling -->
-        <h3>Paneling</h3>
+        <h4>Paneling</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -969,7 +971,7 @@
         </div>
 
         <!-- Side Panels -->
-        <h3>Side Panels</h3>
+        <h4>Side Panels</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -992,7 +994,7 @@
         </div>
 
         <!-- Side Panel Style (Same as door / Full Glass) — only relevant when sidePanels != none -->
-        <h3>Side Panel Style</h3>
+        <h4>Side Panel Style</h4>
         <div class="input-group">
           <div class="radio-group">
             <div class="radio-option">
@@ -4008,27 +4010,12 @@
       var fts = document.getElementById('fix-type-section');
       var fss = document.getElementById('fix-shape-section');
       var dts = document.getElementById('door-type-section');
-      var dso = document.getElementById('door-single-options');
       if (wts) wts.style.display = isWindows ? 'block' : 'none';
       if (sts) sts.style.display = (isWindows && isSash) ? 'block' : 'none';
       if (cls) cls.style.display = (isWindows && isCasementPR) ? 'block' : 'none';
       if (fts) fts.style.display = (isWindows && isFixOnly) ? 'block' : 'none';
       if (fss) fss.style.display = (isWindows && isFixOnly) ? 'block' : 'none';
       if (dts) dts.style.display = isWindows ? 'none' : 'block';
-      if (dso) {
-        var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
-        dso.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
-      }
-      var dfo = document.getElementById('door-french-options');
-      if (dfo) {
-        var doorType2 = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
-        dfo.style.display = (!isWindows && doorType2 === 'french') ? 'block' : 'none';
-      }
-      var dslo = document.getElementById('sl-dimensions-step2');
-      if (dslo) {
-        var doorType3 = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
-        dslo.style.display = (!isWindows && doorType3 === 'sliding') ? 'block' : 'none';
-      }
     }
     // Fix bars: only show for triple
     if (cat === 'dim-design') {
@@ -4053,6 +4040,25 @@
       if ((document.querySelector('input[name="window-type"]:checked') || {}).value === 'fix-only') {
         if (typeof window.updateDesignBarsVisibility === 'function') window.updateDesignBarsVisibility();
       }
+    }
+
+    // door-dimensions: conditionally show/hide type-specific design sections
+    if (cat === 'door-dimensions') {
+      var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || 'single-external';
+      var dso = document.getElementById('door-single-options');
+      var dfo = document.getElementById('door-french-options');
+      var dslo = document.getElementById('sl-dimensions-step2');
+      if (dso) dso.style.display = (doorType === 'single-external') ? 'block' : 'none';
+      if (dfo) dfo.style.display = (doorType === 'french') ? 'block' : 'none';
+      if (dslo) dslo.style.display = (doorType === 'sliding') ? 'block' : 'none';
+      // Hide shared elements for sliding
+      var isSliding = (doorType === 'sliding');
+      ['d-hinge-group','d-opening-group','d-threshold-group','d-lock-group','d-side-bars-group'].forEach(function(id) {
+        var el = document.getElementById(id); if (el) el.style.display = isSliding ? 'none' : '';
+      });
+      var dimHint = document.getElementById('d-dim-hint');
+      if (dimHint) dimHint.style.display = isSliding ? 'none' : '';
+      if (window.updateInfoPanel) window.updateInfoPanel();
     }
   }
   
