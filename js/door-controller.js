@@ -73,8 +73,8 @@
     if (isSliding && panelCount > 0) {
       var stileW = 93; // panel stile width
       var innerWidth = width - 100; // 50mm frame each side
-      var overlaps = Math.min(panelCount - 1, 2);
-      var panelWidth = Math.round((innerWidth + overlaps * 2 * stileW) / panelCount);
+      var overlaps = panelCount - 1;
+      var panelWidth = Math.round((innerWidth + overlaps * stileW) / panelCount);
       glassWidth = panelWidth - 2 * stileW;
       if (glassWidth < 0) glassWidth = 0;
       // Panel depth: glass thickness + 33mm timber (based on glass width)

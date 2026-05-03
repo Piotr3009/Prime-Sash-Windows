@@ -4097,8 +4097,8 @@
       var totalWidth = parseInt(document.getElementById('d-width') ? document.getElementById('d-width').value : 0) || 0;
       var innerWidth = totalWidth - 100;
       var stile = 93;
-      var overlaps = Math.min(panelCount - 1, 2);
-      var panelWidth = Math.round((innerWidth + overlaps * 2 * stile) / panelCount);
+      var overlaps = panelCount - 1;
+      var panelWidth = Math.round((innerWidth + overlaps * stile) / panelCount);
       var glassWidth = panelWidth - 2 * stile;
       var glassThickness = glassWidth <= 1000 ? 28 : (glassWidth <= 1600 ? 32 : 36);
       var panelDepth = glassThickness + 33;
@@ -4760,8 +4760,8 @@
         // Correct formula matching 3D geometry:
         // overlaps = N-1 for sequential, 1 for 4-panel pairs
         var innerWidth = totalWidth - 100;
-        var overlaps = Math.min(panelCount - 1, 2);
-        var panelWidth = Math.round((innerWidth + overlaps * 2 * stile) / panelCount);
+        var overlaps = panelCount - 1;
+        var panelWidth = Math.round((innerWidth + overlaps * stile) / panelCount);
         var glassWidth = panelWidth - 2 * stile;
 
         // Panel depth: glass thickness + 33mm timber
