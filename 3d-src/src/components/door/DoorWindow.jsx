@@ -341,6 +341,7 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
     // Overlap per zone = 1×stile (adjacent stiles stack in Z on different tracks)
     // N panels, (N-1) overlaps: panelW = (innerW + (N-1)×S) / N
     // Stride = panelW - S
+    // showHandle: only on the panel(s) user grabs to open
     // 020S: 2-panel sliding — default: left slides behind right
     case '020S': {
       const S = SASH_RAIL;
@@ -348,7 +349,7 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
       const stride = panelW - S;
       return {
         panels: [
-          { x: -stride / 2, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: stride, trackIdx: 1 },
+          { x: -stride / 2, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: stride, trackIdx: 1, showHandle: true },
           { x:  stride / 2, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
         ],
       };
@@ -360,7 +361,7 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
       const stride = panelW - S;
       return {
         panels: [
-          { x: -stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: 2 * stride, trackIdx: 2 },
+          { x: -stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: 2 * stride, trackIdx: 2, showHandle: true },
           { x: 0,        y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: stride,     trackIdx: 1 },
           { x:  stride,  y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
         ],
@@ -374,8 +375,8 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
       return {
         panels: [
           { x: -1.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
-          { x: -0.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: -stride, trackIdx: 1 },
-          { x:  0.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist:  stride, trackIdx: 0 },
+          { x: -0.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: -stride, trackIdx: 1, showHandle: true },
+          { x:  0.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist:  stride, trackIdx: 0, showHandle: true },
           { x:  1.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 1 },
         ],
       };
@@ -468,24 +469,24 @@ export default function DoorWindow({
         if (isReverse && layout === '020S') {
           const stride = ((innerW + S) / 2) - S;
           def.panels = [
-            { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
-            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -stride },
+            { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
+            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -stride, showHandle: true },
           ];
         } else if (isReverse && layout === '030S') {
           const stride = ((innerW + 2 * S) / 3) - S;
           def.panels = [
-            { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
-            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -stride },
-            { ...def.panels[2], hinge: 'slide', trackIdx: 2, slideDist: -2 * stride },
+            { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
+            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -stride, showHandle: false },
+            { ...def.panels[2], hinge: 'slide', trackIdx: 2, slideDist: -2 * stride, showHandle: true },
           ];
         } else if (isReverse && layout === '040S') {
           // Open from sides: outer panels slide inward
           const stride = ((innerW + 3 * S) / 4) - S;
           def.panels = [
-            { ...def.panels[0], hinge: 'slide', trackIdx: 0, slideDist: stride },
-            { ...def.panels[1], hinge: 'fixed', trackIdx: 1, slideDist: undefined },
-            { ...def.panels[2], hinge: 'fixed', trackIdx: 0, slideDist: undefined },
-            { ...def.panels[3], hinge: 'slide', trackIdx: 1, slideDist: -stride },
+            { ...def.panels[0], hinge: 'slide', trackIdx: 0, slideDist: stride, showHandle: true },
+            { ...def.panels[1], hinge: 'fixed', trackIdx: 1, slideDist: undefined, showHandle: false },
+            { ...def.panels[2], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
+            { ...def.panels[3], hinge: 'slide', trackIdx: 1, slideDist: -stride, showHandle: true },
           ];
         }
       }
@@ -501,33 +502,36 @@ export default function DoorWindow({
     <group>
       {/* ═══ Frame ═══ */}
       {isSliding ? (
-        /* Sliding: simple rectangular frame — no rebate, no seal */
+        /* Sliding: simple rectangular frame — no rebate, no seal, dual colour */
         (() => {
-          const fW = mm(effectiveFrameFace); // 50mm for sliding, 57mm for others
+          const fW = mm(effectiveFrameFace); // 50mm for sliding
           const fD = mm(effectiveFrameDepth);
-          const mat = extMaterial;
+          const halfFD = fD / 2;
+          const stileH = H - fW - mm(BOTTOM_FACE) + 0.001;
+          const bottomH = mm(BOTTOM_FACE);
+          // Helper: dual-colour box — ext half (Z>0) and int half (Z<0)
+          const DualBox = ({ pos, args }) => (
+            <group>
+              <mesh castShadow receiveShadow position={[pos[0], pos[1], pos[2] + halfFD / 2]}>
+                <boxGeometry args={[args[0], args[1], halfFD]} />
+                <primitive object={extMaterial} attach="material" />
+              </mesh>
+              <mesh castShadow receiveShadow position={[pos[0], pos[1], pos[2] - halfFD / 2]}>
+                <boxGeometry args={[args[0], args[1], halfFD]} />
+                <primitive object={intMaterial} attach="material" />
+              </mesh>
+            </group>
+          );
           return (
             <group>
               {/* Top rail */}
-              <mesh castShadow receiveShadow position={[0, H / 2 - fW / 2, 0]}>
-                <boxGeometry args={[W, fW, fD]} />
-                <primitive object={mat} attach="material" />
-              </mesh>
+              <DualBox pos={[0, H / 2 - fW / 2, 0]} args={[W, fW, fD]} />
               {/* Bottom rail */}
-              <mesh castShadow receiveShadow position={[0, -H / 2 + mm(BOTTOM_FACE) / 2, 0]}>
-                <boxGeometry args={[W, mm(BOTTOM_FACE), fD]} />
-                <primitive object={mat} attach="material" />
-              </mesh>
+              <DualBox pos={[0, -H / 2 + bottomH / 2, 0]} args={[W, bottomH, fD]} />
               {/* Left stile */}
-              <mesh castShadow receiveShadow position={[-W / 2 + fW / 2, mm(BOTTOM_FACE - FRAME_FACE) / 2, 0]}>
-                <boxGeometry args={[fW, H - fW - mm(BOTTOM_FACE) + 0.001, fD]} />
-                <primitive object={mat} attach="material" />
-              </mesh>
+              <DualBox pos={[-W / 2 + fW / 2, mm(BOTTOM_FACE - FRAME_FACE) / 2, 0]} args={[fW, stileH, fD]} />
               {/* Right stile */}
-              <mesh castShadow receiveShadow position={[W / 2 - fW / 2, mm(BOTTOM_FACE - FRAME_FACE) / 2, 0]}>
-                <boxGeometry args={[fW, H - fW - mm(BOTTOM_FACE) + 0.001, fD]} />
-                <primitive object={mat} attach="material" />
-              </mesh>
+              <DualBox pos={[W / 2 - fW / 2, mm(BOTTOM_FACE - FRAME_FACE) / 2, 0]} args={[fW, stileH, fD]} />
             </group>
           );
         })()
@@ -606,6 +610,7 @@ export default function DoorWindow({
             openDirection={openDirection}
             slideDist={slideDist}
             isSliding={isSliding}
+            showHandle={isSliding ? !!p.showHandle : undefined}
             doorStyle={doorStyle}
             centerMullion={centerMullion}
             paneling={paneling}
@@ -706,8 +711,24 @@ export default function DoorWindow({
       })()}
 
       {/* ═══ Sill Wider — extends threshold extension 50mm past configuration edges ═══ */}
-      {sillWider && thresholdType === 'standard' && thresholdExtension > 0 && (() => {
-        // Ear boxes extend the threshold EXTENSION part only (slope projection beyond frame face)
+      {sillWider && thresholdExtension > 0 && (() => {
+        if (isSliding) {
+          // Sliding: full-width sill extension from exterior face of frame
+          const ext = Math.min(thresholdExtension, 100);
+          const sillDepth = mm(ext);
+          const sillH = mm(40);
+          const sillY = -H / 2 + sillH / 2;
+          const sillZ = halfD + sillDepth / 2;
+          // Full width + 50mm ears each side
+          const sillW = W + mm(100);
+          return (
+            <mesh position={[0, sillY, sillZ]} castShadow receiveShadow>
+              <boxGeometry args={[sillW, sillH, sillDepth]} />
+              <primitive object={extMaterial} attach="material" />
+            </mesh>
+          );
+        }
+        // Standard doors: ear boxes on sides
         const hasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
         const hasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
         const totalLeftX = hasLeft ? -W / 2 - mm(sideLeftWidth) : -W / 2;

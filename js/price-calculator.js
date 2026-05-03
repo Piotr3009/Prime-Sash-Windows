@@ -594,8 +594,15 @@ class PriceCalculator {
     // ── 4. Sill extension ──
     let sillPrice = 0;
     if (configuration.thresholdExtension > 0) {
-      sillPrice = SILL_EXTENSION_PRICE;
-      console.log('Sill extension: £' + sillPrice);
+      if (isSlidingDoor) {
+        // Sliding: price per linear meter of door width
+        const SILL_RATE_PER_M = 80;
+        sillPrice = Math.round(SILL_RATE_PER_M * (doorW / 1000));
+        console.log('Sill extension (sliding): £' + SILL_RATE_PER_M + '/m × ' + (doorW / 1000).toFixed(2) + 'm = £' + sillPrice);
+      } else {
+        sillPrice = SILL_EXTENSION_PRICE;
+        console.log('Sill extension: £' + sillPrice);
+      }
     }
 
     // ── 5. Paneling (only when not full-glass) ──

@@ -878,6 +878,7 @@ export default function DoorPanel({
   openDirection = 'outward',
   slideDist = 0,
   isSliding = false,
+  showHandle,
   material,
   materialInt,
   spacerColor = 'silver',
@@ -957,7 +958,7 @@ export default function DoorPanel({
   const content = (
     <group>
       <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} stileWidthMm={stileWidthMm} />
-      {handleX !== null && (hingeType !== 'fixed' || isSliding) && (
+      {handleX !== null && (isSliding ? showHandle : hingeType !== 'fixed') && (
         <>
           {/* EXT handle — opposite side (was wrong in v1, flip side to fix) */}
           <DoorHandleChrome
