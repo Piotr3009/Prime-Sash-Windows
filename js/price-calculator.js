@@ -541,8 +541,8 @@ class PriceCalculator {
 
     let basePrice;
     if (isSlidingDoor) {
-      const SLIDING_STANDARD_PER_SQM = 1200;
-      const SLIDING_EXTRA_PER_SQM = 1600;
+      const SLIDING_STANDARD_PER_SQM = 1100;
+      const SLIDING_EXTRA_PER_SQM = 1400;
       const slidingRate = configuration.extraWidth ? SLIDING_EXTRA_PER_SQM : SLIDING_STANDARD_PER_SQM;
       basePrice = slidingRate * doorSqm;
       console.log('Sliding door:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + slidingRate, (configuration.extraWidth ? '(Extra Width)' : '(Standard)'), '= £' + basePrice.toFixed(2));
