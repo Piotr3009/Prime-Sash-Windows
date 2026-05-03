@@ -936,9 +936,16 @@ export default function DoorPanel({
     handleX = -W / 2 + stileCenter;
     handleSide = 'left';
   } else if (isSliding) {
-    // Sliding panels: handle on right stile (meeting edge)
-    handleX = W / 2 - stileCenter;
-    handleSide = 'right';
+    // Sliding panels: handle on meeting edge
+    // Slide right (slideDist>0) → handle on LEFT (meeting stile)
+    // Slide left (slideDist<0) → handle on RIGHT (meeting stile)
+    if (slideDist >= 0) {
+      handleX = -W / 2 + stileCenter;
+      handleSide = 'left';
+    } else {
+      handleX = W / 2 - stileCenter;
+      handleSide = 'right';
+    }
   }
   // hingeType === 'top' → no handle
 
