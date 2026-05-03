@@ -1081,11 +1081,11 @@
           <label>Panel Width:</label>
           <div class="radio-group">
             <div class="radio-option">
-              <input type="radio" id="sl-width-normal" name="sl-door-extra-width" value="normal" checked>
+              <input type="radio" id="sl-width-normal" name="sl-door-extra-width" value="normal" checked disabled>
               <label for="sl-width-normal" class="radio-label">Standard<br><small>up to 1600mm glass</small></label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="sl-width-extra" name="sl-door-extra-width" value="extra">
+              <input type="radio" id="sl-width-extra" name="sl-door-extra-width" value="extra" disabled>
               <label for="sl-width-extra" class="radio-label">Extra Width<br><small>up to 2000mm glass</small></label>
             </div>
           </div>
@@ -4763,28 +4763,35 @@
       // ─── Sliding door: glass width calculator ───
       function updateSlidingGlassCalc() {
         var panelCount = parseInt((document.querySelector('input[name="sl-door-panel-count"]:checked') || {}).value) || 2;
-        var extraWidth = (document.querySelector('input[name="sl-door-extra-width"]:checked') || {}).value === 'extra';
         var totalWidth = parseInt(document.getElementById('d-width') ? document.getElementById('d-width').value : 0) || 0;
-        var maxGlass = extraWidth ? 2000 : 1600;
         var stile = 93;
 
-        // Correct formula matching 3D geometry:
-        // overlaps = N-1 for sequential, 1 for 4-panel pairs
+        // Calculate glass width
         var innerWidth = totalWidth - 100;
         var overlaps = panelCount - 1;
         var panelWidth = Math.round((innerWidth + overlaps * stile) / panelCount);
         var glassWidth = panelWidth - 2 * stile;
 
+        // Auto-select Standard/Extra Width based on glass width
+        var isExtra = glassWidth > 1600;
+        var normalRadio = document.getElementById('sl-width-normal');
+        var extraRadio = document.getElementById('sl-width-extra');
+        if (normalRadio) normalRadio.checked = !isExtra;
+        if (extraRadio) extraRadio.checked = isExtra;
+
         // Panel depth: glass thickness + 33mm timber
         var glassThickness = glassWidth <= 1000 ? 28 : (glassWidth <= 1600 ? 32 : 36);
         var panelDepth = glassThickness + 33;
-        // Track count: 2-panel=2, 3-panel=3, 4-panel=2 (two pairs)
+        // Track count
         var trackCount = panelCount === 4 ? 2 : panelCount;
-        // Frame depth: 15mm wall + tracks × panelDepth + (tracks-1) × 5mm gap + 15mm wall
+        // Frame depth
         var frameDepth = 15 + (trackCount * panelDepth) + ((trackCount - 1) * 5) + 15;
 
         // Update info panel (includes warnings)
         if (window.updateInfoPanel) window.updateInfoPanel();
+        // Trigger 3D and price update (auto extra-width change doesn't fire radio events)
+        if (window.updateDoor3D) window.updateDoor3D();
+        if (window.updateDoorPrice) window.updateDoorPrice();
       }
 
       // Sliding door: panel count change — show/hide 4-panel direction options, recalc
@@ -4801,14 +4808,6 @@
               document.getElementById('sl-dir-left').checked = true;
             }
           }
-          updateSlidingGlassCalc();
-        });
-      });
-
-      // Sliding door: extra width change — recalc glass
-      var slExtraRadios = document.querySelectorAll('input[name="sl-door-extra-width"]');
-      slExtraRadios.forEach(function(r) {
-        r.addEventListener('change', function() {
           updateSlidingGlassCalc();
         });
       });
