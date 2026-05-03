@@ -1106,11 +1106,6 @@
           </div>
         </div>
 
-        <!-- Glass Width Warning -->
-        <div id="sl-glass-calc" style="background:rgba(10,22,40,0.05);border-left:2px solid var(--primary-color);padding:10px 14px;margin-top:12px;font-size:0.75rem;color:var(--secondary-color);">
-          Glass per panel: <strong id="sl-glass-width">—</strong>mm
-          <span id="sl-glass-warning" style="color:#e74c3c;display:none;margin-left:8px;"></span>
-        </div>
       </div>
 
 
@@ -4104,9 +4099,17 @@
       var panelDepth = glassThickness + 33;
       var trackCount = panelCount === 4 ? 2 : panelCount;
       var frameDepth = 15 + (trackCount * panelDepth) + ((trackCount - 1) * 5) + 15;
+      var extraWidth = (document.querySelector('input[name="sl-door-extra-width"]:checked') || {}).value === 'extra';
+      var maxGlass = extraWidth ? 2000 : 1600;
+      var warning = '';
+      if (glassWidth > maxGlass) {
+        warning = '<p style="color:#e74c3c;margin-top:4px;">⚠ Glass too wide! Max ' + maxGlass + 'mm. Add panels or enable Extra Width.</p>';
+      } else if (glassWidth <= 0) {
+        warning = '<p style="color:#e74c3c;margin-top:4px;">⚠ Door too narrow for ' + panelCount + ' panels.</p>';
+      }
       infoPanel.innerHTML = 
         '<p class="info-title">Sliding Door Specification</p>' +
-        '<p>Panel: <span class="info-highlight">' + panelWidth + ' × ' + panelDepth + 'mm</span> &nbsp;|&nbsp; Frame: <span class="info-highlight">' + frameDepth + 'mm</span> &nbsp;|&nbsp; Glass: <span class="info-highlight">' + (glassWidth > 0 ? glassWidth : '—') + 'mm (' + glassThickness + 'mm DGU)</span></p>';
+        '<p>Panel: <span class="info-highlight">' + panelWidth + ' × ' + panelDepth + 'mm</span> &nbsp;|&nbsp; Frame: <span class="info-highlight">' + frameDepth + 'mm</span> &nbsp;|&nbsp; Glass: <span class="info-highlight">' + (glassWidth > 0 ? glassWidth : '—') + 'mm (' + glassThickness + 'mm DGU)</span></p>' + warning;
       return;
     }
 
@@ -4772,23 +4775,7 @@
         // Frame depth: 15mm wall + tracks × panelDepth + (tracks-1) × 5mm gap + 15mm wall
         var frameDepth = 15 + (trackCount * panelDepth) + ((trackCount - 1) * 5) + 15;
 
-        var glassEl = document.getElementById('sl-glass-width');
-        var warnEl = document.getElementById('sl-glass-warning');
-        if (glassEl) glassEl.textContent = glassWidth > 0 ? glassWidth : '—';
-        if (warnEl) {
-          if (glassWidth > maxGlass) {
-            warnEl.style.display = '';
-            warnEl.textContent = '⚠ Too wide! Max ' + maxGlass + 'mm. Add more panels or enable Extra Width.';
-          } else if (glassWidth <= 0) {
-            warnEl.style.display = '';
-            warnEl.textContent = '⚠ Door too narrow for ' + panelCount + ' panels.';
-          } else {
-            warnEl.style.display = 'none';
-            warnEl.textContent = '';
-          }
-        }
-
-        // Update info panel
+        // Update info panel (includes warnings)
         if (window.updateInfoPanel) window.updateInfoPanel();
       }
 
