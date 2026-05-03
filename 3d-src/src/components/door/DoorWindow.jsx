@@ -367,17 +367,17 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
         ],
       };
     }
-    // 040S: 4-panel sequential, alternating tracks F,B,F,B — default: open from center
+    // 040S: 4-panel, alternating tracks — default: left-to-right (2 left slide behind 2 right)
     case '040S': {
       const S = SASH_RAIL;
       const panelW = (innerW + 3 * S) / 4;
       const stride = panelW - S;
       return {
         panels: [
-          { x: -1.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
-          { x: -0.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: -stride, trackIdx: 1, showHandle: true },
-          { x:  0.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist:  stride, trackIdx: 0, showHandle: true },
-          { x:  1.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 1 },
+          { x: -1.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: 2 * stride, trackIdx: 1, showHandle: true },
+          { x: -0.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'slide', slideDist: 2 * stride, trackIdx: 0 },
+          { x:  0.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 1 },
+          { x:  1.5 * stride, y: 0, w: panelW, h: innerH, hinge: 'fixed', trackIdx: 0 },
         ],
       };
     }
@@ -462,29 +462,49 @@ export default function DoorWindow({
   const layoutDef = useMemo(
     () => {
       const def = getLayout(layout, innerW, innerH, height, fanlightRatio);
-      // Sliding direction swap
+      // Sliding direction swap (defaults: 020S/030S=left-to-right, 040S=left-to-right)
       if (layout.endsWith('S') && def.panels) {
-        const isReverse = slideDirection === 'right-to-left';
+        const dir = slideDirection;
         const S = SASH_RAIL;
-        if (isReverse && layout === '020S') {
+        // 020S swaps
+        if (dir === 'right-to-left' && layout === '020S') {
           const stride = ((innerW + S) / 2) - S;
           def.panels = [
             { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
             { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -stride, showHandle: true },
           ];
-        } else if (isReverse && layout === '030S') {
+        // 030S swaps
+        } else if (dir === 'right-to-left' && layout === '030S') {
           const stride = ((innerW + 2 * S) / 3) - S;
           def.panels = [
             { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
             { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -stride, showHandle: false },
             { ...def.panels[2], hinge: 'slide', trackIdx: 2, slideDist: -2 * stride, showHandle: true },
           ];
-        } else if (isReverse && layout === '040S') {
-          // Open from sides: outer panels slide inward
+        // 040S swaps — right-to-left: 2 right behind 2 left
+        } else if (dir === 'right-to-left' && layout === '040S') {
           const stride = ((innerW + 3 * S) / 4) - S;
           def.panels = [
-            { ...def.panels[0], hinge: 'slide', trackIdx: 0, slideDist: stride, showHandle: true },
-            { ...def.panels[1], hinge: 'fixed', trackIdx: 1, slideDist: undefined, showHandle: false },
+            { ...def.panels[0], hinge: 'fixed', trackIdx: 1, slideDist: undefined, showHandle: false },
+            { ...def.panels[1], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
+            { ...def.panels[2], hinge: 'slide', trackIdx: 1, slideDist: -2 * stride, showHandle: false },
+            { ...def.panels[3], hinge: 'slide', trackIdx: 0, slideDist: -2 * stride, showHandle: true },
+          ];
+        // 040S — from-center: inner 2 slide outward
+        } else if (dir === 'from-center' && layout === '040S') {
+          const stride = ((innerW + 3 * S) / 4) - S;
+          def.panels = [
+            { ...def.panels[0], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
+            { ...def.panels[1], hinge: 'slide', trackIdx: 1, slideDist: -stride, showHandle: true },
+            { ...def.panels[2], hinge: 'slide', trackIdx: 1, slideDist:  stride, showHandle: true },
+            { ...def.panels[3], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
+          ];
+        // 040S — from-sides: outer 2 slide inward
+        } else if (dir === 'from-sides' && layout === '040S') {
+          const stride = ((innerW + 3 * S) / 4) - S;
+          def.panels = [
+            { ...def.panels[0], hinge: 'slide', trackIdx: 1, slideDist: stride, showHandle: true },
+            { ...def.panels[1], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
             { ...def.panels[2], hinge: 'fixed', trackIdx: 0, slideDist: undefined, showHandle: false },
             { ...def.panels[3], hinge: 'slide', trackIdx: 1, slideDist: -stride, showHandle: true },
           ];

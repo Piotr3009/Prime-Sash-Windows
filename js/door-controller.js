@@ -317,10 +317,12 @@
     var specOpening = $('spec-d-opening');
     if (specOpening) {
       if (isSliding) {
-        var dirLabels = { 'left-to-right': 'Left → Right', 'right-to-left': 'Right → Left' };
-        if (config.panelCount >= 4) {
-          dirLabels = { 'left-to-right': 'Open from Center', 'right-to-left': 'Open from Sides' };
-        }
+        var dirLabels = {
+          'left-to-right': 'Left → Right',
+          'right-to-left': 'Right → Left',
+          'from-center': 'Open from Center',
+          'from-sides': 'Open from Sides'
+        };
         specOpening.textContent = dirLabels[config.slideDirection] || 'Left → Right';
       } else {
         specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Outward' : 'Inward';

@@ -1103,6 +1103,14 @@
               <input type="radio" id="sl-dir-right" name="sl-door-slide-direction" value="right-to-left">
               <label for="sl-dir-right" id="sl-dir-right-label" class="radio-label">Slide Right to Left</label>
             </div>
+            <div class="radio-option sl-4panel-only" style="display:none;">
+              <input type="radio" id="sl-dir-center" name="sl-door-slide-direction" value="from-center">
+              <label for="sl-dir-center" class="radio-label">Open from Center</label>
+            </div>
+            <div class="radio-option sl-4panel-only" style="display:none;">
+              <input type="radio" id="sl-dir-sides" name="sl-door-slide-direction" value="from-sides">
+              <label for="sl-dir-sides" class="radio-label">Open from Sides</label>
+            </div>
           </div>
         </div>
 
@@ -4779,18 +4787,19 @@
         if (window.updateInfoPanel) window.updateInfoPanel();
       }
 
-      // Sliding door: panel count change — update direction labels, recalc glass
+      // Sliding door: panel count change — show/hide 4-panel direction options, recalc
       var slPanelRadios = document.querySelectorAll('input[name="sl-door-panel-count"]');
       slPanelRadios.forEach(function(r) {
         r.addEventListener('change', function() {
-          var leftLabel = document.getElementById('sl-dir-left-label');
-          var rightLabel = document.getElementById('sl-dir-right-label');
-          if (r.value === '4') {
-            if (leftLabel) leftLabel.textContent = 'Open from Center';
-            if (rightLabel) rightLabel.textContent = 'Open from Sides';
-          } else {
-            if (leftLabel) leftLabel.textContent = 'Slide Left to Right';
-            if (rightLabel) rightLabel.textContent = 'Slide Right to Left';
+          var fourPanelOpts = document.querySelectorAll('.sl-4panel-only');
+          var is4 = (r.value === '4');
+          fourPanelOpts.forEach(function(el) { el.style.display = is4 ? '' : 'none'; });
+          // If switching away from 4 and a 4-panel-only option was selected, reset to left-to-right
+          if (!is4) {
+            var current = (document.querySelector('input[name="sl-door-slide-direction"]:checked') || {}).value;
+            if (current === 'from-center' || current === 'from-sides') {
+              document.getElementById('sl-dir-left').checked = true;
+            }
           }
           updateSlidingGlassCalc();
         });
