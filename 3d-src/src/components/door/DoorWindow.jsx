@@ -552,10 +552,11 @@ export default function DoorWindow({
 
       {/* ─── Panels (leaves) ─── */}
       {layoutDef.panels && layoutDef.panels.map((p, i) => {
-        // Leaf sits in rebate: extends 21mm into frame rebate on each side, minus 4mm gap
+        // Standard doors: leaf extends into frame rebate (21mm each side, minus 4mm gap)
+        // Sliding doors: no rebate, panel = exact calculated width
         const leafGap = 4;
-        const leafW = p.w + REBATE_STEP * 2 - leafGap * 2;
-        const leafH = p.h + REBATE_STEP * 2 - leafGap * 2;
+        const leafW = isSliding ? p.w : p.w + REBATE_STEP * 2 - leafGap * 2;
+        const leafH = isSliding ? p.h : p.h + REBATE_STEP * 2 - leafGap * 2;
 
         let leafZ;
         if (isSliding) {
