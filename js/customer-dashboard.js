@@ -372,7 +372,7 @@ class CustomerDashboard {
         const modal = document.getElementById('order-modal');
         const content = document.getElementById('order-detail-content');
 
-        const isEditable = estimate.status === 'sent';
+        const isEditable = ['draft', 'sent', 'quoted'].includes(estimate.status);
         content.innerHTML = EstimateRenderer.renderEstimateHTML(estimate, {
             isEditable,
             isAdmin: false
@@ -464,7 +464,15 @@ class CustomerDashboard {
         }
 
         try {
-            // First delete estimate_items (because of foreign key)
+            // First delete estimate_extras (because of foreign key)
+            const { error: extrasError } = await supabaseClient
+                .from('estimate_extras')
+                .delete()
+                .eq('estimate_id', estimateId);
+
+            if (extrasError) throw extrasError;
+
+            // Then delete estimate_items (because of foreign key)
             const { error: itemsError } = await supabaseClient
                 .from('estimate_items')
                 .delete()
