@@ -1391,7 +1391,8 @@
       </div>
       <div class="config-section" data-for="door" data-category="door-finalise" style="display:none;background:transparent!important;border:none!important;padding:0!important;">
         <button class="btn" id="d-add-to-estimate" style="width:100%;padding:14px;font-size:0.9rem;cursor:pointer;">Add Door to Estimate</button>
-        <button class="btn btn-secondary" id="d-view-estimates" style="margin-top:8px;width:100%;">View My Estimates</button>
+        <button class="btn btn-secondary" id="d-preview-estimate" style="margin-top:8px;width:100%;">Preview Estimate</button>
+        <button class="btn btn-secondary" id="d-view-estimates" style="margin-top:8px;width:100%;">Go to My Estimate</button>
       </div>
 
       <!-- ═══ END DOOR SECTIONS ═══ -->
@@ -3514,7 +3515,8 @@
       
       <div class="config-section" data-category="finalise" style="background:transparent!important;border:none!important;padding:0!important;">
       <button class="btn" id="add-to-estimate">Create New Estimate</button>
-      <button class="btn btn-secondary" id="view-my-estimates">View My Estimates</button>
+      <button class="btn btn-secondary" id="preview-estimate" style="width:100%;margin-top:8px;">Preview Estimate</button>
+      <button class="btn btn-secondary" id="view-my-estimates" style="width:100%;margin-top:8px;">Go to My Estimate</button>
       </div>
     </div>
     
@@ -3965,6 +3967,12 @@
 <link rel="stylesheet" href="css/auth.css">
 
 <!-- Estimate Manager Integration -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.3/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="js/estimate-extras.js"></script>
+<script src="js/estimate-renderer.js"></script>
 <script src="js/estimate-selector.js"></script>
 <script src="js/estimate-manager.js"></script>
 
@@ -5971,5 +5979,14 @@
         body: JSON.stringify({ page: 'online-estimate' })
       }).catch(() => {});
     </script>
+
+<!-- Estimate Preview Modal -->
+<div id="estimate-preview-modal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:900px;padding:20px;">
+    <span class="close" onclick="document.getElementById('estimate-preview-modal').style.display='none'">&times;</span>
+    <div id="estimate-preview-content"></div>
+  </div>
+</div>
+
 </body>
 </html>

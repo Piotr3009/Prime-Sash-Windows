@@ -466,25 +466,23 @@ class EstimateManager {
 
         // Przycisk "View My Estimates"
         const viewBtn = document.getElementById('view-my-estimates');
-        if (viewBtn) {
-            viewBtn.addEventListener('click', async () => {
+        const dViewBtn = document.getElementById('d-view-estimates');
+        [viewBtn, dViewBtn].forEach(btn => {
+            if (!btn) return;
+            btn.addEventListener('click', async () => {
                 const user = await getCurrentUser();
                 
                 if (user) {
-                    // ZALOGOWANY - idź do dashboardu
                     window.location.href = 'customer-dashboard.html';
                 } else {
-                    // NIEZALOGOWANY - sprawdź localStorage
                     const savedEstimates = JSON.parse(localStorage.getItem('windowEstimates') || '[]');
                     
                     if (savedEstimates.length > 0) {
-                        // Ma zapisane okna - zaproponuj logowanie
                         if (confirm(`You have ${savedEstimates.length} window(s) saved locally.\n\nLogin to sync your estimates and access full features?`)) {
                             localStorage.setItem('redirect_after_login', 'customer-dashboard.html');
                             window.location.href = 'login.html';
                         }
                     } else {
-                        // Nie ma nic - zaproponuj logowanie
                         if (confirm('Login to create and manage your estimates?')) {
                             localStorage.setItem('redirect_after_login', 'customer-dashboard.html');
                             window.location.href = 'login.html';
@@ -492,10 +490,102 @@ class EstimateManager {
                     }
                 }
             });
+        });
+
+        // Przycisk "Preview Estimate" — modal z podglądem
+        const previewBtn = document.getElementById('preview-estimate');
+        const dPreviewBtn = document.getElementById('d-preview-estimate');
+        [previewBtn, dPreviewBtn].forEach(btn => {
+            if (!btn) return;
+            btn.addEventListener('click', async () => {
+                const user = await getCurrentUser();
+                if (!user) {
+                    if (confirm('Login to preview your estimates?')) {
+                        localStorage.setItem('redirect_after_login', 'online-estimate.html');
+                        window.location.href = 'login.html';
+                    }
+                    return;
+                }
+
+                if (!this.currentEstimate) {
+                    alert('No estimate selected. Please create or select an estimate first.');
+                    return;
+                }
+
+                try {
+                    // Load full estimate data from DB
+                    const { data, error } = await supabaseClient
+                        .from('estimates')
+                        .select(`
+                            *,
+                            estimate_items (*),
+                            customers (full_name, company_name, email, phone, customer_code)
+                        `)
+                        .eq('id', this.currentEstimate.id)
+                        .single();
+
+                    if (error) throw error;
+
+                    // Load extras
+                    try {
+                        data.extras = await EstimateExtras.load(this.currentEstimate.id);
+                    } catch (extErr) {
+                        data.extras = [];
+                    }
+
+                    // Render in modal
+                    const modal = document.getElementById('estimate-preview-modal');
+                    const content = document.getElementById('estimate-preview-content');
+                    const isEditable = ['draft', 'sent', 'quoted'].includes(data.status);
+
+                    content.innerHTML = EstimateRenderer.renderEstimateHTML(data, {
+                        isEditable,
+                        isAdmin: false
+                    });
+
+                    modal.style.display = 'flex';
+                    EstimateRenderer.attachExportButtons(data);
+
+                    // After delete/rename — re-render modal and update selector
+                    window.dashboard = {
+                        viewOrderDetails: async (estimateId) => {
+                            // Reload and re-render
+                            const { data: fresh } = await supabaseClient
+                                .from('estimates')
+                                .select('*, estimate_items (*), customers (full_name, company_name, email, phone, customer_code)')
+                                .eq('id', estimateId)
+                                .single();
+                            if (fresh) {
+                                try { fresh.extras = await EstimateExtras.load(estimateId); } catch(e) { fresh.extras = []; }
+                                content.innerHTML = EstimateRenderer.renderEstimateHTML(fresh, { isEditable: ['draft','sent','quoted'].includes(fresh.status), isAdmin: false });
+                                EstimateRenderer.attachExportButtons(fresh);
+                            }
+                        },
+                        closeModal: () => { modal.style.display = 'none'; },
+                        loadEstimates: async () => { if (window.estimateSelectorManager) await window.estimateSelectorManager.loadEstimates(); },
+                        renameWindow: async (itemId, currentName, estimateId) => {
+                            const newName = prompt('Enter new window name:', currentName);
+                            if (!newName || newName.trim() === '' || newName.trim() === currentName) return;
+                            try {
+                                const { error } = await supabaseClient.from('estimate_items').update({ window_number: newName.trim() }).eq('id', itemId);
+                                if (error) throw error;
+                                await window.dashboard.viewOrderDetails(estimateId);
+                            } catch (e) {
+                                console.error('Rename error:', e);
+                                alert('Failed to rename window.');
+                            }
+                        }
+                    };
+
+                } catch (err) {
+                    console.error('Preview estimate error:', err);
+                    alert('Failed to load estimate preview.');
+                }
+            });
+        });
             
             // Zaktualizuj licznik przy inicjalizacji
             this.updateLocalStorageCounter();
-        }
 
         // Zamknięcie modala - teraz obsługiwane przez HTML onclick
         // (new-estimate-modal ma już onclick na przycisku close)
