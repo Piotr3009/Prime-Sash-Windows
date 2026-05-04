@@ -301,6 +301,7 @@ class EstimateRenderer {
         // ═══ DOOR FIELDS ═══
         const doorShape = fc.doorShape || 'standard';
         const doorType = fc.doorType || 'single-external';
+        const isSliding = doorType === 'sliding';
         const doorStyle = fc.doorStyle || fc.doorPaneling || 'full-glass';
         const doorSideStyle = fc.sideStyle || 'full-glass';
         const doorHingeSide = fc.hingeSide || 'left';
@@ -308,6 +309,17 @@ class EstimateRenderer {
         const doorLockType = fc.lockType || 'multipoint';
         const doorThreshold = fc.threshold || 'standard';
         const doorThresholdExtension = fc.thresholdExtension || 0;
+
+        // Sliding-specific
+        const slidingPanelCount = fc.panelCount || 2;
+        const slidingExtraWidth = fc.extraWidth || false;
+        const slidingDirection = fc.slideDirection || 'left-to-right';
+        const slidingGlassWidth = fc.glassWidth || 0;
+        const slidingPanelDepth = fc.panelDepth || 57;
+        const slidingFrameDepth = fc.frameDepth || 93;
+        const slidingDirLabels = { 'left-to-right': 'Left → Right', 'right-to-left': 'Right → Left', 'from-center': 'Open from Center', 'from-sides': 'Open from Sides' };
+        const slidingDirText = slidingDirLabels[slidingDirection] || 'Left → Right';
+        const slidingTypeText = isSliding ? ('Sliding Door — ' + slidingPanelCount + ' Panels' + (slidingExtraWidth ? ' (Extra Width)' : '')) : '';
         const doorSillWider = fc.sillWider || false;
         const doorSidePanels = fc.sidePanels || 'none';
         const doorSideLeftWidth = fc.sideLeftWidth || 500;
@@ -368,7 +380,9 @@ class EstimateRenderer {
             doorSidePanels, doorSideLeftWidth, doorSideRightWidth, doorPanelsText,
             doorHBars, doorVBars, doorBarsText, doorSideHBars, doorSideVBars, doorSideBarsText,
             doorShape, doorShapeText, doorStyle, doorStyleText, doorSideStyle, doorSideStyleText,
-            doorPaneling, doorPanelingText, doorCenterMullion
+            doorPaneling, doorPanelingText, doorCenterMullion,
+            isSliding, slidingPanelCount, slidingExtraWidth, slidingDirection, slidingDirText,
+            slidingGlassWidth, slidingPanelDepth, slidingFrameDepth, slidingTypeText
         };
     }
 
@@ -473,24 +487,24 @@ class EstimateRenderer {
                             ${R.specRow('Colour', p.colorDisplay)}
                             ${R.specRow('Bars', p.fixBarsFull)}
                             ` : p.windowType === 'door' ? `
-                            ${R.specRow('Type', p.doorType === 'french' ? 'French Doors' : 'Single Patio Door')}
-                            ${R.specRow('Shape', p.doorShapeText)}
-                            ${R.specRow('Style', p.doorStyleText)}
+                            ${R.specRow('Type', p.isSliding ? p.slidingTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door'))}
+                            ${p.isSliding ? '' : R.specRow('Shape', p.doorShapeText)}
+                            ${p.isSliding ? '' : R.specRow('Style', p.doorStyleText)}
                             ${p.doorStyle !== 'full-glass' ? R.specRow('Paneling', p.doorPanelingText) : ''}
                             ${p.doorStyle !== 'full-glass' ? R.specRow('Center Mullion', p.doorCenterMullion ? 'Yes' : 'No') : ''}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
-                            ${p.doorPanelsText ? R.specRow('Side Panels', p.doorPanelsText) : ''}
-                            ${p.doorSidePanels !== 'none' ? R.specRow('Side Panel Style', p.doorSideStyleText) : ''}
-                            ${R.specRow('Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right')}
-                            ${R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward')}
-                            ${R.specRow('Threshold', p.doorThresholdText)}
+                            ${!p.isSliding && p.doorPanelsText ? R.specRow('Side Panels', p.doorPanelsText) : ''}
+                            ${!p.isSliding && p.doorSidePanels !== 'none' ? R.specRow('Side Panel Style', p.doorSideStyleText) : ''}
+                            ${p.isSliding ? R.specRow('Slide Direction', p.slidingDirText) : R.specRow('Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right')}
+                            ${p.isSliding ? R.specRow('Glass per Panel', p.slidingGlassWidth + 'mm') : R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward')}
+                            ${p.isSliding ? R.specRow('Frame Depth', p.slidingFrameDepth + 'mm') : R.specRow('Threshold', p.doorThresholdText)}
                             ${R.specRow('Glass', p.glassText)}
                             ${R.specRow('Glass Finish', p.glassFinishText)}
                             ${R.specRow('Spacer Bar', p.spacerText)}
                             ${R.specRow('Colour', p.colorDisplay)}
                             ${R.specRow('Bars', p.doorBarsText)}
-                            ${p.doorSideBarsText ? R.specRow('Panel Bars', p.doorSideBarsText) : ''}
-                            ${R.specRow('Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock')}
+                            ${!p.isSliding && p.doorSideBarsText ? R.specRow('Panel Bars', p.doorSideBarsText) : ''}
+                            ${p.isSliding ? '' : R.specRow('Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock')}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
                             ${R.specRow('Safety Glass', p.safetyGlassText)}
                             ${R.specRow('Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1))}
@@ -2453,7 +2467,7 @@ class EstimateRenderer {
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.casementBarsText]);
                     specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
-                    if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                    if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 } else if (p.windowType === 'fix-only') {
                     specs.push(['Type', p.fixTypeText]);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
@@ -2463,25 +2477,25 @@ class EstimateRenderer {
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.fixBarsFull]);
                 } else if (p.windowType === 'door') {
-                    specs.push(['Type', p.doorType === 'french' ? 'French Doors' : 'Single Patio Door']);
-                    specs.push(['Shape', p.doorShapeText]);
-                    specs.push(['Style', p.doorStyleText]);
-                    if (p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
-                    if (p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
+                    specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door')]);
+                    if (!p.isSliding) specs.push(['Shape', p.doorShapeText]);
+                    if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
+                    if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                    if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
-                    if (p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
-                    if (p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
-                    specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']);
-                    specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
-                    specs.push(['Threshold', p.doorThresholdText]);
+                    if (!p.isSliding && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
+                    if (!p.isSliding && p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
+                    if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Glass per Panel', p.slidingGlassWidth + 'mm']); specs.push(['Panel Depth', p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
+                    if (!p.isSliding) specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
+                    if (!p.isSliding) specs.push(['Threshold', p.doorThresholdText]);
                     specs.push(['Glass', p.glassText]);
                     specs.push(['Glass Finish', p.glassFinishText]);
                     specs.push(['Spacer Bar', p.spacerText]);
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.doorBarsText]);
-                    if (p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
-                    specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
-                    if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                    if (!p.isSliding && p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
+                    if (!p.isSliding) specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
+                    if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                     specs.push(['Safety Glass', p.safetyGlassText]);
                     specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                     specs.push(['Trickle Vent', p.trickleText]);
@@ -2497,7 +2511,7 @@ class EstimateRenderer {
                     specs.push(['Georgian Bars', p.barsText]);
                     specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
                     specs.push(['Horns', p.hornsText]);
-                    if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                    if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 }
 
                 const specRows2Col = specs.map(([l, v]) => `
@@ -2921,7 +2935,7 @@ class EstimateRenderer {
                 specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                 if (p.sillExtension !== 'none') specs.push(['Sill Projection', p.sillText]);
                 specs.push(['Trickle Vent', p.trickleText]);
-                if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
             } else if (p.windowType === 'fix-only') {
                 specs.push(['Type', p.fixTypeText]);
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
@@ -2931,25 +2945,25 @@ class EstimateRenderer {
                 specs.push(['Colour', p.colorDisplay]);
                 specs.push(['Bars', p.fixBarsFull]);
             } else if (p.windowType === 'door') {
-                specs.push(['Type', p.doorType === 'french' ? 'French Doors' : 'Single Patio Door']);
-                specs.push(['Shape', p.doorShapeText]);
-                specs.push(['Style', p.doorStyleText]);
-                if (p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
-                if (p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
+                specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door')]);
+                if (!p.isSliding) specs.push(['Shape', p.doorShapeText]);
+                if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
+                if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
-                if (p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
-                if (p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
-                specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']);
-                specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
-                specs.push(['Threshold', p.doorThresholdText]);
+                if (!p.isSliding && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
+                if (!p.isSliding && p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
+                if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Glass per Panel', p.slidingGlassWidth + 'mm']); specs.push(['Panel Depth', p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
+                if (!p.isSliding) specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
+                if (!p.isSliding) specs.push(['Threshold', p.doorThresholdText]);
                 specs.push(['Glass', p.glassText]);
                 specs.push(['Glass Finish', p.glassFinishText]);
                 specs.push(['Spacer Bar', p.spacerText]);
                 specs.push(['Colour', p.colorDisplay]);
                 specs.push(['Bars', p.doorBarsText]);
-                if (p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
-                specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
-                if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                if (!p.isSliding && p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
+                if (!p.isSliding) specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
+                if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 specs.push(['Safety Glass', p.safetyGlassText]);
                 specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                 specs.push(['Trickle Vent', p.trickleText]);
@@ -2974,7 +2988,7 @@ class EstimateRenderer {
             if (p.fixBarsText) specs.push(['Fix Panel Bars', p.fixBarsText]);
             specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
             specs.push(['Horns', p.hornsText]);
-            if (p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+            if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
             }
 
             const ironText = p.ironList.length > 0 

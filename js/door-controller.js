@@ -224,22 +224,28 @@
 
     var specShape = $('spec-d-shape');
     var shapeLabels = { 'standard': 'Standard', 'arched': 'Arched', 'glazed-arch': 'Glazed Arch' };
-    if (specShape) specShape.textContent = shapeLabels[config.doorShape] || 'Standard';
+    if (specShape) {
+      specShape.textContent = shapeLabels[config.doorShape] || 'Standard';
+      specShape.parentElement.style.display = isSliding ? 'none' : '';
+    }
 
     var specStyle = $('spec-d-style');
     var styleLabels = { 'full-glass': 'Full Glass', 'three-quarter': '¾ Glass', 'half-glazed': 'Half Glass' };
-    if (specStyle) specStyle.textContent = styleLabels[config.doorStyle] || 'Full Glass';
+    if (specStyle) {
+      specStyle.textContent = styleLabels[config.doorStyle] || 'Full Glass';
+      specStyle.parentElement.style.display = isSliding ? 'none' : '';
+    }
 
     var specPaneling = $('spec-d-paneling');
     var panelingLabels = { 'flat': 'Flat', 'panel': 'Recessed Panel', 'beading': 'Beading', 'bespoke': 'Bespoke' };
     var panelingItem = $('spec-d-paneling-item');
     if (specPaneling) specPaneling.textContent = panelingLabels[config.doorPaneling] || 'Flat';
-    if (panelingItem) panelingItem.style.display = (config.doorStyle === 'full-glass') ? 'none' : '';
+    if (panelingItem) panelingItem.style.display = (isSliding || config.doorStyle === 'full-glass') ? 'none' : '';
 
     var specMullion = $('spec-d-mullion');
     var mullionItem = $('spec-d-mullion-item');
     if (specMullion) specMullion.textContent = config.centerMullion ? 'Yes' : 'No';
-    if (mullionItem) mullionItem.style.display = (config.doorStyle === 'full-glass') ? 'none' : '';
+    if (mullionItem) mullionItem.style.display = (isSliding || config.doorStyle === 'full-glass') ? 'none' : '';
 
     var sideStyleItem = $('spec-d-side-style-item');
     var sideStyleVal = $('spec-d-side-style');
@@ -264,8 +270,14 @@
     var panelsVal = $('spec-d-panels');
     var sp = config.sidePanels || 'none';
     if (panelsItem && panelsVal) {
-      if (sp !== 'none') {
+      var panelsLabel = $('spec-d-panels-label');
+      if (isSliding) {
         panelsItem.style.display = '';
+        if (panelsLabel) panelsLabel.textContent = 'Panels:';
+        panelsVal.textContent = config.panelCount + ' panels, glass ' + config.glassWidth + 'mm, depth ' + config.panelDepth + 'mm';
+      } else if (sp !== 'none') {
+        panelsItem.style.display = '';
+        if (panelsLabel) panelsLabel.textContent = 'Side Panels:';
         var panelDesc = [];
         if (sp === 'left' || sp === 'both') panelDesc.push('Left ' + (config.sideLeftWidth || 500) + 'mm');
         if (sp === 'right' || sp === 'both') panelDesc.push('Right ' + (config.sideRightWidth || 500) + 'mm');
@@ -335,7 +347,10 @@
 
     var specThreshold = $('spec-d-threshold');
     var thresholdLabels = { 'standard': 'Standard Hardwood', 'aluminium': 'Aluminium', 'low-profile': 'Low Profile' };
-    if (specThreshold) specThreshold.textContent = thresholdLabels[config.threshold] || 'Standard Hardwood';
+    if (specThreshold) {
+      specThreshold.textContent = thresholdLabels[config.threshold] || 'Standard Hardwood';
+      specThreshold.parentElement.style.display = isSliding ? 'none' : '';
+    }
 
     var extItem = $('spec-d-extension-item');
     var extVal = $('spec-d-extension');
@@ -399,7 +414,10 @@
     // Hardware
     var specLock = $('spec-d-lock');
     var lockLabels = { 'multipoint': 'Multipoint Lock', 'deadbolt': 'Deadbolt' };
-    if (specLock) specLock.textContent = lockLabels[config.lockType] || 'Multipoint Lock';
+    if (specLock) {
+      specLock.textContent = lockLabels[config.lockType] || 'Multipoint Lock';
+      specLock.parentElement.style.display = isSliding ? 'none' : '';
+    }
 
     var specSeal = $('spec-d-seal');
     if (specSeal) specSeal.textContent = (config.sealColour || 'black') === 'black' ? 'Black' : 'White';
