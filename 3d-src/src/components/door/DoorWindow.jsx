@@ -655,7 +655,7 @@ export default function DoorWindow({
 
           const cx = hingeX + (bfPW / 2) * dx;
           const cz = hingeZ + (bfPW / 2) * dz;
-          const rotY = accFromRight ? (Math.PI - absAngle) : -absAngle;
+          const rotY = accFromRight ? (Math.PI + absAngle) : -absAngle;
 
           const isLastPanel = i === accN - 1;
 
