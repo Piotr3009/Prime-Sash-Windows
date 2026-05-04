@@ -224,7 +224,8 @@ class PriceCalculator {
     return barsPrice;
   }
 
-  calculateAdditionalOptions(configuration, sqm, basePrice) {
+  calculateAdditionalOptions(configuration, sqm, basePrice, glassMultiplier) {
+    if (glassMultiplier === undefined) glassMultiplier = 1;
     const options = this.pricing.additionalOptions;
     let additionalPrice = 0;
     
@@ -237,14 +238,14 @@ class PriceCalculator {
       console.log('Frame (' + configuration.frameType + '): £' + framePrice);
     }
     
-    // Glass type
+    // Glass type (sliding/bifold: per sqm via glassMultiplier)
     if (configuration.glassType && options.glassTypes[configuration.glassType]) {
-      const glassPrice = options.glassTypes[configuration.glassType];
+      const glassPrice = options.glassTypes[configuration.glassType] * glassMultiplier;
       additionalPrice += glassPrice;
-      console.log('Glass (' + configuration.glassType + '): £' + glassPrice);
+      console.log('Glass (' + configuration.glassType + '): £' + options.glassTypes[configuration.glassType] + (glassMultiplier > 1 ? ' × ' + glassMultiplier.toFixed(2) + 'm²' : '') + ' = £' + glassPrice.toFixed(2));
     }
     
-    // Glass specification - LAMINATED: £/m²
+    // Glass specification - LAMINATED: £/m² (already per sqm, no multiplier needed)
     if (configuration.glassSpec && options.glassSpec[configuration.glassSpec]) {
       const specPricePerSqm = options.glassSpec[configuration.glassSpec];
       const specPrice = specPricePerSqm * sqm; // mnożenie przez m²
@@ -252,11 +253,11 @@ class PriceCalculator {
       console.log('Glass spec (' + configuration.glassSpec + '): £' + specPricePerSqm + '/m² × ' + sqm.toFixed(2) + 'm² = £' + specPrice.toFixed(2));
     }
     
-    // Glass finish
+    // Glass finish (sliding/bifold: per sqm via glassMultiplier)
     if (configuration.glassFinish && options.glassFinish[configuration.glassFinish]) {
-      const finishPrice = options.glassFinish[configuration.glassFinish];
+      const finishPrice = options.glassFinish[configuration.glassFinish] * glassMultiplier;
       additionalPrice += finishPrice;
-      console.log('Glass finish (' + configuration.glassFinish + '): £' + finishPrice);
+      console.log('Glass finish (' + configuration.glassFinish + '): £' + options.glassFinish[configuration.glassFinish] + (glassMultiplier > 1 ? ' × ' + glassMultiplier.toFixed(2) + 'm²' : '') + ' = £' + finishPrice.toFixed(2));
     }
     
     // Horns - USUNIĘTE (teraz w Gallery jako ironmongery)
@@ -587,14 +588,16 @@ class PriceCalculator {
     const doorHBars = configuration.hBars || 0;
     const doorVBars = configuration.vBars || 0;
     const doorBarCount = doorHBars + doorVBars;
-    let barsPrice = doorBarCount * barRate;
+    // Sliding/Bifold: each panel has its own bars
+    const doorPanelCount = (isSlidingDoor || isBifoldDoor) ? (configuration.panelCount || 2) : 1;
+    let barsPrice = doorBarCount * barRate * doorPanelCount;
 
     const sideHBars = configuration.sideHBars || 0;
     const sideVBars = configuration.sideVBars || 0;
     const sideBarCount = sideHBars + sideVBars;
     barsPrice += sideBarCount * panelCount * barRate;
 
-    if (barsPrice > 0) console.log('Bars: door(' + doorBarCount + ') + panels(' + sideBarCount + '×' + panelCount + ') × £' + barRate + ' = £' + barsPrice.toFixed(2));
+    if (barsPrice > 0) console.log('Bars: door(' + doorBarCount + ' × ' + doorPanelCount + ' panels) + sides(' + sideBarCount + '×' + panelCount + ') × £' + barRate + ' = £' + barsPrice.toFixed(2));
 
     // ── 4. Sill extension ──
     let sillPrice = 0;
@@ -629,7 +632,9 @@ class PriceCalculator {
     // ── 6. Glass (from DB — uses calculateAdditionalOptions) ──
     const totalSqm = doorSqm + (hasLeft ? (configuration.sideLeftWidth || 500) / 1000 * doorH / 1000 : 0)
                               + (hasRight ? (configuration.sideRightWidth || 500) / 1000 * doorH / 1000 : 0);
-    const additionalPrice = this.calculateAdditionalOptions(configuration, totalSqm, basePrice + panelPrice);
+    // Sliding/Bifold: glass surcharges scale with total sqm (each panel has its own glass)
+    const glassMultiplier = (isSlidingDoor || isBifoldDoor) ? totalSqm : 1;
+    const additionalPrice = this.calculateAdditionalOptions(configuration, totalSqm, basePrice + panelPrice, glassMultiplier);
 
     // ── Subtotal ──
     let subtotal = basePrice + panelPrice + barsPrice + sillPrice + panelingPrice + additionalPrice;
