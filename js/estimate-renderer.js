@@ -651,7 +651,7 @@ class EstimateRenderer {
             const desc = `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
             return `
                 <tr>
-                    <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">${String(idx + 1).padStart(2, '0')}</td>
+                    <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
                     <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">${desc}</td>
                     <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;">${p.quantity || 1}</td>
                     <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);">£${R.formatPrice(it.total_price || 0)}</td>
@@ -2767,7 +2767,7 @@ class EstimateRenderer {
                 const desc = `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
                 return `
                     <tr>
-                        <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;">${String(idx + 1).padStart(2, '0')}</td>
+                        <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
                         <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;">${desc}</td>
                         <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;text-align:center;">${p.quantity || 1}</td>
                         <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;text-align:right;font-weight:500;color:#0A1628;">£${R.formatPrice(it.total_price || 0)}</td>
