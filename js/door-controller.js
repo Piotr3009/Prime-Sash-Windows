@@ -70,11 +70,12 @@
     var glassWidth = 0;
     var panelDepth = 57; // default for non-sliding
     var frameDepth = 93; // default for non-sliding
+    var panelWidth = 0;
     if (isSliding && panelCount > 0) {
       var stileW = 93; // panel stile width
       var innerWidth = width - 100; // 50mm frame each side
       var overlaps = panelCount - 1;
-      var panelWidth = Math.round((innerWidth + overlaps * stileW) / panelCount);
+      panelWidth = Math.round((innerWidth + overlaps * stileW) / panelCount);
       glassWidth = panelWidth - 2 * stileW;
       if (glassWidth < 0) glassWidth = 0;
       // Panel depth: glass thickness + 33mm timber (based on glass width)
@@ -121,6 +122,7 @@
       slideDirection: slideDirection,
       glassWidth: glassWidth,
       panelDepth: panelDepth,
+      panelWidth: panelWidth,
       frameDepth: frameDepth,
       // Colour
       sameColor: doorColourState.sameColor,
@@ -274,7 +276,7 @@
       if (isSliding) {
         panelsItem.style.display = '';
         if (panelsLabel) panelsLabel.textContent = 'Panels:';
-        panelsVal.textContent = config.panelCount + ' panels, glass ' + config.glassWidth + 'mm, depth ' + config.panelDepth + 'mm';
+        panelsVal.textContent = config.panelCount + ' panels, panel ' + config.panelWidth + 'mm × ' + config.panelDepth + 'mm';
       } else if (sp !== 'none') {
         panelsItem.style.display = '';
         if (panelsLabel) panelsLabel.textContent = 'Side Panels:';

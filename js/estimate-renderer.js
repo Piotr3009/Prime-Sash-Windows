@@ -315,6 +315,7 @@ class EstimateRenderer {
         const slidingExtraWidth = fc.extraWidth || false;
         const slidingDirection = fc.slideDirection || 'left-to-right';
         const slidingGlassWidth = fc.glassWidth || 0;
+        const slidingPanelWidth = fc.panelWidth || 0;
         const slidingPanelDepth = fc.panelDepth || 57;
         const slidingFrameDepth = fc.frameDepth || 93;
         const slidingDirLabels = { 'left-to-right': 'Left → Right', 'right-to-left': 'Right → Left', 'from-center': 'Open from Center', 'from-sides': 'Open from Sides' };
@@ -382,7 +383,7 @@ class EstimateRenderer {
             doorShape, doorShapeText, doorStyle, doorStyleText, doorSideStyle, doorSideStyleText,
             doorPaneling, doorPanelingText, doorCenterMullion,
             isSliding, slidingPanelCount, slidingExtraWidth, slidingDirection, slidingDirText,
-            slidingGlassWidth, slidingPanelDepth, slidingFrameDepth, slidingTypeText
+            slidingGlassWidth, slidingPanelWidth, slidingPanelDepth, slidingFrameDepth, slidingTypeText
         };
     }
 
@@ -496,7 +497,7 @@ class EstimateRenderer {
                             ${!p.isSliding && p.doorPanelsText ? R.specRow('Side Panels', p.doorPanelsText) : ''}
                             ${!p.isSliding && p.doorSidePanels !== 'none' ? R.specRow('Side Panel Style', p.doorSideStyleText) : ''}
                             ${p.isSliding ? R.specRow('Slide Direction', p.slidingDirText) : R.specRow('Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right')}
-                            ${p.isSliding ? R.specRow('Glass per Panel', p.slidingGlassWidth + 'mm') : R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward')}
+                            ${p.isSliding ? R.specRow('Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm') : R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward')}
                             ${p.isSliding ? R.specRow('Frame Depth', p.slidingFrameDepth + 'mm') : R.specRow('Threshold', p.doorThresholdText)}
                             ${R.specRow('Glass', p.glassText)}
                             ${R.specRow('Glass Finish', p.glassFinishText)}
@@ -2485,7 +2486,7 @@ class EstimateRenderer {
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                     if (!p.isSliding && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
                     if (!p.isSliding && p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
-                    if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Glass per Panel', p.slidingGlassWidth + 'mm']); specs.push(['Panel Depth', p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
+                    if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
                     if (!p.isSliding) specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
                     if (!p.isSliding) specs.push(['Threshold', p.doorThresholdText]);
                     specs.push(['Glass', p.glassText]);
@@ -2953,7 +2954,7 @@ class EstimateRenderer {
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                 if (!p.isSliding && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
                 if (!p.isSliding && p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
-                if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Glass per Panel', p.slidingGlassWidth + 'mm']); specs.push(['Panel Depth', p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
+                if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
                 if (!p.isSliding) specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
                 if (!p.isSliding) specs.push(['Threshold', p.doorThresholdText]);
                 specs.push(['Glass', p.glassText]);
