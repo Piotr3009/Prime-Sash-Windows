@@ -302,6 +302,8 @@ class EstimateRenderer {
         const doorShape = fc.doorShape || 'standard';
         const doorType = fc.doorType || 'single-external';
         const isSliding = doorType === 'sliding';
+        const isBifold = doorType === 'bifold';
+        const isSlidingOrBifold = isSliding || isBifold;
         const doorStyle = fc.doorStyle || fc.doorPaneling || 'full-glass';
         const doorSideStyle = fc.sideStyle || 'full-glass';
         const doorHingeSide = fc.hingeSide || 'left';
@@ -321,6 +323,18 @@ class EstimateRenderer {
         const slidingDirLabels = { 'left-to-right': 'Left → Right (exterior view)', 'right-to-left': 'Right → Left (exterior view)', 'from-center': 'Open from Center (exterior view)', 'from-sides': 'Open from Sides (exterior view)' };
         const slidingDirText = slidingDirLabels[slidingDirection] || 'Left → Right';
         const slidingTypeText = isSliding ? ('Sliding Door — ' + slidingPanelCount + ' Panels' + (slidingExtraWidth ? ' (Extra Width)' : '')) : '';
+
+        // Bi-fold specific fields
+        const bifoldFoldDirection = fc.foldDirection || 'left';
+        const bifoldTrafficDoor = fc.trafficDoor || 'no';
+        const bifoldOpenDirection = fc.bifoldOpenDirection || fc.openDirection || 'outward';
+        const bifoldFoldText = (bifoldFoldDirection === 'left' ? 'Fold Left' : 'Fold Right') + ' (exterior view)';
+        const bifoldTrafficText = bifoldTrafficDoor === 'yes' ? 'Yes' : 'No';
+        const bifoldOpenText = bifoldOpenDirection === 'outward' ? 'Outward' : 'Inward';
+        const bifoldTypeText = isBifold ? ('Bi-Fold Door — ' + (fc.panelCount || 2) + ' Panels') : '';
+        const bifoldPanelWidth = fc.panelWidth || 0;
+        const bifoldPanelDepth = 65;
+        const bifoldFrameDepth = 95;
         const doorSillWider = fc.sillWider || false;
         const doorSidePanels = fc.sidePanels || 'none';
         const doorSideLeftWidth = fc.sideLeftWidth || 500;
@@ -382,8 +396,12 @@ class EstimateRenderer {
             doorHBars, doorVBars, doorBarsText, doorSideHBars, doorSideVBars, doorSideBarsText,
             doorShape, doorShapeText, doorStyle, doorStyleText, doorSideStyle, doorSideStyleText,
             doorPaneling, doorPanelingText, doorCenterMullion,
-            isSliding, slidingPanelCount, slidingExtraWidth, slidingDirection, slidingDirText,
-            slidingGlassWidth, slidingPanelWidth, slidingPanelDepth, slidingFrameDepth, slidingTypeText
+            isSliding, isBifold, isSlidingOrBifold,
+            slidingPanelCount, slidingExtraWidth, slidingDirection, slidingDirText,
+            slidingGlassWidth, slidingPanelWidth, slidingPanelDepth, slidingFrameDepth, slidingTypeText,
+            bifoldFoldDirection, bifoldTrafficDoor, bifoldOpenDirection,
+            bifoldFoldText, bifoldTrafficText, bifoldOpenText, bifoldTypeText,
+            bifoldPanelWidth, bifoldPanelDepth, bifoldFrameDepth
         };
     }
 
@@ -488,29 +506,31 @@ class EstimateRenderer {
                             ${R.specRow('Colour', p.colorDisplay)}
                             ${R.specRow('Bars', p.fixBarsFull)}
                             ` : p.windowType === 'door' ? `
-                            ${R.specRow('Type', p.isSliding ? p.slidingTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door'))}
-                            ${p.isSliding ? '' : R.specRow('Shape', p.doorShapeText)}
-                            ${p.isSliding ? '' : R.specRow('Style', p.doorStyleText)}
+                            ${R.specRow('Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door')))}
+                            ${p.isSlidingOrBifold ? '' : R.specRow('Shape', p.doorShapeText)}
+                            ${p.isSlidingOrBifold ? '' : R.specRow('Style', p.doorStyleText)}
                             ${p.doorStyle !== 'full-glass' ? R.specRow('Paneling', p.doorPanelingText) : ''}
                             ${p.doorStyle !== 'full-glass' ? R.specRow('Center Mullion', p.doorCenterMullion ? 'Yes' : 'No') : ''}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
-                            ${!p.isSliding && p.doorPanelsText ? R.specRow('Side Panels', p.doorPanelsText) : ''}
-                            ${!p.isSliding && p.doorSidePanels !== 'none' ? R.specRow('Side Panel Style', p.doorSideStyleText) : ''}
-                            ${p.isSliding ? R.specRow('Slide Direction', p.slidingDirText) : R.specRow('Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right')}
-                            ${p.isSliding ? R.specRow('Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm') : R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward')}
-                            ${p.isSliding ? R.specRow('Frame Depth', p.slidingFrameDepth + 'mm') : R.specRow('Threshold', p.doorThresholdText)}
+                            ${!p.isSlidingOrBifold && p.doorPanelsText ? R.specRow('Side Panels', p.doorPanelsText) : ''}
+                            ${!p.isSlidingOrBifold && p.doorSidePanels !== 'none' ? R.specRow('Side Panel Style', p.doorSideStyleText) : ''}
+                            ${p.isSliding ? R.specRow('Slide Direction', p.slidingDirText) : (p.isBifold ? R.specRow('Fold Direction', p.bifoldFoldText) : R.specRow('Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right'))}
+                            ${p.isBifold ? R.specRow('Traffic Door', p.bifoldTrafficText) : ''}
+                            ${p.isSliding ? R.specRow('Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm') : (p.isBifold ? R.specRow('Panel Size', p.bifoldPanelWidth + 'mm × ' + p.bifoldPanelDepth + 'mm') : R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward'))}
+                            ${p.isBifold ? R.specRow('Opening', p.bifoldOpenText) : ''}
+                            ${p.isSliding ? R.specRow('Frame Depth', p.slidingFrameDepth + 'mm') : (p.isBifold ? R.specRow('Frame Depth', p.bifoldFrameDepth + 'mm') : R.specRow('Threshold', p.doorThresholdText))}
                             ${R.specRow('Glass', p.glassText)}
                             ${R.specRow('Glass Finish', p.glassFinishText)}
                             ${R.specRow('Spacer Bar', p.spacerText)}
                             ${R.specRow('Colour', p.colorDisplay)}
                             ${R.specRow('Bars', p.doorBarsText)}
-                            ${!p.isSliding && p.doorSideBarsText ? R.specRow('Panel Bars', p.doorSideBarsText) : ''}
-                            ${p.isSliding ? '' : R.specRow('Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock')}
+                            ${!p.isSlidingOrBifold && p.doorSideBarsText ? R.specRow('Panel Bars', p.doorSideBarsText) : ''}
+                            ${p.isSlidingOrBifold ? '' : R.specRow('Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock')}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
                             ${R.specRow('Safety Glass', p.safetyGlassText)}
                             ${R.specRow('Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1))}
                             ${R.specRow('Trickle Vent', p.trickleText)}
-                            ${p.isSliding && p.sillExtension !== 'none' ? R.specRow('Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')) : ''}
+                            ${p.isSlidingOrBifold && p.sillExtension !== 'none' ? R.specRow('Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')) : ''}
                             ` : `
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
@@ -2069,6 +2089,7 @@ class EstimateRenderer {
         const doorType = fc.doorType || 'single-external';
         const isFrench = doorType === 'french';
         const isSliding = doorType === 'sliding';
+        const isBifold = doorType === 'bifold';
         const leafY = oy + frameT;
         const leafH = drawH - frameT * 2;
         const bottomRailH = bottomRailRatio > 0 ? leafH * bottomRailRatio : 0;
@@ -2173,6 +2194,68 @@ class EstimateRenderer {
                 svg += `<line x1="${cx + arrowLen}" y1="${arrowY}" x2="${cx}" y2="${arrowY}" stroke="${mid}" stroke-width="1.5"/>`;
                 svg += `<polygon points="${cx},${arrowY} ${cx + 5},${arrowY - 3} ${cx + 5},${arrowY + 3}" fill="${mid}"/>`;
             }
+        } else if (isBifold) {
+            // ── Bi-fold door panels ──
+            const bfPanelCount = fc.panelCount || 4;
+            const bfFoldDir = fc.foldDirection || 'left';
+            const bfTraffic = fc.trafficDoor || 'no';
+            const innerW = doorW - frameT * 2;
+            const bfPanelW = innerW / bfPanelCount;
+
+            // Traffic door index
+            let trafficIdx = -1;
+            if (bfTraffic === 'yes' && bfPanelCount >= 3) {
+                trafficIdx = (bfFoldDir === 'left') ? 0 : bfPanelCount - 1;
+            }
+
+            for (let i = 0; i < bfPanelCount; i++) {
+                const px = doorX + frameT + i * bfPanelW;
+                const isTraffic = (i === trafficIdx);
+                // Panel outline
+                svg += `<rect x="${px + 1}" y="${leafY}" width="${bfPanelW - 2}" height="${leafH}" fill="none" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
+                // Glass area
+                const gx = px + 5, gw = bfPanelW - 10;
+                svg += `<rect x="${gx}" y="${leafY + 4}" width="${gw}" height="${glassH - 4}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                if (bottomRailH > 0) {
+                    svg += `<rect x="${px + 1}" y="${leafY + glassH}" width="${bfPanelW - 2}" height="${bottomRailH}" fill="${panel}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                }
+                // Bars
+                for (let b = 1; b <= hBars; b++) {
+                    const by = leafY + 4 + (glassH - 4) * b / (hBars + 1);
+                    svg += `<line x1="${gx}" y1="${by}" x2="${gx + gw}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+                }
+                for (let b = 1; b <= vBars; b++) {
+                    const bx = gx + gw * b / (vBars + 1);
+                    svg += `<line x1="${bx}" y1="${leafY + 4}" x2="${bx}" y2="${leafY + glassH}" stroke="${light}" stroke-width="1"/>`;
+                }
+
+                if (isTraffic) {
+                    // Traffic door: hinge dots + handle
+                    const hingeX = (bfFoldDir === 'left') ? px + 1 : px + bfPanelW - 1;
+                    const handleX = (bfFoldDir === 'left') ? px + bfPanelW - 8 : px + 8;
+                    [0.15, 0.5, 0.85].forEach(r => {
+                        svg += `<circle cx="${hingeX}" cy="${leafY + leafH * r}" r="2" fill="${mid}"/>`;
+                    });
+                    svg += `<circle cx="${handleX}" cy="${leafY + leafH * 0.48}" r="3" fill="${dark}"/>`;
+                    // TD label
+                    svg += `<text x="${px + bfPanelW / 2}" y="${leafY + 12}" text-anchor="middle" font-size="7" fill="${mid}">TD</text>`;
+                } else {
+                    // Fold hinge dots between panels
+                    if (i > 0) {
+                        const hx = px + 1;
+                        [0.2, 0.5, 0.8].forEach(r => {
+                            svg += `<circle cx="${hx}" cy="${leafY + leafH * r}" r="1.5" fill="${light}"/>`;
+                        });
+                    }
+                }
+            }
+
+            // Fold direction arrow
+            const arrowY = leafY + leafH + 6;
+            const arrowDir = (bfFoldDir === 'left') ? -1 : 1;
+            const ax = doorX + doorW / 2;
+            svg += `<line x1="${ax - arrowDir * 18}" y1="${arrowY}" x2="${ax + arrowDir * 18}" y2="${arrowY}" stroke="${mid}" stroke-width="1.5"/>`;
+            svg += `<polygon points="${ax + arrowDir * 18},${arrowY} ${ax + arrowDir * 13},${arrowY - 3} ${ax + arrowDir * 13},${arrowY + 3}" fill="${mid}"/>`;
         } else if (isFrench) {
             // Two leaves, no mullion
             const halfDoorW = (doorW - frameT * 2) / 2;
@@ -2535,7 +2618,7 @@ class EstimateRenderer {
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.casementBarsText]);
                     specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
-                    if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                    if (!p.isSlidingOrBifold && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 } else if (p.windowType === 'fix-only') {
                     specs.push(['Type', p.fixTypeText]);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
@@ -2545,29 +2628,29 @@ class EstimateRenderer {
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.fixBarsFull]);
                 } else if (p.windowType === 'door') {
-                    specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door')]);
-                    if (!p.isSliding) specs.push(['Shape', p.doorShapeText]);
-                    if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
-                    if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
-                    if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
+                    specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door'))]);
+                    if (!p.isSlidingOrBifold) specs.push(['Shape', p.doorShapeText]);
+                    if (!p.isSlidingOrBifold) specs.push(['Style', p.doorStyleText]);
+                    if (!p.isSlidingOrBifold && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                    if (!p.isSlidingOrBifold && p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
-                    if (!p.isSliding && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
-                    if (!p.isSliding && p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
-                    if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
-                    if (!p.isSliding) specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
-                    if (!p.isSliding) specs.push(['Threshold', p.doorThresholdText]);
+                    if (!p.isSlidingOrBifold && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
+                    if (!p.isSlidingOrBifold && p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
+                    if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else if (p.isBifold) { specs.push(['Fold Direction', p.bifoldFoldText]); specs.push(['Traffic Door', p.bifoldTrafficText]); specs.push(['Panel Size', p.bifoldPanelWidth + 'mm × ' + p.bifoldPanelDepth + 'mm']); specs.push(['Opening', p.bifoldOpenText]); specs.push(['Frame Depth', p.bifoldFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
+                    if (!p.isSlidingOrBifold) specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
+                    if (!p.isSlidingOrBifold) specs.push(['Threshold', p.doorThresholdText]);
                     specs.push(['Glass', p.glassText]);
                     specs.push(['Glass Finish', p.glassFinishText]);
                     specs.push(['Spacer Bar', p.spacerText]);
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.doorBarsText]);
-                    if (!p.isSliding && p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
-                    if (!p.isSliding) specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
-                    if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                    if (!p.isSlidingOrBifold && p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
+                    if (!p.isSlidingOrBifold) specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
+                    if (!p.isSlidingOrBifold && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                     specs.push(['Safety Glass', p.safetyGlassText]);
                     specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                     specs.push(['Trickle Vent', p.trickleText]);
-                    if (p.isSliding && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
+                    if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
                 } else {
                     if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
@@ -2580,7 +2663,7 @@ class EstimateRenderer {
                     specs.push(['Georgian Bars', p.barsText]);
                     specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
                     specs.push(['Horns', p.hornsText]);
-                    if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                    if (!p.isSlidingOrBifold && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 }
 
                 const specRows2Col = specs.map(([l, v]) => `
@@ -3004,7 +3087,7 @@ class EstimateRenderer {
                 specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                 if (p.sillExtension !== 'none') specs.push(['Sill Projection', p.sillText]);
                 specs.push(['Trickle Vent', p.trickleText]);
-                if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                if (!p.isSlidingOrBifold && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
             } else if (p.windowType === 'fix-only') {
                 specs.push(['Type', p.fixTypeText]);
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
@@ -3014,29 +3097,29 @@ class EstimateRenderer {
                 specs.push(['Colour', p.colorDisplay]);
                 specs.push(['Bars', p.fixBarsFull]);
             } else if (p.windowType === 'door') {
-                specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door')]);
-                if (!p.isSliding) specs.push(['Shape', p.doorShapeText]);
-                if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
-                if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
-                if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
+                specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door'))]);
+                if (!p.isSlidingOrBifold) specs.push(['Shape', p.doorShapeText]);
+                if (!p.isSlidingOrBifold) specs.push(['Style', p.doorStyleText]);
+                if (!p.isSlidingOrBifold && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                if (!p.isSlidingOrBifold && p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
-                if (!p.isSliding && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
-                if (!p.isSliding && p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
-                if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
-                if (!p.isSliding) specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
-                if (!p.isSliding) specs.push(['Threshold', p.doorThresholdText]);
+                if (!p.isSlidingOrBifold && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
+                if (!p.isSlidingOrBifold && p.doorSidePanels !== 'none') specs.push(['Side Panel Style', p.doorSideStyleText]);
+                if (p.isSliding) { specs.push(['Slide Direction', p.slidingDirText]); specs.push(['Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm']); specs.push(['Frame Depth', p.slidingFrameDepth + 'mm']); } else if (p.isBifold) { specs.push(['Fold Direction', p.bifoldFoldText]); specs.push(['Traffic Door', p.bifoldTrafficText]); specs.push(['Panel Size', p.bifoldPanelWidth + 'mm × ' + p.bifoldPanelDepth + 'mm']); specs.push(['Opening', p.bifoldOpenText]); specs.push(['Frame Depth', p.bifoldFrameDepth + 'mm']); } else { specs.push(['Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right']); }
+                if (!p.isSlidingOrBifold) specs.push(['Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward']);
+                if (!p.isSlidingOrBifold) specs.push(['Threshold', p.doorThresholdText]);
                 specs.push(['Glass', p.glassText]);
                 specs.push(['Glass Finish', p.glassFinishText]);
                 specs.push(['Spacer Bar', p.spacerText]);
                 specs.push(['Colour', p.colorDisplay]);
                 specs.push(['Bars', p.doorBarsText]);
-                if (!p.isSliding && p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
-                if (!p.isSliding) specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
-                if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+                if (!p.isSlidingOrBifold && p.doorSideBarsText) specs.push(['Panel Bars', p.doorSideBarsText]);
+                if (!p.isSlidingOrBifold) specs.push(['Lock', p.doorLockType === 'deadbolt' ? 'Deadbolt' : 'Multipoint Lock']);
+                if (!p.isSlidingOrBifold && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
                 specs.push(['Safety Glass', p.safetyGlassText]);
                 specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                 specs.push(['Trickle Vent', p.trickleText]);
-                if (p.isSliding && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
+                if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
             } else {
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
@@ -3058,7 +3141,7 @@ class EstimateRenderer {
             if (p.fixBarsText) specs.push(['Fix Panel Bars', p.fixBarsText]);
             specs.push(['PAS24', p.pas24 ? 'Yes' : 'No']);
             specs.push(['Horns', p.hornsText]);
-            if (!p.isSliding && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
+            if (!p.isSlidingOrBifold && p.hardwareFinish) specs.push(['Hardware Finish', p.hardwareFinish]);
             }
 
             const ironText = p.ironList.length > 0 
