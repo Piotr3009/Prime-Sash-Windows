@@ -430,6 +430,9 @@ export default function DoorWindow({
   slideDirection = 'left-to-right',
   slidingFrameDepth = 93,
   slidingPanelDepth = 57,
+  foldDirection = 'left',
+  trafficDoor = 'no',
+  bifoldOpenDirection = 'outward',
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -449,14 +452,17 @@ export default function DoorWindow({
     roughness: 0.85, metalness: 0,
   }), [sealColour]);
 
-  // Inner dimensions (after subtracting outer frame — 50mm for sliding, 57mm for others)
+  // Inner dimensions (after subtracting outer frame — 50mm for sliding/bifold, 57mm for others)
   const isSliding = layout.endsWith('S');
+  const isBifold = layout.endsWith('B');
+  const isSlidingOrBifold = isSliding || isBifold;
   const SLIDING_FRAME_FACE = 50;
-  const effectiveFrameDepth = isSliding ? slidingFrameDepth : FRAME_DEPTH;
-  const effectiveFrameFace = isSliding ? SLIDING_FRAME_FACE : FRAME_FACE;
+  const BIFOLD_FRAME_DEPTH = 95; // 15 + 65 + 15
+  const effectiveFrameDepth = isSliding ? slidingFrameDepth : (isBifold ? BIFOLD_FRAME_DEPTH : FRAME_DEPTH);
+  const effectiveFrameFace = isSlidingOrBifold ? SLIDING_FRAME_FACE : FRAME_FACE;
   const halfD = mm(effectiveFrameDepth) / 2;
   const innerW = width - effectiveFrameFace * 2;
-  const innerH = height - (isSliding ? SLIDING_FRAME_FACE : FRAME_FACE) - BOTTOM_FACE;
+  const innerH = height - (isSlidingOrBifold ? SLIDING_FRAME_FACE : FRAME_FACE) - BOTTOM_FACE;
 
   // Get layout definition
   const layoutDef = useMemo(
@@ -521,7 +527,7 @@ export default function DoorWindow({
   return (
     <group>
       {/* ═══ Frame ═══ */}
-      {isSliding ? (
+      {isSlidingOrBifold ? (
         /* Sliding: simple rectangular frame — no rebate, no seal, dual colour */
         (() => {
           const fW = mm(effectiveFrameFace); // 50mm for sliding
@@ -575,7 +581,82 @@ export default function DoorWindow({
       )}
 
       {/* ─── Panels (leaves) ─── */}
-      {layoutDef.panels && layoutDef.panels.map((p, i) => {
+      {/* Bi-fold: accordion fold rendering */}
+      {isBifold && (() => {
+        const N = panelCount;
+        const bfGap = 5; // mm between panels
+        const bfPW_mm = (innerW - (N - 1) * bfGap) / N;
+        const bfPW = mm(bfPW_mm);
+        const bfLH_mm = innerH;
+
+        const theta = Math.max(0, Math.min(1, opening)) * Math.PI / 2;
+        const outSign = bifoldOpenDirection === 'outward' ? 1 : -1;
+        const isRight = foldDirection === 'right';
+        const dir = isRight ? -1 : 1; // direction of panel chain along X
+
+        // Starting hinge position
+        const startX = isRight
+          ? W / 2 - mm(effectiveFrameFace)
+          : -W / 2 + mm(effectiveFrameFace);
+
+        // Compute accordion transforms
+        const transforms = [];
+        let hingeX = startX;
+        let hingeZ = 0;
+        let absAngle = 0;
+
+        // Traffic door handling
+        const hasTraffic = trafficDoor === 'yes' && N >= 3;
+        const trafficIdx = hasTraffic ? 0 : -1; // always first panel in chain
+
+        for (let i = 0; i < N; i++) {
+          if (i === 0) {
+            absAngle = outSign * theta;
+          } else {
+            absAngle += (i % 2 === 1) ? -2 * outSign * theta : 2 * outSign * theta;
+          }
+
+          const dx = Math.cos(absAngle) * dir;
+          const dz = Math.sin(absAngle);
+
+          const cx = hingeX + (bfPW / 2) * dx;
+          const cz = hingeZ + (bfPW / 2) * dz;
+
+          transforms.push({
+            x: cx, z: cz,
+            rotY: isRight ? (Math.PI - absAngle) : -absAngle,
+            isTraffic: i === trafficIdx,
+          });
+
+          hingeX += bfPW * dx;
+          hingeZ += bfPW * dz;
+        }
+
+        const centerY = mm(BOTTOM_FACE - effectiveFrameFace) / 2;
+
+        return transforms.map((t, i) => (
+          <group key={`bf-panel-${i}`} position={[t.x, centerY, t.z]} rotation={[0, t.rotY, 0]}>
+            <DoorPanel
+              width={bfPW_mm}
+              height={bfLH_mm}
+              hingeType="fixed"
+              opening={0}
+              material={extMaterial}
+              materialInt={intMaterial}
+              spacerColor={spacerColor}
+              glassFinish={glassFinish}
+              hBars={hBars}
+              vBars={vBars}
+              doorStyle="full-glass"
+              showHandle={t.isTraffic || i === (isRight ? N - 1 : 0)}
+              isSliding={false}
+              position={[0, 0, 0]}
+            />
+          </group>
+        ));
+      })()}
+      {/* Standard + Sliding panels */}
+      {!isBifold && layoutDef.panels && layoutDef.panels.map((p, i) => {
         // Standard doors: leaf extends into frame rebate (21mm each side, minus 4mm gap)
         // Sliding doors: no rebate, panel = exact calculated width
         const leafGap = 4;
@@ -731,7 +812,7 @@ export default function DoorWindow({
       })()}
 
       {/* ═══ Sliding sill extension — always visible when extension > 0 ═══ */}
-      {isSliding && thresholdExtension > 0 && (() => {
+      {isSlidingOrBifold && thresholdExtension > 0 && (() => {
         const ext = Math.min(thresholdExtension, 100);
         const sillDepth = mm(ext);
         const sillH = mm(40);
@@ -748,7 +829,7 @@ export default function DoorWindow({
       })()}
 
       {/* ═══ Sill Wider — extends threshold extension 50mm past configuration edges (non-sliding) ═══ */}
-      {!isSliding && sillWider && thresholdExtension > 0 && (() => {
+      {!isSlidingOrBifold && sillWider && thresholdExtension > 0 && (() => {
         // Standard doors: ear boxes on sides
         const hasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
         const hasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
