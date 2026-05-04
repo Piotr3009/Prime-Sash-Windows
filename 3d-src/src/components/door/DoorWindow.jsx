@@ -658,7 +658,7 @@ export default function DoorWindow({
           const rotY = accFromRight ? (Math.PI - absAngle) : -absAngle;
 
           const isLastPanel = i === accN - 1;
-          const meetingHinge = accDir > 0 ? 'left' : 'right';
+          const meetingHinge = accDir > 0 ? 'right' : 'left';
 
           panels.push(
             <group key={`bf-panel-${i}`} position={[cx, centerY, cz]} rotation={[0, rotY, 0]}>
