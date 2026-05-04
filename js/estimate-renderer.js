@@ -2202,10 +2202,10 @@ class EstimateRenderer {
             const innerW = doorW - frameT * 2;
             const bfPanelW = innerW / bfPanelCount;
 
-            // Traffic door index
+            // Traffic door index — opposite side of fold direction
             let trafficIdx = -1;
             if (bfTraffic === 'yes' && bfPanelCount >= 3) {
-                trafficIdx = (bfFoldDir === 'left') ? 0 : bfPanelCount - 1;
+                trafficIdx = (bfFoldDir === 'left') ? bfPanelCount - 1 : 0;
             }
 
             for (let i = 0; i < bfPanelCount; i++) {
@@ -2230,9 +2230,9 @@ class EstimateRenderer {
                 }
 
                 if (isTraffic) {
-                    // Traffic door: hinge dots + handle
-                    const hingeX = (bfFoldDir === 'left') ? px + 1 : px + bfPanelW - 1;
-                    const handleX = (bfFoldDir === 'left') ? px + bfPanelW - 8 : px + 8;
+                    // Traffic door: hinge on frame side (opposite of fold), handle on free edge
+                    const hingeX = (bfFoldDir === 'left') ? px + bfPanelW - 1 : px + 1;
+                    const handleX = (bfFoldDir === 'left') ? px + 8 : px + bfPanelW - 8;
                     [0.15, 0.5, 0.85].forEach(r => {
                         svg += `<circle cx="${hingeX}" cy="${leafY + leafH * r}" r="2" fill="${mid}"/>`;
                     });

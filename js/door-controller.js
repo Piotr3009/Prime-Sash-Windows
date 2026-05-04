@@ -380,7 +380,7 @@
         };
         specOpening.textContent = dirLabels[config.slideDirection] || 'Left → Right (exterior view)';
       } else if (isBifold) {
-        var foldLabel = config.foldDirection === 'left' ? 'Fold Left' : 'Fold Right';
+        var foldLabel = config.foldDirection === 'left' ? 'Fold Left (exterior view)' : 'Fold Right (exterior view)';
         var trafficLabel = config.trafficDoor === 'yes' ? ' + Traffic Door' : '';
         var openLabel = config.bifoldOpenDirection === 'inward' ? ' (Inward)' : ' (Outward)';
         specOpening.textContent = foldLabel + trafficLabel + openLabel;

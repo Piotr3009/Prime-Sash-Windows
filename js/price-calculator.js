@@ -621,11 +621,11 @@ class PriceCalculator {
     const chargeablePanels = sideStyle === 'same' ? panelCount : 0;
     if (doorStyleForPrice !== 'full-glass') {
       if (paneling === 'beading') {
-        panelingPrice = BEADING_DOOR + (chargeablePanels * BEADING_PANEL);
-        console.log('Beading: door £' + BEADING_DOOR + ' + ' + chargeablePanels + ' panels × £' + BEADING_PANEL + ' = £' + panelingPrice);
+        panelingPrice = (BEADING_DOOR * doorPanelCount) + (chargeablePanels * BEADING_PANEL);
+        console.log('Beading: door £' + BEADING_DOOR + ' × ' + doorPanelCount + ' panels + ' + chargeablePanels + ' sides × £' + BEADING_PANEL + ' = £' + panelingPrice);
       } else if (paneling === 'panel') {
-        panelingPrice = RECESSED_DOOR + (chargeablePanels * RECESSED_PANEL);
-        console.log('Recessed: door £' + RECESSED_DOOR + ' + ' + chargeablePanels + ' panels × £' + RECESSED_PANEL + ' = £' + panelingPrice);
+        panelingPrice = (RECESSED_DOOR * doorPanelCount) + (chargeablePanels * RECESSED_PANEL);
+        console.log('Recessed: door £' + RECESSED_DOOR + ' × ' + doorPanelCount + ' panels + ' + chargeablePanels + ' sides × £' + RECESSED_PANEL + ' = £' + panelingPrice);
       }
     }
 
