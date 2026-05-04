@@ -890,15 +890,15 @@ class EstimateRenderer {
             </div>
             ` : ''}
 
-            ${aboutHTML}
-            ${certificationsHTML}
-
             <div style="font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:var(--silver);margin:2rem 0 1rem;">Windows · ${items.length}</div>
             ${itemsHTML}
 
             ${summaryHTML}
             ${paymentHTML}
             ${termsHTML}
+
+            ${aboutHTML}
+            ${certificationsHTML}
 
             <div style="padding:.9rem 1.2rem;margin:1.5rem 0;background:${CREAM_LIGHT};border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.78rem;color:var(--muted);line-height:1.55;">
                 <strong style="color:var(--navy);font-weight:500;">Prime Sash Windows</strong> is a trading name of <strong style="color:var(--navy);font-weight:500;">Skylon Joinery Ltd</strong> — a London-based bespoke joinery company registered in England and Wales (Company No. 12946103). All contracts, invoices and payments are issued by Skylon Joinery Ltd.
