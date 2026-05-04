@@ -252,7 +252,7 @@ class CustomerDashboard {
             <div class="estimate-card" data-order-id="${order.id}">
                 <div class="estimate-header" onclick="this.parentElement.classList.toggle('open')">
                     <div>
-                        <span class="estimate-title">Estimate #${order.estimate_number || order.id.substring(0, 8).toUpperCase()}</span>
+                        <span class="estimate-title">Estimate #${order.estimate_number || order.id.substring(0, 8).toUpperCase()}${order.project_name ? ` — ${order.project_name}` : ''}</span>
                         <span class="estimate-meta"> — ${createdDate} — ${itemCount} window${itemCount !== 1 ? 's' : ''} — £${this.formatPrice(order.total_price)} + VAT</span>
                     </div>
                     <span class="estimate-status status-${order.status}">${statusConfig.label}</span>
