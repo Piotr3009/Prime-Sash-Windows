@@ -763,8 +763,8 @@
               <label for="type-sliding" class="radio-label">Sliding Door</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="type-bifold" name="door-type" value="bifold" disabled>
-              <label for="type-bifold" class="radio-label disabled-option">Bi-Fold Door<br><small>(Coming Soon)</small></label>
+              <input type="radio" id="type-bifold" name="door-type" value="bifold">
+              <label for="type-bifold" class="radio-label">Bi-Fold Door</label>
             </div>
           </div>
         </div>
@@ -1116,6 +1116,80 @@
 
       </div>
 
+
+      <!-- Bi-Fold Door Config (Step 2 — only shown for bifold) -->
+      <div class="config-section" data-for="door" data-category="door-dimensions" id="bf-dimensions-step2" style="display:none;">
+        <h3>Step 2: Bi-Fold Configuration</h3>
+
+        <!-- Panel Count -->
+        <div class="input-group">
+          <label>Number of Panels:</label>
+          <select id="bf-door-panel-count" class="form-select" style="width:auto;min-width:120px;">
+            <option value="2">2 Panels</option>
+            <option value="3">3 Panels</option>
+            <option value="4" selected>4 Panels</option>
+            <option value="5">5 Panels</option>
+            <option value="6">6 Panels</option>
+            <option value="7">7 Panels</option>
+            <option value="8">8 Panels</option>
+          </select>
+          <small id="bf-panel-hint" style="display:block;margin-top:4px;color:#888;"></small>
+        </div>
+
+        <!-- Fold Direction -->
+        <div class="input-group">
+          <label>Fold Direction:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="bf-fold-left" name="bf-fold-direction" value="left" checked>
+              <label for="bf-fold-left" class="radio-label">Fold Left</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="bf-fold-right" name="bf-fold-direction" value="right">
+              <label for="bf-fold-right" class="radio-label">Fold Right</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Traffic Door (hidden for 2 panels) -->
+        <div class="input-group" id="bf-traffic-group">
+          <label>Traffic Door:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="bf-traffic-no" name="bf-traffic-door" value="no" checked>
+              <label for="bf-traffic-no" class="radio-label">No</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="bf-traffic-yes" name="bf-traffic-door" value="yes">
+              <label for="bf-traffic-yes" class="radio-label">Yes</label>
+            </div>
+          </div>
+          <small style="display:block;margin-top:4px;color:#888;">One panel opens independently as a standard door</small>
+        </div>
+
+        <!-- Opening Direction (Inward / Outward) -->
+        <div class="input-group">
+          <label>Opening Direction:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="bf-open-outward" name="bf-open-direction" value="outward" checked>
+              <label for="bf-open-outward" class="radio-label">Outward</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="bf-open-inward" name="bf-open-direction" value="inward">
+              <label for="bf-open-inward" class="radio-label">Inward</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- SVG Preview -->
+        <div class="input-group">
+          <label>Layout Preview:</label>
+          <div id="bf-layout-preview" style="background:#f8f9fa;border:1px solid #ddd;border-radius:8px;padding:12px;min-height:80px;display:flex;align-items:center;justify-content:center;">
+          </div>
+        </div>
+
+      </div>
 
 
 
@@ -4053,16 +4127,18 @@
       var dso = document.getElementById('door-single-options');
       var dfo = document.getElementById('door-french-options');
       var dslo = document.getElementById('sl-dimensions-step2');
+      var dbfo = document.getElementById('bf-dimensions-step2');
       if (dso) dso.style.display = (doorType === 'single-external') ? 'block' : 'none';
       if (dfo) dfo.style.display = (doorType === 'french') ? 'block' : 'none';
       if (dslo) dslo.style.display = (doorType === 'sliding') ? 'block' : 'none';
-      // Hide shared elements for sliding
-      var isSliding = (doorType === 'sliding');
+      if (dbfo) dbfo.style.display = (doorType === 'bifold') ? 'block' : 'none';
+      // Hide shared elements for sliding/bifold
+      var isSlidingOrBifold = (doorType === 'sliding' || doorType === 'bifold');
       ['d-hinge-group','d-opening-group','d-threshold-group','d-lock-group','d-side-bars-group'].forEach(function(id) {
-        var el = document.getElementById(id); if (el) el.style.display = isSliding ? 'none' : '';
+        var el = document.getElementById(id); if (el) el.style.display = isSlidingOrBifold ? 'none' : '';
       });
       var dimHint = document.getElementById('d-dim-hint');
-      if (dimHint) dimHint.style.display = isSliding ? 'none' : '';
+      if (dimHint) dimHint.style.display = isSlidingOrBifold ? 'none' : '';
       if (window.updateInfoPanel) window.updateInfoPanel();
     }
   }
@@ -4118,6 +4194,31 @@
       infoPanel.innerHTML = 
         '<p class="info-title">Sliding Door Specification</p>' +
         '<p>Panel: <span class="info-highlight">' + panelWidth + ' × ' + panelDepth + 'mm</span> &nbsp;|&nbsp; Frame: <span class="info-highlight">' + frameDepth + 'mm</span> &nbsp;|&nbsp; Glass: <span class="info-highlight">' + (glassWidth > 0 ? glassWidth : '—') + 'mm (' + glassThickness + 'mm DGU)</span></p>' + warning;
+      return;
+    }
+
+    // Bi-fold door info
+    if (!isWindows && doorType === 'bifold') {
+      var bfPanelCount = parseInt(document.getElementById('bf-door-panel-count') ? document.getElementById('bf-door-panel-count').value : 4) || 4;
+      var totalWidth = parseInt(document.getElementById('d-width') ? document.getElementById('d-width').value : 0) || 0;
+      var gaps = bfPanelCount - 1;
+      var bfPanelWidth = Math.round((totalWidth - 100 - gaps * 5) / bfPanelCount);
+      var bfFrameDepth = 95;
+      var bfFoldDir = (document.querySelector('input[name="bf-fold-direction"]:checked') || {}).value || 'left';
+      var bfTraffic = (document.querySelector('input[name="bf-traffic-door"]:checked') || {}).value || 'no';
+      var bfOpenDir = (document.querySelector('input[name="bf-open-direction"]:checked') || {}).value || 'outward';
+      var warning = '';
+      if (bfPanelWidth > 950) {
+        warning = '<p style="color:#e74c3c;margin-top:4px;">⚠ Panel too wide (' + bfPanelWidth + 'mm)! Max 950mm. Add more panels.</p>';
+      } else if (bfPanelWidth < 300) {
+        warning = '<p style="color:#e74c3c;margin-top:4px;">⚠ Panel too narrow (' + bfPanelWidth + 'mm). Reduce panel count.</p>';
+      }
+      infoPanel.innerHTML = 
+        '<p class="info-title">Bi-Fold Door Specification</p>' +
+        '<p>Panels: <span class="info-highlight">' + bfPanelCount + ' × ' + bfPanelWidth + 'mm</span> &nbsp;|&nbsp; Frame: <span class="info-highlight">' + bfFrameDepth + 'mm</span> &nbsp;|&nbsp; Leaf: <span class="info-highlight">94 × 65mm</span> &nbsp;|&nbsp; DGU: <span class="info-highlight">28mm</span></p>' +
+        '<p>Fold: <span class="info-highlight">' + (bfFoldDir === 'left' ? 'Left' : 'Right') + '</span> &nbsp;|&nbsp; Traffic Door: <span class="info-highlight">' + (bfTraffic === 'yes' ? 'Yes' : 'No') + '</span> &nbsp;|&nbsp; Opening: <span class="info-highlight">' + (bfOpenDir === 'outward' ? 'Outward' : 'Inward') + '</span></p>' + warning;
+      // Update SVG preview
+      if (window.updateBifoldPreview) window.updateBifoldPreview();
       return;
     }
 
@@ -4397,6 +4498,8 @@
         if (doorFrenchOptions) doorFrenchOptions.style.display = (!isWindows && doorType === 'french') ? 'block' : 'none';
         var doorSlidingOptions = document.getElementById('sl-dimensions-step2');
         if (doorSlidingOptions) doorSlidingOptions.style.display = (!isWindows && doorType === 'sliding') ? 'block' : 'none';
+        var doorBifoldOptions = document.getElementById('bf-dimensions-step2');
+        if (doorBifoldOptions) doorBifoldOptions.style.display = (!isWindows && doorType === 'bifold') ? 'block' : 'none';
 
         // Hide design sections if not in dimensions tab (prevent flash in product-range)
         var inDimTab = document.querySelector('.cat-btn.active[data-target="door-dimensions"]');
@@ -4404,31 +4507,32 @@
           if (doorSingleOptions) doorSingleOptions.style.display = 'none';
           if (doorFrenchOptions) doorFrenchOptions.style.display = 'none';
           if (doorSlidingOptions) doorSlidingOptions.style.display = 'none';
+          if (doorBifoldOptions) doorBifoldOptions.style.display = 'none';
         }
 
-        // Hide shared elements that don't apply to sliding doors
-        var isSliding = (isDoors && doorType === 'sliding');
+        // Hide shared elements that don't apply to sliding/bifold doors
+        var isSlidingOrBifold = (isDoors && (doorType === 'sliding' || doorType === 'bifold'));
         var hingeGroup = document.getElementById('d-hinge-group');
         var openingGroup = document.getElementById('d-opening-group');
         var thresholdGroup = document.getElementById('d-threshold-group');
         var lockGroup = document.getElementById('d-lock-group');
         var sideBarsGroup = document.getElementById('d-side-bars-group');
         var sidePanelDims = document.getElementById('d-side-panel-dims');
-        if (hingeGroup) hingeGroup.style.display = isSliding ? 'none' : '';
-        if (openingGroup) openingGroup.style.display = isSliding ? 'none' : '';
-        if (thresholdGroup) thresholdGroup.style.display = isSliding ? 'none' : '';
-        if (lockGroup) lockGroup.style.display = isSliding ? 'none' : '';
-        if (sideBarsGroup) sideBarsGroup.style.display = isSliding ? 'none' : '';
-        if (isSliding && sidePanelDims) sidePanelDims.style.display = 'none';
+        if (hingeGroup) hingeGroup.style.display = isSlidingOrBifold ? 'none' : '';
+        if (openingGroup) openingGroup.style.display = isSlidingOrBifold ? 'none' : '';
+        if (thresholdGroup) thresholdGroup.style.display = isSlidingOrBifold ? 'none' : '';
+        if (lockGroup) lockGroup.style.display = isSlidingOrBifold ? 'none' : '';
+        if (sideBarsGroup) sideBarsGroup.style.display = isSlidingOrBifold ? 'none' : '';
+        if (isSlidingOrBifold && sidePanelDims) sidePanelDims.style.display = 'none';
 
-        // Update info panel for sliding
+        // Update info panel for sliding/bifold
         if (window.updateInfoPanel) window.updateInfoPanel();
 
-        // Update dimension hint — hide for sliding (info is in red bar)
+        // Update dimension hint — hide for sliding/bifold (info is in red bar)
         var dimHint = document.getElementById('d-dim-hint');
         var widthHint = document.getElementById('d-width-hint');
         if (dimHint) {
-          if (isSliding) {
+          if (isSlidingOrBifold) {
             dimHint.style.display = 'none';
           } else {
             dimHint.style.display = '';
@@ -4440,7 +4544,7 @@
             'single-external': 'Single door: 600–1100mm',
             'french': 'French doors: 1000–2000mm',
             'sliding': 'Sliding doors: 1500–8000mm (total width)',
-            'bifold': 'Bi-fold doors: 1800–6000mm'
+            'bifold': 'Bi-fold doors: 1500–7500mm'
           };
           widthHint.textContent = hintTexts[doorType] || 'Single door: 600–1100mm';
         }
@@ -4703,35 +4807,37 @@
           var dso = document.getElementById('door-single-options');
           var dfo = document.getElementById('door-french-options');
           var dslo = document.getElementById('sl-dimensions-step2');
+          var dbfo = document.getElementById('bf-dimensions-step2');
           // Only show design sections if currently in door-dimensions tab (prevent flash in product-range)
           var inDimTab = document.querySelector('.cat-btn.active[data-target="door-dimensions"]');
           if (dso) dso.style.display = (inDimTab && r.value === 'single-external') ? 'block' : 'none';
           if (dfo) dfo.style.display = (inDimTab && r.value === 'french') ? 'block' : 'none';
           if (dslo) dslo.style.display = (inDimTab && r.value === 'sliding') ? 'block' : 'none';
+          if (dbfo) dbfo.style.display = (inDimTab && r.value === 'bifold') ? 'block' : 'none';
 
-          // Hide shared elements that don't apply to sliding
-          var isSliding = (r.value === 'sliding');
+          // Hide shared elements that don't apply to sliding/bifold
+          var isSlidingOrBifold = (r.value === 'sliding' || r.value === 'bifold');
           var hingeGroup = document.getElementById('d-hinge-group');
           var openingGroup = document.getElementById('d-opening-group');
           var thresholdGroup = document.getElementById('d-threshold-group');
           var lockGroup = document.getElementById('d-lock-group');
           var sideBarsGroup = document.getElementById('d-side-bars-group');
           var sidePanelDims = document.getElementById('d-side-panel-dims');
-          if (hingeGroup) hingeGroup.style.display = isSliding ? 'none' : '';
-          if (openingGroup) openingGroup.style.display = isSliding ? 'none' : '';
-          if (thresholdGroup) thresholdGroup.style.display = isSliding ? 'none' : '';
-          if (lockGroup) lockGroup.style.display = isSliding ? 'none' : '';
-          if (sideBarsGroup) sideBarsGroup.style.display = isSliding ? 'none' : '';
-          if (isSliding && sidePanelDims) sidePanelDims.style.display = 'none';
+          if (hingeGroup) hingeGroup.style.display = isSlidingOrBifold ? 'none' : '';
+          if (openingGroup) openingGroup.style.display = isSlidingOrBifold ? 'none' : '';
+          if (thresholdGroup) thresholdGroup.style.display = isSlidingOrBifold ? 'none' : '';
+          if (lockGroup) lockGroup.style.display = isSlidingOrBifold ? 'none' : '';
+          if (sideBarsGroup) sideBarsGroup.style.display = isSlidingOrBifold ? 'none' : '';
+          if (isSlidingOrBifold && sidePanelDims) sidePanelDims.style.display = 'none';
 
-          // Update info panel for sliding
+          // Update info panel
           if (window.updateInfoPanel) window.updateInfoPanel();
 
-          // Update dimension hints — hide for sliding (info in red bar)
+          // Update dimension hints — hide for sliding/bifold (info in red bar)
           var dimHint = document.getElementById('d-dim-hint');
           var widthHint = document.getElementById('d-width-hint');
           if (dimHint) {
-            if (isSliding) {
+            if (isSlidingOrBifold) {
               dimHint.style.display = 'none';
             } else {
               dimHint.style.display = '';
@@ -4743,7 +4849,7 @@
               'single-external': 'Single door: 600–1100mm',
               'french': 'French doors: 1000–2000mm',
               'sliding': 'Sliding doors: 1500–8000mm (total width)',
-              'bifold': 'Bi-fold doors: 1800–6000mm'
+              'bifold': 'Bi-fold doors: 1500–7500mm'
             };
             widthHint.textContent = hintTexts[r.value] || 'Single door: 600–1100mm';
           }
@@ -4757,6 +4863,8 @@
 
           // Trigger glass calc when switching to sliding
           if (r.value === 'sliding' && window.updateSlidingGlassCalc) window.updateSlidingGlassCalc();
+          // Trigger bi-fold preview when switching to bifold
+          if (r.value === 'bifold' && window.updateBifoldPreview) window.updateBifoldPreview();
         });
       });
 
@@ -4823,6 +4931,149 @@
 
       // Make globally accessible for door-type change
       window.updateSlidingGlassCalc = updateSlidingGlassCalc;
+
+      // ═══ BI-FOLD DOOR LOGIC ═══
+
+      // SVG preview for bi-fold layout
+      function updateBifoldPreview() {
+        var container = document.getElementById('bf-layout-preview');
+        if (!container) return;
+        var panelCount = parseInt(document.getElementById('bf-door-panel-count') ? document.getElementById('bf-door-panel-count').value : 4) || 4;
+        var foldDir = (document.querySelector('input[name="bf-fold-direction"]:checked') || {}).value || 'left';
+        var trafficDoor = (document.querySelector('input[name="bf-traffic-door"]:checked') || {}).value || 'no';
+        var openDir = (document.querySelector('input[name="bf-open-direction"]:checked') || {}).value || 'outward';
+
+        var svgW = 260, svgH = 80;
+        var frameT = 4;
+        var innerW = svgW - frameT * 2 - 20;
+        var innerH = svgH - frameT * 2 - 10;
+        var panelW = innerW / panelCount;
+        var ox = 10 + frameT, oy = 5 + frameT;
+
+        var dark = '#1a2a3a', mid = '#4a5568', light = '#a0aec0', glass = '#dbeafe';
+
+        var svg = '<svg viewBox="0 0 ' + svgW + ' ' + svgH + '" width="' + svgW + '" height="' + svgH + '" xmlns="http://www.w3.org/2000/svg" style="font-family:Jost,sans-serif;">';
+        // Outer frame
+        svg += '<rect x="' + (ox - frameT) + '" y="' + (oy - frameT) + '" width="' + (innerW + frameT * 2) + '" height="' + (innerH + frameT * 2) + '" fill="none" stroke="' + dark + '" stroke-width="2" rx="1"/>';
+
+        // Track line at bottom
+        svg += '<line x1="' + ox + '" y1="' + (oy + innerH) + '" x2="' + (ox + innerW) + '" y2="' + (oy + innerH) + '" stroke="' + light + '" stroke-width="1" stroke-dasharray="2,2"/>';
+
+        // Panels
+        var trafficIdx = -1;
+        if (trafficDoor === 'yes' && panelCount >= 3) {
+          trafficIdx = (foldDir === 'left') ? 0 : panelCount - 1;
+        }
+
+        for (var i = 0; i < panelCount; i++) {
+          var px = ox + i * panelW;
+          var isTraffic = (i === trafficIdx);
+
+          // Panel rectangle
+          svg += '<rect x="' + (px + 1) + '" y="' + (oy + 1) + '" width="' + (panelW - 2) + '" height="' + (innerH - 2) + '" fill="' + glass + '" stroke="' + mid + '" stroke-width="1" rx="1"/>';
+
+          if (isTraffic) {
+            // Traffic door: hinge indicator + arc
+            var hingeX = (foldDir === 'left') ? px + 1 : px + panelW - 1;
+            var arcX = (foldDir === 'left') ? px + panelW - 4 : px + 4;
+            // Hinge dots
+            svg += '<circle cx="' + hingeX + '" cy="' + (oy + innerH * 0.2) + '" r="2" fill="' + mid + '"/>';
+            svg += '<circle cx="' + hingeX + '" cy="' + (oy + innerH * 0.5) + '" r="2" fill="' + mid + '"/>';
+            svg += '<circle cx="' + hingeX + '" cy="' + (oy + innerH * 0.8) + '" r="2" fill="' + mid + '"/>';
+            // Handle
+            svg += '<circle cx="' + arcX + '" cy="' + (oy + innerH * 0.5) + '" r="2.5" fill="' + dark + '"/>';
+            // Label
+            svg += '<text x="' + (px + panelW / 2) + '" y="' + (oy + innerH / 2 + 3) + '" text-anchor="middle" font-size="7" fill="' + mid + '">TD</text>';
+          }
+        }
+
+        // Fold direction arrows
+        var arrowY = oy + innerH + 10;
+        var startX, endX;
+        if (trafficDoor === 'yes' && trafficIdx >= 0) {
+          // Arrows only for folding panels (not traffic door)
+          if (foldDir === 'left') {
+            startX = ox + panelW; // skip traffic door
+            endX = ox + innerW;
+          } else {
+            startX = ox;
+            endX = ox + innerW - panelW; // skip traffic door
+          }
+        } else {
+          startX = ox;
+          endX = ox + innerW;
+        }
+        var midX = (startX + endX) / 2;
+        var arrowDir = (foldDir === 'left') ? -1 : 1;
+        // Arrow line
+        svg += '<line x1="' + midX + '" y1="' + arrowY + '" x2="' + (midX + arrowDir * 20) + '" y2="' + arrowY + '" stroke="' + mid + '" stroke-width="1.5"/>';
+        svg += '<polygon points="' + (midX + arrowDir * 20) + ',' + arrowY + ' ' + (midX + arrowDir * 15) + ',' + (arrowY - 3) + ' ' + (midX + arrowDir * 15) + ',' + (arrowY + 3) + '" fill="' + mid + '"/>';
+
+        // Opening direction label
+        svg += '<text x="' + (svgW / 2) + '" y="' + (svgH - 2) + '" text-anchor="middle" font-size="7" fill="' + light + '">' + (openDir === 'outward' ? 'Opens Outward' : 'Opens Inward') + '</text>';
+
+        svg += '</svg>';
+        container.innerHTML = svg;
+      }
+      window.updateBifoldPreview = updateBifoldPreview;
+
+      // Bi-fold: panel count change
+      var bfPanelSelect = document.getElementById('bf-door-panel-count');
+      if (bfPanelSelect) {
+        bfPanelSelect.addEventListener('change', function() {
+          var count = parseInt(bfPanelSelect.value) || 4;
+          // Traffic door: hide for 2 panels
+          var trafficGroup = document.getElementById('bf-traffic-group');
+          if (trafficGroup) {
+            trafficGroup.style.display = (count < 3) ? 'none' : '';
+            if (count < 3) {
+              var noRadio = document.getElementById('bf-traffic-no');
+              if (noRadio) noRadio.checked = true;
+            }
+          }
+          if (window.updateInfoPanel) window.updateInfoPanel();
+          if (window.DoorController) window.DoorController.updateDoorPrice();
+        });
+      }
+
+      // Bi-fold: fold direction, traffic door, opening direction change
+      ['bf-fold-direction', 'bf-traffic-door', 'bf-open-direction'].forEach(function(name) {
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function(r) {
+          r.addEventListener('change', function() {
+            if (window.updateInfoPanel) window.updateInfoPanel();
+            if (window.DoorController) window.DoorController.updateDoorPrice();
+          });
+        });
+      });
+
+      // Bi-fold: width change recalc
+      if (dWidthEl) {
+        dWidthEl.addEventListener('input', function() {
+          var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
+          if (doorType === 'bifold') {
+            // Auto-enforce minimum panels based on max 950mm
+            var totalWidth = parseInt(dWidthEl.value) || 0;
+            var availW = totalWidth - 100;
+            var minPanels = Math.max(2, Math.ceil(availW / 950));
+            var bfSel = document.getElementById('bf-door-panel-count');
+            if (bfSel && parseInt(bfSel.value) < minPanels) {
+              bfSel.value = minPanels;
+            }
+            // Update hint
+            var hint = document.getElementById('bf-panel-hint');
+            if (hint) {
+              var gaps = minPanels - 1;
+              var pw = Math.round((availW - gaps * 5) / minPanels);
+              hint.textContent = 'Min ' + minPanels + ' panels required (panel ' + pw + 'mm each, max 950mm)';
+            }
+            if (window.updateInfoPanel) window.updateInfoPanel();
+            if (window.DoorController) window.DoorController.updateDoorPrice();
+          }
+        });
+      }
+
+      // Initial bi-fold preview
+      updateBifoldPreview();
 
       // Side panels toggle — show/hide side panel dimension inputs
       var sidePanelRadios = document.querySelectorAll('input[name="door-side-panels"]');

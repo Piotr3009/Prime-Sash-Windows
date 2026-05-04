@@ -537,6 +537,7 @@ class PriceCalculator {
     const doorH = configuration.height || 2100;
     const doorSqm = (doorW / 1000) * (doorH / 1000);
     const isSlidingDoor = (configuration.doorType || 'single-external') === 'sliding';
+    const isBifoldDoor = (configuration.doorType || 'single-external') === 'bifold';
     const isFrenchDoor = (configuration.doorType || 'single-external') === 'french';
 
     let basePrice;
@@ -546,6 +547,10 @@ class PriceCalculator {
       const slidingRate = configuration.extraWidth ? SLIDING_EXTRA_PER_SQM : SLIDING_STANDARD_PER_SQM;
       basePrice = slidingRate * doorSqm;
       console.log('Sliding door:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + slidingRate, (configuration.extraWidth ? '(Extra Width)' : '(Standard)'), '= £' + basePrice.toFixed(2));
+    } else if (isBifoldDoor) {
+      const BIFOLD_PER_SQM = 1200;
+      basePrice = BIFOLD_PER_SQM * doorSqm;
+      console.log('Bi-fold door:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + BIFOLD_PER_SQM, '= £' + basePrice.toFixed(2));
     } else {
       basePrice = DOOR_BASE_PER_SQM * doorSqm;
       if (isFrenchDoor) {
@@ -594,11 +599,11 @@ class PriceCalculator {
     // ── 4. Sill extension ──
     let sillPrice = 0;
     if (configuration.thresholdExtension > 0) {
-      if (isSlidingDoor) {
-        // Sliding: price per linear meter of door width
+      if (isSlidingDoor || isBifoldDoor) {
+        // Sliding/Bifold: price per linear meter of door width
         const SILL_RATE_PER_M = 80;
         sillPrice = Math.round(SILL_RATE_PER_M * (doorW / 1000));
-        console.log('Sill extension (sliding): £' + SILL_RATE_PER_M + '/m × ' + (doorW / 1000).toFixed(2) + 'm = £' + sillPrice);
+        console.log('Sill extension (sliding/bifold): £' + SILL_RATE_PER_M + '/m × ' + (doorW / 1000).toFixed(2) + 'm = £' + sillPrice);
       } else {
         sillPrice = SILL_EXTENSION_PRICE;
         console.log('Sill extension: £' + sillPrice);

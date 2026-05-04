@@ -36,7 +36,7 @@
     'single-external': { wMin: 600, wMax: 1100, hMin: 1900, hMax: 3000, defaultW: 900, defaultH: 2100 },
     'french':          { wMin: 1000, wMax: 2000, hMin: 1900, hMax: 3000, defaultW: 1400, defaultH: 2100 },
     'sliding':         { wMin: 1500, wMax: 8000, hMin: 1900, hMax: 2500, defaultW: 2400, defaultH: 2100 },
-    'bifold':          { wMin: 1800, wMax: 6000, hMin: 1900, hMax: 2500, defaultW: 3000, defaultH: 2100 }
+    'bifold':          { wMin: 1500, wMax: 7500, hMin: 1900, hMax: 2500, defaultW: 3000, defaultH: 2100 }
   };
 
   // ─── Get current door config ───
@@ -44,11 +44,12 @@
     var doorType = checked('door-type') || 'single-external';
     var isFrench = doorType === 'french';
     var isSliding = doorType === 'sliding';
+    var isBifold = doorType === 'bifold';
     var prefix = isFrench ? 'fd-door-' : 'door-';
 
-    // Sliding: fixed defaults (no shape/style/paneling/sidePanels in UI)
+    // Sliding/Bifold: fixed defaults (no shape/style/paneling/sidePanels in UI)
     var doorShape, doorStyle, doorPaneling, sidePanels, centerMullion;
-    if (isSliding) {
+    if (isSliding || isBifold) {
       doorShape = 'standard';
       doorStyle = 'full-glass';
       doorPaneling = 'flat';
@@ -68,9 +69,26 @@
     var slideDirection = isSliding ? (checked('sl-door-slide-direction') || 'left-to-right') : '';
     var width = numVal('d-width');
     var glassWidth = 0;
-    var panelDepth = 57; // default for non-sliding
-    var frameDepth = 93; // default for non-sliding
+    var panelDepth = 57; // default for non-sliding/bifold
+    var frameDepth = 93; // default for non-sliding/bifold
     var panelWidth = 0;
+
+    // Bi-fold specific fields
+    var foldDirection = '';
+    var trafficDoor = 'no';
+    var bifoldOpenDirection = '';
+    if (isBifold) {
+      panelCount = parseInt(document.getElementById('bf-door-panel-count') ? document.getElementById('bf-door-panel-count').value : 4) || 4;
+      foldDirection = (checked('bf-fold-direction') || 'left');
+      trafficDoor = (panelCount >= 3) ? (checked('bf-traffic-door') || 'no') : 'no';
+      bifoldOpenDirection = (checked('bf-open-direction') || 'outward');
+      // Bi-fold panel math: panelW = (width - 100 - (N-1) × 5) / N
+      var gaps = panelCount - 1;
+      panelWidth = Math.round((width - 100 - gaps * 5) / panelCount);
+      panelDepth = 65; // leaf depth 65mm
+      frameDepth = 95; // 15 + 65 + 15
+    }
+
     if (isSliding && panelCount > 0) {
       var stileW = 93; // panel stile width
       var innerWidth = width - 100; // 50mm frame each side
@@ -103,14 +121,14 @@
       vBars: parseInt(checked('d-vbars') || '0'),
       sideHBars: parseInt(checked('d-side-hbars') || '0'),
       sideVBars: parseInt(checked('d-side-vbars') || '0'),
-      sideStyle: isSliding ? 'full-glass' : (checked(prefix + 'side-style') || 'full-glass'),
+      sideStyle: (isSliding || isBifold) ? 'full-glass' : (checked(prefix + 'side-style') || 'full-glass'),
       glassType: checked('d-glass-type') || 'double',
       glassFinish: checked('d-glass-finish') || 'clear',
       spacerColor: checked('d-spacer-color') || 'silver',
-      hingeSide: isSliding ? '' : (checked('d-hinge-side') || 'left'),
-      openDirection: isSliding ? '' : (checked('d-open-direction') || 'inward'),
-      lockType: isSliding ? 'standard' : (checked('d-lock-type') || 'multipoint'),
-      threshold: isSliding ? 'standard' : (checked('d-threshold') || 'standard'),
+      hingeSide: (isSliding || isBifold) ? '' : (checked('d-hinge-side') || 'left'),
+      openDirection: isBifold ? bifoldOpenDirection : (isSliding ? '' : (checked('d-open-direction') || 'inward')),
+      lockType: (isSliding || isBifold) ? 'standard' : (checked('d-lock-type') || 'multipoint'),
+      threshold: (isSliding || isBifold) ? 'standard' : (checked('d-threshold') || 'standard'),
       thresholdExtension: numVal('d-threshold-extension'),
       doorOpening: (numVal('d-door-opening') || 0) / 100,
       sillWider: document.getElementById('d-sill-wider') ? document.getElementById('d-sill-wider').checked : false,
@@ -124,6 +142,10 @@
       panelDepth: panelDepth,
       panelWidth: panelWidth,
       frameDepth: frameDepth,
+      // Bi-fold specific
+      foldDirection: foldDirection,
+      trafficDoor: trafficDoor,
+      bifoldOpenDirection: bifoldOpenDirection,
       // Colour
       sameColor: doorColourState.sameColor,
       woodColor: doorColourState.woodColor,
@@ -189,7 +211,11 @@
       extraWidth: config.extraWidth,
       glassWidth: config.glassWidth,
       panelDepth: config.panelDepth,
-      frameDepth: config.frameDepth
+      frameDepth: config.frameDepth,
+      // Bi-fold specific
+      foldDirection: config.foldDirection,
+      trafficDoor: config.trafficDoor,
+      bifoldOpenDirection: config.bifoldOpenDirection
     });
 
     if (isDoorActive()) window.currentConfig = getDoorConfig();
@@ -218,36 +244,38 @@
 
     // Door Type name
     var specDoorType = $('spec-d-door-type');
-    var doorTypeLabels = { 'single-external': 'Single Patio Door', 'french': 'French Doors', 'sliding': 'Sliding Door' };
+    var doorTypeLabels = { 'single-external': 'Single Patio Door', 'french': 'French Doors', 'sliding': 'Sliding Door', 'bifold': 'Bi-Fold Door' };
     if (specDoorType) specDoorType.textContent = doorTypeLabels[config.doorType] || 'Single Patio Door';
 
-    // Shape / Style / Paneling / Mullion — hide for sliding
+    // Shape / Style / Paneling / Mullion — hide for sliding/bifold
     var isSliding = config.doorType === 'sliding';
+    var isBifold = config.doorType === 'bifold';
+    var isSlidingOrBifold = isSliding || isBifold;
 
     var specShape = $('spec-d-shape');
     var shapeLabels = { 'standard': 'Standard', 'arched': 'Arched', 'glazed-arch': 'Glazed Arch' };
     if (specShape) {
       specShape.textContent = shapeLabels[config.doorShape] || 'Standard';
-      specShape.parentElement.style.display = isSliding ? 'none' : '';
+      specShape.parentElement.style.display = isSlidingOrBifold ? 'none' : '';
     }
 
     var specStyle = $('spec-d-style');
     var styleLabels = { 'full-glass': 'Full Glass', 'three-quarter': '¾ Glass', 'half-glazed': 'Half Glass' };
     if (specStyle) {
       specStyle.textContent = styleLabels[config.doorStyle] || 'Full Glass';
-      specStyle.parentElement.style.display = isSliding ? 'none' : '';
+      specStyle.parentElement.style.display = isSlidingOrBifold ? 'none' : '';
     }
 
     var specPaneling = $('spec-d-paneling');
     var panelingLabels = { 'flat': 'Flat', 'panel': 'Recessed Panel', 'beading': 'Beading', 'bespoke': 'Bespoke' };
     var panelingItem = $('spec-d-paneling-item');
     if (specPaneling) specPaneling.textContent = panelingLabels[config.doorPaneling] || 'Flat';
-    if (panelingItem) panelingItem.style.display = (isSliding || config.doorStyle === 'full-glass') ? 'none' : '';
+    if (panelingItem) panelingItem.style.display = (isSlidingOrBifold || config.doorStyle === 'full-glass') ? 'none' : '';
 
     var specMullion = $('spec-d-mullion');
     var mullionItem = $('spec-d-mullion-item');
     if (specMullion) specMullion.textContent = config.centerMullion ? 'Yes' : 'No';
-    if (mullionItem) mullionItem.style.display = (isSliding || config.doorStyle === 'full-glass') ? 'none' : '';
+    if (mullionItem) mullionItem.style.display = (isSlidingOrBifold || config.doorStyle === 'full-glass') ? 'none' : '';
 
     var sideStyleItem = $('spec-d-side-style-item');
     var sideStyleVal = $('spec-d-side-style');
@@ -274,6 +302,10 @@
     if (panelsItem && panelsVal) {
       var panelsLabel = $('spec-d-panels-label');
       if (isSliding) {
+        panelsItem.style.display = '';
+        if (panelsLabel) panelsLabel.textContent = 'Panels:';
+        panelsVal.textContent = config.panelCount + ' panels, panel ' + config.panelWidth + 'mm × ' + config.panelDepth + 'mm';
+      } else if (isBifold) {
         panelsItem.style.display = '';
         if (panelsLabel) panelsLabel.textContent = 'Panels:';
         panelsVal.textContent = config.panelCount + ' panels, panel ' + config.panelWidth + 'mm × ' + config.panelDepth + 'mm';
@@ -319,14 +351,16 @@
     if (specHinge) {
       if (isSliding) {
         specHinge.textContent = config.panelCount + ' Panels' + (config.extraWidth ? ' (Extra Width)' : '');
+      } else if (isBifold) {
+        specHinge.textContent = config.panelCount + ' Panels';
       } else {
         specHinge.textContent = (config.hingeSide || 'left') === 'left' ? 'Right' : 'Left';
       }
     }
 
-    // Update hinge label for sliding
+    // Update hinge label for sliding/bifold
     var hingeLabel = $('spec-d-hinge-label');
-    if (hingeLabel) hingeLabel.textContent = isSliding ? 'Panels:' : 'Open First:';
+    if (hingeLabel) hingeLabel.textContent = (isSliding || isBifold) ? 'Panels:' : 'Open First:';
 
     var specOpening = $('spec-d-opening');
     if (specOpening) {
@@ -338,20 +372,25 @@
           'from-sides': 'Open from Sides (exterior view)'
         };
         specOpening.textContent = dirLabels[config.slideDirection] || 'Left → Right (exterior view)';
+      } else if (isBifold) {
+        var foldLabel = config.foldDirection === 'left' ? 'Fold Left' : 'Fold Right';
+        var trafficLabel = config.trafficDoor === 'yes' ? ' + Traffic Door' : '';
+        var openLabel = config.bifoldOpenDirection === 'inward' ? ' (Inward)' : ' (Outward)';
+        specOpening.textContent = foldLabel + trafficLabel + openLabel;
       } else {
         specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Outward' : 'Inward';
       }
     }
 
-    // Update opening label for sliding
+    // Update opening label for sliding/bifold
     var openingLabel = $('spec-d-opening-label');
-    if (openingLabel) openingLabel.textContent = isSliding ? 'Slide Direction:' : 'Opening:';
+    if (openingLabel) openingLabel.textContent = isSliding ? 'Slide Direction:' : (isBifold ? 'Fold Config:' : 'Opening:');
 
     var specThreshold = $('spec-d-threshold');
     var thresholdLabels = { 'standard': 'Standard Hardwood', 'aluminium': 'Aluminium', 'low-profile': 'Low Profile' };
     if (specThreshold) {
       specThreshold.textContent = thresholdLabels[config.threshold] || 'Standard Hardwood';
-      specThreshold.parentElement.style.display = isSliding ? 'none' : '';
+      specThreshold.parentElement.style.display = isSlidingOrBifold ? 'none' : '';
     }
 
     var extItem = $('spec-d-extension-item');
@@ -418,7 +457,7 @@
     var lockLabels = { 'multipoint': 'Multipoint Lock', 'deadbolt': 'Deadbolt' };
     if (specLock) {
       specLock.textContent = lockLabels[config.lockType] || 'Multipoint Lock';
-      specLock.parentElement.style.display = isSliding ? 'none' : '';
+      specLock.parentElement.style.display = isSlidingOrBifold ? 'none' : '';
     }
 
     var specSeal = $('spec-d-seal');
@@ -517,11 +556,16 @@
     ['door-shape', 'door-style', 'door-paneling', 'door-side-panels', 'door-center-mullion', 'door-side-style',
      'fd-door-shape', 'fd-door-style', 'fd-door-paneling', 'fd-door-side-panels', 'fd-door-center-mullion', 'fd-door-side-style',
      'sl-door-panel-count', 'sl-door-slide-direction',
+     'bf-fold-direction', 'bf-traffic-door', 'bf-open-direction',
      'd-seal-colour', 'd-trickle-vent', 'd-trickle-colour'].forEach(function(name) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(function(radio) {
         radio.addEventListener('change', debouncedUpdate);
       });
     });
+
+    // Bi-fold panel count select
+    var bfPanelSel = document.getElementById('bf-door-panel-count');
+    if (bfPanelSel) bfPanelSel.addEventListener('change', debouncedUpdate);
 
     // Quantity
     var qtyEl = $('d-quantity');
