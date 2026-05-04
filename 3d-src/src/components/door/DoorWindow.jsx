@@ -655,7 +655,7 @@ export default function DoorWindow({
 
           const cx = hingeX + (bfPW / 2) * dx;
           const cz = hingeZ + (bfPW / 2) * dz;
-          const rotY = -absAngle;
+          const rotY = accFromRight ? (Math.PI + absAngle) : -absAngle;
 
           const isLastPanel = i === accN - 1;
 
@@ -666,8 +666,8 @@ export default function DoorWindow({
                 height={bfLH_mm}
                 hingeType={isLastPanel ? 'left' : 'fixed'}
                 opening={0}
-                material={extMaterial}
-                materialInt={intMaterial}
+                material={accFromRight ? intMaterial : extMaterial}
+                materialInt={accFromRight ? extMaterial : intMaterial}
                 spacerColor={spacerColor}
                 glassFinish={glassFinish}
                 hBars={hBars}
