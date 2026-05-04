@@ -383,6 +383,24 @@ class CustomerDashboard {
             isAdmin: false
         });
 
+        // === DIAGNOSTIC: check if buttons exist and have onclick ===
+        const allBtns = content.querySelectorAll('button');
+        console.log('=== BUTTON DIAGNOSTIC ===');
+        console.log('Total buttons in modal:', allBtns.length);
+        allBtns.forEach((btn, i) => {
+            console.log(`Button ${i}: text="${btn.textContent.trim()}", onclick=${btn.getAttribute('onclick')}`);
+        });
+        console.log('EstimateRenderer available:', typeof EstimateRenderer);
+        console.log('dashboard available:', typeof dashboard);
+
+        // === EVENT DELEGATION BACKUP: catch clicks on Delete/Rename buttons ===
+        content.addEventListener('click', function(e) {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const onclickAttr = btn.getAttribute('onclick');
+            console.log('=== BUTTON CLICKED ===', btn.textContent.trim(), 'onclick attr:', onclickAttr);
+        });
+
         modal.style.display = 'flex';
         EstimateRenderer.attachExportButtons(estimate);
     }
