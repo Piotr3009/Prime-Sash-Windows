@@ -592,76 +592,31 @@ export default function DoorWindow({
         const theta = Math.max(0, Math.min(1, opening)) * Math.PI / 2;
         const outSign = bifoldOpenDirection === 'outward' ? 1 : -1;
         const isRight = foldDirection === 'right';
-        const dir = isRight ? -1 : 1; // direction of panel chain along X
+        const dir = isRight ? -1 : 1;
 
-        // Starting hinge position
-        const startX = isRight
+        const hasTraffic = trafficDoor === 'yes' && N >= 3;
+        const accN = hasTraffic ? N - 1 : N;
+
+        // Without TD: accordion from fold-direction side (original)
+        // With TD: TD at fold-direction side, accordion from OPPOSITE side
+        const accFromRight = hasTraffic ? !isRight : isRight;
+        const accStartX = accFromRight
           ? W / 2 - mm(effectiveFrameFace)
           : -W / 2 + mm(effectiveFrameFace);
+        const accDir = accFromRight ? -1 : 1;
 
-        // Traffic door handling
-        const hasTraffic = trafficDoor === 'yes' && N >= 3;
-        const trafficIdx = hasTraffic ? 0 : -1;
-
-        // Center Y offset (bottom rail taller than top rail)
         const centerY = mm(BOTTOM_FACE - effectiveFrameFace) / 2;
-
-        // ── Traffic door: opens like regular door ──
-        let trafficEndX = startX;
-        let trafficEndZ = 0;
-        let trafficAngle = 0;
-        if (hasTraffic) {
-          // Traffic door swings open on its frame-side hinge
-          trafficAngle = outSign * theta;
-          const tdx = Math.cos(trafficAngle) * dir;
-          const tdz = Math.sin(trafficAngle);
-          trafficEndX = startX + bfPW * tdx;
-          trafficEndZ = bfPW * tdz;
-        }
-
-        // ── Accordion panels (skip traffic door if present) ──
-        const foldStartIdx = hasTraffic ? 1 : 0;
-        const foldStartX = hasTraffic ? trafficEndX : startX;
-        const foldStartZ = hasTraffic ? trafficEndZ : 0;
-
-        const transforms = [];
-        let hingeX = foldStartX;
-        let hingeZ = foldStartZ;
-        let absAngle = hasTraffic ? trafficAngle : 0;
-
-        for (let i = foldStartIdx; i < N; i++) {
-          const foldI = i - foldStartIdx;
-          if (foldI === 0) {
-            absAngle = hasTraffic ? (trafficAngle + (-outSign * 2 * theta)) : (outSign * theta);
-          } else {
-            absAngle += (foldI % 2 === 1) ? -2 * outSign * theta : 2 * outSign * theta;
-          }
-
-          const dx = Math.cos(absAngle) * dir;
-          const dz = Math.sin(absAngle);
-
-          const cx = hingeX + (bfPW / 2) * dx;
-          const cz = hingeZ + (bfPW / 2) * dz;
-
-          transforms.push({
-            x: cx, z: cz,
-            rotY: isRight ? (Math.PI - absAngle) : -absAngle,
-            idx: i,
-          });
-
-          hingeX += bfPW * dx;
-          hingeZ += bfPW * dz;
-        }
-
         const panels = [];
 
-        // Traffic door panel (separate, hinge-opening)
+        // ── Traffic door: pivot at frame edge, opens outward ──
         if (hasTraffic) {
-          const trafficRotY = isRight ? (Math.PI - trafficAngle) : -trafficAngle;
-          const tcx = startX + (bfPW / 2) * Math.cos(trafficAngle) * dir;
-          const tcz = (bfPW / 2) * Math.sin(trafficAngle);
+          const tdHingeX = isRight
+            ? W / 2 - mm(effectiveFrameFace)
+            : -W / 2 + mm(effectiveFrameFace);
+          const tdRotY = -dir * outSign * theta;
+
           panels.push(
-            <group key="bf-traffic" position={[tcx, centerY, tcz]} rotation={[0, trafficRotY, 0]}>
+            <group key="bf-traffic" position={[tdHingeX, centerY, 0]} rotation={[0, tdRotY, 0]}>
               <DoorPanel
                 width={bfPW_mm}
                 height={bfLH_mm}
@@ -677,16 +632,33 @@ export default function DoorWindow({
                 paneling={paneling}
                 showHandle={true}
                 isSliding={true}
-                position={[0, 0, 0]}
+                position={[dir * bfPW / 2, 0, 0]}
               />
             </group>
           );
         }
 
-        // Accordion panels
-        transforms.forEach((t, fi) => {
+        // ── Accordion: original zigzag (unchanged formula) ──
+        let hingeX = accStartX;
+        let hingeZ = 0;
+        let absAngle = 0;
+
+        for (let i = 0; i < accN; i++) {
+          if (i === 0) {
+            absAngle = outSign * theta;
+          } else {
+            absAngle += (i % 2 === 1) ? -2 * outSign * theta : 2 * outSign * theta;
+          }
+
+          const dx = Math.cos(absAngle) * accDir;
+          const dz = Math.sin(absAngle);
+
+          const cx = hingeX + (bfPW / 2) * dx;
+          const cz = hingeZ + (bfPW / 2) * dz;
+          const rotY = accFromRight ? (Math.PI - absAngle) : -absAngle;
+
           panels.push(
-            <group key={`bf-panel-${t.idx}`} position={[t.x, centerY, t.z]} rotation={[0, t.rotY, 0]}>
+            <group key={`bf-panel-${i}`} position={[cx, centerY, cz]} rotation={[0, rotY, 0]}>
               <DoorPanel
                 width={bfPW_mm}
                 height={bfLH_mm}
@@ -700,13 +672,16 @@ export default function DoorWindow({
                 vBars={vBars}
                 doorStyle={doorStyle}
                 paneling={paneling}
-                showHandle={!hasTraffic && fi === 0}
+                showHandle={!hasTraffic && i === 0}
                 isSliding={true}
                 position={[0, 0, 0]}
               />
             </group>
           );
-        });
+
+          hingeX += bfPW * dx;
+          hingeZ += bfPW * dz;
+        }
 
         return panels;
       })()}
