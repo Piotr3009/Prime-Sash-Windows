@@ -2068,6 +2068,7 @@ class EstimateRenderer {
         // ── Door leaf(s) ──
         const doorType = fc.doorType || 'single-external';
         const isFrench = doorType === 'french';
+        const isSliding = doorType === 'sliding';
         const leafY = oy + frameT;
         const leafH = drawH - frameT * 2;
         const bottomRailH = bottomRailRatio > 0 ? leafH * bottomRailRatio : 0;
@@ -2107,7 +2108,72 @@ class EstimateRenderer {
             });
         }
 
-        if (isFrench) {
+        if (isSliding) {
+            // ── Sliding door panels ──
+            const panelCount = fc.panelCount || 2;
+            const slideDir = fc.slideDirection || 'left-to-right';
+            const innerW = doorW - frameT * 2;
+            const panelW = innerW / panelCount;
+            const stileOverlap = 3; // visual overlap between panels
+
+            for (let i = 0; i < panelCount; i++) {
+                const px = doorX + frameT + i * panelW;
+                const pw = panelW + stileOverlap;
+                // Panel outline
+                svg += `<rect x="${px}" y="${leafY}" width="${pw}" height="${leafH}" fill="none" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
+                // Glass
+                const gx = px + 4, gw = pw - 8, gy = leafY;
+                svg += `<rect x="${gx}" y="${gy + 4}" width="${gw}" height="${glassH - 4}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                // Bottom rail
+                if (bottomRailH > 0) {
+                    svg += `<rect x="${px}" y="${leafY + glassH}" width="${pw}" height="${bottomRailH}" fill="${panel}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                }
+                // Bars
+                for (let b = 1; b <= hBars; b++) {
+                    const by = gy + 4 + (glassH - 4) * b / (hBars + 1);
+                    svg += `<line x1="${gx}" y1="${by}" x2="${gx + gw}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+                }
+                for (let b = 1; b <= vBars; b++) {
+                    const bx = gx + gw * b / (vBars + 1);
+                    svg += `<line x1="${bx}" y1="${gy + 4}" x2="${bx}" y2="${gy + glassH}" stroke="${light}" stroke-width="1"/>`;
+                }
+                // Meeting stile lines between panels
+                if (i > 0) {
+                    svg += `<line x1="${px}" y1="${leafY}" x2="${px}" y2="${leafY + leafH}" stroke="${mid}" stroke-width="1.5"/>`;
+                }
+            }
+
+            // Handle on first sliding panel
+            const isRTL = slideDir === 'right-to-left';
+            const handlePanelIdx = isRTL ? panelCount - 1 : 0;
+            const hpx = doorX + frameT + handlePanelIdx * panelW;
+            const handleX = isRTL ? hpx + 12 : hpx + panelW - 12;
+            const handleYPos = leafY + leafH * 0.48;
+            svg += `<circle cx="${handleX}" cy="${handleYPos}" r="4" fill="${dark}" stroke="none"/>`;
+            svg += `<line x1="${handleX}" y1="${handleYPos - 8}" x2="${handleX}" y2="${handleYPos + 8}" stroke="${dark}" stroke-width="2" stroke-linecap="round"/>`;
+
+            // Slide direction arrows below frame
+            const arrowY = leafY + leafH + 6;
+            const arrowLen = 18;
+            if (slideDir === 'left-to-right' || slideDir === 'right-to-left') {
+                const ax = doorX + doorW / 2;
+                const dir = slideDir === 'left-to-right' ? 1 : -1;
+                svg += `<line x1="${ax - dir * arrowLen}" y1="${arrowY}" x2="${ax + dir * arrowLen}" y2="${arrowY}" stroke="${mid}" stroke-width="1.5"/>`;
+                svg += `<polygon points="${ax + dir * arrowLen},${arrowY} ${ax + dir * (arrowLen - 5)},${arrowY - 3} ${ax + dir * (arrowLen - 5)},${arrowY + 3}" fill="${mid}"/>`;
+            } else if (slideDir === 'from-center') {
+                const cx = doorX + doorW / 2;
+                svg += `<line x1="${cx}" y1="${arrowY}" x2="${cx - arrowLen}" y2="${arrowY}" stroke="${mid}" stroke-width="1.5"/>`;
+                svg += `<polygon points="${cx - arrowLen},${arrowY} ${cx - arrowLen + 5},${arrowY - 3} ${cx - arrowLen + 5},${arrowY + 3}" fill="${mid}"/>`;
+                svg += `<line x1="${cx}" y1="${arrowY}" x2="${cx + arrowLen}" y2="${arrowY}" stroke="${mid}" stroke-width="1.5"/>`;
+                svg += `<polygon points="${cx + arrowLen},${arrowY} ${cx + arrowLen - 5},${arrowY - 3} ${cx + arrowLen - 5},${arrowY + 3}" fill="${mid}"/>`;
+            } else if (slideDir === 'from-sides') {
+                const cx = doorX + doorW / 2;
+                svg += `<line x1="${cx - arrowLen}" y1="${arrowY}" x2="${cx}" y2="${arrowY}" stroke="${mid}" stroke-width="1.5"/>`;
+                svg += `<polygon points="${cx},${arrowY} ${cx - 5},${arrowY - 3} ${cx - 5},${arrowY + 3}" fill="${mid}"/>`;
+                svg += `<line x1="${cx + arrowLen}" y1="${arrowY}" x2="${cx}" y2="${arrowY}" stroke="${mid}" stroke-width="1.5"/>`;
+                svg += `<polygon points="${cx},${arrowY} ${cx + 5},${arrowY - 3} ${cx + 5},${arrowY + 3}" fill="${mid}"/>`;
+            }
+        } else if (isFrench) {
             // Two leaves, no mullion
             const halfDoorW = (doorW - frameT * 2) / 2;
             const leftLeafX = doorX + frameT;

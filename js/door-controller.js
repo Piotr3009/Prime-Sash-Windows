@@ -332,12 +332,12 @@
     if (specOpening) {
       if (isSliding) {
         var dirLabels = {
-          'left-to-right': 'Left → Right',
-          'right-to-left': 'Right → Left',
-          'from-center': 'Open from Center',
-          'from-sides': 'Open from Sides'
+          'left-to-right': 'Left → Right (exterior view)',
+          'right-to-left': 'Right → Left (exterior view)',
+          'from-center': 'Open from Center (exterior view)',
+          'from-sides': 'Open from Sides (exterior view)'
         };
-        specOpening.textContent = dirLabels[config.slideDirection] || 'Left → Right';
+        specOpening.textContent = dirLabels[config.slideDirection] || 'Left → Right (exterior view)';
       } else {
         specOpening.textContent = (config.openDirection || 'outward') === 'outward' ? 'Outward' : 'Inward';
       }
