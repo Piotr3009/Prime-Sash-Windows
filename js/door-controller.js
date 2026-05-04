@@ -47,12 +47,19 @@
     var isBifold = doorType === 'bifold';
     var prefix = isFrench ? 'fd-door-' : 'door-';
 
-    // Sliding/Bifold: fixed defaults (no shape/style/paneling/sidePanels in UI)
+    // Sliding: fixed defaults (no shape/style/paneling/sidePanels)
+    // Bifold: fixed shape + no sidePanels/mullion, but style/paneling allowed
     var doorShape, doorStyle, doorPaneling, sidePanels, centerMullion;
-    if (isSliding || isBifold) {
+    if (isSliding) {
       doorShape = 'standard';
       doorStyle = 'full-glass';
       doorPaneling = 'flat';
+      sidePanels = 'none';
+      centerMullion = false;
+    } else if (isBifold) {
+      doorShape = 'standard';
+      doorStyle = checked('door-style') || 'full-glass';
+      doorPaneling = checked('door-paneling') || 'flat';
       sidePanels = 'none';
       centerMullion = false;
     } else {
@@ -263,14 +270,14 @@
     var styleLabels = { 'full-glass': 'Full Glass', 'three-quarter': '¾ Glass', 'half-glazed': 'Half Glass' };
     if (specStyle) {
       specStyle.textContent = styleLabels[config.doorStyle] || 'Full Glass';
-      specStyle.parentElement.style.display = isSlidingOrBifold ? 'none' : '';
+      specStyle.parentElement.style.display = isSliding ? 'none' : '';
     }
 
     var specPaneling = $('spec-d-paneling');
     var panelingLabels = { 'flat': 'Flat', 'panel': 'Recessed Panel', 'beading': 'Beading', 'bespoke': 'Bespoke' };
     var panelingItem = $('spec-d-paneling-item');
     if (specPaneling) specPaneling.textContent = panelingLabels[config.doorPaneling] || 'Flat';
-    if (panelingItem) panelingItem.style.display = (isSlidingOrBifold || config.doorStyle === 'full-glass') ? 'none' : '';
+    if (panelingItem) panelingItem.style.display = (isSliding || config.doorStyle === 'full-glass') ? 'none' : '';
 
     var specMullion = $('spec-d-mullion');
     var mullionItem = $('spec-d-mullion-item');

@@ -599,21 +599,42 @@ export default function DoorWindow({
           ? W / 2 - mm(effectiveFrameFace)
           : -W / 2 + mm(effectiveFrameFace);
 
-        // Compute accordion transforms
-        const transforms = [];
-        let hingeX = startX;
-        let hingeZ = 0;
-        let absAngle = 0;
-
         // Traffic door handling
         const hasTraffic = trafficDoor === 'yes' && N >= 3;
-        const trafficIdx = hasTraffic ? 0 : -1; // always first panel in chain
+        const trafficIdx = hasTraffic ? 0 : -1;
 
-        for (let i = 0; i < N; i++) {
-          if (i === 0) {
-            absAngle = outSign * theta;
+        // Center Y offset (bottom rail taller than top rail)
+        const centerY = mm(BOTTOM_FACE - effectiveFrameFace) / 2;
+
+        // ── Traffic door: opens like regular door ──
+        let trafficEndX = startX;
+        let trafficEndZ = 0;
+        let trafficAngle = 0;
+        if (hasTraffic) {
+          // Traffic door swings open on its frame-side hinge
+          trafficAngle = outSign * theta;
+          const tdx = Math.cos(trafficAngle) * dir;
+          const tdz = Math.sin(trafficAngle);
+          trafficEndX = startX + bfPW * tdx;
+          trafficEndZ = bfPW * tdz;
+        }
+
+        // ── Accordion panels (skip traffic door if present) ──
+        const foldStartIdx = hasTraffic ? 1 : 0;
+        const foldStartX = hasTraffic ? trafficEndX : startX;
+        const foldStartZ = hasTraffic ? trafficEndZ : 0;
+
+        const transforms = [];
+        let hingeX = foldStartX;
+        let hingeZ = foldStartZ;
+        let absAngle = hasTraffic ? trafficAngle : 0;
+
+        for (let i = foldStartIdx; i < N; i++) {
+          const foldI = i - foldStartIdx;
+          if (foldI === 0) {
+            absAngle = hasTraffic ? (trafficAngle + (-outSign * 2 * theta)) : (outSign * theta);
           } else {
-            absAngle += (i % 2 === 1) ? -2 * outSign * theta : 2 * outSign * theta;
+            absAngle += (foldI % 2 === 1) ? -2 * outSign * theta : 2 * outSign * theta;
           }
 
           const dx = Math.cos(absAngle) * dir;
@@ -625,35 +646,69 @@ export default function DoorWindow({
           transforms.push({
             x: cx, z: cz,
             rotY: isRight ? (Math.PI - absAngle) : -absAngle,
-            isTraffic: i === trafficIdx,
+            idx: i,
           });
 
           hingeX += bfPW * dx;
           hingeZ += bfPW * dz;
         }
 
-        const centerY = mm(BOTTOM_FACE - effectiveFrameFace) / 2;
+        const panels = [];
 
-        return transforms.map((t, i) => (
-          <group key={`bf-panel-${i}`} position={[t.x, centerY, t.z]} rotation={[0, t.rotY, 0]}>
-            <DoorPanel
-              width={bfPW_mm}
-              height={bfLH_mm}
-              hingeType="fixed"
-              opening={0}
-              material={extMaterial}
-              materialInt={intMaterial}
-              spacerColor={spacerColor}
-              glassFinish={glassFinish}
-              hBars={hBars}
-              vBars={vBars}
-              doorStyle="full-glass"
-              showHandle={t.isTraffic || i === (isRight ? N - 1 : 0)}
-              isSliding={false}
-              position={[0, 0, 0]}
-            />
-          </group>
-        ));
+        // Traffic door panel (separate, hinge-opening)
+        if (hasTraffic) {
+          const trafficRotY = isRight ? (Math.PI - trafficAngle) : -trafficAngle;
+          const tcx = startX + (bfPW / 2) * Math.cos(trafficAngle) * dir;
+          const tcz = (bfPW / 2) * Math.sin(trafficAngle);
+          panels.push(
+            <group key="bf-traffic" position={[tcx, centerY, tcz]} rotation={[0, trafficRotY, 0]}>
+              <DoorPanel
+                width={bfPW_mm}
+                height={bfLH_mm}
+                hingeType="fixed"
+                opening={0}
+                material={extMaterial}
+                materialInt={intMaterial}
+                spacerColor={spacerColor}
+                glassFinish={glassFinish}
+                hBars={hBars}
+                vBars={vBars}
+                doorStyle={doorStyle}
+                paneling={paneling}
+                showHandle={true}
+                isSliding={true}
+                position={[0, 0, 0]}
+              />
+            </group>
+          );
+        }
+
+        // Accordion panels
+        transforms.forEach((t, fi) => {
+          panels.push(
+            <group key={`bf-panel-${t.idx}`} position={[t.x, centerY, t.z]} rotation={[0, t.rotY, 0]}>
+              <DoorPanel
+                width={bfPW_mm}
+                height={bfLH_mm}
+                hingeType="fixed"
+                opening={0}
+                material={extMaterial}
+                materialInt={intMaterial}
+                spacerColor={spacerColor}
+                glassFinish={glassFinish}
+                hBars={hBars}
+                vBars={vBars}
+                doorStyle={doorStyle}
+                paneling={paneling}
+                showHandle={!hasTraffic && fi === 0}
+                isSliding={true}
+                position={[0, 0, 0]}
+              />
+            </group>
+          );
+        });
+
+        return panels;
       })()}
       {/* Standard + Sliding panels */}
       {!isBifold && layoutDef.panels && layoutDef.panels.map((p, i) => {
