@@ -658,14 +658,13 @@ export default function DoorWindow({
           const rotY = accFromRight ? (Math.PI - absAngle) : -absAngle;
 
           const isLastPanel = i === accN - 1;
-          const meetingHinge = accDir > 0 ? 'right' : 'left';
 
           panels.push(
             <group key={`bf-panel-${i}`} position={[cx, centerY, cz]} rotation={[0, rotY, 0]}>
               <DoorPanel
                 width={bfPW_mm}
                 height={bfLH_mm}
-                hingeType={isLastPanel ? meetingHinge : 'fixed'}
+                hingeType={isLastPanel ? 'left' : 'fixed'}
                 opening={0}
                 material={extMaterial}
                 materialInt={intMaterial}
