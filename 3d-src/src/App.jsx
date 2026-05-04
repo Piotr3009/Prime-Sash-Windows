@@ -483,8 +483,10 @@ function ScreenshotHelper({ config }) {
     window.captureWindowScreenshots = async () => {
       return new Promise((resolve) => {
         const target = new THREE.Vector3(0, 0.18, 0);
-        // Screenshot canvas is square (600×600) → aspect = 1 for fitDistance
-        const distance = fitDistance(config?.width, config?.height, 45, 1) * 0.75; // 25% closer for estimate
+        // Timber doors: exterior view + closer; windows: interior view
+        const isDoor = config?.windowCategory === 'door';
+        const distMult = isDoor ? 0.62 : 0.75;
+        const distance = fitDistance(config?.width, config?.height, 45, 1) * distMult;
 
         // Save current camera state
         const savedPos = camera.position.clone();
@@ -544,9 +546,11 @@ function ScreenshotHelper({ config }) {
           return dataUrl;
         };
 
-        // Interior view only — slight 8° angle for depth
+        // Doors: exterior view (+Z); Windows: interior view (-Z); slight 8° angle for depth
         const angleRad = 8 * Math.PI / 180;
-        const backPos = new THREE.Vector3(-Math.sin(angleRad) * distance, 0.22, -Math.cos(angleRad) * distance);
+        const zSign = isDoor ? 1 : -1;
+        const xSign = isDoor ? 1 : -1;
+        const backPos = new THREE.Vector3(xSign * Math.sin(angleRad) * distance, 0.22, zSign * Math.cos(angleRad) * distance);
         const backRaw = capture(backPos);
 
         // Restore camera
@@ -563,7 +567,7 @@ function ScreenshotHelper({ config }) {
     };
 
     return () => { delete window.captureWindowScreenshots; };
-  }, [gl, scene, camera, config?.width, config?.height]);
+  }, [gl, scene, camera, config?.width, config?.height, config?.windowCategory]);
 
   return null;
 }

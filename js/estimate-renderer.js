@@ -471,7 +471,7 @@ class EstimateRenderer {
                     <div style="padding:1rem;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);gap:10px;">
                         ${screenshots?.interior ? `
                         <div style="text-align:center;">
-                            <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">Interior View</div>
+                            <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">${p.windowType === 'door' ? 'Exterior View' : 'Interior View'}</div>
                             <img src="${screenshots.interior}" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
                         </div>
                         ` : ''}
@@ -508,7 +508,7 @@ class EstimateRenderer {
                             ` : p.windowType === 'door' ? `
                             ${R.specRow('Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door')))}
                             ${p.isSlidingOrBifold ? '' : R.specRow('Shape', p.doorShapeText)}
-                            ${p.isSlidingOrBifold ? '' : R.specRow('Style', p.doorStyleText)}
+                            ${p.isSliding ? '' : R.specRow('Style', p.doorStyleText)}
                             ${p.doorStyle !== 'full-glass' ? R.specRow('Paneling', p.doorPanelingText) : ''}
                             ${p.doorStyle !== 'full-glass' ? R.specRow('Center Mullion', p.doorCenterMullion ? 'Yes' : 'No') : ''}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
@@ -2630,8 +2630,8 @@ class EstimateRenderer {
                 } else if (p.windowType === 'door') {
                     specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door'))]);
                     if (!p.isSlidingOrBifold) specs.push(['Shape', p.doorShapeText]);
-                    if (!p.isSlidingOrBifold) specs.push(['Style', p.doorStyleText]);
-                    if (!p.isSlidingOrBifold && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                    if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
+                    if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
                     if (!p.isSlidingOrBifold && p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                     if (!p.isSlidingOrBifold && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
@@ -3099,8 +3099,8 @@ class EstimateRenderer {
             } else if (p.windowType === 'door') {
                 specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door'))]);
                 if (!p.isSlidingOrBifold) specs.push(['Shape', p.doorShapeText]);
-                if (!p.isSlidingOrBifold) specs.push(['Style', p.doorStyleText]);
-                if (!p.isSlidingOrBifold && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
+                if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
+                if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
                 if (!p.isSlidingOrBifold && p.doorStyle !== 'full-glass') specs.push(['Center Mullion', p.doorCenterMullion ? 'Yes' : 'No']);
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
                 if (!p.isSlidingOrBifold && p.doorPanelsText) specs.push(['Side Panels', p.doorPanelsText]);
