@@ -597,30 +597,29 @@ export default function DoorWindow({
         const hasTraffic = trafficDoor === 'yes' && N >= 3;
         const accN = hasTraffic ? N - 1 : N;
 
-        // Without TD: accordion from fold-direction side (original)
-        // With TD: TD at fold-direction side, accordion from OPPOSITE side
-        const accFromRight = hasTraffic ? !isRight : isRight;
-        const accStartX = accFromRight
+        // Accordion ALWAYS from fold-direction side (unchanged by TD)
+        const accStartX = isRight
           ? W / 2 - mm(effectiveFrameFace)
           : -W / 2 + mm(effectiveFrameFace);
-        const accDir = accFromRight ? -1 : 1;
+        const accDir = isRight ? -1 : 1;
 
         const centerY = mm(BOTTOM_FACE - effectiveFrameFace) / 2;
         const panels = [];
 
-        // ── Traffic door: pivot at frame edge, opens outward ──
+        // ── Traffic door: OPPOSITE side of fold, opens outward ──
         if (hasTraffic) {
           const tdHingeX = isRight
-            ? W / 2 - mm(effectiveFrameFace)
-            : -W / 2 + mm(effectiveFrameFace);
-          const tdRotY = -dir * outSign * theta;
+            ? -W / 2 + mm(effectiveFrameFace)
+            : W / 2 - mm(effectiveFrameFace);
+          const tdDir = isRight ? 1 : -1;
+          const tdRotY = dir * outSign * theta;
 
           panels.push(
             <group key="bf-traffic" position={[tdHingeX, centerY, 0]} rotation={[0, tdRotY, 0]}>
               <DoorPanel
                 width={bfPW_mm}
                 height={bfLH_mm}
-                hingeType={isRight ? 'right' : 'left'}
+                hingeType={isRight ? 'left' : 'right'}
                 opening={0}
                 material={extMaterial}
                 materialInt={intMaterial}
@@ -632,13 +631,13 @@ export default function DoorWindow({
                 paneling={paneling}
                 showHandle={true}
                 isSliding={true}
-                position={[dir * bfPW / 2, 0, 0]}
+                position={[tdDir * bfPW / 2, 0, 0]}
               />
             </group>
           );
         }
 
-        // ── Accordion: original zigzag (unchanged formula) ──
+        // ── Accordion: fold-direction side, no PI, no material swap ──
         let hingeX = accStartX;
         let hingeZ = 0;
         let absAngle = 0;
@@ -655,7 +654,7 @@ export default function DoorWindow({
 
           const cx = hingeX + (bfPW / 2) * dx;
           const cz = hingeZ + (bfPW / 2) * dz;
-          const rotY = accFromRight ? (Math.PI + absAngle) : -absAngle;
+          const rotY = -absAngle;
 
           const isLastPanel = i === accN - 1;
 
@@ -664,10 +663,10 @@ export default function DoorWindow({
               <DoorPanel
                 width={bfPW_mm}
                 height={bfLH_mm}
-                hingeType={isLastPanel ? 'left' : 'fixed'}
+                hingeType={isLastPanel ? (isRight ? 'right' : 'left') : 'fixed'}
                 opening={0}
-                material={accFromRight ? intMaterial : extMaterial}
-                materialInt={accFromRight ? extMaterial : intMaterial}
+                material={extMaterial}
+                materialInt={intMaterial}
                 spacerColor={spacerColor}
                 glassFinish={glassFinish}
                 hBars={hBars}
