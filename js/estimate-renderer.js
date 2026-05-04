@@ -318,7 +318,7 @@ class EstimateRenderer {
         const slidingPanelWidth = fc.panelWidth || 0;
         const slidingPanelDepth = fc.panelDepth || 57;
         const slidingFrameDepth = fc.frameDepth || 93;
-        const slidingDirLabels = { 'left-to-right': 'Left → Right', 'right-to-left': 'Right → Left', 'from-center': 'Open from Center', 'from-sides': 'Open from Sides' };
+        const slidingDirLabels = { 'left-to-right': 'Left → Right (exterior view)', 'right-to-left': 'Right → Left (exterior view)', 'from-center': 'Open from Center (exterior view)', 'from-sides': 'Open from Sides (exterior view)' };
         const slidingDirText = slidingDirLabels[slidingDirection] || 'Left → Right';
         const slidingTypeText = isSliding ? ('Sliding Door — ' + slidingPanelCount + ' Panels' + (slidingExtraWidth ? ' (Extra Width)' : '')) : '';
         const doorSillWider = fc.sillWider || false;
@@ -510,6 +510,7 @@ class EstimateRenderer {
                             ${R.specRow('Safety Glass', p.safetyGlassText)}
                             ${R.specRow('Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1))}
                             ${R.specRow('Trickle Vent', p.trickleText)}
+                            ${p.isSliding && p.sillExtension !== 'none' ? R.specRow('Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')) : ''}
                             ` : `
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
@@ -2500,6 +2501,7 @@ class EstimateRenderer {
                     specs.push(['Safety Glass', p.safetyGlassText]);
                     specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                     specs.push(['Trickle Vent', p.trickleText]);
+                    if (p.isSliding && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
                 } else {
                     if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
@@ -2968,6 +2970,7 @@ class EstimateRenderer {
                 specs.push(['Safety Glass', p.safetyGlassText]);
                 specs.push(['Seal Colour', p.sealColour.charAt(0).toUpperCase() + p.sealColour.slice(1)]);
                 specs.push(['Trickle Vent', p.trickleText]);
+                if (p.isSliding && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
             } else {
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
