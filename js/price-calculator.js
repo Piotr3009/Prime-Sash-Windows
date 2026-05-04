@@ -549,7 +549,7 @@ class PriceCalculator {
       basePrice = slidingRate * doorSqm;
       console.log('Sliding door:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + slidingRate, (configuration.extraWidth ? '(Extra Width)' : '(Standard)'), '= £' + basePrice.toFixed(2));
     } else if (isBifoldDoor) {
-      const BIFOLD_PER_SQM = 1200;
+      const BIFOLD_PER_SQM = 1050;
       basePrice = BIFOLD_PER_SQM * doorSqm;
       console.log('Bi-fold door:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + BIFOLD_PER_SQM, '= £' + basePrice.toFixed(2));
     } else {

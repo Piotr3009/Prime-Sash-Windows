@@ -666,8 +666,8 @@ export default function DoorWindow({
                 height={bfLH_mm}
                 hingeType={isLastPanel ? 'left' : 'fixed'}
                 opening={0}
-                material={extMaterial}
-                materialInt={intMaterial}
+                material={accFromRight ? intMaterial : extMaterial}
+                materialInt={accFromRight ? extMaterial : intMaterial}
                 spacerColor={spacerColor}
                 glassFinish={glassFinish}
                 hBars={hBars}
