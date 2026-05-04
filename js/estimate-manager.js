@@ -507,7 +507,13 @@ class EstimateManager {
                     return;
                 }
 
-                if (!this.currentEstimate) {
+                // Get estimate ID from selector dropdown or currentEstimate
+                const selectorEl = document.getElementById('estimate-selector');
+                const estimateId = this.currentEstimate?.id 
+                    || (window.estimateSelectorManager && window.estimateSelectorManager.selectedEstimateId)
+                    || (selectorEl && selectorEl.value);
+
+                if (!estimateId) {
                     alert('No estimate selected. Please create or select an estimate first.');
                     return;
                 }
@@ -521,14 +527,14 @@ class EstimateManager {
                             estimate_items (*),
                             customers (full_name, company_name, email, phone, customer_code)
                         `)
-                        .eq('id', this.currentEstimate.id)
+                        .eq('id', estimateId)
                         .single();
 
                     if (error) throw error;
 
                     // Load extras
                     try {
-                        data.extras = await EstimateExtras.load(this.currentEstimate.id);
+                        data.extras = await EstimateExtras.load(estimateId);
                     } catch (extErr) {
                         data.extras = [];
                     }
