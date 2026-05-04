@@ -4865,6 +4865,7 @@
           if (r.value === 'sliding' && window.updateSlidingGlassCalc) window.updateSlidingGlassCalc();
           // Trigger bi-fold preview when switching to bifold
           if (r.value === 'bifold' && window.updateBifoldPreview) window.updateBifoldPreview();
+          if (r.value === 'bifold' && window.updateBifoldPanelOptions) window.updateBifoldPanelOptions();
         });
       });
 
@@ -5032,6 +5033,7 @@
             }
           }
           if (window.updateInfoPanel) window.updateInfoPanel();
+          if (window.updateBifoldPanelOptions) window.updateBifoldPanelOptions();
           if (window.DoorController) window.DoorController.updateDoorPrice();
         });
       }
@@ -5047,33 +5049,53 @@
       });
 
       // Bi-fold: width change recalc
+      function updateBifoldPanelOptions() {
+        var bfSel = document.getElementById('bf-door-panel-count');
+        if (!bfSel) return;
+        var totalWidth = parseInt(document.getElementById('d-width') ? document.getElementById('d-width').value : 0) || 0;
+        var availW = totalWidth - 100;
+        var minPanels = Math.max(2, Math.ceil(availW / 950));
+        // Disable options below minPanels, grey them out
+        var options = bfSel.querySelectorAll('option');
+        options.forEach(function(opt) {
+          var val = parseInt(opt.value);
+          if (val < minPanels) {
+            opt.disabled = true;
+            opt.style.color = '#aaa';
+          } else {
+            opt.disabled = false;
+            opt.style.color = '';
+          }
+        });
+        // Auto-bump if current < min
+        if (parseInt(bfSel.value) < minPanels) {
+          bfSel.value = minPanels;
+        }
+        // Update hint
+        var hint = document.getElementById('bf-panel-hint');
+        if (hint) {
+          var curPanels = parseInt(bfSel.value) || 4;
+          var gaps = curPanels - 1;
+          var pw = Math.round((availW - gaps * 5) / curPanels);
+          hint.textContent = pw > 950 ? '⚠ Panel too wide (' + pw + 'mm)! Increase panels.' : 'Panel width: ' + pw + 'mm (max 950mm), min ' + minPanels + ' panels';
+        }
+        if (window.updateInfoPanel) window.updateInfoPanel();
+        if (window.DoorController) window.DoorController.updateDoorPrice();
+      }
+      window.updateBifoldPanelOptions = updateBifoldPanelOptions;
+
       if (dWidthEl) {
         dWidthEl.addEventListener('input', function() {
           var doorType = (document.querySelector('input[name="door-type"]:checked') || {}).value || '';
           if (doorType === 'bifold') {
-            // Auto-enforce minimum panels based on max 950mm
-            var totalWidth = parseInt(dWidthEl.value) || 0;
-            var availW = totalWidth - 100;
-            var minPanels = Math.max(2, Math.ceil(availW / 950));
-            var bfSel = document.getElementById('bf-door-panel-count');
-            if (bfSel && parseInt(bfSel.value) < minPanels) {
-              bfSel.value = minPanels;
-            }
-            // Update hint
-            var hint = document.getElementById('bf-panel-hint');
-            if (hint) {
-              var gaps = minPanels - 1;
-              var pw = Math.round((availW - gaps * 5) / minPanels);
-              hint.textContent = 'Min ' + minPanels + ' panels required (panel ' + pw + 'mm each, max 950mm)';
-            }
-            if (window.updateInfoPanel) window.updateInfoPanel();
-            if (window.DoorController) window.DoorController.updateDoorPrice();
+            updateBifoldPanelOptions();
           }
         });
       }
 
       // Initial bi-fold preview
       updateBifoldPreview();
+      updateBifoldPanelOptions();
 
       // Side panels toggle — show/hide side panel dimension inputs
       var sidePanelRadios = document.querySelectorAll('input[name="door-side-panels"]');

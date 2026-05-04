@@ -620,7 +620,7 @@ export default function DoorWindow({
               <DoorPanel
                 width={bfPW_mm}
                 height={bfLH_mm}
-                hingeType="fixed"
+                hingeType={isRight ? 'right' : 'left'}
                 opening={0}
                 material={extMaterial}
                 materialInt={intMaterial}
@@ -657,12 +657,15 @@ export default function DoorWindow({
           const cz = hingeZ + (bfPW / 2) * dz;
           const rotY = accFromRight ? (Math.PI - absAngle) : -absAngle;
 
+          const isLastPanel = i === accN - 1;
+          const meetingHinge = accDir > 0 ? 'left' : 'right';
+
           panels.push(
             <group key={`bf-panel-${i}`} position={[cx, centerY, cz]} rotation={[0, rotY, 0]}>
               <DoorPanel
                 width={bfPW_mm}
                 height={bfLH_mm}
-                hingeType="fixed"
+                hingeType={isLastPanel ? meetingHinge : 'fixed'}
                 opening={0}
                 material={extMaterial}
                 materialInt={intMaterial}
@@ -672,7 +675,7 @@ export default function DoorWindow({
                 vBars={vBars}
                 doorStyle={doorStyle}
                 paneling={paneling}
-                showHandle={!hasTraffic && i === 0}
+                showHandle={isLastPanel}
                 isSliding={true}
                 position={[0, 0, 0]}
               />
