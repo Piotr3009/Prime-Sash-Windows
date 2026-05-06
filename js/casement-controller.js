@@ -339,6 +339,10 @@
   // ─── Update 3D ───
   function updateCasement3D() {
     if (typeof window.update3D !== 'function') return;
+    // Guard: don't send casement data to 3D if casement is not the active type
+    var activeType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
+    var activeRange = (document.querySelector('input[name="product-range"]:checked') || {}).value;
+    if (activeRange !== 'windows' || activeType !== 'casement') return;
 
     var layout = checked('casement-layout') || '040L';
     var w = parseInt(val('c-width')) || 800;
