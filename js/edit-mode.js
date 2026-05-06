@@ -460,10 +460,13 @@
       }
 
       // Take screenshots
-      if (window.takeWindowScreenshots && windowConfig.fullConfig) {
+      if (typeof window.captureWindowScreenshots === 'function') {
         try {
-          const screenshots = await window.takeWindowScreenshots();
-          if (screenshots) windowConfig.fullConfig.screenshots = screenshots;
+          const screenshots = await window.captureWindowScreenshots();
+          if (screenshots) {
+            windowConfig.screenshots = screenshots;
+            if (windowConfig.fullConfig) windowConfig.fullConfig.screenshots = screenshots;
+          }
         } catch (e) { console.warn('Screenshot failed:', e); }
       }
 
