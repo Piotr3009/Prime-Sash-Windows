@@ -999,15 +999,40 @@ class EstimateManager {
         // ═══ SASH WINDOW ═════════════════════════════
         // ══════════════════════════════════════════════
         if (isSash) {
-            // Dimensions (selects)
-            setVal('width-select', w);
-            setVal('width', w);
-            const wd = document.getElementById('width-display');
-            if (wd) wd.textContent = w;
-            setVal('height-select', h);
-            setVal('height', h);
-            const hd = document.getElementById('height-display');
-            if (hd) hd.textContent = h;
+            // Dimensions — must use DimensionHandler to update 3D + config + display
+            const widthInput = document.getElementById('width');
+            const heightInput = document.getElementById('height');
+            const widthSelect = document.getElementById('width-select');
+            const heightSelect = document.getElementById('height-select');
+
+            if (widthInput) widthInput.value = w;
+            if (heightInput) heightInput.value = h;
+
+            // Set select to matching option or 'custom' if value doesn't exist
+            if (widthSelect) {
+                const wExists = Array.from(widthSelect.options).some(o => o.value === String(w));
+                widthSelect.value = wExists ? String(w) : 'custom';
+                if (!wExists) {
+                    const wrapper = widthSelect.closest('.dimension-input-wrapper');
+                    if (wrapper) wrapper.classList.add('custom-mode');
+                    widthInput.style.display = 'block';
+                }
+            }
+            if (heightSelect) {
+                const hExists = Array.from(heightSelect.options).some(o => o.value === String(h));
+                heightSelect.value = hExists ? String(h) : 'custom';
+                if (!hExists) {
+                    const wrapper = heightSelect.closest('.dimension-input-wrapper');
+                    if (wrapper) wrapper.classList.add('custom-mode');
+                    heightInput.style.display = 'block';
+                }
+            }
+
+            // Trigger DimensionHandler to update display, config, 3D
+            if (window.dimensionHandler) {
+                window.dimensionHandler.updateDimension('width', w);
+                window.dimensionHandler.updateDimension('height', h);
+            }
 
             // Sash sub-type (double/triple/arched-group)
             setRadio('sash-type', fc.sashType || 'double');
