@@ -867,6 +867,10 @@ class EstimateRenderer {
             </div>
         `;
 
+        // Store context for refresh BEFORE returning
+        EstimateRenderer._lastEstimate = { id: estimate.id, isAdmin, isEditable };
+        EstimateRenderer.setupAutoRefresh();
+
         return `
             ${bannerHTML}
 
@@ -917,10 +921,6 @@ class EstimateRenderer {
                 <button class="btn-sm" onclick="${closeAction}">Close</button>
             </div>
         `;
-
-        // Store context for refresh
-        EstimateRenderer._lastEstimate = { id: estimate.id, isAdmin, isEditable };
-        EstimateRenderer.setupAutoRefresh();
     }
 
     // ─── Refresh Estimate (re-fetch from DB) ───
