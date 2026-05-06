@@ -973,107 +973,219 @@ class EstimateManager {
         }, 400);
     }
 
-    // Internal: set all form fields
+    // Internal: set all form fields — type-aware with correct HTML element names
     _prefillFields(fc, dbItem, flags) {
         const { isDoor, isCasement, isFixOnly } = flags;
+        const isSash = !isDoor && !isCasement && !isFixOnly;
 
-        // ─── 2. Dimensions ───
-        const w = fc.actualFrameWidth || fc.width || dbItem.width;
-        const h = fc.actualFrameHeight || fc.height || dbItem.height;
-        
-        if (isDoor) {
-            // Door uses number inputs, not selects
-            const dWidth = document.getElementById('d-width');
-            if (dWidth) { dWidth.value = w; dWidth.dispatchEvent(new Event('input', {bubbles:true})); }
-            const dHeight = document.getElementById('d-height');
-            if (dHeight) { dHeight.value = h; dHeight.dispatchEvent(new Event('input', {bubbles:true})); }
-
-            // Bi-fold panel count
-            if (fc.panelCount) {
-                const bfPanels = document.getElementById('bf-door-panel-count');
-                if (bfPanels) { bfPanels.value = fc.panelCount; bfPanels.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            // Sliding panel count
-            if (fc.panelCount && fc.doorType === 'sliding') {
-                const slPanels = document.querySelector(`input[name="sl-door-panel-count"][value="${fc.panelCount}"]`);
-                if (slPanels) { slPanels.checked = true; slPanels.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            // Door opening slider
-            if (fc.doorOpening !== undefined) {
-                const openSlider = document.getElementById('d-door-opening');
-                if (openSlider) { openSlider.value = Math.round(fc.doorOpening * 100); openSlider.dispatchEvent(new Event('input', {bubbles:true})); }
-            }
-            // Hinge side
-            if (fc.hingeSide) {
-                const hingeRadio = document.querySelector(`input[name="d-hinge-side"][value="${fc.hingeSide}"]`);
-                if (hingeRadio) { hingeRadio.checked = true; hingeRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            // Open direction
-            if (fc.openDirection) {
-                const dirRadio = document.querySelector(`input[name="d-open-direction"][value="${fc.openDirection}"]`);
-                if (dirRadio) { dirRadio.checked = true; dirRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            // Bi-fold fold direction
-            if (fc.foldDirection) {
-                const foldRadio = document.querySelector(`input[name="bf-fold-direction"][value="${fc.foldDirection}"]`);
-                if (foldRadio) { foldRadio.checked = true; foldRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            // Bi-fold traffic door
-            if (fc.trafficDoor) {
-                const tdRadio = document.querySelector(`input[name="bf-traffic-door"][value="${fc.trafficDoor}"]`);
-                if (tdRadio) { tdRadio.checked = true; tdRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            // Door quantity
-            const dQty = document.getElementById('d-quantity');
-            if (dQty) dQty.value = fc.quantity || dbItem.quantity || 1;
-            // Door name
-            const dName = document.getElementById('d-custom-name');
-            if (dName && dbItem.window_number) dName.value = dbItem.window_number;
-        } else {
-            // Window uses selects
-            const widthSelect = document.getElementById('width-select') || document.getElementById('width');
-            if (widthSelect) { widthSelect.value = w; widthSelect.dispatchEvent(new Event('change', {bubbles:true})); }
-            const widthDisplay = document.getElementById('width-display');
-            if (widthDisplay) widthDisplay.textContent = w;
-
-            const heightSelect = document.getElementById('height-select') || document.getElementById('height');
-            if (heightSelect) { heightSelect.value = h; heightSelect.dispatchEvent(new Event('change', {bubbles:true})); }
-            const heightDisplay = document.getElementById('height-display');
-            if (heightDisplay) heightDisplay.textContent = h;
-        }
-
-        // ─── 3. Radio buttons ───
-        const radioMap = {};
-
-        if (isDoor) {
-            // Door glass radios use d- prefix
-            radioMap['d-glass-type'] = fc.glassType;
-            radioMap['d-glass-finish'] = fc.glassFinish;
-            radioMap['d-spacer-color'] = fc.spacerColor || fc.spacer;
-            // Door bars
-            radioMap['d-hbars'] = fc.hBars !== undefined ? String(fc.hBars) : null;
-            radioMap['d-vbars'] = fc.vBars !== undefined ? String(fc.vBars) : null;
-        } else {
-            // Window radios (no prefix)
-            radioMap['measurement-type'] = fc.measurementType;
-            radioMap['frame-type'] = fc.frameType;
-            radioMap['color-type'] = fc.colorType || fc.colourMode;
-            radioMap['glass-type'] = fc.glassType;
-            radioMap['glass-spec'] = fc.glassSpec;
-            radioMap['glass-finish'] = fc.glassFinish;
-            radioMap['opening-type'] = fc.openingType;
-            radioMap['pas24'] = fc.pas24 === true || fc.pas24 === 'yes' ? 'yes' : 'no';
-            radioMap['frosted-location'] = fc.frostedLocation;
-            radioMap['spacer-color'] = fc.spacerColor || fc.spacer;
-        }
-
-        Object.entries(radioMap).forEach(([name, value]) => {
-            if (!value) return;
+        // Helper: set radio by name+value
+        const setRadio = (name, value) => {
+            if (!value && value !== 0) return;
             const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
             if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change', {bubbles:true})); }
-        });
+            else { console.warn(`[EDIT] Radio not found: name="${name}" value="${value}"`); }
+        };
+        // Helper: set input/select value
+        const setVal = (id, value, eventType = 'change') => {
+            if (value === undefined || value === null) return;
+            const el = document.getElementById(id);
+            if (el) { el.value = value; el.dispatchEvent(new Event(eventType, {bubbles:true})); }
+        };
 
-        // ─── 4. Colors (windows only — doors use separate colour system) ───
+        const w = fc.actualFrameWidth || fc.width || dbItem.width;
+        const h = fc.actualFrameHeight || fc.height || dbItem.height;
+
+        // ══════════════════════════════════════════════
+        // ═══ SASH WINDOW ═════════════════════════════
+        // ══════════════════════════════════════════════
+        if (isSash) {
+            // Dimensions (selects)
+            setVal('width-select', w);
+            setVal('width', w);
+            const wd = document.getElementById('width-display');
+            if (wd) wd.textContent = w;
+            setVal('height-select', h);
+            setVal('height', h);
+            const hd = document.getElementById('height-display');
+            if (hd) hd.textContent = h;
+
+            // Sash sub-type (double/triple/arched-group)
+            setRadio('sash-type', fc.sashType || 'double');
+
+            // Split ratio (for triple sash)
+            if (fc.splitRatio) setVal('split-ratio', fc.splitRatio);
+
+            // Head type (flat/arch)
+            setRadio('head-type', fc.headType || 'flat');
+
+            // Radios
+            setRadio('measurement-type', fc.measurementType);
+            setRadio('frame-type', fc.frameType);
+            setRadio('color-type', fc.colorType || fc.colourMode);
+            setRadio('glass-type', fc.glassType);
+            setRadio('glass-spec', fc.glassSpec);
+            setRadio('glass-finish', fc.glassFinish);
+            setRadio('opening-type', fc.openingType);
+            setRadio('pas24', fc.pas24 === true || fc.pas24 === 'yes' ? 'yes' : 'no');
+            setRadio('frosted-location', fc.frostedLocation);
+            setRadio('spacer-color', fc.spacerColor || fc.spacer);
+
+            // Bars
+            setRadio('upper-bars', fc.upperBars);
+            setRadio('lower-bars', fc.lowerBars);
+
+            // Horns
+            const horns = fc.horns || dbItem.horns;
+            if (horns && horns !== 'none') setVal('horns', horns);
+
+            // Quantity & Name
+            setVal('window-quantity', fc.quantity || dbItem.quantity || 1);
+            const nameEl = document.getElementById('custom-name');
+            if (nameEl && dbItem.window_number) nameEl.value = dbItem.window_number;
+        }
+
+        // ══════════════════════════════════════════════
+        // ═══ CASEMENT WINDOW ═════════════════════════
+        // ══════════════════════════════════════════════
+        if (isCasement) {
+            // Dimensions (c-prefixed selects)
+            setVal('c-width-select', w);
+            setVal('c-width', w);
+            setVal('c-height-select', h);
+            setVal('c-height', h);
+
+            // Casement sub-type (standard/arched)
+            setRadio('casement-type', fc.casementType || 'standard');
+
+            // Layout
+            setRadio('casement-layout', fc.casementLayout || fc.layout || dbItem.casement_layout);
+
+            // Glass (c-prefixed)
+            setRadio('c-glass-type', fc.glassType);
+            setRadio('c-glass-spec', fc.glassSpec);
+            setRadio('c-glass-finish', fc.glassFinish);
+
+            // PAS24 (c-prefixed)
+            setRadio('c-pas24', fc.pas24 === true || fc.pas24 === 'yes' ? 'yes' : 'no');
+
+            // Trickle vent
+            setRadio('c-trickle-vent', fc.trickleVent || dbItem.trickle_vent);
+
+            // Seal colour
+            setRadio('c-seal-colour', fc.sealColour || dbItem.seal_colour);
+
+            // Sill extension (correct name: c-sill-ext)
+            setRadio('c-sill-ext', fc.sillExtension || dbItem.sill_extension);
+
+            // Sill wider
+            setRadio('c-sill-wider', fc.sillWider ? 'yes' : 'no');
+
+            // Color type (casement shares window color system)
+            setRadio('color-type', fc.colorType || fc.colourMode);
+
+            // Spacer (casement uses sash spacer radio)
+            setRadio('spacer-color', fc.spacerColor || fc.spacer);
+
+            // Bars (c-prefixed)
+            const casHBars = fc.hBars || fc.casementHBars || fc.upperBars || dbItem.upper_bars;
+            const casVBars = fc.vBars || fc.casementVBars || fc.lowerBars || dbItem.lower_bars;
+            if (casHBars) setRadio('c-hbars', String(casHBars));
+            if (casVBars) setRadio('c-vbars', String(casVBars));
+
+            // Quantity & Name
+            setVal('c-quantity', fc.quantity || dbItem.quantity || 1);
+            const cName = document.getElementById('c-custom-name');
+            if (cName && dbItem.window_number) cName.value = dbItem.window_number;
+        }
+
+        // ══════════════════════════════════════════════
+        // ═══ FIX-ONLY WINDOW ═════════════════════════
+        // ══════════════════════════════════════════════
+        if (isFixOnly) {
+            // Dimensions (fix-prefixed number inputs)
+            setVal('fix-width', w, 'input');
+            setVal('fix-height', h, 'input');
+
+            // Fix type (standard/fd30/fd60)
+            setRadio('fix-type', fc.fixType || 'standard');
+
+            // Fix shape
+            setRadio('fix-shape', fc.fixShape || fc.shape || 'rectangle');
+
+            // Glass finish (f-prefixed)
+            setRadio('f-glass-finish', fc.glassFinish);
+
+            // Spacer (f-prefixed)
+            setRadio('f-spacer', fc.spacerColor || fc.spacer || 'silver');
+
+            // Color type (fix shares window color system)
+            setRadio('color-type', fc.colorType || fc.colourMode);
+
+            // Quantity
+            setVal('fix-quantity', fc.quantity || dbItem.quantity || 1);
+        }
+
+        // ══════════════════════════════════════════════
+        // ═══ DOORS (French / Sliding / Bi-fold) ══════
+        // ══════════════════════════════════════════════
+        if (isDoor) {
+            // Dimensions already set in main block above
+            // Door-specific radios
+            setRadio('d-glass-type', fc.glassType);
+            setRadio('d-glass-finish', fc.glassFinish);
+            setRadio('d-spacer-color', fc.spacerColor || fc.spacer);
+            setRadio('d-seal-colour', fc.sealColour);
+            setRadio('d-trickle-vent', fc.trickleVent);
+            setRadio('d-trickle-colour', fc.trickleColour);
+
+            // Door bars
+            if (fc.hBars !== undefined) setRadio('d-hbars', String(fc.hBars));
+            if (fc.vBars !== undefined) setRadio('d-vbars', String(fc.vBars));
+            if (fc.sideHBars !== undefined) setRadio('d-side-hbars', String(fc.sideHBars));
+            if (fc.sideVBars !== undefined) setRadio('d-side-vbars', String(fc.sideVBars));
+
+            // French-specific
+            if (fc.doorType === 'french') {
+                setRadio('door-shape', fc.doorShape);
+                setRadio('door-style', fc.doorStyle);
+                setRadio('door-paneling', fc.doorPaneling);
+                setRadio('door-side-panels', fc.sidePanels);
+                setRadio('door-side-style', fc.sideStyle);
+                setRadio('door-center-mullion', fc.centerMullion);
+                setRadio('d-lock-type', fc.lockType);
+                setRadio('d-threshold', fc.threshold);
+                if (fc.thresholdExtension) setVal('d-threshold-extension', fc.thresholdExtension, 'input');
+                if (fc.sideLeftWidth) setVal('d-side-left-width', fc.sideLeftWidth, 'input');
+                if (fc.sideRightWidth) setVal('d-side-right-width', fc.sideRightWidth, 'input');
+            }
+
+            // Sliding-specific
+            if (fc.doorType === 'sliding') {
+                setRadio('sl-door-panel-count', String(fc.panelCount));
+                setRadio('sl-door-slide-direction', fc.slideDirection);
+            }
+
+            // Bi-fold specific (panel count, fold, traffic already set in door dimensions block)
+            if (fc.doorType === 'bifold') {
+                setRadio('bf-open-direction', fc.bifoldOpenDirection || fc.openDirection || 'outward');
+            }
+
+            // Sill wider (checkbox)
+            const sillWider = document.getElementById('d-sill-wider');
+            if (sillWider) sillWider.checked = !!fc.sillWider;
+
+            // Notes
+            const notesEl = document.getElementById('d-notes');
+            if (notesEl && fc.notes) notesEl.value = fc.notes;
+
+            // Door colours (separate system from windows)
+            // TODO: Door colour pre-fill requires interacting with door colour picker state
+            // For now, set via fullConfig merge (Object.assign below)
+        }
+
+        // ══════════════════════════════════════════════
+        // ═══ COLORS (windows: sash, casement, fix) ═══
+        // ══════════════════════════════════════════════
         if (!isDoor) {
             const colorType = fc.colorType || fc.colourMode || 'single';
             if (colorType === 'single') {
@@ -1099,98 +1211,19 @@ class EstimateManager {
             }
         }
 
-        // ─── 5. Bars ───
-        if (!isDoor) {
-            const upperBars = fc.upperBars || fc.hBars || fc.casementHBars || dbItem.upper_bars;
-            const lowerBars = fc.lowerBars || fc.vBars || fc.casementVBars || dbItem.lower_bars;
-            
-            if (upperBars) {
-                const upperRadio = document.querySelector(`input[name="upper-bars"][value="${upperBars}"]`) ||
-                                  document.querySelector(`input[name="c-hbars"][value="${upperBars}"]`);
-                if (upperRadio) { upperRadio.checked = true; upperRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            if (lowerBars) {
-                const lowerRadio = document.querySelector(`input[name="lower-bars"][value="${lowerBars}"]`) ||
-                                  document.querySelector(`input[name="c-vbars"][value="${lowerBars}"]`);
-                if (lowerRadio) { lowerRadio.checked = true; lowerRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-        }
+        // ══════════════════════════════════════════════
+        // ═══ FINAL: merge fullConfig + update ════════
+        // ══════════════════════════════════════════════
 
-        // ─── 6. Horns (sash only) ───
-        if (!isDoor && !isCasement && !isFixOnly) {
-            const horns = fc.horns || dbItem.horns;
-            if (horns && horns !== 'none') {
-                const hornsSelect = document.getElementById('horns') || document.getElementById('horns-select');
-                if (hornsSelect) { hornsSelect.value = horns; hornsSelect.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-        }
-
-        // ─── 7. Quantity & Name (windows only — doors handled above) ───
-        if (!isDoor) {
-            const qty = fc.quantity || dbItem.quantity || 1;
-            const qtyInput = document.getElementById('window-quantity') || document.getElementById('c-quantity');
-            if (qtyInput) qtyInput.value = qty;
-
-            const nameInput = document.getElementById('custom-name') || document.getElementById('c-custom-name');
-            if (nameInput && dbItem.window_number) nameInput.value = dbItem.window_number;
-        }
-
-        // ─── 8. Casement-specific ───
-        if (isCasement) {
-            // Layout
-            const layout = fc.casementLayout || fc.layout || dbItem.casement_layout;
-            if (layout) {
-                const layoutRadio = document.querySelector(`input[name="casement-layout"][value="${layout}"]`);
-                if (layoutRadio) { layoutRadio.checked = true; layoutRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            // Trickle vent
-            const tv = fc.trickleVent || dbItem.trickle_vent;
-            if (tv) {
-                const tvRadio = document.querySelector(`input[name="c-trickle-vent"][value="${tv}"]`);
-                if (tvRadio) { tvRadio.checked = true; tvRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            // Seal colour
-            const seal = fc.sealColour || dbItem.seal_colour;
-            if (seal) {
-                const sealRadio = document.querySelector(`input[name="c-seal-colour"][value="${seal}"]`);
-                if (sealRadio) { sealRadio.checked = true; sealRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-            // Sill extension
-            const sill = fc.sillExtension || dbItem.sill_extension;
-            if (sill) {
-                const sillRadio = document.querySelector(`input[name="c-sill-extension"][value="${sill}"]`);
-                if (sillRadio) { sillRadio.checked = true; sillRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-        }
-
-        // ─── 9. Fix-only specific ───
-        if (isFixOnly) {
-            const fixShape = fc.fixShape || fc.shape;
-            if (fixShape) {
-                const shapeRadio = document.querySelector(`input[name="fix-shape"][value="${fixShape}"]`);
-                if (shapeRadio) { shapeRadio.checked = true; shapeRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-            }
-        }
-
-        // ─── 10. Set fullConfig into state ───
+        // Set fullConfig into state (ensures price calculator + 3D have all data)
         Object.assign(window.currentConfig, fc);
 
-        // ─── 11. Restore custom bars via loadConfiguration (handles customBars object) ───
+        // Restore custom bars via loadConfiguration (handles customBars object)
         if (window.configuratorCore && fc.customBars) {
             window.configuratorCore.loadConfiguration(fc);
         }
 
-        // ─── 12. Door/Fix-only spacer color (different radio names) ───
-        const spacerVal = fc.spacerColor || fc.spacer || 'silver';
-        if (isDoor) {
-            const dSpacerRadio = document.querySelector(`input[name="d-spacer-color"][value="${spacerVal}"]`);
-            if (dSpacerRadio) { dSpacerRadio.checked = true; dSpacerRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-        } else if (isFixOnly) {
-            const fSpacerRadio = document.querySelector(`input[name="f-spacer"][value="${spacerVal}"]`);
-            if (fSpacerRadio) { fSpacerRadio.checked = true; fSpacerRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-        }
-
-        // ─── 13. Trigger full update ───
+        // Trigger full update (price, 3D, spec panel)
         if (window.configuratorCore) {
             window.configuratorCore.updateAll();
         }
