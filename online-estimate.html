@@ -4599,12 +4599,28 @@
         radio.addEventListener('change', function() {
           updateSections();
           if (radio.value === 'doors') {
+            // Set door properties in config
+            if (window.currentConfig) {
+              window.currentConfig.productType = 'door';
+              window.currentConfig.windowCategory = 'door';
+            }
             // Send door category to 3D
             if (window.update3D) {
               window.update3D({ windowCategory: 'door', extWidth: 900, extHeight: 2100 });
             }
           } else {
-            // Switching back to windows — auto-apply current window type
+            // Switching back to windows — clean door properties from config
+            if (window.currentConfig) {
+              delete window.currentConfig.productType;
+              delete window.currentConfig.windowCategory;
+              delete window.currentConfig.doorType;
+              delete window.currentConfig.doorShape;
+              delete window.currentConfig.doorStyle;
+              delete window.currentConfig.doorPaneling;
+              var wt2 = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+              window.currentConfig.windowType = wt2;
+            }
+            // Auto-apply current window type
             if (window.specificationController && window.specificationController.applyProductRange) {
               window.specificationController.applyProductRange();
             }
@@ -4628,6 +4644,12 @@
       windowTypeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
           updateSections();
+          // Update windowType in config + clean stale properties
+          if (window.currentConfig) {
+            window.currentConfig.windowType = radio.value;
+            delete window.currentConfig.productType;
+            delete window.currentConfig.windowCategory;
+          }
           // Re-trigger active tab to refresh data-for visibility
           var activeBtn = document.querySelector('.cat-btn.active');
           if (activeBtn && window.showCategory) {
