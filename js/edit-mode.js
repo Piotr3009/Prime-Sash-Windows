@@ -652,33 +652,103 @@
     }
   }
 
-  // Window colors (sash, casement, fix-only)
+  // Window colors — set directly on config + update 3D (no click() dependency)
   function setWindowColor(fc) {
     const colorType = fc.colorType || fc.colourMode || 'single';
+
     if (colorType === 'single') {
       const colorKey = fc.colorSingle || fc.singleColor; // e.g. 'burgundy', 'white', 'custom'
       const colorName = fc.colorSingleName; // e.g. 'Burgundy Red'
-      if (colorKey && colorKey !== 'custom') {
-        const opt = document.querySelector(`.color-option[data-color="${colorKey}"]`);
-        if (opt) opt.click();
-      } else if (colorName) {
-        // Custom/RAL color — find by name
-        const opt = document.querySelector(`.color-option[data-name="${colorName}"]`);
-        if (opt) opt.click();
+      const colorRal = fc.colorSingleRal; // e.g. 'RAL 3005'
+
+      // Find color option to get hex value
+      const opt = document.querySelector(`.color-option[data-color="${colorKey}"]`) ||
+                  document.querySelector(`.color-option[data-name="${colorName}"]`);
+
+      let hex = '#F6F6F6'; // default white
+      if (opt) {
+        hex = opt.style.backgroundColor || '#F6F6F6';
+        // Convert rgb() to hex if needed
+        if (hex.startsWith('rgb')) {
+          const m = hex.match(/\d+/g);
+          if (m) hex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join('');
+        }
+        // Visually select the option
+        document.querySelectorAll('#single-color-selector .color-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
       }
+
+      // Set config directly
+      if (window.currentConfig) {
+        window.currentConfig.colorType = 'single';
+        window.currentConfig.colorSingle = colorKey || 'white';
+        window.currentConfig.colorSingleName = colorName || 'Pure White';
+        window.currentConfig.colorSingleRal = colorRal || '';
+        window.currentConfig.singleColor = colorKey || 'white';
+      }
+
+      // Update 3D
+      if (window.update3D) {
+        window.update3D({ woodColor: hex, sameColor: true });
+      }
+
     } else if (colorType === 'dual') {
       const intKey = fc.colorInterior || fc.colorInteriorName;
       const extKey = fc.colorExterior || fc.colorExteriorName;
-      if (intKey) {
-        const opt = document.querySelector(`.interior-color[data-color="${intKey}"]`) ||
-                    document.querySelector(`.interior-color[data-name="${intKey}"]`);
-        if (opt) opt.click();
+      const intName = fc.colorInteriorName || '';
+      const intRal = fc.colorInteriorRal || '';
+      const extName = fc.colorExteriorName || '';
+      const extRal = fc.colorExteriorRal || '';
+
+      let intHex = '#F6F6F6', extHex = '#F6F6F6';
+
+      // Interior
+      const intOpt = document.querySelector(`.interior-color[data-color="${intKey}"]`) ||
+                     document.querySelector(`.interior-color[data-name="${intName}"]`);
+      if (intOpt) {
+        intHex = intOpt.style.backgroundColor || '#F6F6F6';
+        if (intHex.startsWith('rgb')) {
+          const m = intHex.match(/\d+/g);
+          if (m) intHex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join('');
+        }
+        document.querySelectorAll('.interior-color').forEach(o => o.classList.remove('selected'));
+        intOpt.classList.add('selected');
       }
-      if (extKey) {
-        const opt = document.querySelector(`.exterior-color[data-color="${extKey}"]`) ||
-                    document.querySelector(`.exterior-color[data-name="${extKey}"]`);
-        if (opt) opt.click();
+
+      // Exterior
+      const extOpt = document.querySelector(`.exterior-color[data-color="${extKey}"]`) ||
+                     document.querySelector(`.exterior-color[data-name="${extName}"]`);
+      if (extOpt) {
+        extHex = extOpt.style.backgroundColor || '#F6F6F6';
+        if (extHex.startsWith('rgb')) {
+          const m = extHex.match(/\d+/g);
+          if (m) extHex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join('');
+        }
+        document.querySelectorAll('.exterior-color').forEach(o => o.classList.remove('selected'));
+        extOpt.classList.add('selected');
       }
+
+      // Set config directly
+      if (window.currentConfig) {
+        window.currentConfig.colorType = 'dual';
+        window.currentConfig.colorSingle = null;
+        window.currentConfig.colorInterior = intKey;
+        window.currentConfig.colorInteriorName = intName;
+        window.currentConfig.colorInteriorRal = intRal;
+        window.currentConfig.colorExterior = extKey;
+        window.currentConfig.colorExteriorName = extName;
+        window.currentConfig.colorExteriorRal = extRal;
+      }
+
+      // Update 3D
+      if (window.update3D) {
+        window.update3D({ woodColorInt: intHex, woodColorExt: extHex, sameColor: false });
+      }
+    }
+
+    // Refresh spec panel
+    if (window.specificationController) {
+      window.specificationController.updateColourSpec?.();
     }
   }
 
