@@ -310,14 +310,14 @@
         setInput('d-width', w, 'input');
         setInput('d-height', h, 'input');
 
-        // French-specific
+        // French-specific (uses fd-door- prefix, not door-)
         if (doorType === 'french') {
-          setRadio('door-shape', fc.doorShape);
-          setRadio('door-style', fc.doorStyle);
-          setRadio('door-paneling', fc.doorPaneling);
-          setRadio('door-side-panels', fc.sidePanels);
-          setRadio('door-side-style', fc.sideStyle);
-          setRadio('door-center-mullion', fc.centerMullion);
+          setRadio('fd-door-shape', fc.doorShape);
+          setRadio('fd-door-style', fc.doorStyle);
+          setRadio('fd-door-paneling', fc.doorPaneling);
+          setRadio('fd-door-side-panels', fc.sidePanels);
+          setRadio('fd-door-side-style', fc.sideStyle);
+          setRadio('fd-door-center-mullion', fc.centerMullion);
           setRadio('d-lock-type', fc.lockType);
           setRadio('d-threshold', fc.threshold);
           if (fc.thresholdExtension) setInput('d-threshold-extension', fc.thresholdExtension, 'input');
