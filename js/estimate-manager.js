@@ -1178,9 +1178,22 @@ class EstimateManager {
             const notesEl = document.getElementById('d-notes');
             if (notesEl && fc.notes) notesEl.value = fc.notes;
 
-            // Door colours (separate system from windows)
-            // TODO: Door colour pre-fill requires interacting with door colour picker state
-            // For now, set via fullConfig merge (Object.assign below)
+            // Door colours — restore doorColourState from fullConfig
+            if (window.doorColourState) {
+                window.doorColourState.sameColor = fc.sameColor !== undefined ? fc.sameColor : (fc.colorType === 'single');
+                window.doorColourState.woodColor = fc.woodColor || '#F6F6F6';
+                window.doorColourState.woodColorInt = fc.woodColorInt || fc.woodColor || '#F6F6F6';
+                window.doorColourState.woodColorExt = fc.woodColorExt || fc.woodColor || '#F6F6F6';
+                window.doorColourState.colorName = fc.colorSingleName || '';
+                window.doorColourState.colorRal = fc.colorSingleRal || '';
+                window.doorColourState.colorIntName = fc.colorInteriorName || '';
+                window.doorColourState.colorIntRal = fc.colorInteriorRal || '';
+                window.doorColourState.colorExtName = fc.colorExteriorName || '';
+                window.doorColourState.colorExtRal = fc.colorExteriorRal || '';
+                // Refresh door spec panel and 3D
+                if (window.updateDoorSpec) window.updateDoorSpec();
+                if (window.updateDoor3D) window.updateDoor3D();
+            }
         }
 
         // ══════════════════════════════════════════════
