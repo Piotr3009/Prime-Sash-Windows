@@ -1129,7 +1129,39 @@ class EstimateManager {
         // ═══ DOORS (French / Sliding / Bi-fold) ══════
         // ══════════════════════════════════════════════
         if (isDoor) {
-            // Dimensions already set in main block above
+            // ── Door dimensions ──
+            setVal('d-width', w, 'input');
+            setVal('d-height', h, 'input');
+
+            // Bi-fold panel count
+            if (fc.panelCount && fc.doorType === 'bifold') {
+                setVal('bf-door-panel-count', fc.panelCount);
+            }
+            // Bi-fold fold direction
+            if (fc.foldDirection) setRadio('bf-fold-direction', fc.foldDirection);
+            // Bi-fold traffic door
+            if (fc.trafficDoor) setRadio('bf-traffic-door', fc.trafficDoor);
+
+            // Door opening slider
+            if (fc.doorOpening !== undefined) {
+                const openSlider = document.getElementById('d-door-opening');
+                if (openSlider) { openSlider.value = Math.round(fc.doorOpening * 100); openSlider.dispatchEvent(new Event('input', {bubbles:true})); }
+            }
+            // Hinge side (french only)
+            if (fc.hingeSide) setRadio('d-hinge-side', fc.hingeSide);
+            // Open direction (french only)
+            if (fc.openDirection && fc.doorType !== 'bifold') setRadio('d-open-direction', fc.openDirection);
+
+            // ── SECOND DELAYED SET: door controller resets dimensions on type change ──
+            // This fires AFTER door controller's debounced update (300ms)
+            setTimeout(() => {
+                setVal('d-width', w, 'input');
+                setVal('d-height', h, 'input');
+                // Re-trigger price calculation
+                if (window.updateDoor3D) window.updateDoor3D();
+                if (window.updateDoorSpec) window.updateDoorSpec();
+            }, 600);
+
             // Door-specific radios
             setRadio('d-glass-type', fc.glassType);
             setRadio('d-glass-finish', fc.glassFinish);
@@ -1177,6 +1209,11 @@ class EstimateManager {
             // Notes
             const notesEl = document.getElementById('d-notes');
             if (notesEl && fc.notes) notesEl.value = fc.notes;
+
+            // Door quantity & name
+            setVal('d-quantity', fc.quantity || dbItem.quantity || 1);
+            const dName = document.getElementById('d-custom-name');
+            if (dName && dbItem.window_number) dName.value = dbItem.window_number;
 
             // Door colours — restore doorColourState from fullConfig
             if (window.doorColourState) {
