@@ -227,9 +227,9 @@
     // Spacer
     setRadio('spacer-color', fc.spacerColor || fc.spacer);
 
-    // Color
-    setRadio('color-type', fc.colorType || fc.colourMode);
-    setTimeout(() => setWindowColor(fc), 200);
+    // Color (casement uses c-color-type)
+    setRadio('c-color-type', fc.colorType || fc.colourMode);
+    setTimeout(() => setWindowColor(fc, 'casement'), 200);
 
     // Seal, trickle, sill
     setRadio('c-seal-colour', fc.sealColour || editItem.seal_colour);
@@ -652,103 +652,96 @@
   }
 
   // Window colors — set directly on config + update 3D (no click() dependency)
-  function setWindowColor(fc) {
+  function setWindowColor(fc, windowType) {
     const colorType = fc.colorType || fc.colourMode || 'single';
+    const isCasement = windowType === 'casement';
+    // Selector prefix: casement has separate picker with c-color-option
+    const singleSelector = isCasement ? '#c-single-color-selector .c-color-option' : '#single-color-selector .color-option';
+    const intSelector = isCasement ? '.c-interior-color' : '.interior-color';
+    const extSelector = isCasement ? '.c-exterior-color' : '.exterior-color';
 
     if (colorType === 'single') {
-      const colorKey = fc.colorSingle || fc.singleColor; // e.g. 'burgundy', 'white', 'custom'
-      const colorName = fc.colorSingleName; // e.g. 'Burgundy Red'
-      const colorRal = fc.colorSingleRal; // e.g. 'RAL 3005'
+      const colorKey = fc.colorSingle || fc.singleColor;
+      const colorName = fc.colorSingleName;
+      const colorRal = fc.colorSingleRal;
 
-      // Find color option to get hex value
-      const opt = document.querySelector(`.color-option[data-color="${colorKey}"]`) ||
-                  document.querySelector(`.color-option[data-name="${colorName}"]`);
+      // Find in correct picker
+      const opt = document.querySelector(`${singleSelector}[data-color="${colorKey}"]`) ||
+                  document.querySelector(`${singleSelector}[data-name="${colorName}"]`);
 
-      let hex = '#F6F6F6'; // default white
       if (opt) {
-        hex = opt.style.backgroundColor || '#F6F6F6';
-        // Convert rgb() to hex if needed
+        // For casement: click works because panel is visible
+        if (isCasement) {
+          opt.click();
+          return;
+        }
+        // For sash/fix: set config directly (panel may be hidden)
+        let hex = opt.style.backgroundColor || '#F6F6F6';
         if (hex.startsWith('rgb')) {
           const m = hex.match(/\d+/g);
           if (m) hex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join('');
         }
-        // Visually select the option
-        document.querySelectorAll('#single-color-selector .color-option').forEach(o => o.classList.remove('selected'));
+        document.querySelectorAll(`${singleSelector}`).forEach(o => o.classList.remove('selected'));
         opt.classList.add('selected');
-      }
 
-      // Set config directly
-      if (window.currentConfig) {
-        window.currentConfig.colorType = 'single';
-        window.currentConfig.colorSingle = colorKey || 'white';
-        window.currentConfig.colorSingleName = colorName || 'Pure White';
-        window.currentConfig.colorSingleRal = colorRal || '';
-        window.currentConfig.singleColor = colorKey || 'white';
-      }
-
-      // Update 3D
-      if (window.update3D) {
-        window.update3D({ woodColor: hex, sameColor: true });
+        if (window.currentConfig) {
+          window.currentConfig.colorType = 'single';
+          window.currentConfig.colorSingle = colorKey || 'white';
+          window.currentConfig.colorSingleName = colorName || 'Pure White';
+          window.currentConfig.colorSingleRal = colorRal || '';
+          window.currentConfig.singleColor = colorKey || 'white';
+        }
+        if (window.update3D) window.update3D({ woodColor: hex, sameColor: true });
       }
 
     } else if (colorType === 'dual') {
       const intKey = fc.colorInterior || fc.colorInteriorName;
       const extKey = fc.colorExterior || fc.colorExteriorName;
-      const intName = fc.colorInteriorName || '';
-      const intRal = fc.colorInteriorRal || '';
-      const extName = fc.colorExteriorName || '';
-      const extRal = fc.colorExteriorRal || '';
 
-      let intHex = '#F6F6F6', extHex = '#F6F6F6';
-
-      // Interior
-      const intOpt = document.querySelector(`.interior-color[data-color="${intKey}"]`) ||
-                     document.querySelector(`.interior-color[data-name="${intName}"]`);
-      if (intOpt) {
-        intHex = intOpt.style.backgroundColor || '#F6F6F6';
-        if (intHex.startsWith('rgb')) {
-          const m = intHex.match(/\d+/g);
-          if (m) intHex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join('');
-        }
-        document.querySelectorAll('.interior-color').forEach(o => o.classList.remove('selected'));
-        intOpt.classList.add('selected');
+      if (isCasement) {
+        // Click casement interior/exterior tiles directly
+        const intOpt = document.querySelector(`${intSelector}[data-color="${intKey}"]`) ||
+                       document.querySelector(`${intSelector}[data-name="${fc.colorInteriorName}"]`);
+        const extOpt = document.querySelector(`${extSelector}[data-color="${extKey}"]`) ||
+                       document.querySelector(`${extSelector}[data-name="${fc.colorExteriorName}"]`);
+        if (intOpt) intOpt.click();
+        if (extOpt) extOpt.click();
+        return;
       }
 
-      // Exterior
-      const extOpt = document.querySelector(`.exterior-color[data-color="${extKey}"]`) ||
-                     document.querySelector(`.exterior-color[data-name="${extName}"]`);
+      // Sash/fix: set config directly
+      let intHex = '#F6F6F6', extHex = '#F6F6F6';
+      const intOpt = document.querySelector(`${intSelector}[data-color="${intKey}"]`) ||
+                     document.querySelector(`${intSelector}[data-name="${fc.colorInteriorName}"]`);
+      if (intOpt) {
+        intHex = intOpt.style.backgroundColor || '#F6F6F6';
+        if (intHex.startsWith('rgb')) { const m = intHex.match(/\d+/g); if (m) intHex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join(''); }
+        document.querySelectorAll(intSelector).forEach(o => o.classList.remove('selected'));
+        intOpt.classList.add('selected');
+      }
+      const extOpt = document.querySelector(`${extSelector}[data-color="${extKey}"]`) ||
+                     document.querySelector(`${extSelector}[data-name="${fc.colorExteriorName}"]`);
       if (extOpt) {
         extHex = extOpt.style.backgroundColor || '#F6F6F6';
-        if (extHex.startsWith('rgb')) {
-          const m = extHex.match(/\d+/g);
-          if (m) extHex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join('');
-        }
-        document.querySelectorAll('.exterior-color').forEach(o => o.classList.remove('selected'));
+        if (extHex.startsWith('rgb')) { const m = extHex.match(/\d+/g); if (m) extHex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join(''); }
+        document.querySelectorAll(extSelector).forEach(o => o.classList.remove('selected'));
         extOpt.classList.add('selected');
       }
 
-      // Set config directly
       if (window.currentConfig) {
         window.currentConfig.colorType = 'dual';
         window.currentConfig.colorSingle = null;
         window.currentConfig.colorInterior = intKey;
-        window.currentConfig.colorInteriorName = intName;
-        window.currentConfig.colorInteriorRal = intRal;
+        window.currentConfig.colorInteriorName = fc.colorInteriorName || '';
+        window.currentConfig.colorInteriorRal = fc.colorInteriorRal || '';
         window.currentConfig.colorExterior = extKey;
-        window.currentConfig.colorExteriorName = extName;
-        window.currentConfig.colorExteriorRal = extRal;
+        window.currentConfig.colorExteriorName = fc.colorExteriorName || '';
+        window.currentConfig.colorExteriorRal = fc.colorExteriorRal || '';
       }
-
-      // Update 3D
-      if (window.update3D) {
-        window.update3D({ woodColorInt: intHex, woodColorExt: extHex, sameColor: false });
-      }
+      if (window.update3D) window.update3D({ woodColorInt: intHex, woodColorExt: extHex, sameColor: false });
     }
 
-    // Refresh spec panel
-    if (window.specificationController) {
-      window.specificationController.updateColourSpec?.();
-    }
+    if (window.specificationController?.updateColourSpec) window.specificationController.updateColourSpec();
   }
 
   function triggerUpdate() {
