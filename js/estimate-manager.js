@@ -929,32 +929,48 @@ class EstimateManager {
     prefillConfigurator(fc, dbItem) {
         console.log('=== PREFILLING CONFIGURATOR ===');
 
-        // ─── 1. Window type ───
+        // ─── 1. Determine type ───
         const wType = fc.windowType || dbItem.window_type || 'sash';
-        const isDoor = fc.windowCategory === 'door' || ['french-doors', 'sliding-doors', 'bifold-doors'].includes(wType);
-        const isCasement = wType === 'casement' || fc.windowCategory === 'casement';
-        const isFixOnly = wType === 'fix-only';
+        const isDoor = fc.windowCategory === 'door' || fc.productType === 'door' || 
+                       ['french-doors', 'sliding-doors', 'bifold-doors'].includes(wType);
+        const isCasement = !isDoor && (wType === 'casement' || fc.windowCategory === 'casement');
+        const isFixOnly = !isDoor && wType === 'fix-only';
 
         if (isDoor) {
-            // Trigger door tab
-            const doorRadio = document.querySelector('input[name="window-type"][value="door"]') ||
-                             document.querySelector('[data-target="doors"]');
-            if (doorRadio) { doorRadio.checked = true; doorRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-        } else if (isCasement) {
-            const casRadio = document.querySelector('input[name="window-type"][value="casement"]');
-            if (casRadio) { casRadio.checked = true; casRadio.dispatchEvent(new Event('change', {bubbles:true})); }
-        } else if (isFixOnly) {
-            const fixRadio = document.querySelector('input[name="window-type"][value="fix-only"]');
-            if (fixRadio) { fixRadio.checked = true; fixRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            // ─── Switch to Doors mode ───
+            const doorsRadio = document.querySelector('input[name="product-range"][value="doors"]');
+            if (doorsRadio) { doorsRadio.checked = true; doorsRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+
+            // Set door type (french/sliding/bifold)
+            const doorType = fc.doorType || wType.replace('-doors', '') || 'french';
+            setTimeout(() => {
+                const dtRadio = document.querySelector(`input[name="door-type"][value="${doorType}"]`);
+                if (dtRadio) { dtRadio.checked = true; dtRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }, 100);
         } else {
-            const sashRadio = document.querySelector('input[name="window-type"][value="sash"]');
-            if (sashRadio) { sashRadio.checked = true; sashRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            // ─── Ensure Windows mode ───
+            const windowsRadio = document.querySelector('input[name="product-range"][value="windows"]');
+            if (windowsRadio && !windowsRadio.checked) { 
+                windowsRadio.checked = true; 
+                windowsRadio.dispatchEvent(new Event('change', {bubbles:true})); 
+            }
+
+            if (isCasement) {
+                const casRadio = document.querySelector('input[name="window-type"][value="casement"]');
+                if (casRadio) { casRadio.checked = true; casRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            } else if (isFixOnly) {
+                const fixRadio = document.querySelector('input[name="window-type"][value="fix-only"]');
+                if (fixRadio) { fixRadio.checked = true; fixRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            } else {
+                const sashRadio = document.querySelector('input[name="window-type"][value="sash"]');
+                if (sashRadio) { sashRadio.checked = true; sashRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
         }
 
-        // Small delay for panels to render after type change
+        // Delay for panels to render after type change
         setTimeout(() => {
             this._prefillFields(fc, dbItem, { isDoor, isCasement, isFixOnly });
-        }, 300);
+        }, 400);
     }
 
     // Internal: set all form fields
@@ -965,31 +981,91 @@ class EstimateManager {
         const w = fc.actualFrameWidth || fc.width || dbItem.width;
         const h = fc.actualFrameHeight || fc.height || dbItem.height;
         
-        // Set width
-        const widthSelect = document.getElementById('width-select') || document.getElementById('width');
-        if (widthSelect) { widthSelect.value = w; widthSelect.dispatchEvent(new Event('change', {bubbles:true})); }
-        const widthDisplay = document.getElementById('width-display');
-        if (widthDisplay) widthDisplay.textContent = w;
+        if (isDoor) {
+            // Door uses number inputs, not selects
+            const dWidth = document.getElementById('d-width');
+            if (dWidth) { dWidth.value = w; dWidth.dispatchEvent(new Event('input', {bubbles:true})); }
+            const dHeight = document.getElementById('d-height');
+            if (dHeight) { dHeight.value = h; dHeight.dispatchEvent(new Event('input', {bubbles:true})); }
 
-        // Set height
-        const heightSelect = document.getElementById('height-select') || document.getElementById('height');
-        if (heightSelect) { heightSelect.value = h; heightSelect.dispatchEvent(new Event('change', {bubbles:true})); }
-        const heightDisplay = document.getElementById('height-display');
-        if (heightDisplay) heightDisplay.textContent = h;
+            // Bi-fold panel count
+            if (fc.panelCount) {
+                const bfPanels = document.getElementById('bf-door-panel-count');
+                if (bfPanels) { bfPanels.value = fc.panelCount; bfPanels.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            // Sliding panel count
+            if (fc.panelCount && fc.doorType === 'sliding') {
+                const slPanels = document.querySelector(`input[name="sl-door-panel-count"][value="${fc.panelCount}"]`);
+                if (slPanels) { slPanels.checked = true; slPanels.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            // Door opening slider
+            if (fc.doorOpening !== undefined) {
+                const openSlider = document.getElementById('d-door-opening');
+                if (openSlider) { openSlider.value = Math.round(fc.doorOpening * 100); openSlider.dispatchEvent(new Event('input', {bubbles:true})); }
+            }
+            // Hinge side
+            if (fc.hingeSide) {
+                const hingeRadio = document.querySelector(`input[name="d-hinge-side"][value="${fc.hingeSide}"]`);
+                if (hingeRadio) { hingeRadio.checked = true; hingeRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            // Open direction
+            if (fc.openDirection) {
+                const dirRadio = document.querySelector(`input[name="d-open-direction"][value="${fc.openDirection}"]`);
+                if (dirRadio) { dirRadio.checked = true; dirRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            // Bi-fold fold direction
+            if (fc.foldDirection) {
+                const foldRadio = document.querySelector(`input[name="bf-fold-direction"][value="${fc.foldDirection}"]`);
+                if (foldRadio) { foldRadio.checked = true; foldRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            // Bi-fold traffic door
+            if (fc.trafficDoor) {
+                const tdRadio = document.querySelector(`input[name="bf-traffic-door"][value="${fc.trafficDoor}"]`);
+                if (tdRadio) { tdRadio.checked = true; tdRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            // Door quantity
+            const dQty = document.getElementById('d-quantity');
+            if (dQty) dQty.value = fc.quantity || dbItem.quantity || 1;
+            // Door name
+            const dName = document.getElementById('d-custom-name');
+            if (dName && dbItem.window_number) dName.value = dbItem.window_number;
+        } else {
+            // Window uses selects
+            const widthSelect = document.getElementById('width-select') || document.getElementById('width');
+            if (widthSelect) { widthSelect.value = w; widthSelect.dispatchEvent(new Event('change', {bubbles:true})); }
+            const widthDisplay = document.getElementById('width-display');
+            if (widthDisplay) widthDisplay.textContent = w;
 
-        // ─── 3. Radio buttons (shared across types) ───
-        const radioMap = {
-            'measurement-type': fc.measurementType,
-            'frame-type': fc.frameType,
-            'color-type': fc.colorType || fc.colourMode,
-            'glass-type': fc.glassType,
-            'glass-spec': fc.glassSpec,
-            'glass-finish': fc.glassFinish,
-            'opening-type': fc.openingType,
-            'pas24': fc.pas24 === true || fc.pas24 === 'yes' ? 'yes' : 'no',
-            'frosted-location': fc.frostedLocation,
-            'spacer-color': fc.spacerColor || fc.spacer,
-        };
+            const heightSelect = document.getElementById('height-select') || document.getElementById('height');
+            if (heightSelect) { heightSelect.value = h; heightSelect.dispatchEvent(new Event('change', {bubbles:true})); }
+            const heightDisplay = document.getElementById('height-display');
+            if (heightDisplay) heightDisplay.textContent = h;
+        }
+
+        // ─── 3. Radio buttons ───
+        const radioMap = {};
+
+        if (isDoor) {
+            // Door glass radios use d- prefix
+            radioMap['d-glass-type'] = fc.glassType;
+            radioMap['d-glass-finish'] = fc.glassFinish;
+            radioMap['d-spacer-color'] = fc.spacerColor || fc.spacer;
+            // Door bars
+            radioMap['d-hbars'] = fc.hBars !== undefined ? String(fc.hBars) : null;
+            radioMap['d-vbars'] = fc.vBars !== undefined ? String(fc.vBars) : null;
+        } else {
+            // Window radios (no prefix)
+            radioMap['measurement-type'] = fc.measurementType;
+            radioMap['frame-type'] = fc.frameType;
+            radioMap['color-type'] = fc.colorType || fc.colourMode;
+            radioMap['glass-type'] = fc.glassType;
+            radioMap['glass-spec'] = fc.glassSpec;
+            radioMap['glass-finish'] = fc.glassFinish;
+            radioMap['opening-type'] = fc.openingType;
+            radioMap['pas24'] = fc.pas24 === true || fc.pas24 === 'yes' ? 'yes' : 'no';
+            radioMap['frosted-location'] = fc.frostedLocation;
+            radioMap['spacer-color'] = fc.spacerColor || fc.spacer;
+        }
 
         Object.entries(radioMap).forEach(([name, value]) => {
             if (!value) return;
@@ -997,27 +1073,29 @@ class EstimateManager {
             if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change', {bubbles:true})); }
         });
 
-        // ─── 4. Colors ───
-        const colorType = fc.colorType || fc.colourMode || 'single';
-        if (colorType === 'single') {
-            const colorName = fc.singleColor || fc.colorSingle || fc.colorSingleName;
-            if (colorName) {
-                const colorOpt = document.querySelector(`.color-option[data-color="${colorName}"]`) ||
-                                document.querySelector(`.color-option[data-name="${colorName}"]`);
-                if (colorOpt) colorOpt.click();
-            }
-        } else if (colorType === 'dual') {
-            const intColor = fc.interiorColor || fc.colorInterior || fc.colorInteriorName;
-            const extColor = fc.exteriorColor || fc.colorExterior || fc.colorExteriorName;
-            if (intColor) {
-                const intOpt = document.querySelector(`.interior-color[data-color="${intColor}"]`) ||
-                              document.querySelector(`.interior-color[data-name="${intColor}"]`);
-                if (intOpt) intOpt.click();
-            }
-            if (extColor) {
-                const extOpt = document.querySelector(`.exterior-color[data-color="${extColor}"]`) ||
-                              document.querySelector(`.exterior-color[data-name="${extColor}"]`);
-                if (extOpt) extOpt.click();
+        // ─── 4. Colors (windows only — doors use separate colour system) ───
+        if (!isDoor) {
+            const colorType = fc.colorType || fc.colourMode || 'single';
+            if (colorType === 'single') {
+                const colorName = fc.singleColor || fc.colorSingle || fc.colorSingleName;
+                if (colorName) {
+                    const colorOpt = document.querySelector(`.color-option[data-color="${colorName}"]`) ||
+                                    document.querySelector(`.color-option[data-name="${colorName}"]`);
+                    if (colorOpt) colorOpt.click();
+                }
+            } else if (colorType === 'dual') {
+                const intColor = fc.interiorColor || fc.colorInterior || fc.colorInteriorName;
+                const extColor = fc.exteriorColor || fc.colorExterior || fc.colorExteriorName;
+                if (intColor) {
+                    const intOpt = document.querySelector(`.interior-color[data-color="${intColor}"]`) ||
+                                  document.querySelector(`.interior-color[data-name="${intColor}"]`);
+                    if (intOpt) intOpt.click();
+                }
+                if (extColor) {
+                    const extOpt = document.querySelector(`.exterior-color[data-color="${extColor}"]`) ||
+                                  document.querySelector(`.exterior-color[data-name="${extColor}"]`);
+                    if (extOpt) extOpt.click();
+                }
             }
         }
 
@@ -1038,20 +1116,24 @@ class EstimateManager {
             }
         }
 
-        // ─── 6. Horns ───
-        const horns = fc.horns || dbItem.horns;
-        if (horns && horns !== 'none') {
-            const hornsSelect = document.getElementById('horns') || document.getElementById('horns-select');
-            if (hornsSelect) { hornsSelect.value = horns; hornsSelect.dispatchEvent(new Event('change', {bubbles:true})); }
+        // ─── 6. Horns (sash only) ───
+        if (!isDoor && !isCasement && !isFixOnly) {
+            const horns = fc.horns || dbItem.horns;
+            if (horns && horns !== 'none') {
+                const hornsSelect = document.getElementById('horns') || document.getElementById('horns-select');
+                if (hornsSelect) { hornsSelect.value = horns; hornsSelect.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
         }
 
-        // ─── 7. Quantity & Name ───
-        const qty = fc.quantity || dbItem.quantity || 1;
-        const qtyInput = document.getElementById('window-quantity') || document.getElementById('c-quantity');
-        if (qtyInput) qtyInput.value = qty;
+        // ─── 7. Quantity & Name (windows only — doors handled above) ───
+        if (!isDoor) {
+            const qty = fc.quantity || dbItem.quantity || 1;
+            const qtyInput = document.getElementById('window-quantity') || document.getElementById('c-quantity');
+            if (qtyInput) qtyInput.value = qty;
 
-        const nameInput = document.getElementById('custom-name') || document.getElementById('c-custom-name');
-        if (nameInput && dbItem.window_number) nameInput.value = dbItem.window_number;
+            const nameInput = document.getElementById('custom-name') || document.getElementById('c-custom-name');
+            if (nameInput && dbItem.window_number) nameInput.value = dbItem.window_number;
+        }
 
         // ─── 8. Casement-specific ───
         if (isCasement) {
