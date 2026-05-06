@@ -910,11 +910,82 @@ class EstimateRenderer {
             <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;padding-top:1.5rem;border-top:1px solid rgba(158,158,144,.15);">
                 ${adminButtons}
                 ${isEditable ? `<button class="btn-sm" onclick="window.open('online-estimate.html?estimate=${estimate.id}','_blank')" style="background:var(--navy);color:#fff;">+ Add Window</button>` : ''}
+                <button class="btn-sm" onclick="EstimateRenderer.refreshEstimate()" style="background:#2a5a3a;color:#fff;">🔄 Refresh</button>
                 <button class="btn-sm btn-download-pdf">Download PDF</button>
                 <button class="btn-sm" id="download-estimate-excel">Download Excel</button>
                 <button class="btn-sm" onclick="${closeAction}">Close</button>
             </div>
         `;
+
+        // Store context for refresh
+        EstimateRenderer._lastEstimate = { id: estimate.id, isAdmin, isEditable };
+        EstimateRenderer.setupAutoRefresh();
+    }
+
+    // ─── Refresh Estimate (re-fetch from DB) ───
+    static async refreshEstimate() {
+        const ctx = EstimateRenderer._lastEstimate;
+        if (!ctx || !ctx.id) { console.warn('No estimate to refresh'); return; }
+
+        try {
+            // Fetch fresh estimate + items from Supabase
+            const { data: estimate, error } = await window.supabaseClient
+                .from('estimates')
+                .select('*, estimate_items(*)')
+                .eq('id', ctx.id)
+                .single();
+
+            if (error) throw error;
+
+            // Try load extras
+            try {
+                if (typeof EstimateExtras !== 'undefined') {
+                    estimate.extras = await EstimateExtras.load(ctx.id);
+                }
+            } catch (e) { estimate.extras = []; }
+
+            // Find modal body (works for both admin and customer)
+            const modalBody = document.getElementById('modal-body') ||
+                              document.getElementById('order-detail-content');
+            if (!modalBody) return;
+
+            // Re-render
+            const isEditable = ['draft', 'sent', 'quoted'].includes(estimate.status);
+            modalBody.innerHTML = EstimateRenderer.renderEstimateHTML(estimate, {
+                isAdmin: ctx.isAdmin,
+                isEditable: isEditable
+            });
+
+            // Re-attach export buttons
+            EstimateRenderer.attachExportButtons(estimate);
+
+            // Update cached data if admin (allEstimates array)
+            if (ctx.isAdmin && typeof allEstimates !== 'undefined') {
+                const idx = allEstimates.findIndex(e => e.id === ctx.id);
+                if (idx !== -1) allEstimates[idx] = estimate;
+            }
+
+            console.log('✅ Estimate refreshed');
+        } catch (err) {
+            console.error('Refresh error:', err);
+        }
+    }
+
+    // ─── Auto-refresh on tab focus ───
+    static setupAutoRefresh() {
+        if (EstimateRenderer._autoRefreshSetup) return;
+        EstimateRenderer._autoRefreshSetup = true;
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && EstimateRenderer._lastEstimate) {
+                // Check if modal is open
+                const modal = document.getElementById('quote-modal') ||
+                              document.getElementById('order-modal');
+                if (modal && (modal.classList.contains('active') || modal.style.display !== 'none')) {
+                    EstimateRenderer.refreshEstimate();
+                }
+            }
+        });
     }
 
     // ─── SVG Window Drawing ───
