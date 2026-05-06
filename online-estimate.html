@@ -5746,7 +5746,7 @@
             heightSelect.value = String(defaultH);
           }
 
-          // UI: hide "both" opening for triple
+          // UI: hide "both" opening for triple, restore for double
           var bothOption = document.getElementById('both-open');
           var bottomOption = document.getElementById('bottom-open');
           if (bothOption) {
@@ -5754,6 +5754,11 @@
             if (isTriple && bothOption.checked) {
               bottomOption.checked = true;
               bottomOption.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            // Restore "Both Sashes Open" when switching back to double hung
+            if (!isTriple && bottomOption && bottomOption.checked) {
+              bothOption.checked = true;
+              bothOption.dispatchEvent(new Event('change', { bubbles: true }));
             }
           }
 
