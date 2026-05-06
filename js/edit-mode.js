@@ -42,10 +42,10 @@
     document.body.prepend(banner);
     document.body.style.paddingTop = '36px';
 
-    // Hide estimate selector
-    const selectorWrap = document.querySelector('.estimate-selector-container') ||
-                         document.getElementById('estimate-selector-wrap');
-    if (selectorWrap) selectorWrap.style.display = 'none';
+    // Hide estimate selector (ALL instances — windows + doors panels)
+    document.querySelectorAll('.estimate-selector-container').forEach(el => {
+      el.style.display = 'none';
+    });
 
     // Change button text
     changeButtonText();
@@ -526,8 +526,7 @@
         quantity: windowConfig.quantity || 1,
         unit_price: price.unitPrice,
         total_price: price.totalPrice,
-        specification: JSON.stringify(windowConfig),
-        updated_at: new Date().toISOString()
+        specification: JSON.stringify(windowConfig)
       };
 
       // UPDATE
