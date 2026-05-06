@@ -4580,7 +4580,7 @@
         // Trigger door spec update
         if (isDoors && window.updateDoorSpec) window.updateDoorSpec();
         if (isDoors && window.updateDoorPrice) window.updateDoorPrice();
-        if (isSliding && window.updateSlidingGlassCalc) window.updateSlidingGlassCalc();
+        if (isDoors && doorType === 'sliding' && window.updateSlidingGlassCalc) window.updateSlidingGlassCalc();
 
         // Update product range hint
         var hintEl = document.getElementById('hint-product-range');
