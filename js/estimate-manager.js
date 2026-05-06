@@ -4,6 +4,9 @@ class EstimateManager {
     constructor() {
         this.currentEstimate = null; // Aktualna wycena
         this.currentCustomer = null; // Zalogowany klient
+        this.editMode = false;       // Edit mode flag
+        this.editItemId = null;      // Item being edited
+        this.editEstimateId = null;  // Estimate of item being edited
         this.init();
     }
 
@@ -17,6 +20,9 @@ class EstimateManager {
 
         // Inicjalizuj przyciski
         this.initializeButtons();
+
+        // Check if we're in edit mode (URL params)
+        this.checkEditMode();
     }
 
     // Pobierz dane klienta
@@ -396,11 +402,19 @@ class EstimateManager {
 
     // Inicjalizuj przyciski
     initializeButtons() {
-        // Przycisk "Add to Estimate"
+        // Przycisk "Add to Estimate" / "Update Window" (edit mode)
         const addBtn = document.getElementById('add-to-estimate');
         if (addBtn) {
             addBtn.addEventListener('click', async () => {
-                // Pobierz wybrany estimate z dropdowna
+                // ── EDIT MODE: Update existing window ──
+                if (this.editMode && this.editItemId) {
+                    const windowConfig = this.getCurrentWindowConfig();
+                    const price = this.getCurrentPrice();
+                    await this.updateWindowInEstimate(this.editItemId, this.editEstimateId, windowConfig, price);
+                    return;
+                }
+
+                // ── NORMAL MODE: Add new window ──
                 if (window.estimateSelectorManager) {
                     const isNew = window.estimateSelectorManager.selectedEstimateId === 'new';
                     const estimateId = await window.estimateSelectorManager.getOrCreateEstimate();
@@ -409,13 +423,11 @@ class EstimateManager {
                         return;
                     }
 
-                    // If just created new estimate — DON'T add window yet
                     if (isNew) {
                         console.log('New estimate created — waiting for user to configure window first');
                         return;
                     }
 
-                    // Existing estimate — add window
                     const windowConfig = this.getCurrentWindowConfig();
                     const price = this.getCurrentPrice();
                     await this.addWindowToEstimate(windowConfig, price, estimateId);
@@ -431,6 +443,19 @@ class EstimateManager {
         const doorAddBtn = document.getElementById('d-add-to-estimate');
         if (doorAddBtn) {
             doorAddBtn.addEventListener('click', async () => {
+                // ── EDIT MODE: Update existing door ──
+                if (this.editMode && this.editItemId) {
+                    const doorConfig = window.getDoorConfig ? window.getDoorConfig() : this.getCurrentWindowConfig();
+                    doorConfig.windowCategory = 'door';
+                    doorConfig.windowName = document.getElementById('d-custom-name')?.value || '';
+                    doorConfig.quantity = parseInt(document.getElementById('d-quantity')?.value) || 1;
+                    doorConfig.notes = document.getElementById('d-notes')?.value || '';
+                    const price = this.getCurrentPrice();
+                    await this.updateWindowInEstimate(this.editItemId, this.editEstimateId, doorConfig, price);
+                    return;
+                }
+
+                // ── NORMAL MODE ──
                 if (window.estimateSelectorManager) {
                     const isNew = window.estimateSelectorManager.selectedEstimateId === 'new';
                     const estimateId = await window.estimateSelectorManager.getOrCreateEstimate();
@@ -793,6 +818,432 @@ class EstimateManager {
         
         if (viewBtn && savedEstimates.length > 0) {
             viewBtn.textContent = `View My Estimates (${savedEstimates.length})`;
+        }
+    }
+
+    // ─── EDIT MODE ───
+
+    // Check URL params for edit mode (?edit=ITEM_ID&estimate=ESTIMATE_ID)
+    async checkEditMode() {
+        const params = new URLSearchParams(window.location.search);
+        const editItemId = params.get('edit');
+        const estimateId = params.get('estimate');
+
+        if (!editItemId) return;
+
+        console.log('=== EDIT MODE DETECTED ===');
+        console.log('editItemId:', editItemId);
+        console.log('estimateId:', estimateId);
+
+        this.editMode = true;
+        this.editItemId = editItemId;
+        this.editEstimateId = estimateId;
+
+        // Change button text
+        const addBtn = document.getElementById('add-to-estimate');
+        if (addBtn) {
+            const span = addBtn.querySelector('span') || addBtn;
+            span.textContent = 'Update Window';
+            addBtn.style.background = '#2a5a3a';
+        }
+        // Also for door button
+        const doorBtn = document.getElementById('d-add-to-estimate');
+        if (doorBtn) {
+            const span = doorBtn.querySelector('span') || doorBtn;
+            span.textContent = 'Update Door';
+            doorBtn.style.background = '#2a5a3a';
+        }
+
+        // Hide estimate selector (not needed in edit mode)
+        const selectorWrap = document.getElementById('estimate-selector-wrap') || 
+                            document.querySelector('.estimate-selector-container');
+        if (selectorWrap) selectorWrap.style.display = 'none';
+
+        // Show edit mode banner
+        const banner = document.createElement('div');
+        banner.style.cssText = 'background:#2a5a3a;color:#fff;padding:.6rem 1.2rem;text-align:center;font-family:Jost,sans-serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;position:fixed;top:0;left:0;right:0;z-index:9999;';
+        banner.textContent = '✏️ EDIT MODE — Editing existing window';
+        document.body.prepend(banner);
+
+        // Load item data from Supabase
+        await this.loadForEdit(editItemId);
+    }
+
+    // Load item from DB and prefill configurator
+    async loadForEdit(itemId) {
+        try {
+            const { data: item, error } = await supabaseClient
+                .from('estimate_items')
+                .select('*')
+                .eq('id', itemId)
+                .single();
+
+            if (error) throw error;
+            if (!item) throw new Error('Item not found');
+
+            console.log('=== LOADED ITEM FOR EDIT ===');
+            console.log('item:', item);
+
+            // Parse specification JSON
+            const spec = typeof item.specification === 'string' 
+                ? JSON.parse(item.specification) 
+                : item.specification;
+
+            if (!spec) throw new Error('No specification data');
+
+            // fullConfig has everything
+            const fc = spec.fullConfig || spec;
+            console.log('fullConfig:', fc);
+
+            // Wait for configurator to be ready
+            await this.waitForConfigurator();
+
+            // Prefill the configurator
+            this.prefillConfigurator(fc, item);
+
+        } catch (error) {
+            console.error('Error loading item for edit:', error);
+            this.showToast('❌ Error loading window for edit: ' + error.message, 'error');
+        }
+    }
+
+    // Wait for configurator modules to be ready (max 10s)
+    waitForConfigurator() {
+        return new Promise((resolve, reject) => {
+            let elapsed = 0;
+            const check = () => {
+                if (window.configuratorCore?.isInitialized && window.currentConfig) {
+                    resolve();
+                } else if (elapsed >= 10000) {
+                    reject(new Error('Configurator failed to initialize within 10s'));
+                } else {
+                    elapsed += 100;
+                    setTimeout(check, 100);
+                }
+            };
+            check();
+        });
+    }
+
+    // Prefill configurator from saved fullConfig
+    prefillConfigurator(fc, dbItem) {
+        console.log('=== PREFILLING CONFIGURATOR ===');
+
+        // ─── 1. Window type ───
+        const wType = fc.windowType || dbItem.window_type || 'sash';
+        const isDoor = fc.windowCategory === 'door' || ['french-doors', 'sliding-doors', 'bifold-doors'].includes(wType);
+        const isCasement = wType === 'casement' || fc.windowCategory === 'casement';
+        const isFixOnly = wType === 'fix-only';
+
+        if (isDoor) {
+            // Trigger door tab
+            const doorRadio = document.querySelector('input[name="window-type"][value="door"]') ||
+                             document.querySelector('[data-target="doors"]');
+            if (doorRadio) { doorRadio.checked = true; doorRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+        } else if (isCasement) {
+            const casRadio = document.querySelector('input[name="window-type"][value="casement"]');
+            if (casRadio) { casRadio.checked = true; casRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+        } else if (isFixOnly) {
+            const fixRadio = document.querySelector('input[name="window-type"][value="fix-only"]');
+            if (fixRadio) { fixRadio.checked = true; fixRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+        } else {
+            const sashRadio = document.querySelector('input[name="window-type"][value="sash"]');
+            if (sashRadio) { sashRadio.checked = true; sashRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+        }
+
+        // Small delay for panels to render after type change
+        setTimeout(() => {
+            this._prefillFields(fc, dbItem, { isDoor, isCasement, isFixOnly });
+        }, 300);
+    }
+
+    // Internal: set all form fields
+    _prefillFields(fc, dbItem, flags) {
+        const { isDoor, isCasement, isFixOnly } = flags;
+
+        // ─── 2. Dimensions ───
+        const w = fc.actualFrameWidth || fc.width || dbItem.width;
+        const h = fc.actualFrameHeight || fc.height || dbItem.height;
+        
+        // Set width
+        const widthSelect = document.getElementById('width-select') || document.getElementById('width');
+        if (widthSelect) { widthSelect.value = w; widthSelect.dispatchEvent(new Event('change', {bubbles:true})); }
+        const widthDisplay = document.getElementById('width-display');
+        if (widthDisplay) widthDisplay.textContent = w;
+
+        // Set height
+        const heightSelect = document.getElementById('height-select') || document.getElementById('height');
+        if (heightSelect) { heightSelect.value = h; heightSelect.dispatchEvent(new Event('change', {bubbles:true})); }
+        const heightDisplay = document.getElementById('height-display');
+        if (heightDisplay) heightDisplay.textContent = h;
+
+        // ─── 3. Radio buttons (shared across types) ───
+        const radioMap = {
+            'measurement-type': fc.measurementType,
+            'frame-type': fc.frameType,
+            'color-type': fc.colorType || fc.colourMode,
+            'glass-type': fc.glassType,
+            'glass-spec': fc.glassSpec,
+            'glass-finish': fc.glassFinish,
+            'opening-type': fc.openingType,
+            'pas24': fc.pas24 === true || fc.pas24 === 'yes' ? 'yes' : 'no',
+            'frosted-location': fc.frostedLocation,
+            'spacer-color': fc.spacerColor || fc.spacer,
+        };
+
+        Object.entries(radioMap).forEach(([name, value]) => {
+            if (!value) return;
+            const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+            if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change', {bubbles:true})); }
+        });
+
+        // ─── 4. Colors ───
+        const colorType = fc.colorType || fc.colourMode || 'single';
+        if (colorType === 'single') {
+            const colorName = fc.singleColor || fc.colorSingle || fc.colorSingleName;
+            if (colorName) {
+                const colorOpt = document.querySelector(`.color-option[data-color="${colorName}"]`) ||
+                                document.querySelector(`.color-option[data-name="${colorName}"]`);
+                if (colorOpt) colorOpt.click();
+            }
+        } else if (colorType === 'dual') {
+            const intColor = fc.interiorColor || fc.colorInterior || fc.colorInteriorName;
+            const extColor = fc.exteriorColor || fc.colorExterior || fc.colorExteriorName;
+            if (intColor) {
+                const intOpt = document.querySelector(`.interior-color[data-color="${intColor}"]`) ||
+                              document.querySelector(`.interior-color[data-name="${intColor}"]`);
+                if (intOpt) intOpt.click();
+            }
+            if (extColor) {
+                const extOpt = document.querySelector(`.exterior-color[data-color="${extColor}"]`) ||
+                              document.querySelector(`.exterior-color[data-name="${extColor}"]`);
+                if (extOpt) extOpt.click();
+            }
+        }
+
+        // ─── 5. Bars ───
+        if (!isDoor) {
+            const upperBars = fc.upperBars || fc.hBars || fc.casementHBars || dbItem.upper_bars;
+            const lowerBars = fc.lowerBars || fc.vBars || fc.casementVBars || dbItem.lower_bars;
+            
+            if (upperBars) {
+                const upperRadio = document.querySelector(`input[name="upper-bars"][value="${upperBars}"]`) ||
+                                  document.querySelector(`input[name="c-hbars"][value="${upperBars}"]`);
+                if (upperRadio) { upperRadio.checked = true; upperRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            if (lowerBars) {
+                const lowerRadio = document.querySelector(`input[name="lower-bars"][value="${lowerBars}"]`) ||
+                                  document.querySelector(`input[name="c-vbars"][value="${lowerBars}"]`);
+                if (lowerRadio) { lowerRadio.checked = true; lowerRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+        }
+
+        // ─── 6. Horns ───
+        const horns = fc.horns || dbItem.horns;
+        if (horns && horns !== 'none') {
+            const hornsSelect = document.getElementById('horns') || document.getElementById('horns-select');
+            if (hornsSelect) { hornsSelect.value = horns; hornsSelect.dispatchEvent(new Event('change', {bubbles:true})); }
+        }
+
+        // ─── 7. Quantity & Name ───
+        const qty = fc.quantity || dbItem.quantity || 1;
+        const qtyInput = document.getElementById('window-quantity') || document.getElementById('c-quantity');
+        if (qtyInput) qtyInput.value = qty;
+
+        const nameInput = document.getElementById('custom-name') || document.getElementById('c-custom-name');
+        if (nameInput && dbItem.window_number) nameInput.value = dbItem.window_number;
+
+        // ─── 8. Casement-specific ───
+        if (isCasement) {
+            // Layout
+            const layout = fc.casementLayout || fc.layout || dbItem.casement_layout;
+            if (layout) {
+                const layoutRadio = document.querySelector(`input[name="casement-layout"][value="${layout}"]`);
+                if (layoutRadio) { layoutRadio.checked = true; layoutRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            // Trickle vent
+            const tv = fc.trickleVent || dbItem.trickle_vent;
+            if (tv) {
+                const tvRadio = document.querySelector(`input[name="c-trickle-vent"][value="${tv}"]`);
+                if (tvRadio) { tvRadio.checked = true; tvRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            // Seal colour
+            const seal = fc.sealColour || dbItem.seal_colour;
+            if (seal) {
+                const sealRadio = document.querySelector(`input[name="c-seal-colour"][value="${seal}"]`);
+                if (sealRadio) { sealRadio.checked = true; sealRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+            // Sill extension
+            const sill = fc.sillExtension || dbItem.sill_extension;
+            if (sill) {
+                const sillRadio = document.querySelector(`input[name="c-sill-extension"][value="${sill}"]`);
+                if (sillRadio) { sillRadio.checked = true; sillRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+        }
+
+        // ─── 9. Fix-only specific ───
+        if (isFixOnly) {
+            const fixShape = fc.fixShape || fc.shape;
+            if (fixShape) {
+                const shapeRadio = document.querySelector(`input[name="fix-shape"][value="${fixShape}"]`);
+                if (shapeRadio) { shapeRadio.checked = true; shapeRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+            }
+        }
+
+        // ─── 10. Set fullConfig into state ───
+        Object.assign(window.currentConfig, fc);
+
+        // ─── 11. Restore custom bars via loadConfiguration (handles customBars object) ───
+        if (window.configuratorCore && fc.customBars) {
+            window.configuratorCore.loadConfiguration(fc);
+        }
+
+        // ─── 12. Door/Fix-only spacer color (different radio names) ───
+        const spacerVal = fc.spacerColor || fc.spacer || 'silver';
+        if (isDoor) {
+            const dSpacerRadio = document.querySelector(`input[name="d-spacer-color"][value="${spacerVal}"]`);
+            if (dSpacerRadio) { dSpacerRadio.checked = true; dSpacerRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+        } else if (isFixOnly) {
+            const fSpacerRadio = document.querySelector(`input[name="f-spacer"][value="${spacerVal}"]`);
+            if (fSpacerRadio) { fSpacerRadio.checked = true; fSpacerRadio.dispatchEvent(new Event('change', {bubbles:true})); }
+        }
+
+        // ─── 13. Trigger full update ───
+        if (window.configuratorCore) {
+            window.configuratorCore.updateAll();
+        }
+
+        console.log('=== PREFILL COMPLETE ===');
+        this.showToast('✏️ Window loaded for editing', 'success');
+    }
+
+    // UPDATE existing window in DB (instead of INSERT)
+    async updateWindowInEstimate(itemId, estimateId, windowConfig, price) {
+        try {
+            console.log('=== UPDATE WINDOW ===');
+            console.log('itemId:', itemId);
+            console.log('estimateId:', estimateId);
+
+            // Take screenshots if available
+            if (window.takeWindowScreenshots && windowConfig.fullConfig) {
+                try {
+                    const screenshots = await window.takeWindowScreenshots();
+                    if (screenshots) {
+                        windowConfig.fullConfig.screenshots = screenshots;
+                    }
+                } catch (ssErr) {
+                    console.warn('Screenshot failed, continuing:', ssErr);
+                }
+            }
+
+            // Build update object (same fields as insert)
+            const updateData = {
+                window_type: windowConfig.windowType || 'sash',
+                width: windowConfig.width,
+                height: windowConfig.height,
+                measurement_type: windowConfig.measurementType,
+                original_width: windowConfig.originalWidth,
+                original_height: windowConfig.originalHeight,
+                frame_type: windowConfig.frameType || null,
+                casement_layout: windowConfig.casementLayout || null,
+                sill_extension: windowConfig.sillExtension || null,
+                trickle_vent: windowConfig.trickleVent || null,
+                seal_colour: windowConfig.sealColour || null,
+                safety_glass: windowConfig.safetyGlass || null,
+                glass_type: windowConfig.glassType || 'double',
+                glass_spec: windowConfig.glassSpec,
+                glass_finish: windowConfig.glassFinish,
+                spacer_color: windowConfig.spacerColor || windowConfig.fullConfig?.spacerColor || 'silver',
+                frosted_location: windowConfig.glassFinish === 'frosted' ? (windowConfig.frostedLocation || windowConfig.fullConfig?.frostedLocation || null) : null,
+                opening_type: windowConfig.openingType,
+                color_type: windowConfig.colorType,
+                color_single: (() => {
+                    const fc = windowConfig.fullConfig || {};
+                    if (windowConfig.colorType === 'single') {
+                        return fc.colorSingleName || fc.singleColor || windowConfig.colorSingle || 'white';
+                    }
+                    return windowConfig.colorSingle;
+                })(),
+                color_interior: (() => {
+                    const fc = windowConfig.fullConfig || {};
+                    return windowConfig.colorInterior || fc.interiorColor || fc.colorInterior || null;
+                })(),
+                color_exterior: (() => {
+                    const fc = windowConfig.fullConfig || {};
+                    return windowConfig.colorExterior || fc.exteriorColor || fc.colorExterior || null;
+                })(),
+                custom_exterior_color: windowConfig.customExteriorColor || windowConfig.fullConfig?.customExteriorColor || null,
+                upper_bars: windowConfig.upperBars || null,
+                lower_bars: windowConfig.lowerBars || null,
+                horns: (() => {
+                    const h = windowConfig.horns || windowConfig.fullConfig?.horns || 'none';
+                    return h === 'none' ? null : h;
+                })(),
+                ironmongery: (() => {
+                    const iron = windowConfig.ironmongery || windowConfig.fullConfig?.ironmongery || null;
+                    if (!iron) return null;
+                    return typeof iron === 'string' ? iron : JSON.stringify(iron);
+                })(),
+                ironmongery_finish: (() => {
+                    if (windowConfig.ironmongeryFinish) return windowConfig.ironmongeryFinish;
+                    const iron = windowConfig.fullConfig?.ironmongery;
+                    if (iron) {
+                        const products = [iron.lock, iron.fingerLift, iron.pullHandles, iron.stoppers].filter(p => p && p.color);
+                        if (products.length > 0) return products[0].color;
+                    }
+                    return null;
+                })(),
+                pas24: windowConfig.pas24 === true || windowConfig.pas24 === 'yes' || windowConfig.fullConfig?.pas24 === 'yes' || false,
+                quantity: windowConfig.quantity || 1,
+                unit_price: price.unitPrice,
+                total_price: price.totalPrice,
+                specification: JSON.stringify(windowConfig),
+                updated_at: new Date().toISOString()
+            };
+
+            // UPDATE item
+            const { error: updateError } = await supabaseClient
+                .from('estimate_items')
+                .update(updateData)
+                .eq('id', itemId);
+
+            if (updateError) throw updateError;
+
+            // Recalculate estimate total
+            if (estimateId) {
+                const { data: allItems, error: itemsError } = await supabaseClient
+                    .from('estimate_items')
+                    .select('total_price')
+                    .eq('estimate_id', estimateId);
+
+                if (!itemsError && allItems) {
+                    const newTotal = allItems.reduce((sum, i) => sum + (parseFloat(i.total_price) || 0), 0);
+                    await supabaseClient
+                        .from('estimates')
+                        .update({ total_price: newTotal, updated_at: new Date().toISOString() })
+                        .eq('id', estimateId);
+                }
+            }
+
+            this.showToast('✅ Window updated successfully!', 'success');
+
+            // Redirect back after short delay
+            setTimeout(() => {
+                window.close(); // Close tab (if opened with window.open)
+                // Fallback: redirect based on referrer
+                if (!window.closed) {
+                    const ref = document.referrer || '';
+                    if (ref.includes('admin')) {
+                        window.location.href = 'admin-dashboard.html';
+                    } else {
+                        window.location.href = 'customer-dashboard.html';
+                    }
+                }
+            }, 1500);
+
+        } catch (error) {
+            console.error('Error updating window:', error);
+            this.showToast('❌ Error updating window: ' + error.message, 'error');
         }
     }
 }

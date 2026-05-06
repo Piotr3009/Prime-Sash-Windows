@@ -472,8 +472,11 @@ class EstimateRenderer {
                 <div style="background:var(--navy);padding:.8rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
                     <div style="display:flex;align-items:center;gap:.8rem;">
                         <span style="font-family:'Jost',sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#fff;">${p.windowType === 'door' ? 'Door' : 'Window'} ${item.window_number}</span>
-                        ${isEditable && !isAdmin ? `
+                        ${isEditable ? `
+                        <button onclick="window.open('online-estimate.html?edit=${item.id}&estimate=${estimate.id}','_blank')" style="background:transparent;border:1px solid rgba(100,180,100,.4);color:rgba(100,180,100,.8);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Edit</button>
+                        ${!isAdmin ? `
                         <button onclick="dashboard.renameWindow('${item.id}','${(item.window_number || '').replace(/'/g, "\\'")}','${estimate.id}')" style="background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.6);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Rename</button>
+                        ` : ''}
                         <button onclick="EstimateRenderer.deleteItem('${item.id}','${estimate.id}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.7);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Delete</button>
                         ` : ''}
                     </div>
@@ -906,6 +909,7 @@ class EstimateRenderer {
 
             <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;padding-top:1.5rem;border-top:1px solid rgba(158,158,144,.15);">
                 ${adminButtons}
+                ${isEditable ? `<button class="btn-sm" onclick="window.open('online-estimate.html?estimate=${estimate.id}','_blank')" style="background:var(--navy);color:#fff;">+ Add Window</button>` : ''}
                 <button class="btn-sm btn-download-pdf">Download PDF</button>
                 <button class="btn-sm" id="download-estimate-excel">Download Excel</button>
                 <button class="btn-sm" onclick="${closeAction}">Close</button>
