@@ -4723,6 +4723,26 @@
         });
       });
 
+      // ── INIT: Sync currentConfig with actual DOM radio state ──
+      // Prevents localStorage from polluting windowType/windowCategory
+      // (e.g., last session was casement → localStorage has windowType:'casement' → new session defaults to sash radio)
+      setTimeout(function() {
+        if (window.currentConfig) {
+          var activeRange = (document.querySelector('input[name="product-range"]:checked') || {}).value || 'windows';
+          var activeType = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+          if (activeRange === 'windows') {
+            window.currentConfig.windowType = activeType;
+            delete window.currentConfig.productType;
+            delete window.currentConfig.windowCategory;
+            if (activeType === 'casement') window.currentConfig.windowCategory = 'casement';
+          } else {
+            window.currentConfig.productType = 'door';
+            window.currentConfig.windowCategory = 'door';
+          }
+          console.log('🔧 Config synced with DOM: range=' + activeRange + ', type=' + activeType);
+        }
+      }, 500);
+
       // ── AUTO-SWITCH: Door type → update 3D (no auto-switch — user has more options below) ──
       // (Door type radios already have change handler for hint updates above)
       document.querySelectorAll('input[name="door-type"]').forEach(function(radio) {
