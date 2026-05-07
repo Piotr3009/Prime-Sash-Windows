@@ -554,7 +554,7 @@ class EstimateRenderer {
                             ${p.sashType === 'triple' ? R.specRow('Split Ratio', p.splitRatio) : ''}
                             ${p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height) 
                                 ? R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm') + R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm')
-                                : R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
+                                : R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')}
                             ${R.specRow('Frame', p.frameText)}
                             ${R.specRow('Opening', p.openingText)}
                             ${R.specRow('Glass', p.glassText)}
@@ -2742,7 +2742,10 @@ class EstimateRenderer {
                     if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
                 } else {
                     if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
-                    specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
+                    specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
+                    if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
+                        specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
+                    }
                     specs.push(['Frame', p.frameText]);
                     specs.push(['Opening', p.openingText]);
                     specs.push(['Glass', p.glassText]);
@@ -3213,11 +3216,9 @@ class EstimateRenderer {
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
             if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
+            specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
             if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
-                specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
                 specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
-            } else {
-                specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
             }
             specs.push(['Frame', p.frameText]);
             specs.push(['Opening', p.openingText]);
