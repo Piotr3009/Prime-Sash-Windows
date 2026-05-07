@@ -35,12 +35,23 @@
 
   // ─── UI Setup ───
   document.addEventListener('DOMContentLoaded', () => {
-    // Banner
+    // Banner (placeholder — updated after data loads)
     const banner = document.createElement('div');
-    banner.style.cssText = 'background:#2a5a3a;color:#fff;padding:.6rem 1.2rem;text-align:center;font-family:Jost,sans-serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;position:fixed;top:0;left:0;right:0;z-index:9999;';
-    banner.textContent = '✏️ EDIT MODE — EDITING EXISTING WINDOW';
+    banner.id = 'edit-mode-banner';
+    banner.style.cssText = 'background:#2a5a3a;color:#fff;padding:.5rem 1.2rem;display:flex;align-items:center;justify-content:space-between;font-family:Jost,sans-serif;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;position:fixed;top:0;left:0;right:0;z-index:9999;';
+    banner.innerHTML = `
+      <span id="edit-banner-text">✏️ EDIT MODE — Loading...</span>
+      <button id="edit-banner-update" style="background:#fff;color:#2a5a3a;border:none;padding:.35rem 1.2rem;font-family:Jost,sans-serif;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:3px;font-weight:600;">Update Window</button>
+    `;
     document.body.prepend(banner);
-    document.body.style.paddingTop = '36px';
+    document.body.style.paddingTop = '40px';
+
+    // Banner Update button click
+    document.getElementById('edit-banner-update').addEventListener('click', () => {
+      // Determine if door or window
+      const range = (document.querySelector('input[name="product-range"]:checked') || {}).value;
+      handleUpdate(range === 'doors');
+    });
 
     // Hide estimate selector (ALL instances — windows + doors panels)
     document.querySelectorAll('.estimate-selector-container').forEach(el => {
@@ -89,6 +100,27 @@
 
       fullConfig = spec.fullConfig || spec;
       console.log('=== LOADED FOR EDIT ===', fullConfig);
+
+      // Fetch estimate info for banner
+      if (estimateId) {
+        try {
+          const { data: est } = await window.supabaseClient
+            .from('estimates')
+            .select('estimate_number, customer_id, customers(full_name, email)')
+            .eq('id', estimateId)
+            .single();
+
+          if (est) {
+            const customerName = est.customers?.full_name || est.customers?.email || '';
+            const estNum = est.estimate_number || estimateId.slice(0,8);
+            const winNum = item.window_number || 'Window';
+            const bannerText = document.getElementById('edit-banner-text');
+            if (bannerText) {
+              bannerText.textContent = `✏️ Editing ${winNum} in Estimate #${estNum}${customerName ? ' — ' + customerName : ''}`;
+            }
+          }
+        } catch (e) { console.warn('Could not load estimate info:', e); }
+      }
 
       // Wait for configurator
       await waitFor(() => window.configuratorCore?.isInitialized && window.currentConfig, 10000);
