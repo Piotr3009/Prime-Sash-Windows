@@ -170,15 +170,14 @@
       trickleVent: checked('d-trickle-vent') || 'none',
       trickleColour: checked('d-trickle-colour') || 'white',
       safetyGlass: 'toughened',
-      // Ironmongery
-      ironmongery: (window.currentConfig && window.currentConfig.ironmongery) ? window.currentConfig.ironmongery : {}
+      // Ironmongery — doors don't use the sash ironmongery gallery
+      ironmongery: {}
     };
   }
 
   // ─── Update 3D ───
   function updateDoor3D() {
     if (typeof window.update3D !== 'function') return;
-    if (!isDoorActive()) return;
 
     var config = getDoorConfig();
     window.update3D({
@@ -231,7 +230,6 @@
 
   // ─── Update spec panel ───
   function updateSpecPanel() {
-    if (!isDoorActive()) return;
     var config = getDoorConfig();
     var glassLabels = { 'double': 'Double Glazing', 'triple': 'Triple Glazing', 'passive': 'Passive Glass' };
 
