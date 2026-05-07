@@ -591,6 +591,19 @@
                 return;
             }
             
+            // Verify admin role
+            const { data: customerData } = await supabaseClient
+                .from('customers')
+                .select('role')
+                .eq('user_id', user.id)
+                .single();
+            
+            if (!customerData || customerData.role !== 'admin') {
+                alert('Access denied. Admin privileges required.');
+                window.location.href = 'customer-dashboard.html';
+                return;
+            }
+            
             document.getElementById('admin-email').textContent = user.email;
             
             // Setup
@@ -1523,6 +1536,19 @@
                 this.loadSlots().then(() => this.renderCalendar());
             }
         };
+
+        // Expose functions to global scope for onclick handlers in estimate-renderer
+        window.viewEstimate = viewEstimate;
+        window.closeModal = closeModal;
+        window.sendQuote = sendQuote;
+        window.confirmDepositPaid = confirmDepositPaid;
+        window.confirmOrder = confirmOrder;
+        window.startProduction = startProduction;
+        window.completeOrder = completeOrder;
+        window.adminToggleExtraForm = adminToggleExtraForm;
+        window.adminEditExtra = adminEditExtra;
+        window.adminAddExtra = adminAddExtra;
+        window.adminDeleteExtra = adminDeleteExtra;
     </script>
 </body>
 </html>
