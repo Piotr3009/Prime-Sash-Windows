@@ -189,10 +189,8 @@
       setInput('window-quantity', fc.quantity || editItem.quantity || 1);
       if (editItem.window_number) setInput('custom-name', editItem.window_number);
 
-      // Ironmongery (set directly on config — can't click gallery)
-      if (fc.ironmongery && window.currentConfig) {
-        window.currentConfig.ironmongery = fc.ironmongery;
-      }
+      // Ironmongery (gallery + 3D)
+      restoreIronmongery(fc);
 
       // Force recalculate
       triggerUpdate();
@@ -248,9 +246,7 @@
     if (editItem.window_number) setInput('c-custom-name', editItem.window_number);
 
     // Ironmongery
-    if (fc.ironmongery && window.currentConfig) {
-      window.currentConfig.ironmongery = fc.ironmongery;
-    }
+    restoreIronmongery(fc);
 
     triggerUpdate();
     console.log('=== CASEMENT PREFILL COMPLETE ===');
@@ -401,9 +397,7 @@
         }
 
         // Ironmongery
-        if (fc.ironmongery && window.currentConfig) {
-          window.currentConfig.ironmongery = fc.ironmongery;
-        }
+        restoreIronmongery(fc);
 
         // SAFETY NET: re-set dimensions after all events settle
         setTimeout(() => {
@@ -763,6 +757,29 @@
 
   function triggerUpdate() {
     if (window.configuratorCore) window.configuratorCore.updateAll();
+  }
+
+  // Restore ironmongery: gallery display + 3D hardware
+  function restoreIronmongery(fc) {
+    if (!fc.ironmongery) return;
+    window.currentConfig.ironmongery = fc.ironmongery;
+
+    // Update gallery selection display (miniatures under "SELECTED HARDWARE")
+    if (window.IronmongeryGallery) {
+      window.IronmongeryGallery.loadCurrentSelections();
+      window.IronmongeryGallery.updateMainPageDisplay();
+    }
+
+    // Update 3D ironmongery finish
+    if (typeof window.update3D === 'function') {
+      const finishMap = { 'chrome': 'chrome', 'polished chrome': 'chrome', 'satin': 'stainless', 'satin chrome': 'stainless', 'brass': 'brass', 'polished brass': 'brass', 'antique-brass': 'antique_brass', 'black': 'black', 'white': 'white' };
+      const products = Object.values(fc.ironmongery).filter(p => p && p.color);
+      if (products.length > 0) {
+        const color = products[0].color.toLowerCase();
+        const mapped = finishMap[color] || 'brass';
+        window.update3D({ ironmongery: mapped });
+      }
+    }
   }
 
   function waitFor(check, timeout) {
