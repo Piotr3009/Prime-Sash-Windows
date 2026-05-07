@@ -4743,6 +4743,32 @@
         }
       }, 500);
 
+      // ── SAVE-TIME SYNC: Force windowType from DOM right before estimate save ──
+      // Capture phase ensures this runs BEFORE estimate-manager's handler
+      function syncConfigBeforeSave() {
+        var pr = (document.querySelector('input[name="product-range"]:checked') || {}).value || 'windows';
+        var wt = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+        if (window.currentConfig) {
+          if (pr === 'windows') {
+            window.currentConfig.windowType = wt;
+            delete window.currentConfig.productType;
+            if (wt === 'casement') {
+              window.currentConfig.windowCategory = 'casement';
+            } else {
+              delete window.currentConfig.windowCategory;
+            }
+          } else {
+            window.currentConfig.productType = 'door';
+            window.currentConfig.windowCategory = 'door';
+          }
+          console.log('🔧 Pre-save sync: type=' + wt + ', range=' + pr);
+        }
+      }
+      var addBtn = document.getElementById('add-to-estimate');
+      if (addBtn) addBtn.addEventListener('click', syncConfigBeforeSave, true);
+      var dAddBtn = document.getElementById('d-add-to-estimate');
+      if (dAddBtn) dAddBtn.addEventListener('click', syncConfigBeforeSave, true);
+
       // ── AUTO-SWITCH: Door type → update 3D (no auto-switch — user has more options below) ──
       // (Door type radios already have change handler for hint updates above)
       document.querySelectorAll('input[name="door-type"]').forEach(function(radio) {
