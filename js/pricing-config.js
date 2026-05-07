@@ -186,40 +186,32 @@ async function loadAdminPricesFromDB() {
       // Bar price
       if (data.bar_price) {
         pricingConfig.barPricing.pricePerBar = parseFloat(data.bar_price);
-        console.log('Loaded bar price from DB:', data.bar_price);
       }
       
       // Glass triple price
       if (data.glass_triple_price) {
         pricingConfig.additionalOptions.glassTypes.triple = parseFloat(data.glass_triple_price);
-        console.log('Loaded triple glass price from DB:', data.glass_triple_price);
       }
       
       // Glass passive price
       if (data.glass_passive_price) {
         pricingConfig.additionalOptions.glassTypes.passive = parseFloat(data.glass_passive_price);
-        console.log('Loaded passive glass price from DB:', data.glass_passive_price);
       }
       
       // Frosted price
       if (data.glass_frosted_price) {
         pricingConfig.additionalOptions.glassFinish.frosted = parseFloat(data.glass_frosted_price);
-        console.log('Loaded frosted price from DB:', data.glass_frosted_price);
       }
       
       // Opening bottom price
       if (data.opening_bottom_price !== null && data.opening_bottom_price !== undefined) {
         pricingConfig.additionalOptions.openingTypes.bottom = -Math.abs(parseFloat(data.opening_bottom_price));
-        console.log('Loaded opening bottom price from DB:', data.opening_bottom_price);
       }
       
       // Opening fixed price
       if (data.opening_fixed_price !== null && data.opening_fixed_price !== undefined) {
         pricingConfig.additionalOptions.openingTypes.fixed = -Math.abs(parseFloat(data.opening_fixed_price));
-        console.log('Loaded opening fixed price from DB:', data.opening_fixed_price);
       }
-      
-      console.log('All prices loaded from DB successfully');
     }
   } catch (err) {
     console.error('Error in loadAdminPricesFromDB:', err);

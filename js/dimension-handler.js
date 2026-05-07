@@ -124,8 +124,6 @@ class DimensionHandler {
   }
 
   updateDimension(dimension, value) {
-    console.log('DimensionHandler: Updating', dimension, 'to', value);
-
     // Aktualizuj wyświetlanie
     const displayEl = document.getElementById(`${dimension}-display`);
 

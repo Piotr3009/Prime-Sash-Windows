@@ -649,7 +649,6 @@
   function populateFBDropdowns() {
     var source = document.getElementById('single-fb-select');
     if (!source) {
-      console.log('F&B source dropdown not found — casement FB dropdowns empty');
       return;
     }
     ['c-fb-code', 'c-fb-ext', 'c-fb-int'].forEach(function(id) {
@@ -858,8 +857,6 @@
       var currentLayout = checked('casement-layout') || '040L';
       setDefaultDimensions(currentLayout);
     }
-
-    console.log('✅ Casement controller initialized');
   }
 
   init();

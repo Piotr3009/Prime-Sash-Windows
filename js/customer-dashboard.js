@@ -35,9 +35,6 @@ class CustomerDashboard {
             if (savedEstimates.length === 0) {
                 return; // Nothing to import
             }
-
-            console.log(`Found ${savedEstimates.length} estimates in localStorage, importing...`);
-
             // Najpierw pobierz customer_id
             const { data: customer, error: customerError } = await supabaseClient
                 .from('customers')
@@ -63,9 +60,6 @@ class CustomerDashboard {
                 .select();
 
             if (error) throw error;
-
-            console.log(`Successfully imported ${data.length} estimates`);
-
             // Clear localStorage after successful import
             localStorage.removeItem('savedEstimates');
             
@@ -113,8 +107,7 @@ class CustomerDashboard {
 
             if (error) throw error;
 
-            this.customerData = data;
-            console.log('Customer data loaded:', data);  // Debug
+            this.customerData = data;  // Debug
             this.updateCustomerInfo();
         } catch (error) {
             console.error('Error loading customer data:', error);
@@ -168,9 +161,7 @@ class CustomerDashboard {
                 .eq('customer_id', this.customerData.id)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
-
-            console.log('Estimates loaded:', data);  // Debug
+            if (error) throw error;  // Debug
             this.orders = data || [];  // Używamy tej samej zmiennej dla kompatybilności z resztą kodu
             this.updateStats();
             this.renderOrders();
@@ -373,11 +364,6 @@ class CustomerDashboard {
         const content = document.getElementById('order-detail-content');
 
         const isEditable = ['draft', 'sent', 'quoted'].includes(estimate.status);
-        console.log('=== SHOW ORDER MODAL DEBUG ===');
-        console.log('estimate.id:', estimate.id);
-        console.log('estimate.status:', estimate.status);
-        console.log('isEditable:', isEditable);
-        console.log('estimate_items count:', estimate.estimate_items?.length);
         content.innerHTML = EstimateRenderer.renderEstimateHTML(estimate, {
             isEditable,
             isAdmin: false
@@ -385,20 +371,13 @@ class CustomerDashboard {
 
         // === DIAGNOSTIC: check if buttons exist and have onclick ===
         const allBtns = content.querySelectorAll('button');
-        console.log('=== BUTTON DIAGNOSTIC ===');
-        console.log('Total buttons in modal:', allBtns.length);
         allBtns.forEach((btn, i) => {
-            console.log(`Button ${i}: text="${btn.textContent.trim()}", onclick=${btn.getAttribute('onclick')}`);
         });
-        console.log('EstimateRenderer available:', typeof EstimateRenderer);
-        console.log('dashboard available:', typeof dashboard);
-
         // === EVENT DELEGATION BACKUP: catch clicks on Delete/Rename buttons ===
         content.addEventListener('click', function(e) {
             const btn = e.target.closest('button');
             if (!btn) return;
             const onclickAttr = btn.getAttribute('onclick');
-            console.log('=== BUTTON CLICKED ===', btn.textContent.trim(), 'onclick attr:', onclickAttr);
         });
 
         modal.style.display = 'flex';
@@ -482,45 +461,29 @@ class CustomerDashboard {
     }
 
     async deleteEstimate(estimateId) {
-        console.log('=== DELETE ESTIMATE DEBUG ===');
-        console.log('estimateId:', estimateId);
         if (!confirm('Are you sure you want to delete this estimate? This action cannot be undone.')) {
-            console.log('User cancelled delete');
             return;
         }
 
         try {
-            console.log('Step 1: Deleting estimate_extras...');
             // First delete estimate_extras (because of foreign key)
             const { error: extrasError } = await supabaseClient
                 .from('estimate_extras')
                 .delete()
                 .eq('estimate_id', estimateId);
-
-            console.log('Step 1 result — extrasError:', extrasError);
             if (extrasError) throw extrasError;
-
-            console.log('Step 2: Deleting estimate_items...');
             // Then delete estimate_items (because of foreign key)
             const { error: itemsError } = await supabaseClient
                 .from('estimate_items')
                 .delete()
                 .eq('estimate_id', estimateId);
-
-            console.log('Step 2 result — itemsError:', itemsError);
             if (itemsError) throw itemsError;
-
-            console.log('Step 3: Deleting estimate...');
             // Then delete the estimate
             const { error: estimateError } = await supabaseClient
                 .from('estimates')
                 .delete()
                 .eq('id', estimateId);
-
-            console.log('Step 3 result — estimateError:', estimateError);
             if (estimateError) throw estimateError;
-
-            console.log('=== DELETE ESTIMATE SUCCESS ===');
             this.showSuccessMessage('Estimate deleted successfully');
             await this.loadEstimates();
         } catch (error) {

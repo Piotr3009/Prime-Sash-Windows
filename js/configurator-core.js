@@ -7,8 +7,6 @@ class ConfiguratorCore {
   }
 
   async init() {
-    console.log('ConfiguratorCore: Initializing...');
-    
     try {
       this.checkDependencies();
       await this.initializeModules();
@@ -46,10 +44,7 @@ class ConfiguratorCore {
         if (this.modules.storage) {
           this.modules.storage.saveLastConfig(config);
         }
-        console.log('💾 Saved configuration before page unload');
       });
-      
-      console.log('ConfiguratorCore: Ready');
     } catch (error) {
       console.error('ConfiguratorCore: Init failed', error);
       alert('Failed to initialize. Please refresh the page.');
@@ -293,8 +288,6 @@ class ConfiguratorCore {
         if (window.currentConfig) {
           Object.assign(window.currentConfig, config);
         }
-        console.log('📂 Configuration loaded from localStorage:', config);
-        
         // Odtwórz wartości w formularzu
         this.restoreFormValues(config);
         
@@ -440,8 +433,6 @@ class ConfiguratorCore {
     if (config.ironmongery) {
       window.currentConfig.ironmongery = config.ironmongery;
     }
-    
-    console.log('📋 Form values restored');
   }
   
   restoreSpecification(config) {
@@ -581,8 +572,6 @@ class ConfiguratorCore {
         specGlassSpec.style.display = 'block';
       }
     }
-    
-    console.log('📋 Specification panel restored');
   }
   
   updateApplyButtonsState() {
@@ -710,8 +699,6 @@ class ConfiguratorCore {
     
     // Zaktualizuj stany (zablokuj następne)
     this.updateApplyButtonsState();
-    
-    console.log(`Section ${buttonId} invalidated, subsequent sections reset`);
   }
 
   applySection(section) {
@@ -735,7 +722,6 @@ class ConfiguratorCore {
     if (this.modules.storage) {
       const config = this.state.get();
       this.modules.storage.saveLastConfig(config);
-      console.log('💾 Saved after Apply:', section);
     }
   }
 
@@ -849,7 +835,6 @@ class ConfiguratorCore {
       try {
         const screenshots = await window.captureWindowScreenshots();
         config.screenshots = screenshots;
-        console.log('📸 Screenshots captured (front + back)');
       } catch(e) {
         console.warn('Screenshot capture failed:', e);
       }
@@ -970,7 +955,6 @@ class ConfiguratorCore {
   saveConfiguration() {
     const saved = this.modules.storage.saveConfig(this.state.get());
     // Silent save - no alert needed
-    console.log('Configuration saved:', saved);
   }
 
   saveAsVariant() {

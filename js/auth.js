@@ -471,7 +471,6 @@ class AuthSystem {
                 if (!error) {
                     // Clear local storage after successful transfer
                     localStorage.removeItem('savedEstimates');
-                    console.log(`Transferred ${orders.length} estimates to database`);
                 }
             } catch (error) {
                 console.error('Error transferring estimates:', error);

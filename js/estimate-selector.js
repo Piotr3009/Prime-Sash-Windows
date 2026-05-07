@@ -14,7 +14,6 @@ class EstimateSelectorManager {
         // Check if user is logged in
         const user = await getCurrentUser();
         if (!user) {
-            console.log('User not logged in - estimate selector disabled');
             this.disableSelector();
             return;
         }
@@ -57,7 +56,6 @@ class EstimateSelectorManager {
             if (error) throw error;
 
             this.estimates = data || [];
-            console.log('Loaded estimates:', this.estimates);
             this.renderEstimateOptions();
         } catch (error) {
             console.error('Error loading estimates:', error);
@@ -153,7 +151,6 @@ class EstimateSelectorManager {
                 this.selectedEstimateId = e.target.value;
                 this.syncDropdowns(e.target);
                 this.updateEstimateInfo();
-                console.log('Selected estimate:', this.selectedEstimateId);
             });
         }
 
@@ -164,7 +161,6 @@ class EstimateSelectorManager {
                 this.selectedEstimateId = e.target.value;
                 this.syncDropdowns(e.target);
                 this.updateEstimateInfo();
-                console.log('Selected estimate (door):', this.selectedEstimateId);
             });
         }
 
@@ -230,9 +226,6 @@ class EstimateSelectorManager {
                 .single();
 
             if (error) throw error;
-
-            console.log('New estimate created:', data);
-
             // Close modal
             document.getElementById('new-estimate-modal').style.display = 'none';
 

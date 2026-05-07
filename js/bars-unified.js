@@ -75,8 +75,6 @@ class BarsController {
       window.currentConfig.upperBars = upperPattern;
       window.currentConfig.lowerBars = lowerPattern;
     }
-    
-    console.log('Bars synced from selects:', upperPattern, lowerPattern);
   }
 
   initCanvases() {
@@ -224,12 +222,9 @@ class BarsController {
     // ZAPISZ DO KONFIGURACJI
     if (window.currentConfig) {
       window.currentConfig[sash + 'Bars'] = pattern;
-      console.log('Bars updated in config:', sash + 'Bars', '=', pattern);
-      
       // Jeśli same bars dla obu, zapisz też lower
       if (this.state.sameBarsForBoth && sash === 'upper') {
         window.currentConfig.lowerBars = pattern;
-        console.log('Lower bars synced in config:', pattern);
       }
     }
     
@@ -301,7 +296,6 @@ class BarsController {
     // Zapisz do konfiguracji
     if (window.currentConfig) {
       window.currentConfig.lowerBars = this.state.upper.pattern;
-      console.log('Lower bars synced to upper in config:', this.state.upper.pattern);
     }
   }
 
@@ -501,7 +495,6 @@ class BarsController {
         upper: JSON.parse(JSON.stringify(this.state.upper.bars)),
         lower: JSON.parse(JSON.stringify(this.state.lower.bars))
       };
-      console.log('Custom bars applied to config');
     }
 
     this.updatePrice();
@@ -702,7 +695,6 @@ class BarsController {
 // Inicjalizuj kontroler po załadowaniu DOM
 document.addEventListener('DOMContentLoaded', function() {
   window.barsController = new BarsController();
-  console.log('Bars controller initialized');
 });
 
 // Eksportuj dla kompatybilności wstecznej

@@ -643,7 +643,6 @@
     setupLiveWatchers();
     setupAddToEstimate();
     updateSpecPanel();
-    console.log('✅ Door controller initialized');
   }
 
   init();

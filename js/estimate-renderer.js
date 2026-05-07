@@ -11,28 +11,15 @@ class EstimateRenderer {
     }
 
     static async deleteItem(itemId, estimateId) {
-        console.log('=== DELETE WINDOW DEBUG ===');
-        console.log('itemId:', itemId);
-        console.log('estimateId:', estimateId);
         if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
-            console.log('User cancelled window delete');
             return;
         }
         try {
-            console.log('Step 1: Deleting estimate_item...');
             const { error: deleteError } = await supabaseClient.from('estimate_items').delete().eq('id', itemId);
-            console.log('Step 1 result — deleteError:', deleteError);
             if (deleteError) throw deleteError;
-
-            console.log('Step 2: Getting remaining items...');
             const { data: remaining } = await supabaseClient.from('estimate_items').select('total_price').eq('estimate_id', estimateId);
-            console.log('Step 2 result — remaining items:', remaining?.length);
-
             const newTotal = (remaining || []).reduce((s, r) => s + (parseFloat(r.total_price) || 0), 0);
-            console.log('Step 3: Updating estimate total to:', newTotal);
             await supabaseClient.from('estimates').update({ total_price: newTotal, updated_at: new Date().toISOString() }).eq('id', estimateId);
-
-            console.log('=== DELETE WINDOW SUCCESS ===');
             // Re-render: try dashboard first, fallback to reload
             if (window.dashboard && window.dashboard.viewOrderDetails) {
                 if ((remaining || []).length === 0) { window.dashboard.closeModal(); await window.dashboard.loadEstimates(); }
@@ -965,8 +952,6 @@ class EstimateRenderer {
                 const idx = allEstimates.findIndex(e => e.id === ctx.id);
                 if (idx !== -1) allEstimates[idx] = estimate;
             }
-
-            console.log('✅ Estimate refreshed');
         } catch (err) {
             console.error('Refresh error:', err);
         }

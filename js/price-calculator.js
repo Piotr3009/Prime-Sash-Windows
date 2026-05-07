@@ -52,9 +52,6 @@ class PriceCalculator {
 
     // Calculate area in m² using FRAME dimensions
     const sqm = (frameWidth / 1000) * (frameHeight / 1000);
-    
-    console.log('PriceCalculator: Frame dimensions:', frameWidth, 'x', frameHeight, '=', sqm, 'm²');
-    
     // ═══ CASEMENT PRICING ═══
     if (configuration.windowType === 'casement' && this.pricing.casement) {
       // Arched casement uses separate pricing
@@ -81,7 +78,6 @@ class PriceCalculator {
       // Triple: flat £950/sqm, no size degression
       sizeMultiplier = 1.0;
       basePrice = 950 * sqm;
-      console.log('Triple sash: flat £950/sqm × ' + sqm.toFixed(2) + ' = £' + basePrice.toFixed(2));
     } else {
       // Double: £800/sqm with degressive multiplier
       sizeMultiplier = this.getSizeMultiplier(sqm);
@@ -105,7 +101,6 @@ class PriceCalculator {
       );
       fixBarsPrice = fixBarsOnce * 2; // left fix + right fix
       if (fixBarsPrice > 0) {
-        console.log('Fix bars (×2 panels): £' + fixBarsPrice.toFixed(2));
       }
     }
     
@@ -118,7 +113,6 @@ class PriceCalculator {
     // ARCHED HEAD SURCHARGE: +10% on subtotal (glazing arch on any sash type)
     if (configuration.headType === 'arch') {
       const archedSurcharge = subtotal * 0.10;
-      console.log('Glazing arch surcharge: 10% × £' + subtotal.toFixed(2) + ' = £' + archedSurcharge.toFixed(2));
       subtotal += archedSurcharge;
     }
 
@@ -126,12 +120,10 @@ class PriceCalculator {
     if (configuration.colorType === 'dual') {
       // Dual color: +15% od subtotal single white
       const dualSurcharge = subtotal * 0.15;
-      console.log('Dual color: 15% × £' + subtotal.toFixed(2) + ' = £' + dualSurcharge.toFixed(2));
       subtotal += dualSurcharge;
     } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
       // Single inny kolor: +5% od subtotal
       const colorSurcharge = subtotal * 0.05;
-      console.log('Single colour (non-white): 5% × £' + subtotal.toFixed(2) + ' = £' + colorSurcharge.toFixed(2));
       subtotal += colorSurcharge;
     }
     
@@ -187,22 +179,14 @@ class PriceCalculator {
   calculateBarsPrice(upperBars, lowerBars, customBars) {
     const barConfig = this.pricing.barPricing;
     let totalBars = 0;
-    
-    console.log('=== BARS PRICE CALCULATION ===');
-    console.log('Upper bars type:', upperBars);
-    console.log('Lower bars type:', lowerBars);
-    console.log('Price per bar: £', barConfig.pricePerBar);
-    
     // Upper sash bars
     if (upperBars === 'custom' && customBars?.upper) {
       const upperCount = (customBars.upper.horizontal?.length || 0) + 
                          (customBars.upper.vertical?.length || 0);
       totalBars += upperCount;
-      console.log('Custom upper bars count:', upperCount);
     } else if (upperBars && upperBars !== 'none' && barConfig.barsPerPattern[upperBars] !== undefined) {
       const upperCount = barConfig.barsPerPattern[upperBars];
       totalBars += upperCount;
-      console.log('Upper bars pattern "' + upperBars + '" count:', upperCount);
     }
     
     // Lower sash bars
@@ -210,17 +194,12 @@ class PriceCalculator {
       const lowerCount = (customBars.lower.horizontal?.length || 0) + 
                          (customBars.lower.vertical?.length || 0);
       totalBars += lowerCount;
-      console.log('Custom lower bars count:', lowerCount);
     } else if (lowerBars && lowerBars !== 'none' && barConfig.barsPerPattern[lowerBars] !== undefined) {
       const lowerCount = barConfig.barsPerPattern[lowerBars];
       totalBars += lowerCount;
-      console.log('Lower bars pattern "' + lowerBars + '" count:', lowerCount);
     }
     
     const barsPrice = totalBars * barConfig.pricePerBar;
-    console.log('TOTAL: ' + totalBars + ' bars x £' + barConfig.pricePerBar + ' = £' + barsPrice);
-    console.log('==============================');
-    
     return barsPrice;
   }
 
@@ -228,21 +207,16 @@ class PriceCalculator {
     if (glassMultiplier === undefined) glassMultiplier = 1;
     const options = this.pricing.additionalOptions;
     let additionalPrice = 0;
-    
-    console.log('=== ADDITIONAL OPTIONS ===');
-    
     // Frame type
     if (configuration.frameType && options.frameTypes[configuration.frameType]) {
       const framePrice = options.frameTypes[configuration.frameType];
       additionalPrice += framePrice;
-      console.log('Frame (' + configuration.frameType + '): £' + framePrice);
     }
     
     // Glass type (sliding/bifold: per sqm via glassMultiplier)
     if (configuration.glassType && options.glassTypes[configuration.glassType]) {
       const glassPrice = options.glassTypes[configuration.glassType] * glassMultiplier;
       additionalPrice += glassPrice;
-      console.log('Glass (' + configuration.glassType + '): £' + options.glassTypes[configuration.glassType] + (glassMultiplier > 1 ? ' × ' + glassMultiplier.toFixed(2) + 'm²' : '') + ' = £' + glassPrice.toFixed(2));
     }
     
     // Glass specification - LAMINATED: £/m² (already per sqm, no multiplier needed)
@@ -250,14 +224,12 @@ class PriceCalculator {
       const specPricePerSqm = options.glassSpec[configuration.glassSpec];
       const specPrice = specPricePerSqm * sqm; // mnożenie przez m²
       additionalPrice += specPrice;
-      console.log('Glass spec (' + configuration.glassSpec + '): £' + specPricePerSqm + '/m² × ' + sqm.toFixed(2) + 'm² = £' + specPrice.toFixed(2));
     }
     
     // Glass finish (sliding/bifold: per sqm via glassMultiplier)
     if (configuration.glassFinish && options.glassFinish[configuration.glassFinish]) {
       const finishPrice = options.glassFinish[configuration.glassFinish] * glassMultiplier;
       additionalPrice += finishPrice;
-      console.log('Glass finish (' + configuration.glassFinish + '): £' + options.glassFinish[configuration.glassFinish] + (glassMultiplier > 1 ? ' × ' + glassMultiplier.toFixed(2) + 'm²' : '') + ' = £' + finishPrice.toFixed(2));
     }
     
     // Horns - USUNIĘTE (teraz w Gallery jako ironmongery)
@@ -287,7 +259,6 @@ class PriceCalculator {
       
       if (ironmongeryTotal > 0) {
         additionalPrice += ironmongeryTotal;
-        console.log('Ironmongery total: £' + ironmongeryTotal.toFixed(2), selectedProducts);
       }
     }
     
@@ -295,7 +266,6 @@ class PriceCalculator {
     if (configuration.sashType !== 'triple' && configuration.openingType && options.openingTypes[configuration.openingType]) {
       const openingPrice = options.openingTypes[configuration.openingType];
       additionalPrice += openingPrice;
-      console.log('Opening (' + configuration.openingType + '): £' + openingPrice);
     }
     
     // Color type - DUAL: liczone od subtotal (patrz niżej)
@@ -308,19 +278,13 @@ class PriceCalculator {
     if (configuration.sillExtension && options.sillExtension && options.sillExtension[configuration.sillExtension]) {
       const sillPrice = options.sillExtension[configuration.sillExtension];
       additionalPrice += sillPrice;
-      console.log('Sill extension (' + configuration.sillExtension + 'mm): £' + sillPrice);
     }
     
     // PAS24
     if (configuration.pas24 && options.pas24[configuration.pas24]) {
       const pas24Price = options.pas24[configuration.pas24];
       additionalPrice += pas24Price;
-      console.log('PAS24 (' + configuration.pas24 + '): £' + pas24Price);
     }
-    
-    console.log('TOTAL ADDITIONAL: £' + additionalPrice);
-    console.log('========================');
-    
     return additionalPrice;
   }
 
@@ -328,10 +292,6 @@ class PriceCalculator {
     const c = this.pricing.casement;
     const layout = configuration.casementLayout || '040L';
     const layoutData = c.layouts[layout] || { mullions: 0, transoms: 0, sashes: 1 };
-    
-    console.log('=== CASEMENT PRICING ===');
-    console.log('Layout:', layout, layoutData);
-    console.log('SQM:', sqm.toFixed(2));
     
     // Base price: 600 + (sqm - 1) * 300 + mullions * 150 + transoms * 200 + sashes * 200
     let basePrice = c.firstSqmPrice;
@@ -344,13 +304,7 @@ class PriceCalculator {
     const transomPrice = layoutData.transoms * c.transomPrice;
     const sashPrice = layoutData.sashes * c.sashPrice;
     
-    console.log('Base (sqm):', basePrice.toFixed(2));
-    console.log('Mullions:', layoutData.mullions, '×', c.mullionPrice, '=', mullionPrice);
-    console.log('Transoms:', layoutData.transoms, '×', c.transomPrice, '=', transomPrice);
-    console.log('Sashes:', layoutData.sashes, '×', c.sashPrice, '=', sashPrice);
-    
     basePrice += mullionPrice + transomPrice + sashPrice;
-    console.log('Total base:', basePrice.toFixed(2));
     
     // Bars pricing (casement uses hBars × vBars count)
     let barsPrice = 0;
@@ -362,7 +316,6 @@ class PriceCalculator {
       // Multiply by number of panels
       const panelCount = layoutData.mullions + 1 + (layoutData.transoms > 0 ? layoutData.mullions + 1 : 0);
       barsPrice *= Math.max(1, layoutData.sashes + (layoutData.mullions + 1 - layoutData.sashes));
-      console.log('Bars:', totalBars, '× 2 × £' + this.pricing.barPricing.pricePerBar, '× panels =', barsPrice.toFixed(2));
     }
     
     // Additional options (glass, finish, PAS24, sill, ironmongery — same as sash)
@@ -374,11 +327,9 @@ class PriceCalculator {
     // Colour surcharges (same logic as sash)
     if (configuration.colorType === 'dual') {
       const dualSurcharge = subtotal * 0.15;
-      console.log('Dual color: 15% × £' + subtotal.toFixed(2) + ' = £' + dualSurcharge.toFixed(2));
       subtotal += dualSurcharge;
     } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
       const colorSurcharge = subtotal * 0.10;
-      console.log('Single colour (non-white): 10% = £' + colorSurcharge.toFixed(2));
       subtotal += colorSurcharge;
     }
     
@@ -388,11 +339,6 @@ class PriceCalculator {
     const discountAmount = subtotal * discount;
     const unitPrice = subtotal - discountAmount;
     const totalPrice = unitPrice * quantity;
-    
-    console.log('Subtotal: £' + subtotal.toFixed(2));
-    console.log('Quantity:', quantity, 'Discount:', (discount * 100) + '%');
-    console.log('Final unit: £' + unitPrice.toFixed(2));
-    console.log('=========================');
     
     return {
       unitPrice: Math.round(unitPrice * 100) / 100,
@@ -426,26 +372,20 @@ class PriceCalculator {
     const shape = configuration.fixShape || 'rectangle';
     const type = configuration.fixType || 'standard';
 
-    console.log('=== FIX-ONLY PRICING ===');
-    console.log('Shape:', shape, 'Type:', type, 'SQM:', sqm.toFixed(2));
-
     // Base price by shape
     let basePrice;
     if (shape === 'rectangle') {
       basePrice = sqm * 450;
-      console.log('Base (rectangle):', sqm.toFixed(2), '× £450 = £' + basePrice.toFixed(2));
     } else if (shape === 'circle') {
       basePrice = sqm * 1200;
-      console.log('Base (circle):', sqm.toFixed(2), '× £1200 = £' + basePrice.toFixed(2));
     } else {
       // Arch shapes: £800 first sqm + £400 per additional
       basePrice = 800 + Math.max(0, sqm - 1) * 400;
-      console.log('Base (arch): £800 + ' + Math.max(0, sqm - 1).toFixed(2) + ' × £400 = £' + basePrice.toFixed(2));
     }
 
     // FD30/FD60 premium
-    if (type === 'fd30') { basePrice += sqm * 150; console.log('FD30: +£' + (sqm * 150).toFixed(2)); }
-    else if (type === 'fd60') { basePrice += sqm * 300; console.log('FD60: +£' + (sqm * 300).toFixed(2)); }
+    if (type === 'fd30') { basePrice += sqm * 150; }
+    else if (type === 'fd60') { basePrice += sqm * 300; }
 
     // Pattern premium
     let patternPrice = 0;
@@ -456,7 +396,6 @@ class PriceCalculator {
     if (semiPat !== 'none' && patternPrices[semiPat]) patternPrice = patternPrices[semiPat];
     if (gothPat !== 'none' && patternPrices[gothPat]) patternPrice = patternPrices[gothPat];
     if (circlePat !== 'none' && patternPrices[circlePat]) patternPrice = patternPrices[circlePat];
-    if (patternPrice > 0) console.log('Pattern: +£' + patternPrice);
 
     // Bars
     const hBars = configuration.casementHBars || 0;
@@ -464,7 +403,6 @@ class PriceCalculator {
     const totalBars = hBars + vBars;
     const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
     const barsPrice = totalBars * 2 * barRate;
-    if (barsPrice > 0) console.log('Bars:', totalBars, '× £' + barRate, '= £' + barsPrice);
 
     // Additional options (glass, sill)
     const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
@@ -474,11 +412,9 @@ class PriceCalculator {
     // Colour surcharges
     if (configuration.colorType === 'dual') {
       const surcharge = subtotal * 0.15;
-      console.log('Dual colour: +£' + surcharge.toFixed(2));
       subtotal += surcharge;
     } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
       const surcharge = subtotal * 0.10;
-      console.log('Single colour (non-white): +£' + surcharge.toFixed(2));
       subtotal += surcharge;
     }
 
@@ -487,9 +423,6 @@ class PriceCalculator {
     const discountAmount = subtotal * discount;
     const unitPrice = subtotal - discountAmount;
     const totalPrice = unitPrice * quantity;
-
-    console.log('Subtotal: £' + subtotal.toFixed(2), 'Unit: £' + unitPrice.toFixed(2));
-    console.log('=========================');
 
     return {
       unitPrice: Math.round(unitPrice * 100) / 100,
@@ -530,9 +463,6 @@ class PriceCalculator {
     const RECESSED_PANEL = 80;
     const SINGLE_COLOUR_SURCHARGE = 0.05;
     const DUAL_COLOUR_SURCHARGE = 0.15;
-
-    console.log('=== DOOR PRICING ===');
-
     // ── 1. Door leaf base price ──
     const doorW = configuration.width || 900;
     const doorH = configuration.height || 2100;
@@ -547,18 +477,14 @@ class PriceCalculator {
       const SLIDING_EXTRA_PER_SQM = 1400;
       const slidingRate = configuration.extraWidth ? SLIDING_EXTRA_PER_SQM : SLIDING_STANDARD_PER_SQM;
       basePrice = slidingRate * doorSqm;
-      console.log('Sliding door:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + slidingRate, (configuration.extraWidth ? '(Extra Width)' : '(Standard)'), '= £' + basePrice.toFixed(2));
     } else if (isBifoldDoor) {
       const BIFOLD_PER_SQM = 1050;
       basePrice = BIFOLD_PER_SQM * doorSqm;
-      console.log('Bi-fold door:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + BIFOLD_PER_SQM, '= £' + basePrice.toFixed(2));
     } else {
       basePrice = DOOR_BASE_PER_SQM * doorSqm;
       if (isFrenchDoor) {
         basePrice += FRENCH_SURCHARGE_PER_SQM * doorSqm;
-        console.log('French doors surcharge: +£' + (FRENCH_SURCHARGE_PER_SQM * doorSqm).toFixed(2));
       }
-      console.log('Door leaf:', doorW + 'x' + doorH, '=', doorSqm.toFixed(2) + 'm²', '× £' + (isFrenchDoor ? DOOR_BASE_PER_SQM + FRENCH_SURCHARGE_PER_SQM : DOOR_BASE_PER_SQM), '= £' + basePrice.toFixed(2));
     }
 
     // ── 2. Side panels ──
@@ -573,14 +499,12 @@ class PriceCalculator {
       const leftSqm = (leftW / 1000) * (doorH / 1000);
       panelPrice += PANEL_BASE_PER_SQM * leftSqm;
       panelCount++;
-      console.log('Left panel:', leftW + 'x' + doorH, '=', leftSqm.toFixed(2) + 'm² × £' + PANEL_BASE_PER_SQM + ' = £' + (PANEL_BASE_PER_SQM * leftSqm).toFixed(2));
     }
     if (hasRight) {
       const rightW = configuration.sideRightWidth || 500;
       const rightSqm = (rightW / 1000) * (doorH / 1000);
       panelPrice += PANEL_BASE_PER_SQM * rightSqm;
       panelCount++;
-      console.log('Right panel:', rightW + 'x' + doorH, '=', rightSqm.toFixed(2) + 'm² × £' + PANEL_BASE_PER_SQM + ' = £' + (PANEL_BASE_PER_SQM * rightSqm).toFixed(2));
     }
 
     // ── 3. Bars (from DB price) ──
@@ -597,7 +521,6 @@ class PriceCalculator {
     const sideBarCount = sideHBars + sideVBars;
     barsPrice += sideBarCount * panelCount * barRate;
 
-    if (barsPrice > 0) console.log('Bars: door(' + doorBarCount + ' × ' + doorPanelCount + ' panels) + sides(' + sideBarCount + '×' + panelCount + ') × £' + barRate + ' = £' + barsPrice.toFixed(2));
 
     // ── 4. Sill extension ──
     let sillPrice = 0;
@@ -606,10 +529,8 @@ class PriceCalculator {
         // Sliding/Bifold: price per linear meter of door width
         const SILL_RATE_PER_M = 80;
         sillPrice = Math.round(SILL_RATE_PER_M * (doorW / 1000));
-        console.log('Sill extension (sliding/bifold): £' + SILL_RATE_PER_M + '/m × ' + (doorW / 1000).toFixed(2) + 'm = £' + sillPrice);
       } else {
         sillPrice = SILL_EXTENSION_PRICE;
-        console.log('Sill extension: £' + sillPrice);
       }
     }
 
@@ -622,10 +543,8 @@ class PriceCalculator {
     if (doorStyleForPrice !== 'full-glass') {
       if (paneling === 'beading') {
         panelingPrice = (BEADING_DOOR * doorPanelCount) + (chargeablePanels * BEADING_PANEL);
-        console.log('Beading: door £' + BEADING_DOOR + ' × ' + doorPanelCount + ' panels + ' + chargeablePanels + ' sides × £' + BEADING_PANEL + ' = £' + panelingPrice);
       } else if (paneling === 'panel') {
         panelingPrice = (RECESSED_DOOR * doorPanelCount) + (chargeablePanels * RECESSED_PANEL);
-        console.log('Recessed: door £' + RECESSED_DOOR + ' × ' + doorPanelCount + ' panels + ' + chargeablePanels + ' sides × £' + RECESSED_PANEL + ' = £' + panelingPrice);
       }
     }
 
@@ -638,17 +557,14 @@ class PriceCalculator {
 
     // ── Subtotal ──
     let subtotal = basePrice + panelPrice + barsPrice + sillPrice + panelingPrice + additionalPrice;
-    console.log('Subtotal: £' + subtotal.toFixed(2));
 
     // ── 7. Colour surcharge ──
     let colourSurcharge = 0;
     const isWhite = !configuration.woodColor || configuration.woodColor === '#FAFAFA' || configuration.woodColor === '#F6F6F6' || configuration.woodColor === '#ffffff';
     if (!configuration.sameColor) {
       colourSurcharge = subtotal * DUAL_COLOUR_SURCHARGE;
-      console.log('Dual colour: 15% × £' + subtotal.toFixed(2) + ' = £' + colourSurcharge.toFixed(2));
     } else if (!isWhite) {
       colourSurcharge = subtotal * SINGLE_COLOUR_SURCHARGE;
-      console.log('Single colour: 5% × £' + subtotal.toFixed(2) + ' = £' + colourSurcharge.toFixed(2));
     }
     subtotal += colourSurcharge;
 
@@ -658,9 +574,6 @@ class PriceCalculator {
     const discountAmount = subtotal * discount;
     const unitPrice = subtotal - discountAmount;
     const totalPrice = unitPrice * quantity;
-
-    console.log('Unit: £' + unitPrice.toFixed(2), 'Qty:', quantity, 'Total: £' + totalPrice.toFixed(2));
-    console.log('=== END DOOR PRICING ===');
 
     return {
       unitPrice: Math.round(unitPrice * 100) / 100,
@@ -694,17 +607,11 @@ class PriceCalculator {
   calculateArchedCasement(configuration, sqm, frameWidth, frameHeight) {
     const shape = configuration.casArchShape || 'semi-circle';
 
-    console.log('=== ARCHED CASEMENT PRICING ===');
-    console.log('Shape:', shape, 'SQM:', sqm.toFixed(2));
-
     // Base: £1200 first sqm + £600 per additional sqm
     let basePrice = 1200 + Math.max(0, sqm - 1) * 600;
-    console.log('Base: £1200 + ' + Math.max(0, sqm - 1).toFixed(2) + ' × £600 = £' + basePrice.toFixed(2));
 
     // Sash (1 leaf): +£50
     basePrice += 50;
-    console.log('Sash: +£50');
-
     // Pattern premium (same as fix)
     let patternPrice = 0;
     const semiPat = configuration.fixSemiBarPattern || 'none';
@@ -712,7 +619,6 @@ class PriceCalculator {
     const patternPrices = { 'intersecting': 250, 'half-hub': 150, 'hub-spoke': 210, 'double-hub-spoke': 270, 'triple-hub-spoke': 320 };
     if (semiPat !== 'none' && patternPrices[semiPat]) patternPrice = patternPrices[semiPat];
     if (gothPat !== 'none' && patternPrices[gothPat]) patternPrice = patternPrices[gothPat];
-    if (patternPrice > 0) console.log('Pattern: +£' + patternPrice);
 
     // Bars
     const hBars = configuration.casementHBars || 0;
@@ -720,7 +626,6 @@ class PriceCalculator {
     const totalBars = hBars + vBars;
     const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
     const barsPrice = totalBars * 2 * barRate;
-    if (barsPrice > 0) console.log('Bars:', totalBars, '× £' + barRate, '= £' + barsPrice);
 
     // Additional options (glass, sill)
     const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
@@ -730,11 +635,9 @@ class PriceCalculator {
     // Colour surcharges
     if (configuration.colorType === 'dual') {
       const surcharge = subtotal * 0.15;
-      console.log('Dual colour: +£' + surcharge.toFixed(2));
       subtotal += surcharge;
     } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
       const surcharge = subtotal * 0.10;
-      console.log('Single colour (non-white): +£' + surcharge.toFixed(2));
       subtotal += surcharge;
     }
 
@@ -743,9 +646,6 @@ class PriceCalculator {
     const discountAmount = subtotal * discount;
     const unitPrice = subtotal - discountAmount;
     const totalPrice = unitPrice * quantity;
-
-    console.log('Subtotal: £' + subtotal.toFixed(2), 'Unit: £' + unitPrice.toFixed(2));
-    console.log('=========================');
 
     return {
       unitPrice: Math.round(unitPrice * 100) / 100,
@@ -840,25 +740,6 @@ class PriceCalculator {
   // Metoda do wyświetlania szczegółowego breakdown (do debugowania)
   getDetailedBreakdown(configuration) {
     const calc = this.calculate(configuration);
-    
-    console.log('=== FULL PRICE BREAKDOWN ===');
-    console.log('Input dimensions:', configuration.width, 'x', configuration.height);
-    console.log('Frame dimensions:', calc.breakdown.frameWidth, 'x', calc.breakdown.frameHeight);
-    console.log('Area:', calc.breakdown.sqm, 'm²');
-    console.log('Size multiplier:', calc.breakdown.sizeMultiplier);
-    console.log('Base price: £', calc.breakdown.basePrice);
-    console.log('Bars price: £', calc.breakdown.barsPrice);
-    console.log('Additional options: £', calc.breakdown.additionalOptions);
-    console.log('Subtotal: £', calc.breakdown.subtotal);
-    console.log('Quantity:', configuration.quantity || 1);
-    console.log('Quantity discount:', calc.breakdown.discount);
-    console.log('Discount amount: £', calc.breakdown.discountAmount);
-    console.log('Unit price: £', calc.breakdown.unitPrice);
-    console.log('Total price: £', calc.breakdown.totalPrice);
-    console.log('VAT: £', calc.breakdown.vatAmount);
-    console.log('Total with VAT: £', calc.breakdown.totalWithVat);
-    console.log('============================');
-    
     return calc.breakdown;
   }
 }

@@ -99,7 +99,6 @@ class EstimateExtras {
             if (countFix > 0) breakdownParts.push(`${countFix}× Fix £${fixTotal}`);
             if (countDoor > 0) breakdownParts.push(`${countDoor}× Door £${doorTotal}`);
 
-            console.log('Installation breakdown:', breakdownParts.join(', '), '= £' + totalPrice);
         } else {
             // Legacy fallback: flat rate × qty
             totalQty = totalQtyOrItems;
@@ -149,9 +148,6 @@ class EstimateExtras {
         const description = extraWindows > 0
             ? `Base £${base} + ${extraWindows} extra windows × £${perWindow} = £${totalPrice}. Subject to location confirmation.`
             : 'Standard delivery charge. Subject to location confirmation.';
-
-        console.log('Delivery:', totalQty, 'windows, base £' + base + ', surcharge £' + surcharge + ', total £' + totalPrice);
-
         const { data, error } = await supabaseClient
             .from('estimate_extras')
             .insert({

@@ -210,8 +210,6 @@ class IronmongeryGallery {
     
     // Check if window requires PAS24
     this.windowRequiresPas24 = window.currentConfig?.pas24 === 'yes';
-    console.log('🔐 Window requires PAS24:', this.windowRequiresPas24);
-    
     // Update type-selector based on window PAS24 setting
     const standardBtn = document.querySelector('.type-btn[data-type="standard"]');
     const pas24InfoBox = document.getElementById('pas24-info-box');
@@ -713,8 +711,6 @@ class IronmongeryGallery {
     
     // Zaktualizuj total i preview
     this.updateTotal();
-    
-    console.log('🗑️ Selection cleared');
   }
 
   confirmSelection() {
@@ -753,23 +749,15 @@ class IronmongeryGallery {
         quantity: this.selectedProducts['casementLocks'].quantity
       } : null
     };
-
-    console.log('✅ Confirm Selection - saving ironmongery:', ironmongery);
-
     // Save to configurator - POPRAWKA: window.currentConfig zamiast ConfiguratorCore.currentWindow
     if (!window.currentConfig) window.currentConfig = {};
     window.currentConfig.ironmongery = ironmongery;
-    console.log('✅ Saved to currentConfig:', window.currentConfig.ironmongery);
-    
     // DEBUG: Sprawdź czy to samo co zapisaliśmy
-    console.log('🔍 Verify immediately:', window.currentConfig.ironmongery);
-
     // Update display on main page
     this.updateMainPageDisplay();
 
     // NOWE: Wywołaj przeliczenie CENY
     if (typeof window.updatePrice === 'function') {
-      console.log('💰 Recalculating price...');
       window.updatePrice();
     }
     // Casement: updatePrice skips casement via guard, recalc manually
@@ -783,8 +771,6 @@ class IronmongeryGallery {
 
     // Wywołaj applyDetails (specyfikacja)
     if (window.specificationController) {
-      console.log('📋 Before applyDetails, currentConfig is:', window.currentConfig);
-      console.log('📋 Calling applyDetails with:', window.currentConfig.ironmongery);
       window.specificationController.applyDetails();
     }
     
@@ -796,7 +782,6 @@ class IronmongeryGallery {
       if (finishes.length > 0) {
         const mapped = finishMap[finishes[0]] || 'brass';
         window.update3D({ ironmongery: mapped });
-        console.log('🎨 3D ironmongery finish updated to:', mapped);
       }
     }
 
@@ -887,7 +872,6 @@ class IronmongeryGallery {
   }
 
   async editProduct(productId) {
-    console.log('Edit product:', productId);
     const categoryData = IRONMONGERY_DATA.categories[this.currentCategory];
     const product = categoryData.products.find(p => p.id === productId);
     
@@ -900,9 +884,6 @@ class IronmongeryGallery {
 
   async deleteProduct(productId) {
     if (!confirm('Are you sure you want to delete this product?')) return;
-    
-    console.log('Delete product:', productId);
-    
     try {
       // 1. Get product to have image_url
       const { data: product, error: fetchError } = await window.supabaseClient
@@ -924,7 +905,6 @@ class IronmongeryGallery {
           if (storageError) {
             console.warn('Could not delete image from storage:', storageError);
           } else {
-            console.log('Image deleted from bucket:', fileName);
           }
         }
       }
@@ -1117,13 +1097,6 @@ class IronmongeryGallery {
     const nameEl = document.getElementById('gallery-product-name');
     const colorEl = document.getElementById('gallery-product-color');
     const priceEl = document.getElementById('gallery-product-price');
-    
-    console.log('🔍 Form elements check:');
-    console.log('  category element:', categoryEl, 'value:', categoryEl?.value);
-    console.log('  name element:', nameEl, 'value:', nameEl?.value);
-    console.log('  color element:', colorEl, 'value:', colorEl?.value);
-    console.log('  price element:', priceEl, 'value:', priceEl?.value);
-    
     // Validation
     const priceInput = document.getElementById('gallery-product-price');
     const price = parseFloat(priceInput.value);
@@ -1143,10 +1116,6 @@ class IronmongeryGallery {
       description: document.getElementById('gallery-product-description').value || null,
       is_pas24: document.getElementById('gallery-product-pas24')?.checked || false
     };
-    
-    console.log('💾 Saving product with data:', formData);
-    console.log('🔌 Supabase client exists:', !!window.supabaseClient);
-    
     try {
       // Handle image upload
       const imageFile = document.getElementById('gallery-product-image').files[0];
@@ -1192,7 +1161,6 @@ class IronmongeryGallery {
       
       // Reload products
       await this.loadProductsFromDatabase();
-      console.log('🔍 Products in current category:', this.currentCategory, IRONMONGERY_DATA.categories[this.currentCategory]?.products);
       this.renderProducts();
       
     } catch (error) {
@@ -1210,9 +1178,6 @@ class IronmongeryGallery {
         .order('name', { ascending: true });
       
       if (error) throw error;
-      
-      console.log('📦 Raw data from DB:', data);
-      
       // Clear existing products
       Object.keys(IRONMONGERY_DATA.categories).forEach(key => {
         IRONMONGERY_DATA.categories[key].products = [];
@@ -1220,19 +1185,11 @@ class IronmongeryGallery {
       
       // Group by category
       data.forEach(product => {
-        console.log('📌 Processing product:', product.name, 'category:', product.category);
         if (IRONMONGERY_DATA.categories[product.category]) {
           IRONMONGERY_DATA.categories[product.category].products.push(product);
-          console.log('✅ Added to category:', product.category);
         } else {
-          console.log('❌ Category not found:', product.category);
         }
       });
-      
-      console.log('Loaded products from database:', data.length);
-      console.log('📊 Products by category:', Object.keys(IRONMONGERY_DATA.categories).map(key => 
-        `${key}: ${IRONMONGERY_DATA.categories[key].products.length}`
-      ));
       
     } catch (error) {
       console.error('Error loading products:', error);

@@ -31,7 +31,6 @@ class EstimateManager {
             if (error) throw error;
 
             this.currentCustomer = data;
-            console.log('Customer loaded:', data.customer_code);
         } catch (error) {
             console.error('Error loading customer:', error);
         }
@@ -56,10 +55,8 @@ class EstimateManager {
             if (drafts && drafts.length > 0) {
                 // Mamy już draft - użyj go
                 this.currentEstimate = drafts[0];
-                console.log('Using existing draft:', this.currentEstimate.estimate_number);
             } else {
                 // Nie ma draftu - pytaj czy utworzyć nowy
-                console.log('No draft estimate found. User needs to create one.');
                 this.currentEstimate = null;
             }
 
@@ -106,8 +103,6 @@ class EstimateManager {
             if (estimateError) throw estimateError;
 
             this.currentEstimate = estimate;
-            console.log('New estimate created:', estimateNumber);
-
             this.updateUI();
             this.showToast(`✅ New estimate created: ${estimateNumber}`, 'success');
 
@@ -171,9 +166,6 @@ class EstimateManager {
                     }
                 }
             }
-
-            console.log('Window number:', windowNumber);
-
             // Wyczyść pole custom name po użyciu
             if (customNameInput) {
                 customNameInput.value = '';
@@ -188,7 +180,6 @@ class EstimateManager {
                         if (windowConfig.fullConfig) {
                             windowConfig.fullConfig.screenshots = screenshots;
                         }
-                        console.log('📸 Screenshot captured for DB');
                     }
                 } catch(e) {
                     console.warn('Screenshot capture failed:', e);
@@ -282,15 +273,11 @@ class EstimateManager {
                 .single();
 
             if (itemError) throw itemError;
-
-            console.log('Window added:', windowNumber);
-
             // Google Ads conversion tracking
             if (typeof gtag === 'function') {
                 gtag('event', 'conversion', {
                     'send_to': 'AW-3481705735/submit_lead_form',
                 });
-                console.log('📊 Google Ads conversion tracked');
             }
             
             // Pobierz nazwę estimate dla wiadomości
@@ -307,7 +294,6 @@ class EstimateManager {
             // Reset sekwencji apply buttons dla następnego okna
             if (window.configuratorCore && window.configuratorCore.resetApplySequence) {
                 window.configuratorCore.resetApplySequence();
-                console.log('🔄 Apply sequence reset for new window');
             }
 
             // Odśwież estimate selector żeby pokazać zaktualizowaną liczbę okien
@@ -343,7 +329,6 @@ class EstimateManager {
                 .update({ total_price: total })
                 .eq('id', estimateId);
             
-            console.log('Estimate total updated: £' + total.toFixed(2));
         } catch (e) {
             console.warn('Could not recalculate estimate total:', e.message);
         }
@@ -405,13 +390,11 @@ class EstimateManager {
                     const isNew = window.estimateSelectorManager.selectedEstimateId === 'new';
                     const estimateId = await window.estimateSelectorManager.getOrCreateEstimate();
                     if (!estimateId) {
-                        console.log('No estimate selected or creation cancelled');
                         return;
                     }
 
                     // If just created new estimate — DON'T add window yet
                     if (isNew) {
-                        console.log('New estimate created — waiting for user to configure window first');
                         return;
                     }
 
@@ -435,12 +418,10 @@ class EstimateManager {
                     const isNew = window.estimateSelectorManager.selectedEstimateId === 'new';
                     const estimateId = await window.estimateSelectorManager.getOrCreateEstimate();
                     if (!estimateId) {
-                        console.log('No estimate selected or creation cancelled');
                         return;
                     }
 
                     if (isNew) {
-                        console.log('New estimate created — waiting for user to configure door first');
                         return;
                     }
 
@@ -767,14 +748,11 @@ class EstimateManager {
             
             // Zapisz z powrotem do localStorage
             localStorage.setItem('windowEstimates', JSON.stringify(savedEstimates));
-            
-            console.log('Window saved to localStorage:', windowNumber);
             this.showToast(`✅ ${windowNumber} saved locally. Login to sync your estimates.`, 'warning');
             
             // Reset sekwencji apply buttons dla następnego okna
             if (window.configuratorCore && window.configuratorCore.resetApplySequence) {
                 window.configuratorCore.resetApplySequence();
-                console.log('🔄 Apply sequence reset for new window');
             }
             
             // Zaktualizuj licznik w przycisku "View My Estimates"

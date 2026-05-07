@@ -35,7 +35,6 @@ class SpecificationController {
       this.applyPAS24();
       this.applyColor();
     } catch(e) {
-      console.log('Initial spec population partial:', e);
     }
   }
   
@@ -47,7 +46,6 @@ class SpecificationController {
       saveTimeout = setTimeout(() => {
         if (window.currentConfig) {
           localStorage.setItem('lastWindowConfig', JSON.stringify(window.currentConfig));
-          console.log('💾 Auto-saved (debounced)');
         }
       }, 1000); // 1 sekunda debounce
     };
@@ -1105,11 +1103,7 @@ class SpecificationController {
 
   applyDetails() {
     // NOWY SYSTEM - pobierz z Gallery - POPRAWKA: window.currentConfig
-    console.log('📋 applyDetails START - window.currentConfig:', window.currentConfig);
     const gallerySelection = window.currentConfig?.ironmongery || {};
-    
-    console.log('📋 applyDetails - Gallery selection:', gallerySelection);
-
     document.getElementById('spec-details').style.display = 'block';
 
     // Zbierz wszystkie wybrane produkty z Gallery (z quantity)
@@ -1125,9 +1119,6 @@ class SpecificationController {
     if (gallerySelection.casementLocks) selectedProducts.push({...gallerySelection.casementLocks, category: 'Lock'});
 
     const hasIronmongery = selectedProducts.length > 0;
-    
-    console.log('📋 Selected products:', selectedProducts.length, selectedProducts);
-
     // Ironmongery - wyświetl listę produktów z Gallery + QUANTITY
     if (hasIronmongery) {
       document.getElementById('spec-ironmongery-item').style.display = 'flex';
@@ -1138,8 +1129,6 @@ class SpecificationController {
         })
         .join(', ');
       document.getElementById('spec-ironmongery').textContent = productNames;
-      console.log('✅ Ironmongery displayed:', productNames);
-      
       // MINIATURKI - generuj obrazki w specification
       const thumbnailsContainer = document.getElementById('spec-ironmongery-thumbnails');
       if (thumbnailsContainer) {
@@ -1166,7 +1155,6 @@ class SpecificationController {
       if (thumbnailsContainer) {
         thumbnailsContainer.style.display = 'none';
       }
-      console.log('❌ No ironmongery to display');
     }
 
     this.showAppliedFeedback('apply-details');

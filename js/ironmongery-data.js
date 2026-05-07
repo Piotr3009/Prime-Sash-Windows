@@ -434,7 +434,6 @@ const IronmongeryHelper = {
     
     if (!stored) {
       // Jeśli nie ma produktów w localStorage, ZOSTAW domyślne z hardcode
-      console.log('No products in localStorage - using default hardcoded products');
       return;
     }
 
@@ -460,8 +459,6 @@ const IronmongeryHelper = {
         IRONMONGERY_DATA.categories[categoryKey].products = grouped[categoryKey];
       }
     });
-
-    console.log('Loaded products from localStorage:', products.length);
   },
 
   // Inicjalizacja - załaduj produkty przy starcie

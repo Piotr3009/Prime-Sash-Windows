@@ -4,7 +4,6 @@ const AdminController = {
   pricingConfig: null,
 
   init: async function() {
-    console.log('Admin Controller initialized');
     await this.loadAllData();
     this.setupEventListeners();
     await this.renderIronmongeryTable();
@@ -60,8 +59,6 @@ const AdminController = {
       }
       
       this.pricingConfig = data;
-      console.log('Loaded pricing config from DB:', data);
-      
       // Fill form fields
       if (data.bar_price) {
         document.getElementById('bar-price').value = data.bar_price;

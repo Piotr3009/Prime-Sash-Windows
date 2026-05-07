@@ -25,10 +25,6 @@
 
   // ─── EDIT MODE ───
   if (!editItemId) return;
-
-  console.log('=== EDIT MODE ACTIVATED ===');
-  console.log('Item:', editItemId, 'Estimate:', estimateId);
-
   // State
   let editItem = null;
   let fullConfig = null;
@@ -99,8 +95,6 @@
         : item.specification;
 
       fullConfig = spec.fullConfig || spec;
-      console.log('=== LOADED FOR EDIT ===', fullConfig);
-
       // Fetch estimate info for banner
       if (estimateId) {
         try {
@@ -143,9 +137,6 @@
     const isCasement = !isDoor && (wType === 'casement' || fc.windowCategory === 'casement');
     const isFixOnly = !isDoor && wType === 'fix-only';
     const isSash = !isDoor && !isCasement && !isFixOnly;
-
-    console.log('=== PREFILL TYPE ===', { isSash, isCasement, isFixOnly, isDoor, wType });
-
     if (isDoor) {
       prefillDoor(fc);
     } else if (isCasement) {
@@ -176,7 +167,6 @@
   // ═══ SASH PREFILL ═════════════════════════════
   // ══════════════════════════════════════════════
   function prefillSash(fc) {
-    console.log('=== PREFILL SASH ===');
     const w = fc.actualFrameWidth || fc.width || editItem.width;
     const h = fc.actualFrameHeight || fc.height || editItem.height;
 
@@ -226,7 +216,6 @@
 
       // Force recalculate
       triggerUpdate();
-      console.log('=== SASH PREFILL COMPLETE ===');
     }, 300);
   }
 
@@ -234,7 +223,6 @@
   // ═══ CASEMENT PREFILL ═════════════════════════
   // ══════════════════════════════════════════════
   function prefillCasement(fc) {
-    console.log('=== PREFILL CASEMENT ===');
     const w = fc.actualFrameWidth || fc.width || editItem.width;
     const h = fc.actualFrameHeight || fc.height || editItem.height;
 
@@ -299,14 +287,12 @@
     restoreIronmongery(fc);
 
     triggerUpdate();
-    console.log('=== CASEMENT PREFILL COMPLETE ===');
   }
 
   // ══════════════════════════════════════════════
   // ═══ FIX-ONLY PREFILL ═════════════════════════
   // ══════════════════════════════════════════════
   function prefillFixOnly(fc) {
-    console.log('=== PREFILL FIX-ONLY ===');
     const w = fc.actualFrameWidth || fc.width || editItem.width;
     const h = fc.actualFrameHeight || fc.height || editItem.height;
 
@@ -370,15 +356,12 @@
     // Update fix spec panel
     if (window.updateFixSpec) window.updateFixSpec();
     if (window.updateFixPrice) window.updateFixPrice();
-
-    console.log('=== FIX-ONLY PREFILL COMPLETE ===');
   }
 
   // ══════════════════════════════════════════════
   // ═══ DOOR PREFILL ═════════════════════════════
   // ══════════════════════════════════════════════
   function prefillDoor(fc) {
-    console.log('=== PREFILL DOOR ===');
     const w = fc.actualFrameWidth || fc.width || editItem.width;
     const h = fc.actualFrameHeight || fc.height || editItem.height;
     const doorType = fc.doorType || 'french';
@@ -497,8 +480,6 @@
           if (window.updateDoorSpec) window.updateDoorSpec();
           if (window.updateDoor3D) window.updateDoor3D();
         }, 600);
-
-        console.log('=== DOOR PREFILL COMPLETE ===');
       }, 400);
     }, 200);
   }
@@ -539,8 +520,6 @@
   // ─── Handle UPDATE ───
   async function handleUpdate(isDoor) {
     try {
-      console.log('=== UPDATE WINDOW ===');
-
       let windowConfig, price;
       if (isDoor && window.getDoorConfig) {
         windowConfig = window.getDoorConfig();
@@ -924,7 +903,6 @@
     if (window.estimateManager?.showToast) {
       window.estimateManager.showToast(msg, msg.startsWith('✅') ? 'success' : 'error');
     } else {
-      console.log(msg);
     }
   }
 
