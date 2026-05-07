@@ -187,7 +187,7 @@
 
       // Quantity & Name
       setInput('window-quantity', fc.quantity || editItem.quantity || 1);
-      if (editItem.window_number) setInput('custom-name', editItem.window_number);
+      if (editItem.window_number) setInput('window-custom-name', editItem.window_number);
 
       // Ironmongery (gallery + 3D)
       restoreIronmongery(fc);
@@ -206,8 +206,14 @@
     const w = fc.actualFrameWidth || fc.width || editItem.width;
     const h = fc.actualFrameHeight || fc.height || editItem.height;
 
-    // Sub-type
+    // Sub-type (standard/arched)
     setRadio('casement-type', fc.casementType || 'standard');
+
+    // Arched casement fields
+    if (fc.casementType === 'arched') {
+      setRadio('cas-arch-shape', fc.casArchShape || 'gothic-arch');
+      setRadio('cas-arch-opening', fc.casArchHinge || 'right');
+    }
 
     // Layout
     setRadio('casement-layout', fc.casementLayout || fc.layout || editItem.casement_layout);
@@ -216,11 +222,15 @@
     setCasementDimension('c-width', w);
     setCasementDimension('c-height', h);
 
+    // Fanlight height
+    if (fc.fanlightHeight) setSelect('c-fanlight-height', fc.fanlightHeight);
+
     // Glass (c-prefixed)
     setRadio('c-glass-type', fc.glassType);
     setRadio('c-glass-spec', fc.glassSpec);
     setRadio('c-glass-finish', fc.glassFinish);
     setRadio('c-pas24', fc.pas24 === true || fc.pas24 === 'yes' ? 'yes' : 'no');
+    setRadio('c-safety-glass', fc.safetyGlass || 'none');
 
     // Spacer
     setRadio('spacer-color', fc.spacerColor || fc.spacer);
@@ -229,21 +239,29 @@
     setRadio('c-color-type', fc.colorType || fc.colourMode);
     setTimeout(() => setWindowColor(fc, 'casement'), 200);
 
-    // Seal, trickle, sill
+    // Seal, trickle (+ colour), sill
     setRadio('c-seal-colour', fc.sealColour || editItem.seal_colour);
     setRadio('c-trickle-vent', fc.trickleVent || editItem.trickle_vent);
+    setRadio('c-trickle-colour', fc.trickleColour || 'white');
     setRadio('c-sill-ext', fc.sillExtension || editItem.sill_extension);
     setRadio('c-sill-wider', fc.sillWider ? 'yes' : 'no');
 
-    // Bars (c-prefixed)
-    const hb = fc.hBars || fc.casementHBars || fc.upperBars || editItem.upper_bars;
-    const vb = fc.vBars || fc.casementVBars || fc.lowerBars || editItem.lower_bars;
-    if (hb) setRadio('c-hbars', String(hb));
-    if (vb) setRadio('c-vbars', String(vb));
+    // Bars (c-prefixed for standard, f-prefixed for arched)
+    if (fc.casementType === 'arched') {
+      if (fc.hBars !== undefined) setRadio('f-hbars', String(fc.hBars || fc.casementHBars || 0));
+      if (fc.vBars !== undefined) setRadio('f-vbars', String(fc.vBars || fc.casementVBars || 0));
+      if (fc.fixSemiBarPattern) setRadio('f-semi-bars', fc.fixSemiBarPattern);
+      if (fc.fixGothicBars) setRadio('f-gothic-bars', fc.fixGothicBars);
+    } else {
+      const hb = fc.hBars || fc.casementHBars || fc.upperBars || editItem.upper_bars;
+      const vb = fc.vBars || fc.casementVBars || fc.lowerBars || editItem.lower_bars;
+      if (hb) setRadio('c-hbars', String(hb));
+      if (vb) setRadio('c-vbars', String(vb));
+    }
 
     // Quantity & Name
     setInput('c-quantity', fc.quantity || editItem.quantity || 1);
-    if (editItem.window_number) setInput('c-custom-name', editItem.window_number);
+    if (editItem.window_number) setInput('window-custom-name', editItem.window_number);
 
     // Ironmongery
     restoreIronmongery(fc);
@@ -260,7 +278,7 @@
     const w = fc.actualFrameWidth || fc.width || editItem.width;
     const h = fc.actualFrameHeight || fc.height || editItem.height;
 
-    // Fix type & shape
+    // Fix type (standard/fd30/fd60) & shape (rectangle/gothic-arch/semi-circle/etc)
     setRadio('fix-type', fc.fixType || 'standard');
     setRadio('fix-shape', fc.fixShape || fc.shape || 'rectangle');
 
@@ -268,18 +286,59 @@
     setInput('fix-width', w, 'input');
     setInput('fix-height', h, 'input');
 
-    // Glass (f-prefixed)
-    setRadio('f-glass-finish', fc.glassFinish);
+    // Arch rise (slider — for segmental/elliptical shapes)
+    if (fc.fixArchRise) {
+      const slider = document.getElementById('fix-arch-rise');
+      if (slider) { slider.value = fc.fixArchRise; slider.dispatchEvent(new Event('input', {bubbles:true})); }
+      const display = document.getElementById('fix-arch-rise-value');
+      if (display) display.textContent = fc.fixArchRise;
+    }
+
+    // Glass (f-prefixed — note: glass TYPE is 'f-glazing', not 'f-glass-type')
+    setRadio('f-glazing', fc.glassType || 'double');
+    setRadio('f-glass-finish', fc.glassFinish || 'clear');
     setRadio('f-spacer', fc.spacerColor || fc.spacer || 'silver');
 
-    // Color
-    setRadio('color-type', fc.colorType || fc.colourMode);
-    setTimeout(() => setWindowColor(fc), 200);
+    // Bars (f-prefixed)
+    if (fc.casementHBars !== undefined || fc.hBars !== undefined) {
+      setRadio('f-hbars', String(fc.casementHBars || fc.hBars || 0));
+    }
+    if (fc.casementVBars !== undefined || fc.vBars !== undefined) {
+      setRadio('f-vbars', String(fc.casementVBars || fc.vBars || 0));
+    }
+
+    // Bar patterns (shape-specific)
+    if (fc.fixSemiBarPattern) setRadio('f-semi-bars', fc.fixSemiBarPattern);
+    if (fc.fixGothicBars) setRadio('f-gothic-bars', fc.fixGothicBars);
+    if (fc.fixCircleBarPattern) setRadio('f-circle-bars', fc.fixCircleBarPattern);
+
+    // Circle offset
+    if (fc.fixCircleOffset) {
+      const offsetEl = document.getElementById('f-circle-offset');
+      if (offsetEl) { offsetEl.value = fc.fixCircleOffset; offsetEl.dispatchEvent(new Event('input', {bubbles:true})); }
+    }
+
+    // Color (fix-only uses fx-colour-mode, NOT color-type)
+    const fixColorMode = fc.colorType === 'dual' ? 'dual' : 'same';
+    setRadio('fx-colour-mode', fixColorMode);
+    setTimeout(() => setWindowColor(fc, 'fix-only'), 200);
 
     // Quantity
     setInput('fix-quantity', fc.quantity || editItem.quantity || 1);
 
-    triggerUpdate();
+    // Update 3D with fix-specific data
+    if (window.update3D) {
+      window.update3D({
+        fixShape: fc.fixShape || fc.shape || 'rectangle',
+        fixType: fc.fixType || 'standard',
+        fixArchRise: fc.fixArchRise || 0
+      });
+    }
+
+    // Update fix spec panel
+    if (window.updateFixSpec) window.updateFixSpec();
+    if (window.updateFixPrice) window.updateFixPrice();
+
     console.log('=== FIX-ONLY PREFILL COMPLETE ===');
   }
 
@@ -666,6 +725,42 @@
   function setWindowColor(fc, windowType) {
     const colorType = fc.colorType || fc.colourMode || 'single';
     const isCasement = windowType === 'casement';
+    const isFixOnly = windowType === 'fix-only';
+
+    // Fix-only: set preview elements directly (its own color module)
+    if (isFixOnly) {
+      const colorName = fc.colorSingleName || 'Pure White';
+      const colorRal = fc.colorSingleRal || '#FAFAFA';
+      const pn = document.getElementById('fx-single-preview-name');
+      const pr = document.getElementById('fx-single-preview-ral');
+      if (pn) pn.textContent = colorName;
+      if (pr) pr.textContent = colorRal;
+
+      if (colorType === 'dual') {
+        const intEl = document.getElementById('fx-dual-preview-interior');
+        const extEl = document.getElementById('fx-dual-preview-exterior');
+        if (intEl) intEl.textContent = fc.colorInteriorName || '';
+        if (extEl) extEl.textContent = fc.colorExteriorName || '';
+      }
+
+      // Find hex from sash picker (shared tiles) for 3D
+      const colorKey = fc.colorSingle || fc.singleColor;
+      const opt = document.querySelector(`.color-option[data-color="${colorKey}"]`) ||
+                  document.querySelector(`.color-option[data-name="${colorName}"]`);
+      if (opt && window.update3D) {
+        let hex = opt.style.backgroundColor || '#FAFAFA';
+        if (hex.startsWith('rgb')) {
+          const m = hex.match(/\d+/g);
+          if (m) hex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join('');
+        }
+        window.update3D({ woodColor: hex, sameColor: colorType !== 'dual' });
+      }
+
+      // Update fix spec panel
+      if (window.updateFixSpec) window.updateFixSpec();
+      return;
+    }
+
     // Selector prefix: casement has separate picker with c-color-option
     const singleSelector = isCasement ? '#c-single-color-selector .c-color-option' : '#single-color-selector .color-option';
     const intSelector = isCasement ? '.c-interior-color' : '.interior-color';
