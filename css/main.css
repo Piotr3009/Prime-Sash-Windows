@@ -323,6 +323,9 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 .ft-col ul a:hover { color: rgba(255,255,255,.9); }
 .ft-bottom { display: flex; align-items: center; justify-content: space-between; }
 .ft-bottom p { font-size: .55rem; letter-spacing: .1em; color: rgba(255,255,255,.18); }
+.ft-social { display: flex; gap: .8rem; }
+.ft-social a { color: rgba(255,255,255,.3); transition: color .3s; }
+.ft-social a:hover { color: rgba(255,255,255,.7); }
 
 /* ============================================================
    RESPONSIVE
