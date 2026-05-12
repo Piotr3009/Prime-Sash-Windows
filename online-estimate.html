@@ -5697,9 +5697,32 @@
           colorType: (function() { var v = (document.querySelector('input[name="fx-colour-mode"]:checked') || {}).value || 'same'; return v === 'dual' ? 'dual' : 'single'; })(),
           colorSingle: (function() {
             var pn = document.getElementById('fx-single-preview-name');
-            var name = pn ? pn.textContent.trim().toLowerCase() : 'white';
-            return name.indexOf('white') > -1 ? 'white' : name || 'white';
+            var name = pn ? pn.textContent.trim() : 'Pure White';
+            return name === 'Pure White' ? 'white' : 'custom';
           })(),
+          colorSingleName: (function() {
+            var pn = document.getElementById('fx-single-preview-name');
+            return pn ? pn.textContent.trim() : 'Pure White';
+          })(),
+          colorSingleRal: (function() {
+            var fbSel = document.getElementById('fx-single-fb-select');
+            if (fbSel && fbSel.value) {
+              var pn = document.getElementById('fx-single-preview-name');
+              return 'F&B ' + (pn ? pn.textContent.trim() : '');
+            }
+            var pr = document.getElementById('fx-single-preview-ral');
+            var code = pr ? pr.textContent.trim() : '';
+            if (code.indexOf('RAL') === 0) return code;
+            var ralSel = document.getElementById('fx-single-ral-select');
+            if (ralSel && ralSel.value) {
+              return 'RAL ' + ralSel.options[ralSel.selectedIndex].text;
+            }
+            var ralInput = document.getElementById('fx-single-ral-input');
+            if (ralInput && ralInput.value.trim()) return 'RAL ' + ralInput.value.trim();
+            return code || 'RAL 9016';
+          })(),
+          colorExteriorName: (function() { var pe = document.getElementById('fx-dual-preview-exterior'); return pe ? pe.textContent.trim() : ''; })(),
+          colorInteriorName: (function() { var pi = document.getElementById('fx-dual-preview-interior'); return pi ? pi.textContent.trim() : ''; })(),
           quantity: 1,
         };
       }
