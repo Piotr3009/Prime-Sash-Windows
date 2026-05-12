@@ -895,10 +895,6 @@ class EstimateRenderer {
             ${aboutHTML}
             ${certificationsHTML}
 
-            <div style="padding:.9rem 1.2rem;margin:1.5rem 0;background:${CREAM_LIGHT};border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.78rem;color:var(--muted);line-height:1.55;">
-                <strong style="color:var(--navy);font-weight:500;">Prime Sash Windows</strong> is a trading name of <strong style="color:var(--navy);font-weight:500;">Skylon Joinery Ltd</strong> — a London-based bespoke joinery company registered in England and Wales (Company No. 12946103). All contracts, invoices and payments are issued by Skylon Joinery Ltd.
-            </div>
-
             <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;padding-top:1.5rem;border-top:1px solid rgba(158,158,144,.15);">
                 ${adminButtons}
                 ${isEditable ? `<button class="btn-sm" onclick="window.open('online-estimate.html?estimate=${estimate.id}','_blank')" style="background:var(--navy);color:#fff;">+ Add Window</button>` : ''}
@@ -906,6 +902,10 @@ class EstimateRenderer {
                 <button class="btn-sm btn-download-pdf">Download PDF</button>
                 <button class="btn-sm" id="download-estimate-excel">Download Excel</button>
                 <button class="btn-sm" onclick="${closeAction}">Close</button>
+            </div>
+
+            <div style="padding:.9rem 1.2rem;margin:1.5rem 0 0;background:${CREAM_LIGHT};border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.78rem;color:var(--muted);line-height:1.55;">
+                <strong style="color:var(--navy);font-weight:500;">Prime Sash Windows</strong> is a trading name of <strong style="color:var(--navy);font-weight:500;">Skylon Joinery Ltd</strong> — a London-based bespoke joinery company registered in England and Wales (Company No. 12946103). All contracts, invoices and payments are issued by Skylon Joinery Ltd.
             </div>
         `;
     }
