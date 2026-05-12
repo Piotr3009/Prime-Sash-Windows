@@ -15,7 +15,7 @@
     { href: base + 'why-not-sash-windows.html',  page: 'why-not',              label: "Why You Shouldn\u2019t Buy" },
     { href: base + 'faq-top-companies.html',     page: 'faq-top',              label: 'FAQ & Top Companies' },
     { href: base + 'certifications.html',       page: 'cert',                 label: 'Certifications & Technology' },
-    { href: base + 'online-estimate.html',      page: 'online',               label: 'Online Estimate & 3D' }
+    { href: base + 'online-estimate.html',      page: 'online',               label: 'Online Estimate & 3D', cta: true }
   ];
 
   // ── ROW 2 (secondary — subtle) ──
@@ -30,6 +30,9 @@
 
   function buildRow(items) {
     return items.map(function(item){
+      if (item.cta) {
+        return '<li><a href="' + item.href + '" data-page="' + item.page + '" style="background:linear-gradient(135deg,#C0C0C0,#E8E8E8,#B0B0B0);color:var(--navy);padding:.35rem 1rem;font-weight:600;letter-spacing:.2em;border-radius:2px;">' + item.label + '</a></li>';
+      }
       return '<li><a href="' + item.href + '" data-page="' + item.page + '">' + item.label + '</a></li>';
     }).join('');
   }
