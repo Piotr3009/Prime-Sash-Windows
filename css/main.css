@@ -336,7 +336,6 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 @media (max-width: 1400px) {
   .nav-links  { display: none; }
   .nav-rows   { display: none; }
-  .nav-phone  { display: none; }
   .nav-user   { display: none; }
   .hamburger  { display: flex; }
 

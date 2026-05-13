@@ -53,7 +53,6 @@
     +   '<ul class="nav-row">' + buildRow(row1) + '</ul>'
     +   '<ul class="nav-row" id="nav-row-2">' + buildRow(row2) + '</ul>'
     + '</div>'
-    + '<a href="tel:07842510060" class="nav-phone" style="color:rgba(255,255,255,.7);font-family:var(--sans);font-size:.6rem;letter-spacing:.1em;text-decoration:none;white-space:nowrap;margin-right:.8rem;">📞 07842 510 060</a>'
     + '<a href="' + base + 'customer-dashboard.html" class="nav-user" id="nav-user-btn" title="My Account">' + userIcon + '</a>'
     + '<div class="hamburger" id="ham"><span></span><span></span><span></span></div>'
     + '</nav>';
