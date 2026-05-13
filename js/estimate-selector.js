@@ -180,6 +180,30 @@ class EstimateSelectorManager {
     }
 
     async showCreateEstimateModal() {
+        // Check if user is logged in first
+        const user = await getCurrentUser();
+        if (!user) {
+            const existingPrompt = document.getElementById('register-prompt-modal');
+            if (existingPrompt) existingPrompt.remove();
+
+            const promptHTML = `
+                <div id="register-prompt-modal" style="position:fixed;inset:0;background:rgba(10,22,40,.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.remove()">
+                    <div style="background:#fff;border-radius:8px;max-width:480px;width:100%;padding:2.5rem;text-align:center;position:relative;">
+                        <button onclick="this.parentElement.parentElement.remove()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#999;">×</button>
+                        <div style="font-size:2.5rem;margin-bottom:1rem;">🔐</div>
+                        <h2 style="font-family:var(--serif,Georgia);font-size:1.6rem;color:#0A1628;margin-bottom:0.8rem;">Create a Free Account</h2>
+                        <p style="font-family:var(--sans,sans-serif);font-size:0.95rem;color:#666;line-height:1.7;margin-bottom:1.5rem;">Register to save your estimate, download PDF, and access it anytime. Your configured window will be preserved.</p>
+                        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                            <a href="login.html" onclick="localStorage.setItem('redirect_after_login','online-estimate.html')" style="display:inline-block;padding:14px 36px;background:#0A1628;color:#fff;text-decoration:none;font-family:var(--sans,sans-serif);font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;border-radius:3px;">Register — 30 Seconds</a>
+                            <a href="login.html" onclick="localStorage.setItem('redirect_after_login','online-estimate.html')" style="display:inline-block;padding:14px 36px;background:transparent;color:#0A1628;text-decoration:none;font-family:var(--sans,sans-serif);font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;border:1px solid #0A1628;border-radius:3px;">I Have an Account</a>
+                        </div>
+                        <p style="font-family:var(--sans,sans-serif);font-size:0.75rem;color:#999;margin-top:1.2rem;">No spam. No sales calls. Just your saved estimate.</p>
+                    </div>
+                </div>`;
+            document.body.insertAdjacentHTML('beforeend', promptHTML);
+            return;
+        }
+
         const modal = document.getElementById('new-estimate-modal');
         if (modal) {
             // Clear form
