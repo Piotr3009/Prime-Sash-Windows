@@ -279,6 +279,10 @@
         <p class="eyebrow">Book a Visit</p>
         <h1>Get in Touch</h1>
         <p class="hero-subtitle">Book a measurement visit, send us a message, or call us directly. We're here to help with your timber window project.</p>
+        <div style="margin-top:1.5rem;display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;">
+          <a href="tel:07842510060" style="color:rgba(255,255,255,.85);font-family:var(--sans);font-size:1.1rem;letter-spacing:.1em;text-decoration:none;">📞 07842 510 060</a>
+          <a href="tel:07842510066" style="color:rgba(255,255,255,.85);font-family:var(--sans);font-size:1.1rem;letter-spacing:.1em;text-decoration:none;">📞 07842 510 066</a>
+        </div>
     </section>
 
     <!-- MAIN CONTENT -->
@@ -547,7 +551,11 @@
                     const isToday = date.getTime() === today.getTime();
                     const isPast = date < today;
                     const slots = this.availableSlots[dateStr] || [];
-                    const hasSlots = slots.length > 0 && !isPast;
+                    const minBookDate = new Date(today);
+                    minBookDate.setDate(minBookDate.getDate() + 4);
+                    const isTooSoon = date < minBookDate && !isPast;
+                    const isWeekday = date.getDay() >= 1 && date.getDay() <= 5;
+                    const hasSlots = slots.length > 0 && !isPast && !isTooSoon;
                     
                     let classes = 'calendar-day';
                     if (isToday) classes += ' today';
@@ -556,6 +564,8 @@
                     let slotsIndicator = '';
                     if (hasSlots) {
                         slotsIndicator = `<span class="slots-indicator">${slots.length} slot${slots.length > 1 ? 's' : ''}</span>`;
+                    } else if (!isPast && isTooSoon && isWeekday) {
+                        slotsIndicator = `<span class="slots-indicator" style="color:#c0392b;font-size:.55rem;">Booked</span>`;
                     }
                     
                     const onclick = hasSlots ? `onclick="BookingCalendar.showDaySlots('${dateStr}')"` : '';
