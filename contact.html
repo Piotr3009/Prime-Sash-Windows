@@ -516,7 +516,9 @@
                     this.availableSlots = {};
                     (data || []).forEach(slot => {
                         if (!this.availableSlots[slot.slot_date]) this.availableSlots[slot.slot_date] = [];
-                        this.availableSlots[slot.slot_date].push(slot);
+                        if (slot.slot_time && slot.slot_time.includes(' - ')) {
+                            this.availableSlots[slot.slot_date].push(slot);
+                        }
                     });
                 } catch (error) {
                     console.error('Error loading slots:', error);
