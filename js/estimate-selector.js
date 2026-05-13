@@ -197,7 +197,7 @@ class EstimateSelectorManager {
                             <a href="login.html" onclick="localStorage.setItem('redirect_after_login','online-estimate.html')" style="display:inline-block;padding:14px 36px;background:#0A1628;color:#fff;text-decoration:none;font-family:var(--sans,sans-serif);font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;border-radius:3px;">Register — 30 Seconds</a>
                             <a href="login.html" onclick="localStorage.setItem('redirect_after_login','online-estimate.html')" style="display:inline-block;padding:14px 36px;background:transparent;color:#0A1628;text-decoration:none;font-family:var(--sans,sans-serif);font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;border:1px solid #0A1628;border-radius:3px;">I Have an Account</a>
                         </div>
-                        <p style="font-family:var(--sans,sans-serif);font-size:0.75rem;color:#999;margin-top:1.2rem;">No spam. No sales calls. Just your saved estimate.</p>
+                        <p style="font-family:var(--serif,Georgia);font-size:1.15rem;font-style:italic;color:#0A1628;margin-top:1.5rem;letter-spacing:0.02em;">No spam. No sales calls. Just your saved estimate.</p>
                     </div>
                 </div>`;
             document.body.insertAdjacentHTML('beforeend', promptHTML);

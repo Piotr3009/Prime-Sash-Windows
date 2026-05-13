@@ -75,6 +75,24 @@ export default async function handler(req, res) {
         stats.landing30d = landingRes;
         stats.estimate30d = estimateRes;
 
+        // All-time per-page
+        const landingAllRes = await supabaseQuery(SUPABASE_URL, SERVICE_KEY,
+            'page_visits', 'page,visited_at', 'page=eq.landing', 'head', true);
+        const estimateAllRes = await supabaseQuery(SUPABASE_URL, SERVICE_KEY,
+            'page_visits', 'page,visited_at', 'page=eq.online-estimate', 'head', true);
+        stats.landingAll = landingAllRes;
+        stats.estimateAll = estimateAllRes;
+
+        // First visit date (tracking start)
+        const firstRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/page_visits?select=visited_at&order=visited_at.asc&limit=1`,
+            { headers: { 'apikey': SERVICE_KEY, 'Authorization': `Bearer ${SERVICE_KEY}` } }
+        );
+        if (firstRes.ok) {
+            const firstData = await firstRes.json();
+            stats.trackingSince = firstData.length > 0 ? firstData[0].visited_at : null;
+        }
+
         return res.status(200).json(stats);
 
     } catch (err) {

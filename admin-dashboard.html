@@ -376,12 +376,13 @@
                 <div class="stat-card" onclick="switchView('visits')" style="cursor: pointer;">
                     <div class="stat-icon">🏠</div>
                     <div class="stat-value" id="stat-visits-landing">–</div>
-                    <div class="stat-label">Landing Visits (30d)</div>
+                    <div class="stat-label">Landing Visits (All Time)</div>
                 </div>
                 <div class="stat-card" onclick="switchView('visits')" style="cursor: pointer;">
                     <div class="stat-icon">🛒</div>
                     <div class="stat-value" id="stat-visits-estimate">–</div>
-                    <div class="stat-label">Estimate Visits (30d)</div>
+                    <div class="stat-label">Estimate Visits (All Time)</div>
+                    <div class="stat-label" id="tracking-since" style="font-size:0.55rem;color:#999;margin-top:4px;"></div>
                 </div>
             </div>
         </section>
@@ -650,8 +651,14 @@
 
                 // Main stat cards
                 const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
-                el('stat-visits-landing', stats.landing30d ?? 0);
-                el('stat-visits-estimate', stats.estimate30d ?? 0);
+                el('stat-visits-landing', stats.landingAll ?? stats.landing30d ?? 0);
+                el('stat-visits-estimate', stats.estimateAll ?? stats.estimate30d ?? 0);
+
+                // Tracking since date
+                if (stats.trackingSince) {
+                    const sinceDate = new Date(stats.trackingSince).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                    el('tracking-since', 'Tracking since ' + sinceDate);
+                }
 
                 // Detail view
                 el('visit-total', stats.total ?? 0);
