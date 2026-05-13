@@ -185,4 +185,24 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Additional Product Pages -->
+  <url>
+    <loc>https://www.primesashwindows.co.uk/sash-windows.html</loc>
+    <lastmod>2026-05-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/casement-windows.html</loc>
+    <lastmod>2026-05-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/patio-doors.html</loc>
+    <lastmod>2026-05-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
 </urlset>
