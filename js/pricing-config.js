@@ -218,11 +218,23 @@ async function loadAdminPricesFromDB() {
   }
 }
 
+// Flag: are DB prices loaded?
+window.pricingReady = false;
+window.pricingReadyPromise = new Promise(resolve => {
+  window._pricingReadyResolve = resolve;
+});
+
 // Załaduj ceny z DB gdy supabase będzie gotowy
 document.addEventListener('DOMContentLoaded', () => {
   // Poczekaj chwilę na inicjalizację supabase
-  setTimeout(() => {
-    loadAdminPricesFromDB();
+  setTimeout(async () => {
+    await loadAdminPricesFromDB();
+    window.pricingReady = true;
+    window._pricingReadyResolve();
+    // Recalculate price now that DB values are loaded
+    if (window.configuratorCore && window.configuratorCore.isInitialized) {
+      window.configuratorCore.updateAll();
+    }
   }, 100);
 });
 

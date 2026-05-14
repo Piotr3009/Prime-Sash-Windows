@@ -16,6 +16,11 @@ class PriceCalculator {
       return { unitPrice: 0, totalPrice: 0, breakdown: {}, noDimensions: true };
     }
 
+    // Wait for DB prices before calculating — prevents stale defaults
+    if (!window.pricingReady) {
+      return { unitPrice: 0, totalPrice: 0, breakdown: {}, noDimensions: true, message: 'Loading prices...' };
+    }
+
     // Check if dimensions are entered (0 means not entered)
     const width = configuration.width;
     const height = configuration.height;

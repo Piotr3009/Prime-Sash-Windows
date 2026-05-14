@@ -103,6 +103,11 @@ class ConfiguratorCore {
       // Dimensions
       'dimensionChange': (data) => {
         this.state.update(data.dimension, data.value);
+        // Clear stale actualFrameWidth so price-calculator recalculates from measurementType
+        if (window.currentConfig) {
+          delete window.currentConfig.actualFrameWidth;
+          delete window.currentConfig.actualFrameHeight;
+        }
         this.updateAll();
       },
       
@@ -121,6 +126,11 @@ class ConfiguratorCore {
         
         const field = fieldMap[data.name] || data.name;
         this.state.update(field, data.value);
+        // Clear stale actualFrameWidth on measurement type or any radio change
+        if (data.name === 'measurement-type' && window.currentConfig) {
+          delete window.currentConfig.actualFrameWidth;
+          delete window.currentConfig.actualFrameHeight;
+        }
         this.updateAll();
       },
       
@@ -974,6 +984,36 @@ class ConfiguratorCore {
 
   reset() {
     if (!confirm('Reset all settings?')) return;
+    
+    // Clear stale global config — prevents phantom pricing from previous session
+    window.currentConfig = {
+      width: 1000,
+      height: 1500,
+      measurementType: 'box-to-box',
+      frameType: 'standard',
+      colorType: 'single',
+      colorSingle: 'white',
+      colorSingleName: 'Pure White',
+      singleColor: 'white',
+      interiorColor: 'white',
+      exteriorColor: 'black',
+      glassType: 'double',
+      glassSpec: 'toughened',
+      glassFinish: 'clear',
+      openingType: 'both',
+      upperBars: 'none',
+      lowerBars: 'none',
+      sashType: 'double',
+      headType: 'flat',
+      horns: 'none',
+      ironmongery: {},
+      quantity: 1,
+      pas24: 'no'
+    };
+    
+    // Clear saved config so next page load starts fresh
+    localStorage.removeItem('lastWindowConfig');
+    localStorage.removeItem('byow_saved_config');
     
     this.state.reset();
     
