@@ -205,4 +205,36 @@
     <priority>0.9</priority>
   </url>
 
+  <!-- Comparison & Buyer Intent Pages -->
+  <url>
+    <loc>https://www.primesashwindows.co.uk/timber-vs-upvc-sash-windows.html</loc>
+    <lastmod>2026-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/double-vs-triple-glazing.html</loc>
+    <lastmod>2026-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/sash-vs-casement-windows.html</loc>
+    <lastmod>2026-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/accoya-vs-hardwood-windows.html</loc>
+    <lastmod>2026-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/cost-of-bifold-doors.html</loc>
+    <lastmod>2026-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
 </urlset>
