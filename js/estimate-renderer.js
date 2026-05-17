@@ -2069,6 +2069,30 @@ class EstimateRenderer {
                     ]
                 };
             }
+            case '140L': {
+                const qW = (iw - mW * 3) / 4;
+                return {
+                    mullions: [qW, qW*2+mW, qW*3+mW*2],
+                    list: [
+                        { x:0,y:0,w:qW,h:ih,hinge:'left' },
+                        { x:qW+mW,y:0,w:qW,h:ih,hinge:'fixed' },
+                        { x:qW*2+mW*2,y:0,w:qW,h:ih,hinge:'fixed' },
+                        { x:qW*3+mW*3,y:0,w:qW,h:ih,hinge:'fixed' }
+                    ]
+                };
+            }
+            case '140R': {
+                const qW = (iw - mW * 3) / 4;
+                return {
+                    mullions: [qW, qW*2+mW, qW*3+mW*2],
+                    list: [
+                        { x:0,y:0,w:qW,h:ih,hinge:'fixed' },
+                        { x:qW+mW,y:0,w:qW,h:ih,hinge:'fixed' },
+                        { x:qW*2+mW*2,y:0,w:qW,h:ih,hinge:'fixed' },
+                        { x:qW*3+mW*3,y:0,w:qW,h:ih,hinge:'right' }
+                    ]
+                };
+            }
             default:
                 return { list: [{ x:0,y:0,w:iw,h:ih,hinge:'right' }] };
         }

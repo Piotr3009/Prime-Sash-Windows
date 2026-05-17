@@ -293,6 +293,40 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
       };
     }
 
+    // ─── 140L: Quad — left opens, rest fixed ───
+    case '140L': {
+      const panelW = (innerW - mullW * 3) / 4;
+      const m1 = FRAME_FACE + panelW + mullW / 2;
+      const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+      const m3 = FRAME_FACE + panelW * 3 + mullW * 2 + mullW / 2;
+      return {
+        mullions: [m1, m2, m3],
+        panels: [
+          { x: -(1.5 * panelW + 1.5 * mullW), y: 0, w: panelW, h: innerH, hinge: 'left' },
+          { x: -(0.5 * panelW + 0.5 * mullW), y: 0, w: panelW, h: innerH, hinge: 'fixed' },
+          { x:  (0.5 * panelW + 0.5 * mullW), y: 0, w: panelW, h: innerH, hinge: 'fixed' },
+          { x:  (1.5 * panelW + 1.5 * mullW), y: 0, w: panelW, h: innerH, hinge: 'fixed' },
+        ],
+      };
+    }
+
+    // ─── 140R: Quad — right opens, rest fixed ───
+    case '140R': {
+      const panelW = (innerW - mullW * 3) / 4;
+      const m1 = FRAME_FACE + panelW + mullW / 2;
+      const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+      const m3 = FRAME_FACE + panelW * 3 + mullW * 2 + mullW / 2;
+      return {
+        mullions: [m1, m2, m3],
+        panels: [
+          { x: -(1.5 * panelW + 1.5 * mullW), y: 0, w: panelW, h: innerH, hinge: 'fixed' },
+          { x: -(0.5 * panelW + 0.5 * mullW), y: 0, w: panelW, h: innerH, hinge: 'fixed' },
+          { x:  (0.5 * panelW + 0.5 * mullW), y: 0, w: panelW, h: innerH, hinge: 'fixed' },
+          { x:  (1.5 * panelW + 1.5 * mullW), y: 0, w: panelW, h: innerH, hinge: 'right' },
+        ],
+      };
+    }
+
     // ─── 131: Triple + transom ONLY in center ───
     case '131': {
       const panelW = (innerW - mullW * 2) / 3;
