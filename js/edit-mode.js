@@ -167,8 +167,19 @@
   // ═══ SASH PREFILL ═════════════════════════════
   // ══════════════════════════════════════════════
   function prefillSash(fc) {
-    const w = fc.actualFrameWidth || fc.width || editItem.width;
-    const h = fc.actualFrameHeight || fc.height || editItem.height;
+    // For brick-to-brick (structural), input must contain STRUCTURAL dimensions (fc.width)
+    // — dimension-handler will add +150/+75 to get frame
+    // For box-to-box (frame), input contains FRAME dimensions
+    const measurementType = fc.measurementType || 'box-to-box';
+    let w, h;
+    if (measurementType === 'brick-to-brick') {
+      // fc.width = AppState.width = what user typed in input = structural
+      w = fc.width || editItem.original_width || editItem.width;
+      h = fc.height || editItem.original_height || editItem.height;
+    } else {
+      w = fc.actualFrameWidth || fc.width || editItem.width;
+      h = fc.actualFrameHeight || fc.height || editItem.height;
+    }
 
     // Sub-type
     setRadio('sash-type', fc.sashType || 'double');
@@ -179,12 +190,14 @@
       setSelect('split-ratio', fc.splitRatio);
       setRadio('head-type', fc.headType || 'flat');
 
+      // Set measurement-type BEFORE dimensions so handler knows context
+      setRadio('measurement-type', fc.measurementType);
+
       // Dimensions via DimensionHandler (triggers 3D + display + config)
       setDimensionSash('width', w);
       setDimensionSash('height', h);
 
       // Glass
-      setRadio('measurement-type', fc.measurementType);
       setRadio('frame-type', fc.frameType);
       setRadio('glass-type', fc.glassType);
       setRadio('glass-spec', fc.glassSpec);
