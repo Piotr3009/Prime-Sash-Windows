@@ -109,8 +109,8 @@ class PriceCalculator {
       }
     }
     
-    // 3. DODATKOWE OPCJE (przekazujemy sqm i basePrice)
-    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
+    // 3. DODATKOWE OPCJE (przekazujemy sqm i basePrice, sqm jako glassMultiplier — glass per sqm)
+    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice, sqm);
     
     // 4. SUMA PRZED RABATEM (bez dopłaty za kolor)
     let subtotal = basePrice + barsPrice + fixBarsPrice + additionalPrice;
@@ -323,8 +323,8 @@ class PriceCalculator {
       barsPrice *= Math.max(1, layoutData.sashes + (layoutData.mullions + 1 - layoutData.sashes));
     }
     
-    // Additional options (glass, finish, PAS24, sill, ironmongery — same as sash)
-    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
+    // Additional options (glass, finish, PAS24, sill, ironmongery — same as sash, glass per sqm)
+    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice, sqm);
     
     // Subtotal
     let subtotal = basePrice + barsPrice + additionalPrice;
@@ -409,8 +409,8 @@ class PriceCalculator {
     const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
     const barsPrice = totalBars * 2 * barRate;
 
-    // Additional options (glass, sill)
-    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
+    // Additional options (glass, sill — glass per sqm)
+    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice, sqm);
 
     let subtotal = basePrice + patternPrice + barsPrice + additionalPrice;
 
@@ -632,8 +632,8 @@ class PriceCalculator {
     const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
     const barsPrice = totalBars * 2 * barRate;
 
-    // Additional options (glass, sill)
-    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice);
+    // Additional options (glass, sill — glass per sqm)
+    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice, sqm);
 
     let subtotal = basePrice + patternPrice + barsPrice + additionalPrice;
 

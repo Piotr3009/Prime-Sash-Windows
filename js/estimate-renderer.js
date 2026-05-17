@@ -82,7 +82,11 @@ class EstimateRenderer {
 
         // FRAME
         const frameType = fc.frameType || item.frame_type || 'standard';
-        const frameText = frameType === 'standard' ? 'Standard Frame (164mm)' : 'Slim Frame (144mm)';
+        const glassType = fc.glassType || item.glass_type || 'double';
+        // Triple glazing requires 172mm frame regardless of frameType selection
+        const frameText = (glassType === 'triple' || frameType === 'triple') 
+          ? 'Triple Glazing Frame (172mm)' 
+          : (frameType === 'slim' ? 'Slim Frame (144mm)' : 'Standard Frame (164mm)');
 
         // OPENING
         const openingType = fc.openingType || item.opening_type || 'both';
@@ -539,8 +543,8 @@ class EstimateRenderer {
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
                             ${p.sashType === 'triple' ? R.specRow('Split Ratio', p.splitRatio) : ''}
-                            ${p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height) 
-                                ? R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm') + R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm')
+                            ${p.measurementType === 'brick-to-brick' 
+                                ? R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm') + R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm') + '<div style="margin:8px 0;padding:8px 12px;background:#fff5f5;border:1px solid #e53e3e;border-radius:4px;font-size:12px;color:#c53030;line-height:1.4;">⚠ The window frame is larger than the structural opening. We recommend a visit from a surveyor or contractor before ordering.</div>'
                                 : R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')}
                             ${R.specRow('Frame', p.frameText)}
                             ${R.specRow('Opening', p.openingText)}
@@ -2727,9 +2731,12 @@ class EstimateRenderer {
                     if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
                 } else {
                     if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
-                    specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
-                    if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
+                    if (p.measurementType === 'brick-to-brick') {
                         specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
+                        specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
+                        specs.push(['⚠ Note', 'Frame is larger than structural opening. We recommend a surveyor visit before ordering.']);
+                    } else {
+                        specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
                     }
                     specs.push(['Frame', p.frameText]);
                     specs.push(['Opening', p.openingText]);
@@ -3201,9 +3208,12 @@ class EstimateRenderer {
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
             if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
-            specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
-            if (p.originalWidth && p.originalHeight && (p.originalWidth !== p.width || p.originalHeight !== p.height)) {
+            if (p.measurementType === 'brick-to-brick') {
                 specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
+                specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
+                specs.push(['⚠ Note', 'Frame is larger than structural opening. We recommend a surveyor visit before ordering.']);
+            } else {
+                specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
             }
             specs.push(['Frame', p.frameText]);
             specs.push(['Opening', p.openingText]);

@@ -1012,6 +1012,47 @@ class SpecificationController {
     document.getElementById('spec-glass-type').textContent = glassNames[glassType] || glassType;
     document.getElementById('spec-spacer-color').textContent = spacerNames[spacerColor] || spacerColor;
 
+    // ✅ Triple glazing → force 172mm frame
+    const frameRadios = document.querySelectorAll('input[name="frame-type"]');
+    const specFrameType = document.getElementById('spec-frame-type');
+    let tripleFrameNotice = document.getElementById('triple-frame-notice');
+
+    if (glassType === 'triple') {
+      // Disable frame radios
+      frameRadios.forEach(r => { r.disabled = true; r.parentElement.style.opacity = '0.4'; });
+      // Update spec to show 172mm
+      if (specFrameType) specFrameType.textContent = 'Triple Glazing Frame (172mm)';
+      // Set frameType in config
+      if (window.currentConfig) {
+        window.currentConfig.frameType = 'triple';
+      }
+      // Add notice if not exists
+      if (!tripleFrameNotice) {
+        const frameSection = frameRadios[0]?.closest('.config-section');
+        if (frameSection) {
+          tripleFrameNotice = document.createElement('div');
+          tripleFrameNotice.id = 'triple-frame-notice';
+          tripleFrameNotice.style.cssText = 'margin-top:8px;padding:8px 12px;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;font-size:13px;color:#856404;';
+          tripleFrameNotice.textContent = 'Triple Glazing requires a 172mm frame — no frame choice available.';
+          frameSection.querySelector('.radio-group')?.after(tripleFrameNotice);
+        }
+      }
+    } else {
+      // Re-enable frame radios
+      frameRadios.forEach(r => { r.disabled = false; r.parentElement.style.opacity = '1'; });
+      // Restore spec text from selected radio
+      const selectedFrame = document.querySelector('input[name="frame-type"]:checked')?.value;
+      if (specFrameType) {
+        specFrameType.textContent = selectedFrame === 'slim' ? 'Slim Frame (144mm)' : 'Standard Frame (164mm)';
+      }
+      // Restore frameType in config
+      if (window.currentConfig) {
+        window.currentConfig.frameType = selectedFrame || 'standard';
+      }
+      // Remove notice
+      if (tripleFrameNotice) tripleFrameNotice.remove();
+    }
+
     // ✅ Save to currentConfig
     if (window.currentConfig) {
       window.currentConfig.spacerColor = spacerColor;
