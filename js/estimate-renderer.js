@@ -2656,6 +2656,15 @@ class EstimateRenderer {
                                 <td style="padding:10px 14px;">${fmtDate(validUntil)} (30 days from issue)</td>
                             </tr>
                         </table>
+                    </div>
+                </div>
+            `;
+
+            // ──────── PAGE: ABOUT (rendered last) ────────
+            const pageAbout = `
+                <div style="${pageStyle}display:flex;flex-direction:column;">
+                    ${headerBar}
+                    <div style="padding:0 20mm;flex:1;">
                         <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 5mm;">About Prime Sash Windows</h2>
                         <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11.5px;color:#1a1a1a;line-height:1.75;margin-bottom:3.5mm;">Welcome to Prime Sash Windows, where craftsmanship meets functionality. We specialise in creating high-quality timber windows and doors that enhance both the aesthetic appeal and energy efficiency of your home.</p>
                         <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11.5px;color:#1a1a1a;line-height:1.75;margin-bottom:3.5mm;">Serving London and surrounding areas, we bring over a decade of expertise in bespoke timber window and door manufacturing and installation. As members of The Joinery Network and FENSA registered installers, we offer free site surveys within 25 miles of London.</p>
@@ -2811,7 +2820,7 @@ class EstimateRenderer {
                 return `
                     <div style="border:1px solid #e5e4dd;margin-bottom:5mm;overflow:hidden;">
                         <div style="background:#0A1628;color:#fff;padding:5mm 7mm;display:flex;justify-content:space-between;align-items:center;">
-                            <div style="font-family:${serif};font-weight:600;font-size:18px;letter-spacing:.02em;"><span style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;opacity:.65;letter-spacing:.25em;margin-right:10px;">ITEM ${idxStr}</span>${typeLabel}</div>
+                            <div style="font-family:${serif};font-weight:600;font-size:18px;letter-spacing:.02em;">${item.window_number || typeLabel}${item.window_number && item.window_number !== typeLabel ? `<span style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;opacity:.65;letter-spacing:.15em;margin-left:10px;">${typeLabel}</span>` : ''}</div>
                             <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:18px;letter-spacing:.02em;">${priceStr}</div>
                         </div>
                         <div style="display:grid;grid-template-columns:70mm 1fr;gap:6mm;padding:6mm;">
@@ -3160,6 +3169,8 @@ class EstimateRenderer {
             await addFullPage(pagePayment);
             // 6. Terms
             await addFullPage(pageTerms);
+            // 7. About (last page)
+            await addFullPage(pageAbout);
 
             doc.save(`PrimeSashWindows_Quote_${estimateNumber}.pdf`);
 
