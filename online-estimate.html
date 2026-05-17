@@ -4171,7 +4171,7 @@
   // INFO PANEL - mirror measurement-info to infobox
   var infoPanel = document.getElementById('info-panel-content');
   var measureInfo = document.getElementById('measurement-info');
-  var activeCategory = 'dimensions';
+  var activeCategory = 'dim-design';
   
   function updateInfoPanel() {
     if (!infoPanel) return;
@@ -4231,7 +4231,7 @@
       return;
     }
 
-    if (activeCategory === 'dimensions' && measureInfo && measureInfo.style.display === 'block') {
+    if (activeCategory === 'dim-design' && measureInfo && measureInfo.style.display === 'block') {
       var w = document.getElementById('actual-width');
       var h = document.getElementById('actual-height');
       var wVal = w ? w.textContent : '-';
