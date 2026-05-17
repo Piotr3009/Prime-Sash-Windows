@@ -82,11 +82,8 @@ class EstimateRenderer {
 
         // FRAME
         const frameType = fc.frameType || item.frame_type || 'standard';
-        const glassType = fc.glassType || item.glass_type || 'double';
-        // Triple glazing requires 172mm frame regardless of frameType selection
-        const frameText = (glassType === 'triple' || frameType === 'triple') 
-          ? 'Triple Glazing Frame (172mm)' 
-          : (frameType === 'slim' ? 'Slim Frame (144mm)' : 'Standard Frame (164mm)');
+        // frameText will be updated after glassType is known (triple → 172mm)
+        let frameText = frameType === 'slim' ? 'Slim Frame (144mm)' : 'Standard Frame (164mm)';
 
         // OPENING
         const openingType = fc.openingType || item.opening_type || 'both';
@@ -97,6 +94,10 @@ class EstimateRenderer {
         const glassType = fc.glassType || item.glass_type || 'double';
         const glassLabels = { 'double': 'Double Glazed (4/16/4, U:1.4)', 'triple': 'Triple Glazed (U:1.2)', 'passive': 'Passive Glass (U:0.8)' };
         const glassText = glassLabels[glassType] || glassType;
+        // Triple glazing requires 172mm frame regardless of frameType selection
+        if (glassType === 'triple' || frameType === 'triple') {
+          frameText = 'Triple Glazing Frame (172mm)';
+        }
 
         // GLASS SPEC
         const glassSpec = fc.glassSpec || item.glass_spec || 'toughened';
