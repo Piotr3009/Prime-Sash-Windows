@@ -74,11 +74,18 @@ class EstimateRenderer {
         const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
 
         // DIMENSIONS — prefer spec over item columns
-        const width = fc.actualFrameWidth || item.width || 1000;
-        const height = fc.actualFrameHeight || item.height || 1500;
+        let width = fc.actualFrameWidth || item.width || 1000;
+        let height = fc.actualFrameHeight || item.height || 1500;
         const originalWidth = fc.originalWidth || item.original_width || null;
         const originalHeight = fc.originalHeight || item.original_height || null;
         const measurementType = fc.measurementType || item.measurement_type || 'frame';
+
+        // If structural opening was entered, ALWAYS recalculate frame from structural
+        // (stored width may be wrong if actualFrameWidth was cleared before save)
+        if (measurementType === 'brick-to-brick' && originalWidth && originalHeight) {
+          width = originalWidth + 150;
+          height = originalHeight + 75;
+        }
 
         // FRAME
         const frameType = fc.frameType || item.frame_type || 'standard';
@@ -545,7 +552,7 @@ class EstimateRenderer {
                             ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
                             ${p.sashType === 'triple' ? R.specRow('Split Ratio', p.splitRatio) : ''}
                             ${p.measurementType === 'brick-to-brick' 
-                                ? R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm') + R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm') + '<div style="margin:8px 0;padding:8px 12px;background:#fff5f5;border:1px solid #e53e3e;border-radius:4px;font-size:12px;color:#c53030;line-height:1.4;">⚠ The window frame is larger than the structural opening. We recommend a visit from a surveyor or contractor before ordering.</div>'
+                                ? R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm') + R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')
                                 : R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')}
                             ${R.specRow('Frame', p.frameText)}
                             ${R.specRow('Opening', p.openingText)}
@@ -559,6 +566,7 @@ class EstimateRenderer {
                             ${R.specRow('PAS24', p.pas24 ? 'Yes ✓' : 'No')}
                             ${R.specRow('Horns', p.hornsText)}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
+                            ${p.measurementType === 'brick-to-brick' ? '<div style="margin:10px 0 4px;padding:8px 12px;background:#fff5f5;border:1px solid #e53e3e;border-radius:4px;font-size:12px;color:#c53030;line-height:1.4;">⚠ The window frame is larger than the structural opening. We recommend a visit from a surveyor or contractor before ordering.</div>' : ''}
                             `}
                         </div>
 
