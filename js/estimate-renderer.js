@@ -2604,7 +2604,7 @@ class EstimateRenderer {
             const serif = `'Cormorant Garamond', Georgia, serif`;
 
             const headerBar = `
-                <div style="background:#0A1628;padding:16mm 20mm 10mm;color:#fff;">
+                <div style="background:#0A1628;padding:16mm 10mm 10mm;color:#fff;">
                     <div style="font-family:'Jost',sans-serif;font-weight:300;letter-spacing:.4em;font-size:14px;border-top:1px solid #fff;border-bottom:1px solid #fff;padding:6px 0;display:inline-block;">PRIME&nbsp;&nbsp;SASH</div>
                     <div style="font-family:'Jost',sans-serif;font-weight:300;letter-spacing:.35em;font-size:9px;margin-top:4px;opacity:.9;">W I N D O W S</div>
                 </div>
@@ -2628,8 +2628,8 @@ class EstimateRenderer {
             const pageQuote = `
                 <div style="${pageStyle}">
                     ${headerBar}
-                    <div style="padding:0 20mm;">
-                        <div style="background:#0A1628;color:#fff;margin:10mm -20mm 0;padding:10mm 20mm;display:flex;justify-content:space-between;align-items:baseline;">
+                    <div style="padding:0 10mm;">
+                        <div style="background:#0A1628;color:#fff;margin:10mm -10mm 0;padding:10mm 10mm;display:flex;justify-content:space-between;align-items:baseline;">
                             <span style="font-family:${serif};font-weight:700;font-size:42px;letter-spacing:.02em;">Quote</span>
                             <span style="font-family:'Jost',sans-serif;font-weight:400;font-size:20px;letter-spacing:.1em;">${estimateNumber}</span>
                         </div>
@@ -2664,7 +2664,7 @@ class EstimateRenderer {
             const pageAbout = `
                 <div style="${pageStyle}display:flex;flex-direction:column;">
                     ${headerBar}
-                    <div style="padding:0 20mm;flex:1;">
+                    <div style="padding:0 10mm;flex:1;">
                         <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 5mm;">About Prime Sash Windows</h2>
                         <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11.5px;color:#1a1a1a;line-height:1.75;margin-bottom:3.5mm;">Welcome to Prime Sash Windows, where craftsmanship meets functionality. We specialise in creating high-quality timber windows and doors that enhance both the aesthetic appeal and energy efficiency of your home.</p>
                         <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11.5px;color:#1a1a1a;line-height:1.75;margin-bottom:3.5mm;">Serving London and surrounding areas, we bring over a decade of expertise in bespoke timber window and door manufacturing and installation. As members of The Joinery Network and FENSA registered installers, we offer free site surveys within 25 miles of London.</p>
@@ -2690,7 +2690,7 @@ class EstimateRenderer {
             const pageCerts = `
                 <div style="${pageStyle}">
                     ${headerBar}
-                    <div style="padding:0 20mm;">
+                    <div style="padding:0 10mm;">
                         <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 5mm;">Certifications &amp; Technology</h2>
                         <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:12px;color:#6b6b6b;line-height:1.7;margin:8mm 0 10mm;max-width:160mm;">Every Prime Sash window is backed by independently verified certifications. These are not marketing badges — they are legally recognised standards that protect your investment, your safety, and the value of your property.</p>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8mm;">
@@ -2794,8 +2794,8 @@ class EstimateRenderer {
 
                 const specRows2Col = specs.map(([l, v]) => `
                     <div>
-                        <div style="font-family:'Jost',sans-serif;font-weight:500;letter-spacing:.18em;text-transform:uppercase;font-size:8px;color:#6b6b6b;margin-bottom:1mm;">${l}</div>
-                        <div style="font-family:'Jost',sans-serif;font-size:10px;color:#0A1628;margin-bottom:3mm;line-height:1.35;">${v}</div>
+                        <div style="font-family:'Jost',sans-serif;font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:10px;color:#6b6b6b;margin-bottom:1.5mm;">${l}</div>
+                        <div style="font-family:'Jost',sans-serif;font-size:12px;color:#0A1628;margin-bottom:4mm;line-height:1.4;">${v}</div>
                     </div>
                 `).join('');
 
@@ -2803,10 +2803,10 @@ class EstimateRenderer {
                     ? p.ironList.map(pr => `
                         <div style="display:flex;align-items:center;gap:3mm;margin-bottom:2mm;">
                             ${pr.img ? `<img src="${pr.img}" crossorigin="anonymous" style="width:10mm;height:10mm;object-fit:cover;border:1px solid #e5e4dd;border-radius:1mm;flex-shrink:0;background:#f5f4f0;" onerror="this.style.visibility='hidden'">` : `<div style="width:10mm;height:10mm;border:1px solid #e5e4dd;background:#f5f4f0;border-radius:1mm;flex-shrink:0;"></div>`}
-                            <span style="font-family:'Jost',sans-serif;font-size:9.5px;color:#0A1628;line-height:1.4;">${pr.qty > 1 ? `<strong>${pr.qty}×</strong> ` : ''}${pr.name}${pr.color ? ` — ${pr.color}` : ''}</span>
+                            <span style="font-family:'Jost',sans-serif;font-size:11px;color:#0A1628;line-height:1.4;">${pr.qty > 1 ? `<strong>${pr.qty}×</strong> ` : ''}${pr.name}${pr.color ? ` — ${pr.color}` : ''}</span>
                         </div>
                     `).join('')
-                    : `<div style="font-family:'Jost',sans-serif;font-size:9.5px;color:#888;font-style:italic;">No ironmongery specified for this item.</div>`;
+                    : `<div style="font-family:'Jost',sans-serif;font-size:11px;color:#888;font-style:italic;">No ironmongery specified for this item.</div>`;
 
                 const typeLabel = p.windowType === 'casement' ? 'Casement Window'
                     : p.windowType === 'fix-only' ? 'Fix Frame'
@@ -2823,11 +2823,11 @@ class EstimateRenderer {
                             <div style="font-family:${serif};font-weight:600;font-size:18px;letter-spacing:.02em;">${item.window_number || typeLabel}${item.window_number && item.window_number !== typeLabel ? `<span style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;opacity:.65;letter-spacing:.15em;margin-left:10px;">${typeLabel}</span>` : ''}</div>
                             <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:18px;letter-spacing:.02em;">${priceStr}</div>
                         </div>
-                        <div style="display:grid;grid-template-columns:70mm 1fr;gap:6mm;padding:6mm;">
+                        <div style="display:grid;grid-template-columns:84mm 1fr;gap:6mm;padding:6mm;">
                             ${screenshots?.interior ? `
                                 <div style="background:#f5f4f0;border:1px solid #e5e4dd;padding:4mm;display:flex;flex-direction:column;gap:3mm;">
-                                    <div style="width:100%;height:48mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
-                                    <div style="width:100%;height:48mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;">${svg}</div>
+                                    <div style="width:100%;height:58mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
+                                    <div style="width:100%;height:58mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:30mm;">${svg}</div>
                                 </div>
                             ` : `
                                 <div style="background:#f5f4f0;border:1px solid #e5e4dd;display:flex;align-items:center;justify-content:center;padding:4mm;">
@@ -2911,7 +2911,7 @@ class EstimateRenderer {
             const pageSummary = `
                 <div style="${pageStyle}">
                     ${headerBar}
-                    <div style="padding:0 20mm;">
+                    <div style="padding:0 10mm;">
                         <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:26px;letter-spacing:.02em;margin:8mm 0 4mm;">Summary</h2>
 
                         <!-- ─── WINDOWS TABLE ─── -->
@@ -3027,7 +3027,7 @@ class EstimateRenderer {
             const pagePayment = `
                 <div style="${pageStyle}">
                     ${headerBar}
-                    <div style="padding:0 20mm;">
+                    <div style="padding:0 10mm;">
                         <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 4mm;">Payment Schedule</h2>
                         <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;color:#6b6b6b;line-height:1.65;margin-bottom:8mm;max-width:160mm;">
                             ${pdfIntroText}
@@ -3056,7 +3056,7 @@ class EstimateRenderer {
             const pageTerms = `
                 <div style="${pageStyle}display:flex;flex-direction:column;">
                     ${headerBar}
-                    <div style="padding:0 20mm;flex:1;">
+                    <div style="padding:0 10mm;flex:1;">
                         <h2 style="font-family:${serif};font-weight:700;color:#0A1628;font-size:28px;letter-spacing:.02em;margin:10mm 0 5mm;">Terms and Conditions</h2>
                         <ol style="font-family:'Jost',sans-serif;font-size:10.5px;color:#1a1a1a;margin:6mm 0 0;padding:0;">
                             ${term(1, 'Validity', 'This quotation is valid for a period of 30 (thirty) days from the date of issuance. After this period, the terms, pricing, and availability of the quoted items and services are subject to change without prior notice.')}
@@ -3074,7 +3074,7 @@ class EstimateRenderer {
                             <strong style="color:#0A1628;font-weight:500;">Company:</strong> Skylon Joinery Limited · Registered in England and Wales No. 12946103 · Registered office: 31 Roe Hill Close, Hatfield, AL10 9JE
                         </div>
                     </div>
-                    <div style="background:#0A1628;color:#fff;padding:8mm 20mm;display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:8mm;align-items:center;font-family:'Jost',sans-serif;font-size:9.5px;">
+                    <div style="background:#0A1628;color:#fff;padding:8mm 10mm;display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:8mm;align-items:center;font-family:'Jost',sans-serif;font-size:9.5px;">
                         <div style="font-weight:300;letter-spacing:.3em;font-size:11px;border-top:1px solid #fff;border-bottom:1px solid #fff;padding:4px 0;white-space:nowrap;">PRIME&nbsp;SASH</div>
                         <div style="display:flex;flex-direction:column;gap:2px;">
                             <span style="font-size:10px;color:#D4D4C8;letter-spacing:.15em;text-transform:uppercase;">Web</span>
