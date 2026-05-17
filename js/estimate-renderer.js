@@ -566,7 +566,7 @@ class EstimateRenderer {
                             ${R.specRow('PAS24', p.pas24 ? 'Yes ✓' : 'No')}
                             ${R.specRow('Horns', p.hornsText)}
                             ${p.hardwareFinish ? R.specRow('Hardware Finish', p.hardwareFinish) : ''}
-                            ${p.measurementType === 'brick-to-brick' ? '<div style="margin:10px 0 4px;padding:8px 12px;background:#fff5f5;border:1px solid #e53e3e;border-radius:4px;font-size:12px;color:#c53030;line-height:1.4;">⚠ The window frame is larger than the structural opening. We recommend a visit from a surveyor or contractor before ordering.</div>' : ''}
+                            ${p.measurementType === 'brick-to-brick' ? '<div style="margin:10px 0 4px;padding:8px 12px;background:#f0f4ff;border:1px solid #90a4c4;border-radius:4px;font-size:12px;color:#2d3748;line-height:1.4;">ℹ Frame overlaps brickwork by 150mm (W) and 75mm (H). We recommend a visit from a surveyor or contractor before ordering.</div>' : ''}
                             `}
                         </div>
 
@@ -2743,7 +2743,7 @@ class EstimateRenderer {
                     if (p.measurementType === 'brick-to-brick') {
                         specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
                         specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
-                        specs.push(['⚠ Note', 'Frame is larger than structural opening. We recommend a surveyor visit before ordering.']);
+                        specs.push(['ℹ Note', 'Frame overlaps brickwork by 150mm (W) and 75mm (H). We recommend a surveyor or contractor visit before ordering.']);
                     } else {
                         specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
                     }
@@ -3220,7 +3220,7 @@ class EstimateRenderer {
             if (p.measurementType === 'brick-to-brick') {
                 specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
                 specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
-                specs.push(['⚠ Note', 'Frame is larger than structural opening. We recommend a surveyor visit before ordering.']);
+                specs.push(['ℹ Note', 'Frame overlaps brickwork by 150mm (W) and 75mm (H). We recommend a surveyor or contractor visit before ordering.']);
             } else {
                 specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
             }
