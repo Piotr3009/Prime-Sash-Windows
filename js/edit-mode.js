@@ -213,9 +213,9 @@
       setRadio('color-type', fc.colorType || fc.colourMode);
       setTimeout(() => setWindowColor(fc), 200);
 
-      // Bars
-      setRadio('upper-bars', fc.upperBars);
-      setRadio('lower-bars', fc.lowerBars);
+      // Bars (upper-bars and lower-bars are <select> elements, not radios)
+      setSelect('upper-bars', fc.upperBars);
+      setSelect('lower-bars', fc.lowerBars);
 
       // Horns
       if (fc.horns && fc.horns !== 'none') setSelect('horns', fc.horns);
@@ -822,6 +822,33 @@
           window.currentConfig.singleColor = colorKey || 'white';
         }
         if (window.update3D) window.update3D({ woodColor: hex, sameColor: true });
+      } else {
+        // Tile not found — try F&B dropdown (custom/F&B colors are not in basic tiles)
+        const fbPrefix = isCasement ? 'c-' : '';
+        const fbSelect = document.getElementById(fbPrefix + 'single-fb-select');
+        let hex = '#F6F6F6';
+        if (fbSelect && colorName) {
+          // Match by option text (e.g. "Incarnadine 248")
+          const fbOpt = Array.from(fbSelect.options).find(o => o.text === colorName);
+          if (fbOpt && fbOpt.value) {
+            fbSelect.value = fbOpt.value;
+            fbSelect.dispatchEvent(new Event('change', {bubbles: true}));
+            hex = fbOpt.value; // value is hex like #6a1820
+          }
+        }
+        // Fallback: if colorSingleRal looks like hex, use it
+        if (hex === '#F6F6F6' && colorRal && colorRal.startsWith('#')) {
+          hex = colorRal;
+        }
+        if (window.currentConfig) {
+          window.currentConfig.colorType = 'single';
+          window.currentConfig.colorSingle = colorKey || 'custom';
+          window.currentConfig.colorSingleName = colorName || 'Pure White';
+          window.currentConfig.colorSingleRal = colorRal || '';
+          window.currentConfig.singleColor = colorKey || 'custom';
+        }
+        if (window.update3D) window.update3D({ woodColor: hex, sameColor: true });
+        console.log('[EDIT] Color tile not found, F&B fallback hex:', hex);
       }
 
     } else if (colorType === 'dual') {
