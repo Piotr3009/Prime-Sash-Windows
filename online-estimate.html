@@ -4844,6 +4844,18 @@
             window.currentConfig.windowCategory = 'door';
           }
           console.log('🔧 Config synced with DOM: range=' + activeRange + ', type=' + activeType);
+          // Recalculate price with corrected type (first updateAll ran with stale data)
+          if (activeRange === 'windows' && activeType === 'sash') {
+            if (window.configuratorCore && window.configuratorCore.isInitialized) {
+              window.configuratorCore.updateAll();
+            }
+          } else if (activeRange === 'windows' && activeType === 'casement') {
+            if (typeof window.updateCasementPrice === 'function') window.updateCasementPrice();
+          } else if (activeRange === 'windows' && activeType === 'fix-only') {
+            if (typeof window.updateFixPrice === 'function') window.updateFixPrice();
+          } else if (activeRange === 'doors') {
+            if (typeof window.updateDoorPrice === 'function') window.updateDoorPrice();
+          }
         }
       }, 500);
 
