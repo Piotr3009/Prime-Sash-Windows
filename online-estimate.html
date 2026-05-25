@@ -4441,6 +4441,7 @@
       }
 
       // ── LIVE UPDATE 3D ──
+      var _specTimer = null;
       function liveUpdate() {
         if (typeof window.update3D !== 'function') return;
         var same = sameChk.checked;
@@ -4456,6 +4457,13 @@
           upperCustomBars: uCustom,
           lowerCustomBars: lCustom
         });
+        // Debounced spec update — waits 300ms after last change to avoid spam during slider drag
+        clearTimeout(_specTimer);
+        _specTimer = setTimeout(function() {
+          if (window.specificationController && window.specificationController.applyBars) {
+            window.specificationController.applyBars();
+          }
+        }, 300);
       }
 
       function renderList(bars, container, setter) {
