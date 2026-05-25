@@ -67,6 +67,22 @@ export default async function handler(req, res) {
         const uniqueRes = await supabaseQueryUnique(SUPABASE_URL, SERVICE_KEY, d30);
         stats.unique30d = uniqueRes;
 
+        // Unique visitors all time (distinct ip_hash)
+        const uniqueAllRes = await supabaseQueryUnique(SUPABASE_URL, SERVICE_KEY, null);
+        stats.uniqueAll = uniqueAllRes;
+
+        // Unique visitors today (distinct ip_hash)
+        const uniqueTodayRes = await supabaseQueryUnique(SUPABASE_URL, SERVICE_KEY, `${today}T00:00:00`);
+        stats.uniqueToday = uniqueTodayRes;
+
+        // Per-page breakdown — today
+        const landingTodayRes = await supabaseQuery(SUPABASE_URL, SERVICE_KEY,
+            'page_visits', 'page,visited_at', `visited_at=gte.${today}T00:00:00&page=eq.landing`, 'head', true);
+        const estimateTodayRes = await supabaseQuery(SUPABASE_URL, SERVICE_KEY,
+            'page_visits', 'page,visited_at', `visited_at=gte.${today}T00:00:00&page=eq.online-estimate`, 'head', true);
+        stats.landingToday = landingTodayRes;
+        stats.estimateToday = estimateTodayRes;
+
         // Per-page breakdown (landing vs online-estimate) — last 30d
         const landingRes = await supabaseQuery(SUPABASE_URL, SERVICE_KEY,
             'page_visits', 'page,visited_at', `visited_at=gte.${d30}&page=eq.landing`, 'head', true);
@@ -124,12 +140,12 @@ async function supabaseQuery(url, key, table, select, filter, prefer, countOnly)
     return 0;
 }
 
-// Count unique ip_hash in last 30d using RPC or manual approach
+// Count unique ip_hash using RPC or manual approach
+// If since is null, count all time
 async function supabaseQueryUnique(url, key, since) {
-    // Use PostgREST select with distinct — get all unique hashes then count
-    // More efficient: use RPC if available, but for now fetch ip_hash list
+    const filter = since ? `&visited_at=gte.${since}` : '';
     const response = await fetch(
-        `${url}/rest/v1/page_visits?select=ip_hash&visited_at=gte.${since}`,
+        `${url}/rest/v1/page_visits?select=ip_hash${filter}`,
         {
             headers: {
                 'apikey': key,

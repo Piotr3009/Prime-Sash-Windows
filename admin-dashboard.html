@@ -512,16 +512,48 @@
             <div id="view-visits" class="admin-view">
                 <h2 class="section-title">👁️ Page Visits</h2>
                 <p style="color: #666; margin-bottom: 20px;">Tracking visits to Landing Page and Online Estimate.</p>
-                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;">
                     <div class="stat-card">
                         <div class="stat-icon">📊</div>
                         <div class="stat-value" id="visit-total">–</div>
                         <div class="stat-label">Total (All Time)</div>
                     </div>
                     <div class="stat-card">
+                        <div class="stat-icon">🏠</div>
+                        <div class="stat-value" id="visit-landing-all">–</div>
+                        <div class="stat-label">Landing (All Time)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🛒</div>
+                        <div class="stat-value" id="visit-estimate-all">–</div>
+                        <div class="stat-label">Estimate (All Time)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👤</div>
+                        <div class="stat-value" id="visit-unique-all">–</div>
+                        <div class="stat-label">Unique (All Time)</div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;">
+                    <div class="stat-card">
                         <div class="stat-icon">📅</div>
                         <div class="stat-value" id="visit-today">–</div>
                         <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏠</div>
+                        <div class="stat-value" id="visit-landing-today">–</div>
+                        <div class="stat-label">Landing Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🛒</div>
+                        <div class="stat-value" id="visit-estimate-today">–</div>
+                        <div class="stat-label">Estimate Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👤</div>
+                        <div class="stat-value" id="visit-unique-today">–</div>
+                        <div class="stat-label">Unique Today</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">📆</div>
@@ -532,23 +564,6 @@
                         <div class="stat-icon">🗓️</div>
                         <div class="stat-value" id="visit-30d">–</div>
                         <div class="stat-label">Last 30 Days</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">👤</div>
-                        <div class="stat-value" id="visit-unique">–</div>
-                        <div class="stat-label">Unique (30d)</div>
-                    </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                    <div class="stat-card">
-                        <div class="stat-icon">🏠</div>
-                        <div class="stat-value" id="visit-landing-detail">–</div>
-                        <div class="stat-label">Landing Page (30d)</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🛒</div>
-                        <div class="stat-value" id="visit-estimate-detail">–</div>
-                        <div class="stat-label">Online Estimate (30d)</div>
                     </div>
                 </div>
             </div>
@@ -712,12 +727,15 @@
 
                 // Detail view
                 el('visit-total', stats.total ?? 0);
+                el('visit-landing-all', stats.landingAll ?? 0);
+                el('visit-estimate-all', stats.estimateAll ?? 0);
+                el('visit-unique-all', stats.uniqueAll ?? 0);
                 el('visit-today', stats.today ?? 0);
+                el('visit-landing-today', stats.landingToday ?? 0);
+                el('visit-estimate-today', stats.estimateToday ?? 0);
+                el('visit-unique-today', stats.uniqueToday ?? 0);
                 el('visit-7d', stats.last7d ?? 0);
                 el('visit-30d', stats.last30d ?? 0);
-                el('visit-unique', stats.unique30d ?? 0);
-                el('visit-landing-detail', stats.landing30d ?? 0);
-                el('visit-estimate-detail', stats.estimate30d ?? 0);
             } catch (err) {
                 console.error('Visit stats error:', err);
             }
