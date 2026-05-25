@@ -241,6 +241,7 @@
           window.currentConfig.sameColor = false;
         }
         if (window.update3D) window.update3D({ woodColorInt: hexInt, woodColorExt: hexExt, sameColor: false });
+        console.log('[EDIT] Dual color: int=' + hexInt + ' ext=' + hexExt + ' keys=' + fc.colorInterior + '/' + fc.colorExterior);
       }
       // Fallback for old estimates without woodColor hex — try lookup
       if (!fc.woodColor && fc.colorSingleName && sashColorType === 'single') {
@@ -768,16 +769,27 @@
   // ══════════════════════════════════════════════
 
   // Color hex lookup for old estimates that don't have woodColor saved
-  const BASIC_COLOR_HEX = { white: '#FAFAFA', black: '#0A0A0A', anthracite: '#293133', olive: '#424632', offwhite: '#F7F9F5', cream: '#F1EFDC', burgundy: '#5E2028', royal: '#222D5A', oak: '#8B6914' };
+  const BASIC_COLOR_HEX = {
+    // By key
+    white: '#FAFAFA', black: '#0A0A0A', anthracite: '#293133', olive: '#424632',
+    offwhite: '#F7F9F5', cream: '#F1EFDC', burgundy: '#5E2028', royal: '#222D5A', oak: '#8B6914',
+    // By name (old estimates may store name instead of key)
+    'pure white': '#FAFAFA', 'jet black': '#0A0A0A', 'anthracite grey': '#293133',
+    'olive green': '#424632', 'off-white': '#F7F9F5', 'burgundy red': '#5E2028',
+    'royal blue': '#222D5A'
+  };
   function lookupColorHex(colorKey, colorName, target, prefix) {
-    // 1. Basic color map
+    // 1. Basic color map by key
     if (colorKey && BASIC_COLOR_HEX[colorKey]) return BASIC_COLOR_HEX[colorKey];
-    // 2. F&B dropdown by name (sash: single-fb-select, casement: c-single-fb-select)
+    // 2. Basic color map by name (lowercase)
+    if (colorKey && BASIC_COLOR_HEX[colorKey.toLowerCase()]) return BASIC_COLOR_HEX[colorKey.toLowerCase()];
+    if (colorName && BASIC_COLOR_HEX[colorName.toLowerCase()]) return BASIC_COLOR_HEX[colorName.toLowerCase()];
+    // 3. F&B dropdown by name (sash: single-fb-select, casement: c-single-fb-select)
     const p = prefix || '';
     const fbId = target === 'int' ? (p + 'int-fb-select') : target === 'ext' ? (p + 'ext-fb-select') : (p + 'single-fb-select');
     const fbSel = document.getElementById(fbId);
     if (fbSel && colorName) {
-      const fbOpt = Array.from(fbSel.options).find(o => o.text.trim() === colorName.trim());
+      const fbOpt = Array.from(fbSel.options).find(o => o.text.trim().toLowerCase() === colorName.trim().toLowerCase());
       if (fbOpt && fbOpt.value) return fbOpt.value;
     }
     return null;
