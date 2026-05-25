@@ -266,27 +266,44 @@
 
       // Custom bars: restore positions via barsController + update 3D
       if (fc.upperBars === 'custom' || fc.lowerBars === 'custom') {
-        if (window.barsController && fc.customBars) {
+        // Convert flat format [{type,mm}] to nested {horizontal:[], vertical:[]} for barsController
+        const flatToNested = (arr) => {
+          if (!arr || !Array.isArray(arr)) return { horizontal: [], vertical: [] };
+          return {
+            horizontal: arr.filter(b => b.type === 'h').map(b => ({ type: 'h', mm: b.mm })),
+            vertical: arr.filter(b => b.type === 'v').map(b => ({ type: 'v', mm: b.mm }))
+          };
+        };
+        // Get bar data from whichever format exists
+        const upperNested = (fc.customBars && fc.customBars.upper) || flatToNested(fc.upperCustomBars);
+        const lowerNested = (fc.customBars && fc.customBars.lower) || flatToNested(fc.lowerCustomBars);
+
+        if (window.barsController) {
           window.barsController.setState({
-            upper: {
-              pattern: fc.upperBars || 'none',
-              bars: fc.customBars.upper || { horizontal: [], vertical: [] }
-            },
-            lower: {
-              pattern: fc.lowerBars || 'none',
-              bars: fc.customBars.lower || { horizontal: [], vertical: [] }
-            }
+            upper: { pattern: fc.upperBars || 'none', bars: upperNested },
+            lower: { pattern: fc.lowerBars || 'none', bars: lowerNested }
           });
         }
       }
       // Send bars to 3D (works for all patterns incl. custom)
+      // Get flat format for 3D from whichever source exists
+      const getCustomFlat = (nested, flat) => {
+        if (flat && Array.isArray(flat) && flat.length > 0) return flat;
+        if (nested) {
+          const result = [];
+          if (nested.horizontal) nested.horizontal.forEach(b => result.push({ type: 'h', mm: b.mm }));
+          if (nested.vertical) nested.vertical.forEach(b => result.push({ type: 'v', mm: b.mm }));
+          return result;
+        }
+        return [];
+      };
       if (window.update3D) {
         window.update3D({
           upperBars: fc.upperBars || 'none',
           lowerBars: fc.lowerBars || 'none',
           sameBars: fc.sameBars !== undefined ? fc.sameBars : true,
-          upperCustomBars: fc.upperCustomBars || [],
-          lowerCustomBars: fc.lowerCustomBars || []
+          upperCustomBars: getCustomFlat(fc.customBars?.upper, fc.upperCustomBars),
+          lowerCustomBars: getCustomFlat(fc.customBars?.lower, fc.lowerCustomBars)
         });
       }
 
@@ -300,11 +317,14 @@
       // Ironmongery (gallery + 3D)
       restoreIronmongery(fc);
 
+      // ── Update spec panel & menu with color names ──
+      updateSpecColor(fc);
+
       // SAFETY NET: recalculate after all events settle + wait for DB prices
       setTimeout(async () => {
         if (window.pricingReadyPromise) await window.pricingReadyPromise;
         triggerUpdate();
-        if (window.specificationController?.updateColourSpec) window.specificationController.updateColourSpec();
+        updateSpecColor(fc);
       }, 800);
     }, 300);
   }
@@ -395,11 +415,15 @@
     // Ironmongery
     restoreIronmongery(fc);
 
+    // Update spec panel & menu with color names
+    updateSpecColor(fc);
+
     // SAFETY NET: recalculate after all events settle + wait for DB prices
     setTimeout(async () => {
       if (window.pricingReadyPromise) await window.pricingReadyPromise;
       if (window.updateCasementPrice) window.updateCasementPrice();
       if (window.updateCasementSpec) window.updateCasementSpec();
+      updateSpecColor(fc);
     }, 800);
   }
 
@@ -767,6 +791,35 @@
   // ══════════════════════════════════════════════
   // ═══ HELPERS ══════════════════════════════════
   // ══════════════════════════════════════════════
+
+  // Directly update spec panel & left menu with color info from fullConfig
+  function updateSpecColor(fc) {
+    const colorType = fc.colorType || fc.colourMode || 'single';
+    const specSection = document.getElementById('spec-color');
+    const specSingle = document.getElementById('spec-single-color');
+    const specDual = document.getElementById('spec-dual-color');
+    const hint = document.getElementById('hint-colour');
+
+    if (specSection) specSection.style.display = 'block';
+
+    if (colorType === 'single') {
+      if (specSingle) specSingle.style.display = 'block';
+      if (specDual) specDual.style.display = 'none';
+      const nameEl = document.getElementById('spec-color-name');
+      const ralEl = document.getElementById('spec-color-ral');
+      if (nameEl) nameEl.textContent = fc.colorSingleName || 'Pure White';
+      if (ralEl) ralEl.textContent = fc.colorSingleRal || 'RAL 9016';
+      if (hint) hint.textContent = fc.colorSingleName || 'White';
+    } else {
+      if (specSingle) specSingle.style.display = 'none';
+      if (specDual) specDual.style.display = 'block';
+      const intEl = document.getElementById('spec-interior-color');
+      const extEl = document.getElementById('spec-exterior-color');
+      if (intEl) intEl.textContent = (fc.colorInteriorName || 'Pure White') + ' (' + (fc.colorInteriorRal || 'RAL 9016') + ')';
+      if (extEl) extEl.textContent = (fc.colorExteriorName || 'Pure White') + ' (' + (fc.colorExteriorRal || 'RAL 9016') + ')';
+      if (hint) hint.textContent = 'Dual';
+    }
+  }
 
   // Color hex lookup for old estimates that don't have woodColor saved
   const BASIC_COLOR_HEX = {
