@@ -795,6 +795,8 @@
   // Directly update spec panel & left menu with color info from fullConfig
   function updateSpecColor(fc) {
     const colorType = fc.colorType || fc.colourMode || 'single';
+    const isCasement = fc.windowType === 'casement' || fc.windowCategory === 'casement';
+    const p = isCasement ? 'c-' : ''; // prefix for casement elements
     const specSection = document.getElementById('spec-color');
     const specSingle = document.getElementById('spec-single-color');
     const specDual = document.getElementById('spec-dual-color');
@@ -810,6 +812,11 @@
       if (nameEl) nameEl.textContent = fc.colorSingleName || 'Pure White';
       if (ralEl) ralEl.textContent = fc.colorSingleRal || 'RAL 9016';
       if (hint) hint.textContent = fc.colorSingleName || 'White';
+      // Update color picker preview
+      const prevName = document.getElementById(p + 'single-preview-name');
+      const prevRal = document.getElementById(p + 'single-preview-ral');
+      if (prevName) prevName.textContent = fc.colorSingleName || 'Pure White';
+      if (prevRal) prevRal.textContent = fc.colorSingleRal || '#FAFAFA';
     } else {
       if (specSingle) specSingle.style.display = 'none';
       if (specDual) specDual.style.display = 'block';
@@ -818,6 +825,11 @@
       if (intEl) intEl.textContent = (fc.colorInteriorName || 'Pure White') + ' (' + (fc.colorInteriorRal || 'RAL 9016') + ')';
       if (extEl) extEl.textContent = (fc.colorExteriorName || 'Pure White') + ' (' + (fc.colorExteriorRal || 'RAL 9016') + ')';
       if (hint) hint.textContent = 'Dual';
+      // Update color picker preview
+      const prevInt = document.getElementById(p + 'dual-preview-interior');
+      const prevExt = document.getElementById(p + 'dual-preview-exterior');
+      if (prevInt) prevInt.textContent = (fc.colorInteriorName || 'Pure White') + ' (' + (fc.colorInteriorRal || 'RAL 9016') + ')';
+      if (prevExt) prevExt.textContent = (fc.colorExteriorName || 'Pure White') + ' (' + (fc.colorExteriorRal || 'RAL 9016') + ')';
     }
   }
 
