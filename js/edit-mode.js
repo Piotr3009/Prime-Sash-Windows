@@ -253,7 +253,9 @@
       }
 
       // Bars: restore sameBars checkbox FIRST (affects lower bars handler)
-      if (fc.sameBars === false) {
+      // Uncheck if: flag is false OR upper and lower bars are different
+      const barsAreDifferent = fc.upperBars && fc.lowerBars && fc.upperBars !== fc.lowerBars;
+      if (fc.sameBars === false || barsAreDifferent) {
         const sameChk = document.getElementById('same-bars-both-sashes');
         if (sameChk && sameChk.checked) {
           sameChk.checked = false;
