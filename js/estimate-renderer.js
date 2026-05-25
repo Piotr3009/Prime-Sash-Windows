@@ -173,10 +173,14 @@ class EstimateRenderer {
         };
 
         let barsText = 'None';
-        if (upperBars !== 'none') {
+        if (upperBars !== 'none' || lowerBars !== 'none') {
             const upperText = formatBars(upperBars, upperCustomList);
             const lowerText = formatBars(lowerBars, lowerCustomList);
-            barsText = `Upper: ${upperText}, Lower: ${lowerText}`;
+            if (upperBars === lowerBars && upperBars !== 'custom') {
+                barsText = upperText;
+            } else {
+                barsText = `Upper: ${upperText}, Lower: ${lowerText}`;
+            }
         }
 
         // FIX BARS (triple only)
