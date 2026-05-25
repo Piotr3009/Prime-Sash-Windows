@@ -217,6 +217,32 @@
       setSelect('upper-bars', fc.upperBars);
       setSelect('lower-bars', fc.lowerBars);
 
+      // Custom bars: restore positions via barsController + update 3D
+      if (fc.upperBars === 'custom' || fc.lowerBars === 'custom') {
+        if (window.barsController && fc.customBars) {
+          window.barsController.setState({
+            upper: {
+              pattern: fc.upperBars || 'none',
+              bars: fc.customBars.upper || { horizontal: [], vertical: [] }
+            },
+            lower: {
+              pattern: fc.lowerBars || 'none',
+              bars: fc.customBars.lower || { horizontal: [], vertical: [] }
+            }
+          });
+        }
+      }
+      // Send bars to 3D (works for all patterns incl. custom)
+      if (window.update3D) {
+        window.update3D({
+          upperBars: fc.upperBars || 'none',
+          lowerBars: fc.lowerBars || 'none',
+          sameBars: fc.sameBars !== undefined ? fc.sameBars : true,
+          upperCustomBars: fc.upperCustomBars || [],
+          lowerCustomBars: fc.lowerCustomBars || []
+        });
+      }
+
       // Horns
       if (fc.horns && fc.horns !== 'none') setSelect('horns', fc.horns);
 
@@ -823,23 +849,36 @@
         }
         if (window.update3D) window.update3D({ woodColor: hex, sameColor: true });
       } else {
-        // Tile not found — try F&B dropdown (custom/F&B colors are not in basic tiles)
+        // Tile not found — likely F&B/RAL/custom color (not in basic tile grid)
         const fbPrefix = isCasement ? 'c-' : '';
         const fbSelect = document.getElementById(fbPrefix + 'single-fb-select');
-        let hex = '#F6F6F6';
+        let hex = null;
+
+        // Strategy 1: Find hex in F&B dropdown by matching option text
         if (fbSelect && colorName) {
-          // Match by option text (e.g. "Incarnadine 248")
-          const fbOpt = Array.from(fbSelect.options).find(o => o.text === colorName);
+          const trimName = colorName.trim();
+          const fbOpt = Array.from(fbSelect.options).find(o =>
+            o.text.trim() === trimName || o.text.trim().toLowerCase() === trimName.toLowerCase()
+          );
           if (fbOpt && fbOpt.value) {
-            fbSelect.value = fbOpt.value;
-            fbSelect.dispatchEvent(new Event('change', {bubbles: true}));
             hex = fbOpt.value; // value is hex like #6a1820
+            fbSelect.value = fbOpt.value; // visually select in dropdown (no event)
+            // Update preview text
+            const previewName = document.getElementById(isCasement ? 'c-single-preview-name' : 'single-preview-name');
+            const previewRal = document.getElementById(isCasement ? 'c-single-preview-ral' : 'single-preview-ral');
+            if (previewName) previewName.textContent = colorName;
+            if (previewRal) previewRal.textContent = hex;
           }
         }
-        // Fallback: if colorSingleRal looks like hex, use it
-        if (hex === '#F6F6F6' && colorRal && colorRal.startsWith('#')) {
+
+        // Strategy 2: colorSingleRal might be a hex directly
+        if (!hex && colorRal && /^#[0-9A-Fa-f]{6}$/.test(colorRal)) {
           hex = colorRal;
         }
+
+        // Strategy 3: absolute fallback
+        if (!hex) hex = '#F6F6F6';
+
         if (window.currentConfig) {
           window.currentConfig.colorType = 'single';
           window.currentConfig.colorSingle = colorKey || 'custom';
@@ -848,7 +887,7 @@
           window.currentConfig.singleColor = colorKey || 'custom';
         }
         if (window.update3D) window.update3D({ woodColor: hex, sameColor: true });
-        console.log('[EDIT] Color tile not found, F&B fallback hex:', hex);
+        console.log('[EDIT] Color fallback: name=' + colorName + ', hex=' + hex);
       }
 
     } else if (colorType === 'dual') {
@@ -868,6 +907,7 @@
 
       // Sash/fix: set config directly
       let intHex = '#F6F6F6', extHex = '#F6F6F6';
+      const fbPrefix2 = isCasement ? 'c-' : '';
       const intOpt = document.querySelector(`${intSelector}[data-color="${intKey}"]`) ||
                      document.querySelector(`${intSelector}[data-name="${fc.colorInteriorName}"]`);
       if (intOpt) {
@@ -875,6 +915,14 @@
         if (intHex.startsWith('rgb')) { const m = intHex.match(/\d+/g); if (m) intHex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join(''); }
         document.querySelectorAll(intSelector).forEach(o => o.classList.remove('selected'));
         intOpt.classList.add('selected');
+      } else if (fc.colorInteriorName) {
+        // F&B fallback for interior
+        const fbSel = document.getElementById(fbPrefix2 + 'int-fb-select');
+        if (fbSel) {
+          const fbOpt = Array.from(fbSel.options).find(o => o.text.trim() === fc.colorInteriorName.trim());
+          if (fbOpt && fbOpt.value) { intHex = fbOpt.value; fbSel.value = fbOpt.value; }
+        }
+        console.log('[EDIT] Dual interior F&B fallback:', fc.colorInteriorName, intHex);
       }
       const extOpt = document.querySelector(`${extSelector}[data-color="${extKey}"]`) ||
                      document.querySelector(`${extSelector}[data-name="${fc.colorExteriorName}"]`);
@@ -883,6 +931,14 @@
         if (extHex.startsWith('rgb')) { const m = extHex.match(/\d+/g); if (m) extHex = '#' + m.slice(0,3).map(v => parseInt(v).toString(16).padStart(2,'0')).join(''); }
         document.querySelectorAll(extSelector).forEach(o => o.classList.remove('selected'));
         extOpt.classList.add('selected');
+      } else if (fc.colorExteriorName) {
+        // F&B fallback for exterior
+        const fbSel = document.getElementById(fbPrefix2 + 'ext-fb-select');
+        if (fbSel) {
+          const fbOpt = Array.from(fbSel.options).find(o => o.text.trim() === fc.colorExteriorName.trim());
+          if (fbOpt && fbOpt.value) { extHex = fbOpt.value; fbSel.value = fbOpt.value; }
+        }
+        console.log('[EDIT] Dual exterior F&B fallback:', fc.colorExteriorName, extHex);
       }
 
       if (window.currentConfig) {
