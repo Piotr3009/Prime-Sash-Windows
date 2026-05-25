@@ -213,6 +213,14 @@
       setRadio('color-type', fc.colorType || fc.colourMode);
       setTimeout(() => setWindowColor(fc), 200);
 
+      // Bars: restore sameBars checkbox FIRST (affects lower bars handler)
+      if (fc.sameBars === false) {
+        const sameChk = document.getElementById('same-bars-both-sashes');
+        if (sameChk && sameChk.checked) {
+          sameChk.checked = false;
+          sameChk.dispatchEvent(new Event('change', {bubbles: true}));
+        }
+      }
       // Bars (upper-bars and lower-bars are <select> elements, not radios)
       setSelect('upper-bars', fc.upperBars);
       setSelect('lower-bars', fc.lowerBars);

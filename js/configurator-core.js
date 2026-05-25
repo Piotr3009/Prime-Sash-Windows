@@ -29,7 +29,11 @@ class ConfiguratorCore {
           if (el) el.style.display = 'none';
         });
       } else {
-        this.loadSavedConfiguration();
+        // In edit mode, skip localStorage restore — edit-mode.js loads from DB
+        const isEditMode = window.location.search.includes('edit=');
+        if (!isEditMode) {
+          this.loadSavedConfiguration();
+        }
         this.updateAll();
       }
       
