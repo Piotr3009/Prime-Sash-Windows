@@ -209,9 +209,49 @@
       setRadio('opening-type', fc.openingType);
       setRadio('pas24', fc.pas24 === true || fc.pas24 === 'yes' ? 'yes' : 'no');
 
-      // Color
+      // Color — direct load like doors (no tile search)
       setRadio('color-type', fc.colorType || fc.colourMode);
-      setTimeout(() => setWindowColor(fc), 200);
+      const sashColorType = fc.colorType || fc.colourMode || 'single';
+      if (sashColorType === 'single') {
+        const hex = fc.woodColor || '#F6F6F6';
+        if (window.currentConfig) {
+          window.currentConfig.colorType = 'single';
+          window.currentConfig.colorSingle = fc.colorSingle || 'white';
+          window.currentConfig.colorSingleName = fc.colorSingleName || 'Pure White';
+          window.currentConfig.colorSingleRal = fc.colorSingleRal || '';
+          window.currentConfig.singleColor = fc.colorSingle || 'white';
+          window.currentConfig.woodColor = hex;
+          window.currentConfig.woodColorExt = hex;
+          window.currentConfig.woodColorInt = hex;
+          window.currentConfig.sameColor = true;
+        }
+        if (window.update3D) window.update3D({ woodColor: hex, sameColor: true });
+      } else if (sashColorType === 'dual') {
+        const hexInt = fc.woodColorInt || fc.woodColor || '#F6F6F6';
+        const hexExt = fc.woodColorExt || fc.woodColor || '#F6F6F6';
+        if (window.currentConfig) {
+          window.currentConfig.colorType = 'dual';
+          window.currentConfig.colorInteriorName = fc.colorInteriorName || '';
+          window.currentConfig.colorInteriorRal = fc.colorInteriorRal || '';
+          window.currentConfig.colorExteriorName = fc.colorExteriorName || '';
+          window.currentConfig.colorExteriorRal = fc.colorExteriorRal || '';
+          window.currentConfig.woodColorInt = hexInt;
+          window.currentConfig.woodColorExt = hexExt;
+          window.currentConfig.sameColor = false;
+        }
+        if (window.update3D) window.update3D({ woodColorInt: hexInt, woodColorExt: hexExt, sameColor: false });
+      }
+      // Fallback for old estimates without woodColor hex — try F&B dropdown
+      if (!fc.woodColor && fc.colorSingleName && sashColorType === 'single') {
+        const fbSel = document.getElementById('single-fb-select');
+        if (fbSel) {
+          const fbOpt = Array.from(fbSel.options).find(o => o.text.trim() === fc.colorSingleName.trim());
+          if (fbOpt && fbOpt.value) {
+            if (window.currentConfig) { window.currentConfig.woodColor = fbOpt.value; window.currentConfig.woodColorExt = fbOpt.value; window.currentConfig.woodColorInt = fbOpt.value; }
+            if (window.update3D) window.update3D({ woodColor: fbOpt.value, sameColor: true });
+          }
+        }
+      }
 
       // Bars: restore sameBars checkbox FIRST (affects lower bars handler)
       if (fc.sameBars === false) {
@@ -261,8 +301,12 @@
       // Ironmongery (gallery + 3D)
       restoreIronmongery(fc);
 
-      // Force recalculate
-      triggerUpdate();
+      // SAFETY NET: recalculate after all events settle + wait for DB prices
+      setTimeout(async () => {
+        if (window.pricingReadyPromise) await window.pricingReadyPromise;
+        triggerUpdate();
+        if (window.specificationController?.updateColourSpec) window.specificationController.updateColourSpec();
+      }, 800);
     }, 300);
   }
 
@@ -302,9 +346,24 @@
     // Spacer
     setRadio('spacer-color', fc.spacerColor || fc.spacer);
 
-    // Color (casement uses c-color-type)
+    // Color — direct load like doors (set casementColourState directly)
     setRadio('c-color-type', fc.colorType || fc.colourMode);
-    setTimeout(() => setWindowColor(fc, 'casement'), 200);
+    if (window.casementColourState) {
+      const isSingle = (fc.colorType || fc.colourMode || 'single') === 'single';
+      window.casementColourState.sameColor = isSingle;
+      window.casementColourState.woodColor = fc.woodColor || '#F6F6F6';
+      window.casementColourState.woodColorInt = fc.woodColorInt || fc.woodColor || '#F6F6F6';
+      window.casementColourState.woodColorExt = fc.woodColorExt || fc.woodColor || '#F6F6F6';
+    }
+    if (window.update3D) {
+      const isSingle = (fc.colorType || fc.colourMode || 'single') === 'single';
+      window.update3D({
+        woodColor: fc.woodColor || '#F6F6F6',
+        woodColorInt: fc.woodColorInt || fc.woodColor || '#F6F6F6',
+        woodColorExt: fc.woodColorExt || fc.woodColor || '#F6F6F6',
+        sameColor: isSingle
+      });
+    }
 
     // Seal, trickle (+ colour), sill
     setRadio('c-seal-colour', fc.sealColour || editItem.seal_colour);
@@ -333,7 +392,12 @@
     // Ironmongery
     restoreIronmongery(fc);
 
-    triggerUpdate();
+    // SAFETY NET: recalculate after all events settle + wait for DB prices
+    setTimeout(async () => {
+      if (window.pricingReadyPromise) await window.pricingReadyPromise;
+      if (window.updateCasementPrice) window.updateCasementPrice();
+      if (window.updateCasementSpec) window.updateCasementSpec();
+    }, 800);
   }
 
   // ══════════════════════════════════════════════

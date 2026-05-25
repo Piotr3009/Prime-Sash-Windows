@@ -835,6 +835,7 @@
   window.updateCasement3D = updateCasement3D;
   window.updateCasementSpec = updateSpecPanel;
   window.updateCasementPrice = updateCasementPrice;
+  window.casementColourState = casementColourState;
 
   // ─── Init ───
   function init() {

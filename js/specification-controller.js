@@ -280,6 +280,10 @@ class SpecificationController {
           window.currentConfig.colorSingleName = name;
           window.currentConfig.colorSingleRal = ral;
           window.currentConfig.colorType = 'single';
+          window.currentConfig.woodColor = hex;
+          window.currentConfig.woodColorExt = hex;
+          window.currentConfig.woodColorInt = hex;
+          window.currentConfig.sameColor = true;
         }
 
         // ✅ LIVE 3D update
@@ -311,12 +315,14 @@ class SpecificationController {
           window.currentConfig.colorInteriorName = name;
           window.currentConfig.colorInteriorRal = ral;
           window.currentConfig.colorType = 'dual';
+          window.currentConfig.sameColor = false;
         }
 
         // ✅ LIVE 3D update (interior)
         const hex = colorHexMap[color];
-        if (hex && typeof window.update3D === 'function') {
-          window.update3D({ woodColorInt: hex, sameColor: false });
+        if (hex) {
+          if (window.currentConfig) window.currentConfig.woodColorInt = hex;
+          if (typeof window.update3D === 'function') window.update3D({ woodColorInt: hex, sameColor: false });
         }
         if (window.configuratorCore && window.configuratorCore.isInitialized) {
           window.configuratorCore.updateAll();
@@ -341,12 +347,14 @@ class SpecificationController {
           window.currentConfig.colorExteriorName = name;
           window.currentConfig.colorExteriorRal = ral;
           window.currentConfig.colorType = 'dual';
+          window.currentConfig.sameColor = false;
         }
 
         // ✅ LIVE 3D update (exterior)
         const hex = colorHexMap[color];
-        if (hex && typeof window.update3D === 'function') {
-          window.update3D({ woodColorExt: hex, sameColor: false });
+        if (hex) {
+          if (window.currentConfig) window.currentConfig.woodColorExt = hex;
+          if (typeof window.update3D === 'function') window.update3D({ woodColorExt: hex, sameColor: false });
         }
         if (window.configuratorCore && window.configuratorCore.isInitialized) {
           window.configuratorCore.updateAll();
@@ -484,6 +492,10 @@ class SpecificationController {
             window.currentConfig.colorSingleRal = 'F&B ' + text;
             window.currentConfig.colorType = 'single';
             window.currentConfig.colorSingle = 'custom';
+            window.currentConfig.woodColor = hex;
+            window.currentConfig.woodColorExt = hex;
+            window.currentConfig.woodColorInt = hex;
+            window.currentConfig.sameColor = true;
           }
         } else if (target === 'interior') {
           document.getElementById('dual-preview-interior').textContent = text + ' (' + hex + ')';
@@ -491,6 +503,8 @@ class SpecificationController {
             window.currentConfig.colorInteriorName = text;
             window.currentConfig.colorInteriorRal = 'F&B ' + text;
             window.currentConfig.colorType = 'dual';
+            window.currentConfig.woodColorInt = hex;
+            window.currentConfig.sameColor = false;
           }
         } else if (target === 'exterior') {
           document.getElementById('dual-preview-exterior').textContent = text + ' (' + hex + ')';
@@ -498,6 +512,8 @@ class SpecificationController {
             window.currentConfig.colorExteriorName = text;
             window.currentConfig.colorExteriorRal = 'F&B ' + text;
             window.currentConfig.colorType = 'dual';
+            window.currentConfig.woodColorExt = hex;
+            window.currentConfig.sameColor = false;
           }
         }
         // Trigger price recalculation + spec update
@@ -525,13 +541,13 @@ class SpecificationController {
           if (target === 'single') {
             document.getElementById('single-preview-name').textContent = 'RAL ' + key;
             document.getElementById('single-preview-ral').textContent = hex;
-            if (window.currentConfig) { window.currentConfig.colorSingleName = 'RAL ' + key; window.currentConfig.colorSingleRal = 'RAL ' + key; window.currentConfig.colorSingle = 'custom'; window.currentConfig.colorType = 'single'; }
+            if (window.currentConfig) { window.currentConfig.colorSingleName = 'RAL ' + key; window.currentConfig.colorSingleRal = 'RAL ' + key; window.currentConfig.colorSingle = 'custom'; window.currentConfig.colorType = 'single'; window.currentConfig.woodColor = hex; window.currentConfig.woodColorExt = hex; window.currentConfig.woodColorInt = hex; window.currentConfig.sameColor = true; }
           } else if (target === 'interior') {
             document.getElementById('dual-preview-interior').textContent = 'RAL ' + key + ' (' + hex + ')';
-            if (window.currentConfig) { window.currentConfig.colorInteriorName = 'RAL ' + key; window.currentConfig.colorInteriorRal = 'RAL ' + key; window.currentConfig.colorType = 'dual'; }
+            if (window.currentConfig) { window.currentConfig.colorInteriorName = 'RAL ' + key; window.currentConfig.colorInteriorRal = 'RAL ' + key; window.currentConfig.colorType = 'dual'; window.currentConfig.woodColorInt = hex; window.currentConfig.sameColor = false; }
           } else if (target === 'exterior') {
             document.getElementById('dual-preview-exterior').textContent = 'RAL ' + key + ' (' + hex + ')';
-            if (window.currentConfig) { window.currentConfig.colorExteriorName = 'RAL ' + key; window.currentConfig.colorExteriorRal = 'RAL ' + key; window.currentConfig.colorType = 'dual'; }
+            if (window.currentConfig) { window.currentConfig.colorExteriorName = 'RAL ' + key; window.currentConfig.colorExteriorRal = 'RAL ' + key; window.currentConfig.colorType = 'dual'; window.currentConfig.woodColorExt = hex; window.currentConfig.sameColor = false; }
           }
           // Trigger price recalculation + spec update
           if (window.configuratorCore && window.configuratorCore.isInitialized) {
