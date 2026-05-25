@@ -4571,6 +4571,18 @@
         };
       };
 
+      // Expose setter for edit-mode to load custom bar positions from DB
+      window.setCustomBars = function(upper, lower) {
+        upperCustom.length = 0;
+        lowerCustom.length = 0;
+        if (Array.isArray(upper)) upper.forEach(function(b) { upperCustom.push({type: b.type, mm: b.mm}); });
+        if (Array.isArray(lower)) lower.forEach(function(b) { lowerCustom.push({type: b.type, mm: b.mm}); });
+        renderList(upperCustom, document.getElementById('upper-custom-list'), function(b){upperCustom=b;});
+        renderList(lowerCustom, document.getElementById('lower-custom-list'), function(b){lowerCustom=b;});
+        updateAddBtns();
+        liveUpdate();
+      };
+
       togglePanels();
     })();
   </script>

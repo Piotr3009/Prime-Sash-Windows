@@ -264,7 +264,7 @@
       setSelect('upper-bars', fc.upperBars);
       setSelect('lower-bars', fc.lowerBars);
 
-      // Custom bars: restore positions via barsController + update 3D
+      // Custom bars: restore positions via barsController + local arrays + 3D
       if (fc.upperBars === 'custom' || fc.lowerBars === 'custom') {
         // Convert flat format [{type,mm}] to nested {horizontal:[], vertical:[]} for barsController
         const flatToNested = (arr) => {
@@ -274,10 +274,27 @@
             vertical: arr.filter(b => b.type === 'v').map(b => ({ type: 'v', mm: b.mm }))
           };
         };
-        // Get bar data from whichever format exists
-        const upperNested = (fc.customBars && fc.customBars.upper) || flatToNested(fc.upperCustomBars);
-        const lowerNested = (fc.customBars && fc.customBars.lower) || flatToNested(fc.lowerCustomBars);
+        // Get flat format for local arrays + 3D
+        const getCustomFlat = (nested, flat) => {
+          if (flat && Array.isArray(flat) && flat.length > 0) return flat;
+          if (nested) {
+            const result = [];
+            if (nested.horizontal) nested.horizontal.forEach(b => result.push({ type: 'h', mm: b.mm }));
+            if (nested.vertical) nested.vertical.forEach(b => result.push({ type: 'v', mm: b.mm }));
+            return result;
+          }
+          return [];
+        };
+        const upperFlat = getCustomFlat(fc.customBars?.upper, fc.upperCustomBars);
+        const lowerFlat = getCustomFlat(fc.customBars?.lower, fc.lowerCustomBars);
 
+        // 1. Populate LOCAL arrays in IIFE (for liveUpdate + getCustomBars to work)
+        if (window.setCustomBars) {
+          window.setCustomBars(upperFlat, lowerFlat);
+        }
+        // 2. Set barsController internal state (for canvas preview)
+        const upperNested = (fc.customBars && fc.customBars.upper) || flatToNested(upperFlat);
+        const lowerNested = (fc.customBars && fc.customBars.lower) || flatToNested(lowerFlat);
         if (window.barsController) {
           window.barsController.setState({
             upper: { pattern: fc.upperBars || 'none', bars: upperNested },
@@ -286,24 +303,18 @@
         }
       }
       // Send bars to 3D (works for all patterns incl. custom)
-      // Get flat format for 3D from whichever source exists
-      const getCustomFlat = (nested, flat) => {
-        if (flat && Array.isArray(flat) && flat.length > 0) return flat;
-        if (nested) {
-          const result = [];
-          if (nested.horizontal) nested.horizontal.forEach(b => result.push({ type: 'h', mm: b.mm }));
-          if (nested.vertical) nested.vertical.forEach(b => result.push({ type: 'v', mm: b.mm }));
-          return result;
-        }
-        return [];
-      };
       if (window.update3D) {
+        const getFlat = (nested, flat) => {
+          if (flat && Array.isArray(flat) && flat.length > 0) return flat;
+          if (nested) { const r = []; if (nested.horizontal) nested.horizontal.forEach(b => r.push({type:'h',mm:b.mm})); if (nested.vertical) nested.vertical.forEach(b => r.push({type:'v',mm:b.mm})); return r; }
+          return [];
+        };
         window.update3D({
           upperBars: fc.upperBars || 'none',
           lowerBars: fc.lowerBars || 'none',
           sameBars: fc.sameBars !== undefined ? fc.sameBars : true,
-          upperCustomBars: getCustomFlat(fc.customBars?.upper, fc.upperCustomBars),
-          lowerCustomBars: getCustomFlat(fc.customBars?.lower, fc.lowerCustomBars)
+          upperCustomBars: getFlat(fc.customBars?.upper, fc.upperCustomBars),
+          lowerCustomBars: getFlat(fc.customBars?.lower, fc.lowerCustomBars)
         });
       }
 
