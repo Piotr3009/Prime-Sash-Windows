@@ -607,6 +607,21 @@
           window.doorColourState.colorExtName = fc.colorExteriorName || '';
           window.doorColourState.colorExtRal = fc.colorExteriorRal || '';
         }
+        // Door hint + preview (same approach as sash updateSpecColor)
+        const dHint = document.getElementById('hint-door-colour');
+        const isSingle = fc.sameColor !== undefined ? fc.sameColor : (fc.colorType === 'single');
+        if (dHint) dHint.textContent = isSingle ? (fc.colorSingleName || 'White') : 'Dual Colour';
+        if (isSingle) {
+          const dp = document.getElementById('d-single-preview-name');
+          const dr = document.getElementById('d-single-preview-ral');
+          if (dp) dp.textContent = fc.colorSingleName || 'Pure White';
+          if (dr) dr.textContent = fc.colorSingleRal || '';
+        } else {
+          const dpi = document.getElementById('d-dual-preview-interior');
+          const dpe = document.getElementById('d-dual-preview-exterior');
+          if (dpi) dpi.textContent = (fc.colorInteriorName || '') + (fc.colorInteriorRal ? ' (' + fc.colorInteriorRal + ')' : '');
+          if (dpe) dpe.textContent = (fc.colorExteriorName || '') + (fc.colorExteriorRal ? ' (' + fc.colorExteriorRal + ')' : '');
+        }
 
         // Ironmongery
         restoreIronmongery(fc);
