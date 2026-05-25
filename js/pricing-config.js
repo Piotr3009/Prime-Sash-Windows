@@ -1,12 +1,11 @@
 // pricing-config.js - Zaawansowana konfiguracja cennika
 const pricingConfig = {
   // Cena bazowa za m²
-  basePricePerSqm: 850,
+  basePricePerSqm: 750,
   
   // Mnożniki degresywne - im większe okno, tym taniej za m²
   sizeMultipliers: [
-    { maxSqm: 0.8, multiplier: 1.25 },   // małe okna +25%
-    { maxSqm: 1.0, multiplier: 1.0 },    // bazowa cena
+    { maxSqm: 1.0, multiplier: 1.35 },   // małe okna +35%
     { maxSqm: 1.5, multiplier: 0.95 },   // -5%
     { maxSqm: 2.0, multiplier: 0.9 },    // -10%
     { maxSqm: 3.0, multiplier: 0.85 },   // -15%
@@ -36,7 +35,7 @@ const pricingConfig = {
     // Frame
     frameTypes: {
       'standard': 0,      // bez dopłaty
-      'slim': 100         // +100£ za slim frame
+      'slim': 180         // +180£ za slim frame
     },
     
     // Glass - ŁADOWANE Z DB
@@ -90,7 +89,7 @@ const pricingConfig = {
     // Color surcharges - nieużywane, obsługiwane bezpośrednio w price-calculator
     colorSurcharges: {
       'white': 0,         // Pure White - bez dopłaty
-      'oak': 0.20,        // Oak - +20%
+      'oak': 0.30,        // Oak - +30%
       'custom': 0.10,     // Custom Color - +10%
       'other': 0.05       // Inne kolory - +5%
     },
@@ -131,7 +130,7 @@ const pricingConfig = {
   casement: {
     basePriceMin: 300,         // minimum £300 (0.5 sqm)
     basePricePerSqm: 300,      // £300 per additional sqm above 1
-    firstSqmPrice: 600,        // first sqm = £600
+    firstSqmPrice: 500,        // first sqm = £500
     mullionPrice: 150,         // per mullion
     transomPrice: 200,         // per transom
     sashPrice: 50,             // per opening sash (operable panel)
