@@ -213,7 +213,7 @@
       setRadio('color-type', fc.colorType || fc.colourMode);
       const sashColorType = fc.colorType || fc.colourMode || 'single';
       if (sashColorType === 'single') {
-        const hex = fc.woodColor || '#F6F6F6';
+        const hex = fc.woodColor || lookupColorHex(fc.colorSingle, fc.colorSingleName, 'single') || '#F6F6F6';
         if (window.currentConfig) {
           window.currentConfig.colorType = 'single';
           window.currentConfig.colorSingle = fc.colorSingle || 'white';
@@ -227,8 +227,9 @@
         }
         if (window.update3D) window.update3D({ woodColor: hex, sameColor: true });
       } else if (sashColorType === 'dual') {
-        const hexInt = fc.woodColorInt || fc.woodColor || '#F6F6F6';
-        const hexExt = fc.woodColorExt || fc.woodColor || '#F6F6F6';
+        // For old estimates: look up hex from color key or F&B name
+        const hexInt = fc.woodColorInt || fc.woodColor || lookupColorHex(fc.colorInterior, fc.colorInteriorName, 'int') || '#F6F6F6';
+        const hexExt = fc.woodColorExt || fc.woodColor || lookupColorHex(fc.colorExterior, fc.colorExteriorName, 'ext') || '#F6F6F6';
         if (window.currentConfig) {
           window.currentConfig.colorType = 'dual';
           window.currentConfig.colorInteriorName = fc.colorInteriorName || '';
@@ -241,15 +242,12 @@
         }
         if (window.update3D) window.update3D({ woodColorInt: hexInt, woodColorExt: hexExt, sameColor: false });
       }
-      // Fallback for old estimates without woodColor hex — try F&B dropdown
+      // Fallback for old estimates without woodColor hex — try lookup
       if (!fc.woodColor && fc.colorSingleName && sashColorType === 'single') {
-        const fbSel = document.getElementById('single-fb-select');
-        if (fbSel) {
-          const fbOpt = Array.from(fbSel.options).find(o => o.text.trim() === fc.colorSingleName.trim());
-          if (fbOpt && fbOpt.value) {
-            if (window.currentConfig) { window.currentConfig.woodColor = fbOpt.value; window.currentConfig.woodColorExt = fbOpt.value; window.currentConfig.woodColorInt = fbOpt.value; }
-            if (window.update3D) window.update3D({ woodColor: fbOpt.value, sameColor: true });
-          }
+        const fallbackHex = lookupColorHex(fc.colorSingle, fc.colorSingleName, 'single');
+        if (fallbackHex) {
+          if (window.currentConfig) { window.currentConfig.woodColor = fallbackHex; window.currentConfig.woodColorExt = fallbackHex; window.currentConfig.woodColorInt = fallbackHex; }
+          if (window.update3D) window.update3D({ woodColor: fallbackHex, sameColor: true });
         }
       }
 
@@ -350,17 +348,21 @@
     setRadio('c-color-type', fc.colorType || fc.colourMode);
     if (window.casementColourState) {
       const isSingle = (fc.colorType || fc.colourMode || 'single') === 'single';
+      const casHex = fc.woodColor || lookupColorHex(fc.colorSingle, fc.colorSingleName, 'single', 'c-') || '#F6F6F6';
+      const casHexInt = fc.woodColorInt || (isSingle ? casHex : (lookupColorHex(fc.colorInterior, fc.colorInteriorName, 'int', 'c-') || '#F6F6F6'));
+      const casHexExt = fc.woodColorExt || (isSingle ? casHex : (lookupColorHex(fc.colorExterior, fc.colorExteriorName, 'ext', 'c-') || '#F6F6F6'));
       window.casementColourState.sameColor = isSingle;
-      window.casementColourState.woodColor = fc.woodColor || '#F6F6F6';
-      window.casementColourState.woodColorInt = fc.woodColorInt || fc.woodColor || '#F6F6F6';
-      window.casementColourState.woodColorExt = fc.woodColorExt || fc.woodColor || '#F6F6F6';
+      window.casementColourState.woodColor = casHex;
+      window.casementColourState.woodColorInt = casHexInt;
+      window.casementColourState.woodColorExt = casHexExt;
     }
     if (window.update3D) {
       const isSingle = (fc.colorType || fc.colourMode || 'single') === 'single';
+      const casHex = fc.woodColor || lookupColorHex(fc.colorSingle, fc.colorSingleName, 'single', 'c-') || '#F6F6F6';
       window.update3D({
-        woodColor: fc.woodColor || '#F6F6F6',
-        woodColorInt: fc.woodColorInt || fc.woodColor || '#F6F6F6',
-        woodColorExt: fc.woodColorExt || fc.woodColor || '#F6F6F6',
+        woodColor: casHex,
+        woodColorInt: fc.woodColorInt || casHex,
+        woodColorExt: fc.woodColorExt || casHex,
         sameColor: isSingle
       });
     }
@@ -764,6 +766,22 @@
   // ══════════════════════════════════════════════
   // ═══ HELPERS ══════════════════════════════════
   // ══════════════════════════════════════════════
+
+  // Color hex lookup for old estimates that don't have woodColor saved
+  const BASIC_COLOR_HEX = { white: '#FAFAFA', black: '#0A0A0A', anthracite: '#293133', olive: '#424632', offwhite: '#F7F9F5', cream: '#F1EFDC', burgundy: '#5E2028', royal: '#222D5A', oak: '#8B6914' };
+  function lookupColorHex(colorKey, colorName, target, prefix) {
+    // 1. Basic color map
+    if (colorKey && BASIC_COLOR_HEX[colorKey]) return BASIC_COLOR_HEX[colorKey];
+    // 2. F&B dropdown by name (sash: single-fb-select, casement: c-single-fb-select)
+    const p = prefix || '';
+    const fbId = target === 'int' ? (p + 'int-fb-select') : target === 'ext' ? (p + 'ext-fb-select') : (p + 'single-fb-select');
+    const fbSel = document.getElementById(fbId);
+    if (fbSel && colorName) {
+      const fbOpt = Array.from(fbSel.options).find(o => o.text.trim() === colorName.trim());
+      if (fbOpt && fbOpt.value) return fbOpt.value;
+    }
+    return null;
+  }
 
   function setRadio(name, value) {
     if (value === undefined || value === null) return;
