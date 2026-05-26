@@ -389,14 +389,14 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
    Design base: ~1500px. Below that, zoom out to fit.
    ============================================================ */
 @media (max-width: 1499px) and (min-width: 1300px) {
-  html { zoom: 0.92; }
+  body { zoom: 0.92; }
 }
 @media (max-width: 1299px) and (min-width: 1100px) {
-  html { zoom: 0.80; }
+  body { zoom: 0.80; }
 }
 @media (max-width: 1099px) and (min-width: 900px) {
-  html { zoom: 0.70; }
+  body { zoom: 0.70; }
 }
 @media (max-width: 899px) and (min-width: 750px) {
-  html { zoom: 0.60; }
+  body { zoom: 0.60; }
 }
