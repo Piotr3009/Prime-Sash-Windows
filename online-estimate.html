@@ -4406,6 +4406,14 @@
       .configurator-grid { flex: none !important; min-height: auto !important; }
       .configurator-preview { min-height: 50vh; max-height: 60vh; overflow: hidden !important; }
     }
+    /* Laptop: restore full-screen app mode (override mobile unlock above) */
+    @media (max-width: 1024px) and (min-width: 769px) {
+      html, body { height: 100% !important; overflow: hidden !important; }
+      body { display: flex !important; flex-direction: column !important; }
+      main.container { flex: 1 !important; min-height: 0 !important; display: flex !important; flex-direction: column !important; }
+      .configurator-grid { flex: 1 !important; min-height: 0 !important; }
+      .configurator-preview { min-height: 0 !important; max-height: none !important; }
+    }
   </style>
   <script type="module" src="3d/assets/window3d.js?v=49"></script>
   <script>

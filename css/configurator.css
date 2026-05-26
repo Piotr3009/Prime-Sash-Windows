@@ -2446,3 +2446,53 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
     height: 30px;
   }
 }
+/* ============================================================
+   LAPTOP RESPONSIVE (982px–1366px)
+   Keep 3-column layout, just smaller columns
+   ============================================================ */
+/* Between 1025px and 1366px: reduce column widths (spec already drawer from 1400px) */
+@media (max-width: 1366px) and (min-width: 1025px) {
+  .configurator-grid {
+    grid-template-columns: 200px 340px 1fr !important;
+  }
+}
+
+/* Between 769px and 1024px: override stacking, keep 3-column grid for laptops */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .configurator-grid {
+    grid-template-columns: 170px 300px 1fr !important;
+    grid-template-areas:
+      "sidebar options preview"
+      "infobox options preview" !important;
+    height: 100% !important;
+  }
+
+  /* Keep sidebar vertical (override 1024px horizontal) */
+  .config-sidebar {
+    flex-direction: column !important;
+    padding: 12px 8px !important;
+  }
+  .sidebar-label { display: block !important; }
+  .cat-hint { display: block !important; }
+  .cat-btn {
+    border-left: 3px solid transparent !important;
+    border-bottom: none !important;
+    font-size: 0.7rem !important;
+    padding: 8px 10px !important;
+  }
+  .cat-btn.active {
+    border-left-color: var(--secondary-color) !important;
+  }
+
+  /* Sidebar price */
+  .sidebar-price {
+    margin-top: auto !important;
+    margin-left: 0 !important;
+    border-top: 1px solid rgba(255,255,255,.08) !important;
+    border-left: none !important;
+    flex-direction: column !important;
+    padding: 12px 8px !important;
+  }
+  .sidebar-price-label { display: block !important; }
+  .sidebar-price-value { font-size: 1.2rem !important; }
+}
