@@ -2451,7 +2451,7 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
    Keep 3-column layout, just smaller columns
    ============================================================ */
 /* Between 1025px and 1366px: reduce column widths (spec already drawer from 1400px) */
-@media (max-width: 1366px) and (min-width: 1025px) {
+@media (max-width: 1500px) and (min-width: 1025px) {
   .configurator-grid {
     grid-template-columns: 200px 340px 1fr !important;
   }
