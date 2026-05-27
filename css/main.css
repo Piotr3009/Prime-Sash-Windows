@@ -115,12 +115,12 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 
 /* 2-ROW NAV */
 .nav-rows { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
-.nav-row { list-style: none; display: flex; gap: 2rem; justify-content: flex-end; margin: 0; padding: 0; }
+.nav-row { list-style: none; display: flex; gap: 1.2rem; justify-content: flex-end; margin: 0; padding: 0; }
 
 /* Row 1 — primary, brighter */
-.nav-row:first-child li + li { border-left: 1px solid rgba(158,158,144,.2); padding-left: 2rem; }
+.nav-row:first-child li + li { border-left: 1px solid rgba(158,158,144,.2); padding-left: 1.2rem; }
 .nav-row:first-child a {
-  font-size: .78rem; font-weight: 400; letter-spacing: .25em;
+  font-size: .72rem; font-weight: 400; letter-spacing: .18em;
   text-transform: uppercase; text-decoration: none;
   color: rgba(255,255,255,.75); transition: color .3s; position: relative;
   white-space: nowrap;
@@ -133,7 +133,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 .nav-row:first-child a:hover::after, .nav-row:first-child a.active::after { width: 100%; }
 
 /* Row 2 — secondary, subtler */
-.nav-row:nth-child(2) li + li { border-left: 1px solid rgba(158,158,144,.1); padding-left: 2rem; }
+.nav-row:nth-child(2) li + li { border-left: 1px solid rgba(158,158,144,.1); padding-left: 1.2rem; }
 .nav-row:nth-child(2) a {
   font-size: .70rem; font-weight: 300; letter-spacing: .2em;
   text-transform: uppercase; text-decoration: none;
@@ -333,7 +333,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
    RESPONSIVE
    ============================================================ */
 /* Nav — laptop compact (smaller fonts, hide less important links) */
-@media (max-width: 1500px) {
+@media (max-width: 1920px) {
   #if-nav { padding: 0 2vw; min-height: 60px; }
   .logo { font-size: 0.95rem; letter-spacing: .35em; }
   .logo-wrap .silver-line { min-width: 140px; }
@@ -346,7 +346,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
   /* Hide less important Row 1 links: History(2), Why Not Buy(3), Certifications(5) */
   .nav-row:first-child li:nth-child(2),
   .nav-row:first-child li:nth-child(3),
-  .nav-row:first-child li:nth-child(5) { display: none; }
+  .nav-row:first-child li:nth-child(5) { display: none !important; }
 }
 
 /* Nav → hamburger (phones + small tablets only) */
