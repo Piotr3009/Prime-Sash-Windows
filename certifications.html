@@ -12,10 +12,10 @@
 </script>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta name="description" content="Certifications, technology and manufacturing behind Prime Sash Windows. FENSA, PAS24, Made in Britain certified. Lignum system by The Joinery Network."/>
-    <title>Certifications & Technology | Prime Sash Windows</title>
-    <meta property="og:title" content="Certifications & Technology | Prime Sash Windows"/>
-    <meta property="og:description" content="FENSA, PAS24, Made in Britain. Lignum timber window system. Premium manufacturing technology."/>
+    <meta name="description" content="Certifications, warranty and manufacturing behind Prime Sash Windows. FENSA, PAS24, Made in Britain. 10-year comprehensive warranty with personalised certificate."/>
+    <title>Certifications & Warranty | Prime Sash Windows</title>
+    <meta property="og:title" content="Certifications & Warranty | Prime Sash Windows"/>
+    <meta property="og:description" content="FENSA, PAS24, Made in Britain. 10-year warranty. Lignum timber window system. Premium manufacturing."/>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -67,6 +67,19 @@
     .warranty-box h3{font-family:'Jost',sans-serif;font-size:.98rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--navy);margin:0 0 1.2rem;}
     .warranty-box p{font-family:'Jost',sans-serif;font-size:1.10rem;line-height:2;color:var(--muted);margin:0;}
     .warranty-box strong{color:var(--navy);}
+    .w-table{width:100%;border-collapse:collapse;margin:2rem 0;font-family:'Jost',sans-serif;}
+    .w-table th{background:var(--navy);color:rgba(255,255,255,.85);padding:12px 16px;text-align:left;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;}
+    .w-table td{padding:12px 16px;border-bottom:1px solid rgba(10,22,40,.08);font-size:.95rem;color:var(--muted);}
+    .w-table tr:nth-child(even) td{background:rgba(247,247,243,.6);}
+    .w-table .period{font-weight:600;color:var(--navy);white-space:nowrap;}
+    .cert-preview{background:var(--cream2);border:1px solid rgba(158,158,144,.3);padding:3rem 2.5rem;margin:2.5rem 0;text-align:center;position:relative;overflow:hidden;}
+    .cert-preview::before{content:'';position:absolute;top:8px;left:8px;right:8px;bottom:8px;border:1px solid rgba(158,158,144,.25);pointer-events:none;}
+    .cert-preview .cp-logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;letter-spacing:5px;text-transform:uppercase;color:var(--navy);margin-bottom:.5rem;}
+    .cert-preview .cp-title{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:400;letter-spacing:4px;text-transform:uppercase;color:var(--navy);margin:1rem 0 .3rem;}
+    .cert-preview .cp-sub{font-family:'Jost',sans-serif;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);}
+    .cert-preview .cp-years{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--navy);margin:1.5rem 0 .2rem;}
+    .cert-preview .cp-years-label{font-family:'Jost',sans-serif;font-size:.6rem;letter-spacing:4px;text-transform:uppercase;color:var(--silver);}
+    .cert-preview .cp-sample{font-family:'Jost',sans-serif;font-size:.7rem;color:var(--silver);letter-spacing:1px;margin-top:1.5rem;font-style:italic;}
     .cta-section{text-align:center;padding:4rem 2rem;border-top:1px solid rgba(158,158,144,.2);}
     .cta-section h2{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:2.25rem;color:var(--navy);margin:0 0 1rem;}
     .cta-section p{font-family:'Jost',sans-serif;font-size:1.10rem;color:var(--muted);margin:0 0 2rem;}
@@ -96,7 +109,7 @@
       <li><a href="sash-windows-history.html" data-page="sash-windows-history">Sash Windows History</a></li>
       <li><a href="why-not-sash-windows.html" data-page="why-not">Why You Shouldn’t Buy</a></li>
       <li><a href="faq-top-companies.html" data-page="faq-top">FAQ &amp; Top Companies</a></li>
-      <li><a href="certifications.html" data-page="cert">Certifications &amp; Technology</a></li>
+      <li><a href="certifications.html" data-page="cert">Certifications &amp; Warranty</a></li>
       <li><a href="online-estimate.html" data-page="online" style="background:linear-gradient(135deg,#C0C0C0,#E8E8E8,#B0B0B0);color:var(--navy);padding:.35rem 1rem;font-weight:600;letter-spacing:.2em;border-radius:2px;">Online Estimate &amp; 3D</a></li>
     </ul>
     <ul class="nav-row" id="nav-row-2">
@@ -115,7 +128,7 @@
   <a href="sash-windows-history.html">Sash Windows History</a>
   <a href="why-not-sash-windows.html">Why You Shouldn’t Buy</a>
   <a href="faq-top-companies.html">FAQ &amp; Top Companies</a>
-  <a href="certifications.html">Certifications &amp; Technology</a>
+  <a href="certifications.html">Certifications &amp; Warranty</a>
   <a href="online-estimate.html">Online Estimate &amp; 3D</a>
   <a href="guides.html">Guides</a>
   <a href="measurement-guide.html">Measurement Guide</a>
@@ -242,11 +255,41 @@
   <!-- WARRANTY -->
   <div class="cert-section" id="warranty">
     <p class="section-eyebrow">Your Guarantee</p>
-    <h2 class="section-h2">Comprehensive Warranty</h2>
-    <div class="warranty-box">
-      <h3>Standard Warranty</h3>
-      <p><strong>10 years</strong> on all windows as standard — covering frames, sashes, and all structural components. <strong>3 years</strong> on the paint finish (excluding mechanical damage). For Accoya timber, <strong>50 years</strong> warranty on the wood itself against rot and fungal decay. After installation, every customer receives a <strong>written guarantee document</strong>. Our warranties are insurance-backed through our FENSA registration. As members of The Joinery Network and part of the Skylon Group, your guarantee is backed by an established business — not a sole trader who might disappear.</p>
+    <h2 class="section-h2" id="warranty">10-Year Comprehensive Warranty</h2>
+    <p class="section-text">Every window and door we manufacture comes with a <strong>personalised Certificate of Warranty</strong> — a formal document detailing your coverage, product specification, and warranty number. This is not a generic printout. It is a bespoke certificate issued for your project, backed by Skylon Joinery LTD.</p>
+
+    <div class="cert-preview">
+      <div class="cp-logo">Prime Sash Windows</div>
+      <div style="width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--silver),transparent);margin:0.8rem auto;"></div>
+      <div class="cp-title">Certificate of Warranty</div>
+      <div class="cp-sub">Product Warranty</div>
+      <div style="margin:1.2rem auto;width:100%;max-width:340px;text-align:left;font-family:'Jost',sans-serif;font-size:.85rem;color:var(--muted);line-height:2.2;">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(158,158,144,.2);padding:4px 0;"><span style="font-size:.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--silver);">Client Name</span><span style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--navy);">Your Name</span></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(158,158,144,.2);padding:4px 0;"><span style="font-size:.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--silver);">Property</span><span style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--navy);">Your Address</span></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(158,158,144,.2);padding:4px 0;"><span style="font-size:.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--silver);">Product</span><span style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--navy);">Your Windows & Doors</span></div>
+      </div>
+      <div class="cp-years">10 Years</div>
+      <div class="cp-years-label">Comprehensive Warranty</div>
+      <div class="cp-sample">Sample certificate — your personalised version is issued upon manufacture</div>
     </div>
+
+    <h3 style="font-family:'Jost',sans-serif;font-size:.9rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--navy);margin:2rem 0 1rem;">Warranty Coverage</h3>
+    <table class="w-table">
+      <tr><th>Component</th><th>Period</th><th>Coverage</th></tr>
+      <tr><td>Timber Frame, Sashes & Joinery</td><td class="period">10 Years</td><td>Structural integrity against defects in material and workmanship</td></tr>
+      <tr><td>Sealed Glass Units (IGU)</td><td class="period">10 Years</td><td>Internal condensation (misting) from seal failure</td></tr>
+      <tr><td>Factory-Applied Paint Finish</td><td class="period">5 Years</td><td>Peeling, flaking, blistering, or abnormal discolouration</td></tr>
+      <tr><td>Ironmongery & Hardware</td><td class="period">Per Manufacturer</td><td>Typically 5–10 years, facilitated by PSW</td></tr>
+      <tr><td>Weatherseals & Gaskets</td><td class="period">5 Years</td><td>Failure of sealing function under normal conditions</td></tr>
+      <tr><td>Draught-Proofing System</td><td class="period">5 Years</td><td>Parting beads, staff beads, spiral balances</td></tr>
+    </table>
+
+    <div class="warranty-box">
+      <h3>Maintenance Keeps Your Warranty Valid</h3>
+      <p>We require maintenance at least <strong>every two years</strong> — inspection of timber surfaces, re-coating where needed, lubrication of moving parts, and checking weatherseals. A full maintenance guide is included with your warranty certificate. Products manufactured from <strong>Accoya timber</strong> carry an additional <strong>50-year warranty</strong> against rot and fungal decay from the timber manufacturer.</p>
+    </div>
+
+    <p class="section-text">Our warranties are backed by Skylon Joinery LTD (Company No. 12946103), registered in England & Wales. As members of <strong>The Joinery Network</strong> and <strong>Made in Britain</strong>, your warranty is backed by an established manufacturer — not a sole trader.</p>
   </div>
 
   <div class="cta-section">
@@ -271,7 +314,7 @@
       <li><a href="sash-windows-history.html">Sash Windows History</a></li>
       <li><a href="why-not-sash-windows.html">Why You Shouldn’t Buy</a></li>
       <li><a href="faq-top-companies.html">FAQ &amp; Top Companies</a></li>
-      <li><a href="certifications.html">Certifications &amp; Technology</a></li>
+      <li><a href="certifications.html">Certifications &amp; Warranty</a></li>
       <li><a href="online-estimate.html">Online Estimate &amp; 3D</a></li>
       <li><a href="guides.html">Guides</a></li>
       <li><a href="gallery.html">Gallery</a></li>
