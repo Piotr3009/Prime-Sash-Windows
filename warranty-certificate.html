@@ -129,7 +129,7 @@
   /* Logo */
   .logo-block {
     text-align: center;
-    margin-bottom: 6mm;
+    margin-bottom: 4mm;
   }
   .logo-text {
     font-family: 'Cormorant Garamond', serif;
@@ -176,14 +176,14 @@
 
   /* Certificate details */
   .cert-details {
-    margin-top: 12mm;
+    margin-top: 8mm;
     width: 130mm;
   }
   .cert-row {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    padding: 3mm 0;
+    padding: 2.5mm 0;
     border-bottom: 0.5px solid var(--border);
   }
   .cert-label {
@@ -204,9 +204,9 @@
 
   /* Warranty period highlight */
   .warranty-highlight {
-    margin-top: 10mm;
+    margin-top: 6mm;
     text-align: center;
-    padding: 6mm 10mm;
+    padding: 5mm 10mm;
     background: var(--navy);
     color: white;
     position: relative;
@@ -270,8 +270,8 @@
     justify-content: center;
     gap: 12mm;
     align-items: center;
-    margin-top: 8mm;
-    padding-top: 5mm;
+    margin-top: 6mm;
+    padding-top: 4mm;
     border-top: 0.5px solid var(--border);
     width: 130mm;
   }
@@ -622,7 +622,7 @@
     <div class="gold-line"></div>
 
     <div class="cert-title">Certificate of Warranty</div>
-    <div class="cert-subtitle">Product &amp; Installation Guarantee</div>
+    <div class="cert-subtitle">Product Warranty</div>
 
     <div class="cert-details">
       <div class="cert-row">
@@ -660,11 +660,7 @@
       <div class="warranty-years-label">Comprehensive Warranty</div>
     </div>
 
-    <div class="signature-area">
-      <div class="sig-block">
-        <div class="sig-line"></div>
-        <div class="sig-label">Director — Skylon Joinery LTD</div>
-      </div>
+    <div class="signature-area" style="justify-content:center;">
       <div class="sig-block">
         <div class="sig-line"></div>
         <div class="sig-label">Date of Issue</div>
@@ -673,12 +669,11 @@
 
     <div class="cert-logos">
       <div class="cert-logo-item">
-        <img src="img/MIB/the joinery.webp" alt="The Joinery Network" style="height:18mm; width:auto; object-fit:contain;">
+        <img src="img/MIB/the joinery.webp" alt="The Joinery Network" style="height:14mm; width:auto; object-fit:contain;">
       </div>
       <div class="cert-logo-item">
-        <img src="img/MIB/mib-colour.jpg" alt="Made in Britain" style="height:16mm; width:auto; object-fit:contain;">
+        <img src="img/MIB/mib-colour.jpg" alt="Made in Britain" style="height:12mm; width:auto; object-fit:contain;">
       </div>
-
     </div>
 
     <div class="page-footer">
@@ -741,11 +736,6 @@
         <td class="period">5 Years</td>
         <td>Parting beads, staff beads, and spiral balances (sash windows) against manufacturing defect. Excludes wear from normal operation and adjustment.</td>
       </tr>
-      <tr>
-        <td>Installation Workmanship</td>
-        <td class="period">10 Years</td>
-        <td>Defects arising directly from installation carried out by Skylon Joinery LTD operatives. Excludes issues caused by building movement, structural defects, or third-party alterations.</td>
-      </tr>
     </tbody>
   </table>
 
@@ -762,7 +752,7 @@
     <li>Any modification, alteration, repair, or painting carried out by any party other than Skylon Joinery LTD without prior written consent.</li>
     <li>Failure to carry out the required maintenance programme as detailed in this document.</li>
     <li>Movement or settlement of the building structure affecting window or door openings.</li>
-    <li>Products installed at properties outside of the United Kingdom.</li>
+    <li>Products located at properties outside of the United Kingdom.</li>
     <li>Minor cosmetic imperfections in timber that do not affect performance (e.g. natural knots, grain variation, minor colour differences between units).</li>
     <li>Damage from unsuitable cleaning agents, abrasive materials, or pressure washers.</li>
     <li>Problems resulting from inadequate ventilation within the property.</li>
@@ -861,7 +851,7 @@
   <div class="tc-section">
     <span class="tc-number">8.</span>
     <h3>Transferability</h3>
-    <p>This warranty is transferable to a subsequent owner of the property at which the products are installed, provided that:</p>
+    <p>This warranty is transferable to a subsequent owner of the property at which the products are located, provided that:</p>
     <ol type="a">
       <li>The Company is notified in writing of the transfer within thirty (30) days of the change of property ownership.</li>
       <li>The new owner receives a copy of this warranty document and the Maintenance Guide.</li>
@@ -1024,7 +1014,7 @@
 </script>
 
 <script>
-// PDF Export — generates proper PDF file
+// PDF Export — generates proper PDF file, page by page
 async function exportToPDF() {
   const btn = document.getElementById('pdf-btn');
   const originalText = btn.innerHTML;
@@ -1039,56 +1029,30 @@ async function exportToPDF() {
     const clientName = document.getElementById('cv-client-name').textContent || '';
     const fileName = (warrantyNo + (clientName ? '_' + clientName : '')).replace(/[^a-zA-Z0-9\-_]/g, '_') + '.pdf';
 
-    // Create a wrapper with all pages
-    const wrapper = document.createElement('div');
-    pages.forEach((page, i) => {
-      const clone = page.cloneNode(true);
-      clone.style.margin = '0';
-      clone.style.boxShadow = 'none';
-      clone.style.width = '210mm';
-      clone.style.height = '297mm';
-      clone.style.minHeight = '297mm';
-      clone.style.maxHeight = '297mm';
-      clone.style.overflow = 'hidden';
-      clone.style.position = 'relative';
-      if (i < pages.length - 1) {
-        clone.style.pageBreakAfter = 'always';
-      }
-      wrapper.appendChild(clone);
-    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
-    // Temporarily add wrapper to DOM (hidden)
-    wrapper.style.position = 'absolute';
-    wrapper.style.left = '-9999px';
-    wrapper.style.top = '0';
-    document.body.appendChild(wrapper);
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
 
-    const opt = {
-      margin: 0,
-      filename: fileName,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
+      // Render each page to canvas
+      const canvas = await html2canvas(page, {
         scale: 2,
         useCORS: true,
         letterRendering: true,
-        width: 794,   // 210mm at 96dpi
-        height: 1123  // 297mm at 96dpi
-      },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait'
-      },
-      pagebreak: {
-        mode: ['css', 'legacy'],
-        after: '.page'
-      }
-    };
+        width: page.offsetWidth,
+        height: page.offsetHeight,
+        windowWidth: page.offsetWidth,
+        windowHeight: page.offsetHeight
+      });
 
-    await html2pdf().set(opt).from(wrapper).save();
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-    // Cleanup
-    document.body.removeChild(wrapper);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+    }
+
+    pdf.save(fileName);
 
   } catch (err) {
     console.error('PDF generation error:', err);
