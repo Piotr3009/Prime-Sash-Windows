@@ -614,31 +614,31 @@
     <div class="cert-details">
       <div class="cert-row">
         <span class="cert-label">Warranty No.</span>
-        <span class="cert-value">PSW-2026-XXXXX</span>
+        <span class="cert-value" id="cv-warranty-no">PSW-2026-XXXXX</span>
       </div>
       <div class="cert-row">
         <span class="cert-label">Client Name</span>
-        <span class="cert-value">[Client Full Name]</span>
+        <span class="cert-value" id="cv-client-name">[Client Full Name]</span>
       </div>
       <div class="cert-row">
         <span class="cert-label">Property Address</span>
-        <span class="cert-value">[Property Address]</span>
+        <span class="cert-value" id="cv-address">[Property Address]</span>
       </div>
       <div class="cert-row">
         <span class="cert-label">Product Description</span>
-        <span class="cert-value">[e.g. 6× Sash Windows, 1× French Door]</span>
+        <span class="cert-value" id="cv-product">[e.g. 6× Sash Windows, 1× French Door]</span>
       </div>
       <div class="cert-row">
         <span class="cert-label">Order Reference</span>
-        <span class="cert-value">[Order No.]</span>
+        <span class="cert-value" id="cv-order-ref">[Order No.]</span>
       </div>
       <div class="cert-row">
         <span class="cert-label">Manufacturing Date</span>
-        <span class="cert-value">[DD / MM / YYYY]</span>
+        <span class="cert-value" id="cv-mfg-date">[DD / MM / YYYY]</span>
       </div>
       <div class="cert-row">
         <span class="cert-label">Warranty Expiry</span>
-        <span class="cert-value">[DD / MM / YYYY]</span>
+        <span class="cert-value" id="cv-expiry">[DD / MM / YYYY]</span>
       </div>
     </div>
 
@@ -977,6 +977,38 @@
     <span>Page 5 of 5</span>
   </div>
 </div>
+
+<script>
+// Auto-fill from URL params (sent from admin panel)
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has('warrantyNo')) return; // No params = blank template
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return day + ' / ' + month + ' / ' + year;
+  }
+
+  const fields = {
+    'cv-warranty-no': params.get('warrantyNo'),
+    'cv-client-name': params.get('clientName'),
+    'cv-address': params.get('address'),
+    'cv-product': params.get('product'),
+    'cv-order-ref': params.get('orderRef'),
+    'cv-mfg-date': formatDate(params.get('mfgDate')),
+    'cv-expiry': formatDate(params.get('expiry'))
+  };
+
+  for (const [id, value] of Object.entries(fields)) {
+    const el = document.getElementById(id);
+    if (el && value) el.textContent = value;
+  }
+})();
+</script>
 
 </body>
 </html>
