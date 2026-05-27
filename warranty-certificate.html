@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warranty Certificate — Prime Sash Windows</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --navy: #1a1f2e;
+    --navy-light: #2a3042;
+    --gold: #b8965a;
+    --gold-light: #d4b47a;
+    --gold-pale: #f0e6d3;
+    --silver: #c8c8c0;
+    --silver-light: #e8e8e4;
+    --cream: #faf8f5;
+    --text: #2c2c2c;
+    --text-light: #5a5a5a;
+    --border: #d8d4cc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text);
+    background: #e0ddd8;
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 20px auto;
+    background: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,.15);
+  }
+
+  @media print {
+    body { background: white; }
+    .page {
+      margin: 0;
+      box-shadow: none;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+    .no-print { display: none !important; }
+  }
+
+  /* ============================================
+     PAGE 1 — CERTIFICATE
+     ============================================ */
+  .cert-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    min-height: 297mm;
+    background: var(--cream);
+    position: relative;
+  }
+
+  .cert-page::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      linear-gradient(135deg, rgba(184,150,90,.04) 0%, transparent 50%),
+      linear-gradient(225deg, rgba(184,150,90,.04) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Decorative border */
+  .cert-border {
+    position: absolute;
+    top: 12mm; left: 12mm; right: 12mm; bottom: 12mm;
+    border: 1px solid var(--gold);
+    pointer-events: none;
+  }
+  .cert-border::before {
+    content: '';
+    position: absolute;
+    top: 3mm; left: 3mm; right: 3mm; bottom: 3mm;
+    border: 0.5px solid var(--gold-light);
+  }
+
+  /* Corner ornaments */
+  .corner { position: absolute; width: 24px; height: 24px; }
+  .corner svg { width: 100%; height: 100%; }
+  .corner-tl { top: 10mm; left: 10mm; }
+  .corner-tr { top: 10mm; right: 10mm; transform: scaleX(-1); }
+  .corner-bl { bottom: 10mm; left: 10mm; transform: scaleY(-1); }
+  .corner-br { bottom: 10mm; right: 10mm; transform: scale(-1,-1); }
+
+  .cert-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 22mm 20mm 15mm;
+    width: 100%;
+    flex: 1;
+  }
+
+  /* Logo */
+  .logo-block {
+    text-align: center;
+    margin-bottom: 6mm;
+  }
+  .logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 32px;
+    letter-spacing: 8px;
+    color: var(--navy);
+    text-transform: uppercase;
+  }
+  .logo-sub {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 8px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Divider line */
+  .gold-line {
+    width: 80mm;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 5mm 0;
+  }
+
+  .cert-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 38px;
+    font-weight: 400;
+    letter-spacing: 6px;
+    color: var(--navy);
+    text-transform: uppercase;
+    margin: 4mm 0 2mm;
+  }
+  .cert-subtitle {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 4px;
+    color: var(--text-light);
+    text-transform: uppercase;
+  }
+
+  /* Certificate details */
+  .cert-details {
+    margin-top: 12mm;
+    width: 130mm;
+  }
+  .cert-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 3mm 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .cert-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    font-weight: 500;
+    flex: 0 0 45mm;
+  }
+  .cert-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    color: var(--navy);
+    text-align: right;
+    flex: 1;
+  }
+
+  /* Warranty period highlight */
+  .warranty-highlight {
+    margin-top: 10mm;
+    text-align: center;
+    padding: 6mm 10mm;
+    background: var(--navy);
+    color: white;
+    position: relative;
+  }
+  .warranty-highlight::before,
+  .warranty-highlight::after {
+    content: '';
+    position: absolute;
+    top: -2mm;
+    width: 30mm;
+    height: 0.5px;
+    background: var(--gold);
+  }
+  .warranty-highlight::before { left: 50%; transform: translateX(-130%); }
+  .warranty-highlight::after { left: 50%; transform: translateX(30%); }
+
+  .warranty-years {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: var(--gold-light);
+    line-height: 1;
+  }
+  .warranty-years-label {
+    font-size: 10px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--silver);
+    margin-top: 1mm;
+  }
+
+  /* Signature area */
+  .signature-area {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    width: 130mm;
+    padding-top: 10mm;
+  }
+  .sig-block {
+    text-align: center;
+    width: 50mm;
+  }
+  .sig-line {
+    width: 100%;
+    height: 0.5px;
+    background: var(--navy);
+    margin-bottom: 2mm;
+  }
+  .sig-label {
+    font-size: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-light);
+  }
+
+  /* Certification logos strip */
+  .cert-logos {
+    display: flex;
+    justify-content: center;
+    gap: 12mm;
+    align-items: center;
+    margin-top: 8mm;
+    padding-top: 5mm;
+    border-top: 0.5px solid var(--border);
+    width: 130mm;
+  }
+  .cert-logo-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2mm;
+  }
+  .cert-logo-placeholder {
+    width: 18mm;
+    height: 18mm;
+    border: 1px dashed var(--border);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7px;
+    color: var(--text-light);
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  .cert-logo-name {
+    font-size: 7px;
+    letter-spacing: 1px;
+    color: var(--text-light);
+    text-transform: uppercase;
+  }
+
+  /* Footer */
+  .page-footer {
+    width: 100%;
+    text-align: center;
+    padding: 4mm 0 8mm;
+    font-size: 7px;
+    color: var(--text-light);
+    letter-spacing: 1px;
+  }
+  .page-footer a { color: var(--gold); text-decoration: none; }
+
+
+  /* ============================================
+     PAGE 2+ — WARRANTY COVERAGE & T&C
+     ============================================ */
+  .content-page {
+    padding: 18mm 20mm 15mm;
+    font-size: 10px;
+    min-height: 297mm;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 4mm;
+    border-bottom: 1px solid var(--navy);
+    margin-bottom: 6mm;
+  }
+  .content-header .logo-sm {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    letter-spacing: 4px;
+    color: var(--navy);
+    text-transform: uppercase;
+  }
+  .content-header .doc-title {
+    font-size: 8px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-light);
+  }
+
+  h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--navy);
+    letter-spacing: 2px;
+    margin: 6mm 0 3mm;
+    text-transform: uppercase;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  h3 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--navy);
+    margin: 4mm 0 2mm;
+    letter-spacing: 0.5px;
+  }
+
+  p, li {
+    font-size: 9.5px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  p { margin-bottom: 2.5mm; }
+
+  ol, ul {
+    padding-left: 6mm;
+    margin-bottom: 3mm;
+  }
+  li { margin-bottom: 1.5mm; }
+
+  /* Warranty table */
+  .warranty-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4mm 0 6mm;
+  }
+  .warranty-table thead th {
+    background: var(--navy);
+    color: white;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3mm 4mm;
+    text-align: left;
+  }
+  .warranty-table tbody td {
+    padding: 3mm 4mm;
+    font-size: 9.5px;
+    border-bottom: 0.5px solid var(--border);
+    vertical-align: top;
+  }
+  .warranty-table tbody tr:nth-child(even) { background: var(--cream); }
+  .warranty-table .period {
+    font-weight: 600;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+
+  /* Highlight box */
+  .highlight-box {
+    background: var(--gold-pale);
+    border-left: 3px solid var(--gold);
+    padding: 4mm 5mm;
+    margin: 4mm 0;
+  }
+  .highlight-box p { margin: 0; font-size: 9px; }
+  .highlight-box strong { color: var(--navy); }
+
+  /* Section numbering */
+  .tc-section { margin-bottom: 4mm; }
+  .tc-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--gold);
+    font-weight: 600;
+    float: left;
+    margin-right: 3mm;
+    line-height: 1.3;
+  }
+
+  /* Content footer */
+  .content-footer {
+    margin-top: auto;
+    padding-top: 4mm;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 7px;
+    color: var(--text-light);
+    letter-spacing: 0.5px;
+  }
+
+  /* ============================================
+     PAGE 5 — MAINTENANCE GUIDE
+     ============================================ */
+  .maint-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4mm;
+    margin: 4mm 0;
+  }
+  .maint-card {
+    border: 1px solid var(--border);
+    padding: 4mm;
+    border-radius: 2px;
+    background: var(--cream);
+  }
+  .maint-card-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 2mm;
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+  }
+  .maint-icon {
+    width: 20px;
+    height: 20px;
+    background: var(--navy);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-light);
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+  .maint-card p { font-size: 8.5px; margin: 0; line-height: 1.6; }
+
+  .checklist {
+    list-style: none;
+    padding: 0;
+    margin: 4mm 0;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 3mm;
+    padding: 2mm 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 9px;
+  }
+  .check-box {
+    width: 4mm;
+    height: 4mm;
+    border: 1px solid var(--navy);
+    flex-shrink: 0;
+    margin-top: 1mm;
+  }
+
+  /* Acceptance block */
+  .acceptance-block {
+    margin-top: 6mm;
+    padding: 5mm;
+    border: 1px solid var(--navy);
+    background: var(--cream);
+  }
+  .acceptance-block h3 { margin-top: 0; }
+  .acceptance-row {
+    display: flex;
+    gap: 8mm;
+    margin-top: 4mm;
+  }
+  .acceptance-field {
+    flex: 1;
+  }
+  .acceptance-field label {
+    display: block;
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 1.5mm;
+  }
+  .acceptance-line {
+    width: 100%;
+    height: 0.5px;
+    background: var(--navy);
+    margin-top: 8mm;
+  }
+
+  /* Print button */
+  .print-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--navy);
+    padding: 12px;
+    text-align: center;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+  .print-btn {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 32px;
+    border: none;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .print-btn-primary {
+    background: var(--gold);
+    color: white;
+  }
+  .print-btn-primary:hover { background: var(--gold-light); }
+  .print-btn-secondary {
+    background: transparent;
+    color: var(--silver);
+    border: 1px solid var(--silver);
+  }
+  .print-btn-secondary:hover { background: rgba(255,255,255,.1); }
+</style>
+</head>
+<body>
+
+<!-- ==========================================
+     PRINT BAR
+     ========================================== -->
+<div class="print-bar no-print">
+  <button class="print-btn print-btn-primary" onclick="window.print()">⎙ &nbsp;Export to PDF</button>
+  <button class="print-btn print-btn-secondary" onclick="window.close()">Close</button>
+</div>
+
+
+<!-- ==========================================
+     PAGE 1 — WARRANTY CERTIFICATE
+     ========================================== -->
+<div class="page cert-page">
+  <div class="cert-border"></div>
+
+  <!-- Corner ornaments -->
+  <div class="corner corner-tl">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#b8965a" stroke-width="0.5">
+      <path d="M2 22 L2 6 Q2 2 6 2 L22 2" />
+      <path d="M5 22 L5 8 Q5 5 8 5 L22 5" />
+    </svg>
+  </div>
+  <div class="corner corner-tr">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#b8965a" stroke-width="0.5">
+      <path d="M2 22 L2 6 Q2 2 6 2 L22 2" />
+      <path d="M5 22 L5 8 Q5 5 8 5 L22 5" />
+    </svg>
+  </div>
+  <div class="corner corner-bl">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#b8965a" stroke-width="0.5">
+      <path d="M2 22 L2 6 Q2 2 6 2 L22 2" />
+      <path d="M5 22 L5 8 Q5 5 8 5 L22 5" />
+    </svg>
+  </div>
+  <div class="corner corner-br">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#b8965a" stroke-width="0.5">
+      <path d="M2 22 L2 6 Q2 2 6 2 L22 2" />
+      <path d="M5 22 L5 8 Q5 5 8 5 L22 5" />
+    </svg>
+  </div>
+
+  <div class="cert-content">
+    <div class="logo-block">
+      <div class="logo-text">Prime Sash Windows</div>
+      <div class="logo-sub">Handcrafted Timber Windows &amp; Doors</div>
+    </div>
+
+    <div class="gold-line"></div>
+
+    <div class="cert-title">Certificate of Warranty</div>
+    <div class="cert-subtitle">Product &amp; Installation Guarantee</div>
+
+    <div class="cert-details">
+      <div class="cert-row">
+        <span class="cert-label">Warranty No.</span>
+        <span class="cert-value">PSW-2026-XXXXX</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-label">Client Name</span>
+        <span class="cert-value">[Client Full Name]</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-label">Property Address</span>
+        <span class="cert-value">[Property Address]</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-label">Product Description</span>
+        <span class="cert-value">[e.g. 6× Sash Windows, 1× French Door]</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-label">Order Reference</span>
+        <span class="cert-value">[Order No.]</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-label">Manufacturing Date</span>
+        <span class="cert-value">[DD / MM / YYYY]</span>
+      </div>
+      <div class="cert-row">
+        <span class="cert-label">Warranty Expiry</span>
+        <span class="cert-value">[DD / MM / YYYY]</span>
+      </div>
+    </div>
+
+    <div class="warranty-highlight">
+      <div class="warranty-years">10 Years</div>
+      <div class="warranty-years-label">Comprehensive Warranty</div>
+    </div>
+
+    <div class="signature-area">
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Director — Skylon Joinery LTD</div>
+      </div>
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Date of Issue</div>
+      </div>
+    </div>
+
+    <div class="cert-logos">
+      <div class="cert-logo-item">
+        <img src="img/MIB/the joinery.webp" alt="The Joinery Network" style="height:18mm; width:auto; object-fit:contain;">
+      </div>
+      <div class="cert-logo-item">
+        <img src="img/MIB/mib-colour.jpg" alt="Made in Britain" style="height:16mm; width:auto; object-fit:contain;">
+      </div>
+
+    </div>
+
+    <div class="page-footer">
+      Prime Sash Windows is a trading name of <strong>Skylon Joinery LTD</strong> · Registered in England &amp; Wales · Company No. [XXXXXXX]
+      <br>
+      <a href="https://www.primesashwindows.co.uk">www.primesashwindows.co.uk</a> · info@primesashwindows.co.uk · 07842 510 060
+    </div>
+  </div>
+</div>
+
+
+<!-- ==========================================
+     PAGE 2 — WARRANTY COVERAGE
+     ========================================== -->
+<div class="page content-page">
+  <div class="content-header">
+    <span class="logo-sm">Prime Sash Windows</span>
+    <span class="doc-title">Warranty Coverage</span>
+  </div>
+
+  <h2>Warranty Coverage Schedule</h2>
+  <p>This warranty covers defects in materials and workmanship under normal use and service conditions, subject to the terms and conditions set out in this document.</p>
+
+  <table class="warranty-table">
+    <thead>
+      <tr>
+        <th style="width:32%">Component</th>
+        <th style="width:15%">Period</th>
+        <th>Coverage Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Timber Frame, Sashes &amp; Joinery</td>
+        <td class="period">10 Years</td>
+        <td>Structural integrity of all timber components against defects in material and workmanship, including rot caused by manufacturing defect. Excludes damage from lack of maintenance, impact, or misuse.</td>
+      </tr>
+      <tr>
+        <td>Sealed Glass Units (IGU)</td>
+        <td class="period">10 Years</td>
+        <td>Failure of hermetic seal resulting in internal condensation (misting) between panes. Excludes surface condensation, scratches, minor blemishes, or damage from impact.</td>
+      </tr>
+      <tr>
+        <td>Factory-Applied Paint Finish</td>
+        <td class="period">3 Years</td>
+        <td>Peeling, flaking, blistering, or abnormal discolouration of factory-applied paint or stain. Excludes natural weathering, fading due to UV exposure, or damage from improper maintenance or cleaning products.</td>
+      </tr>
+      <tr>
+        <td>Ironmongery &amp; Hardware</td>
+        <td class="period">Per Manufacturer</td>
+        <td>Handles, locks, hinges, stays, and fittings are covered by their respective manufacturer's warranty (typically 5–10 years). PSW will facilitate claims with the hardware manufacturer on your behalf.</td>
+      </tr>
+      <tr>
+        <td>Weatherseals &amp; Gaskets</td>
+        <td class="period">5 Years</td>
+        <td>Failure of weatherseals, draught-proofing brushes, and rubber gaskets to perform their intended sealing function under normal conditions.</td>
+      </tr>
+      <tr>
+        <td>Draught-Proofing System</td>
+        <td class="period">5 Years</td>
+        <td>Parting beads, staff beads, and spiral balances (sash windows) against manufacturing defect. Excludes wear from normal operation and adjustment.</td>
+      </tr>
+      <tr>
+        <td>Installation Workmanship</td>
+        <td class="period">10 Years</td>
+        <td>Defects arising directly from installation carried out by Skylon Joinery LTD operatives. Excludes issues caused by building movement, structural defects, or third-party alterations.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box">
+    <p><strong>Important:</strong> All warranty periods commence from the manufacturing date as recorded on the Certificate of Warranty (page 1). Warranty coverage is conditional upon adherence to the Maintenance Schedule set out on page 5 of this document.</p>
+  </div>
+
+  <h2>What Is Not Covered</h2>
+  <p>This warranty does not extend to:</p>
+  <ol>
+    <li>Normal wear and tear, including gradual fading of colour due to UV exposure.</li>
+    <li>Damage caused by misuse, abuse, accident, fire, flood, storm, or other acts of God.</li>
+    <li>Condensation forming on the <em>interior surface</em> of glass — this is a ventilation/humidity issue within the property, not a product defect.</li>
+    <li>Any modification, alteration, repair, or painting carried out by any party other than Skylon Joinery LTD without prior written consent.</li>
+    <li>Failure to carry out the required maintenance programme as detailed in this document.</li>
+    <li>Movement or settlement of the building structure affecting window or door openings.</li>
+    <li>Products installed at properties outside of the United Kingdom.</li>
+    <li>Minor cosmetic imperfections in timber that do not affect performance (e.g. natural knots, grain variation, minor colour differences between units).</li>
+    <li>Damage from unsuitable cleaning agents, abrasive materials, or pressure washers.</li>
+    <li>Problems resulting from inadequate ventilation within the property.</li>
+  </ol>
+
+  <div class="content-footer">
+    <span>Prime Sash Windows — a trading name of Skylon Joinery LTD</span>
+    <span>Page 2 of 5</span>
+  </div>
+</div>
+
+
+<!-- ==========================================
+     PAGE 3 — TERMS & CONDITIONS (PART 1)
+     ========================================== -->
+<div class="page content-page">
+  <div class="content-header">
+    <span class="logo-sm">Prime Sash Windows</span>
+    <span class="doc-title">Terms &amp; Conditions</span>
+  </div>
+
+  <h2>Terms &amp; Conditions of Warranty</h2>
+
+  <div class="tc-section">
+    <span class="tc-number">1.</span>
+    <h3>The Company</h3>
+    <p>"The Company" refers to <strong>Skylon Joinery LTD</strong>, trading as Prime Sash Windows, registered in England and Wales under Company Number [XXXXXXX], with registered address at [Registered Address]. All warranties, obligations, and liabilities described in this document are those of Skylon Joinery LTD.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">2.</span>
+    <h3>Warranty Activation</h3>
+    <p>This warranty is automatically activated upon completion of manufacturing and is valid from the manufacturing date recorded on the Certificate of Warranty. No separate registration is required. The Company retains a record of all warranty certificates issued.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">3.</span>
+    <h3>Warranty Scope</h3>
+    <p>This warranty covers defects in materials and workmanship that arise during the warranty period under conditions of normal use. "Normal use" means the operation of windows and doors in a residential or light commercial setting, opened and closed by hand in the manner intended, without excessive force or impact.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">4.</span>
+    <h3>Maintenance Obligations</h3>
+    <p>The warranty holder is required to carry out regular maintenance as described in the Maintenance Guide (page 5) <strong>at intervals of no more than every two (2) years</strong>. This includes, but is not limited to, inspection and re-coating of external timber surfaces, lubrication of moving parts, and checking of weatherseals.</p>
+    <p>Failure to maintain the products in accordance with the schedule will render this warranty void. The Company reserves the right to request evidence of maintenance (such as dated photographs, receipts for paint/materials, or maintenance contractor invoices) before processing a claim.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">5.</span>
+    <h3>Claims Procedure</h3>
+    <p>To make a warranty claim, the holder must:</p>
+    <ol type="a">
+      <li>Contact the Company within thirty (30) days of discovering the defect, via email at <strong>info@primesashwindows.co.uk</strong> or by telephone at <strong>07842 510 060</strong>.</li>
+      <li>Provide the Warranty Certificate Number, a description of the defect, and photographic evidence where possible.</li>
+      <li>Allow the Company reasonable access to the property to inspect the reported defect.</li>
+      <li>Not attempt any repair or alteration before inspection by the Company, unless agreed in writing.</li>
+    </ol>
+    <p>The Company will acknowledge receipt of a claim within five (5) working days and will arrange an inspection within fifteen (15) working days of acknowledgement, subject to access arrangements.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">6.</span>
+    <h3>Remedial Action</h3>
+    <p>Where a valid warranty claim is established, the Company shall, at its sole discretion, either:</p>
+    <ol type="a">
+      <li>Repair the defective component; or</li>
+      <li>Replace the defective component with one of equivalent specification; or</li>
+      <li>Provide a partial refund proportional to the remaining warranty period.</li>
+    </ol>
+    <p>The Company shall not be liable for any consequential loss, damage, or expense arising from or connected to the defect, including but not limited to redecoration costs, loss of use, or alternative accommodation.</p>
+  </div>
+
+  <div class="content-footer">
+    <span>Prime Sash Windows — a trading name of Skylon Joinery LTD</span>
+    <span>Page 3 of 5</span>
+  </div>
+</div>
+
+
+<!-- ==========================================
+     PAGE 4 — TERMS & CONDITIONS (PART 2)
+     ========================================== -->
+<div class="page content-page">
+  <div class="content-header">
+    <span class="logo-sm">Prime Sash Windows</span>
+    <span class="doc-title">Terms &amp; Conditions (cont.)</span>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">7.</span>
+    <h3>Limitation of Liability</h3>
+    <p>The Company's total aggregate liability under this warranty shall not exceed the original purchase price of the product(s) as stated on the order confirmation. Nothing in these terms shall exclude or limit liability for death or personal injury caused by negligence, fraud, or any other liability which cannot be excluded or limited under applicable law.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">8.</span>
+    <h3>Transferability</h3>
+    <p>This warranty is transferable to a subsequent owner of the property at which the products are installed, provided that:</p>
+    <ol type="a">
+      <li>The Company is notified in writing of the transfer within thirty (30) days of the change of property ownership.</li>
+      <li>The new owner receives a copy of this warranty document and the Maintenance Guide.</li>
+      <li>All maintenance obligations have been met up to the date of transfer.</li>
+    </ol>
+    <p>Transfer of the warranty does not extend or restart the warranty period.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">9.</span>
+    <h3>Third-Party Components</h3>
+    <p>Certain components (including but not limited to glass units, ironmongery, and hardware) are manufactured by third-party suppliers. Where such components are covered by the manufacturer's own warranty, the Company will, where possible, pass on the benefit of that warranty. Claims relating to third-party components may be subject to the terms of the respective manufacturer's warranty.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">10.</span>
+    <h3>Force Majeure</h3>
+    <p>The Company shall not be liable for any delay or failure to perform its warranty obligations to the extent that such delay or failure is caused by circumstances beyond its reasonable control, including but not limited to natural disasters, pandemics, government actions, material shortages, or industrial disputes.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">11.</span>
+    <h3>Consumer Rights</h3>
+    <p>This warranty is provided in addition to, and does not affect, your statutory rights under the Consumer Rights Act 2015 or any other applicable legislation. Nothing in this warranty limits or excludes your legal rights as a consumer.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">12.</span>
+    <h3>Governing Law &amp; Jurisdiction</h3>
+    <p>This warranty shall be governed by and construed in accordance with the laws of England and Wales. Any disputes arising from or in connection with this warranty shall be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">13.</span>
+    <h3>Severability</h3>
+    <p>If any provision of this warranty is found to be invalid or unenforceable by a court of competent jurisdiction, the remaining provisions shall continue in full force and effect.</p>
+  </div>
+
+  <div class="tc-section">
+    <span class="tc-number">14.</span>
+    <h3>Amendments</h3>
+    <p>The Company reserves the right to amend these warranty terms from time to time. Any such amendments will not apply retrospectively and will not affect warranties already issued. The version of these terms applicable to your warranty is the version in force at the date of manufacture.</p>
+  </div>
+
+  <div class="highlight-box" style="margin-top: 6mm;">
+    <p><strong>Contact Us:</strong> For warranty claims, maintenance advice, or any questions, please contact us at <strong>info@primesashwindows.co.uk</strong> or call <strong>07842 510 060</strong>. We are here to help.</p>
+  </div>
+
+  <div class="content-footer">
+    <span>Prime Sash Windows — a trading name of Skylon Joinery LTD</span>
+    <span>Page 4 of 5</span>
+  </div>
+</div>
+
+
+<!-- ==========================================
+     PAGE 5 — MAINTENANCE GUIDE
+     ========================================== -->
+<div class="page content-page">
+  <div class="content-header">
+    <span class="logo-sm">Prime Sash Windows</span>
+    <span class="doc-title">Maintenance Guide</span>
+  </div>
+
+  <h2>Your Maintenance Guide</h2>
+  <p>Regular maintenance is essential to preserve the beauty and performance of your timber windows and doors — and to keep your 10-year warranty valid. Please follow this schedule carefully.</p>
+
+  <div class="highlight-box">
+    <p><strong>Maintenance must be carried out at least every 2 years.</strong> Failure to maintain your products will invalidate the warranty. We recommend an annual inspection with a full maintenance service every two years.</p>
+  </div>
+
+  <div class="maint-grid">
+    <div class="maint-card">
+      <div class="maint-card-title"><div class="maint-icon">🔍</div> Inspect</div>
+      <p>Check all timber surfaces for signs of paint deterioration, cracks, or early signs of moisture ingress. Pay special attention to horizontal surfaces (sills, bottom rails) where water can collect.</p>
+    </div>
+    <div class="maint-card">
+      <div class="maint-card-title"><div class="maint-icon">🎨</div> Re-coat</div>
+      <p>Lightly sand any areas where paint has deteriorated and apply a fresh coat of high-quality exterior microporous paint. All exposed timber must remain fully sealed at all times.</p>
+    </div>
+    <div class="maint-card">
+      <div class="maint-card-title"><div class="maint-icon">⚙</div> Lubricate</div>
+      <p>Apply a light machine oil or silicone-based lubricant to all hinges, locks, spiral balances, and moving parts. Wipe away excess. This prevents stiffness and premature wear.</p>
+    </div>
+    <div class="maint-card">
+      <div class="maint-card-title"><div class="maint-icon">🧹</div> Clean</div>
+      <p>Clean glass with a standard glass cleaner. Clean timber frames with warm soapy water and a soft cloth. Never use abrasive cleaners, solvents, or pressure washers on timber or sealed units.</p>
+    </div>
+  </div>
+
+  <h3>Bi-Annual Maintenance Checklist</h3>
+  <ul class="checklist">
+    <li><div class="check-box"></div> Inspect all external timber surfaces for paint/stain deterioration</li>
+    <li><div class="check-box"></div> Re-coat any areas showing paint breakdown (sand lightly first)</li>
+    <li><div class="check-box"></div> Check all sills and bottom rails for standing water or moisture damage</li>
+    <li><div class="check-box"></div> Inspect weatherseals and draught strips — replace if compressed or damaged</li>
+    <li><div class="check-box"></div> Lubricate all hinges, locks, handles, and spiral balances</li>
+    <li><div class="check-box"></div> Check that all windows and doors open, close, and lock smoothly</li>
+    <li><div class="check-box"></div> Clean all glass units — check for signs of seal failure (internal misting)</li>
+    <li><div class="check-box"></div> Clear drainage channels and trickle vents of debris</li>
+    <li><div class="check-box"></div> Inspect mastic/sealant around frames — re-apply if cracked or shrunk</li>
+    <li><div class="check-box"></div> Check glazing beads are secure and seated properly</li>
+  </ul>
+
+  <div class="acceptance-block">
+    <h3>Client Acknowledgement</h3>
+    <p>I confirm that I have received, read, and understood the terms and conditions of this warranty, including the maintenance obligations. I understand that failure to maintain the products as described may invalidate the warranty.</p>
+    <div class="acceptance-row">
+      <div class="acceptance-field">
+        <label>Client Signature</label>
+        <div class="acceptance-line"></div>
+      </div>
+      <div class="acceptance-field">
+        <label>Print Name</label>
+        <div class="acceptance-line"></div>
+      </div>
+      <div class="acceptance-field" style="flex: 0.5;">
+        <label>Date</label>
+        <div class="acceptance-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-footer">
+    <span>Prime Sash Windows — a trading name of Skylon Joinery LTD</span>
+    <span>Page 5 of 5</span>
+  </div>
+</div>
+
+</body>
+</html>
