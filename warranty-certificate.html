@@ -48,14 +48,26 @@
   }
 
   @media print {
-    body { background: white; }
+    body { background: white; margin: 0; padding: 0; }
     .page {
       margin: 0;
+      padding: 0;
       box-shadow: none;
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
       page-break-after: always;
+      page-break-inside: avoid;
+      position: relative;
     }
     .page:last-child { page-break-after: avoid; }
     .no-print { display: none !important; }
+    .cert-page { height: 297mm; min-height: 297mm; max-height: 297mm; }
+    .content-page { height: 297mm; min-height: 297mm; max-height: 297mm; overflow: hidden; }
+    .content-footer { position: absolute; bottom: 15mm; left: 20mm; right: 20mm; }
+    .print-bar { display: none !important; }
   }
 
   /* ============================================
