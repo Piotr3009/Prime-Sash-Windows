@@ -568,6 +568,7 @@
   }
   .print-btn-secondary:hover { background: rgba(255,255,255,.1); }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -575,7 +576,7 @@
      PRINT BAR
      ========================================== -->
 <div class="print-bar no-print">
-  <button class="print-btn print-btn-primary" onclick="window.print()">⎙ &nbsp;Export to PDF</button>
+  <button class="print-btn print-btn-primary" onclick="exportToPDF()" id="pdf-btn">⎙ &nbsp;Export to PDF</button>
   <button class="print-btn print-btn-secondary" onclick="window.close()">Close</button>
 </div>
 
@@ -681,7 +682,7 @@
     </div>
 
     <div class="page-footer">
-      Prime Sash Windows is a trading name of <strong>Skylon Joinery LTD</strong> · Registered in England &amp; Wales · Company No. [XXXXXXX]
+      Prime Sash Windows is a trading name of <strong>Skylon Joinery LTD</strong> · Registered in England &amp; Wales · Company No. 12946103
       <br>
       <a href="https://www.primesashwindows.co.uk">www.primesashwindows.co.uk</a> · info@primesashwindows.co.uk · 07842 510 060
     </div>
@@ -788,7 +789,7 @@
   <div class="tc-section">
     <span class="tc-number">1.</span>
     <h3>The Company</h3>
-    <p>"The Company" refers to <strong>Skylon Joinery LTD</strong>, trading as Prime Sash Windows, registered in England and Wales under Company Number [XXXXXXX], with registered address at [Registered Address]. All warranties, obligations, and liabilities described in this document are those of Skylon Joinery LTD.</p>
+    <p>"The Company" refers to <strong>Skylon Joinery LTD</strong>, trading as Prime Sash Windows, registered in England and Wales under Company Number 12946103, with registered address at [Registered Address]. All warranties, obligations, and liabilities described in this document are those of Skylon Joinery LTD.</p>
   </div>
 
   <div class="tc-section">
@@ -1020,6 +1021,83 @@
     if (el && value) el.textContent = value;
   }
 })();
+</script>
+
+<script>
+// PDF Export — generates proper PDF file
+async function exportToPDF() {
+  const btn = document.getElementById('pdf-btn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '⏳ &nbsp;Generating PDF...';
+  btn.disabled = true;
+
+  try {
+    const pages = document.querySelectorAll('.page');
+    
+    // Get warranty number for filename
+    const warrantyNo = document.getElementById('cv-warranty-no').textContent || 'warranty';
+    const clientName = document.getElementById('cv-client-name').textContent || '';
+    const fileName = (warrantyNo + (clientName ? '_' + clientName : '')).replace(/[^a-zA-Z0-9\-_]/g, '_') + '.pdf';
+
+    // Create a wrapper with all pages
+    const wrapper = document.createElement('div');
+    pages.forEach((page, i) => {
+      const clone = page.cloneNode(true);
+      clone.style.margin = '0';
+      clone.style.boxShadow = 'none';
+      clone.style.width = '210mm';
+      clone.style.height = '297mm';
+      clone.style.minHeight = '297mm';
+      clone.style.maxHeight = '297mm';
+      clone.style.overflow = 'hidden';
+      clone.style.position = 'relative';
+      if (i < pages.length - 1) {
+        clone.style.pageBreakAfter = 'always';
+      }
+      wrapper.appendChild(clone);
+    });
+
+    // Temporarily add wrapper to DOM (hidden)
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = '-9999px';
+    wrapper.style.top = '0';
+    document.body.appendChild(wrapper);
+
+    const opt = {
+      margin: 0,
+      filename: fileName,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        letterRendering: true,
+        width: 794,   // 210mm at 96dpi
+        height: 1123  // 297mm at 96dpi
+      },
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait'
+      },
+      pagebreak: {
+        mode: ['css', 'legacy'],
+        after: '.page'
+      }
+    };
+
+    await html2pdf().set(opt).from(wrapper).save();
+
+    // Cleanup
+    document.body.removeChild(wrapper);
+
+  } catch (err) {
+    console.error('PDF generation error:', err);
+    alert('Error generating PDF: ' + err.message);
+  }
+
+  btn.innerHTML = originalText;
+  btn.disabled = false;
+}
 </script>
 
 </body>
