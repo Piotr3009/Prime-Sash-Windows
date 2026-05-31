@@ -10,6 +10,28 @@ class EstimateRenderer {
         }).format(price);
     }
 
+    // Single source of truth for windows deposit/balance.
+    // Unlocked (deposit_locked is null): live 50/50 split of windows total.
+    // Locked (deposit_locked is a number): deposit frozen at payment time, balance = total - frozen deposit.
+    // Custom "with_deposit" / "with_balance" extras are always added on top in both modes.
+    static computeDeposit(estimate, totalEx, windowsHalf, customDepositAdd, customBalanceAdd) {
+        const raw = estimate ? estimate.deposit_locked : null;
+        const locked = (raw !== null && raw !== undefined && raw !== '');
+        const lockedVal = locked ? parseFloat(raw) : 0;
+        if (locked && !isNaN(lockedVal)) {
+            return {
+                locked: true,
+                depositVal: lockedVal + customDepositAdd,
+                balanceVal: (totalEx - lockedVal) + customBalanceAdd
+            };
+        }
+        return {
+            locked: false,
+            depositVal: windowsHalf + customDepositAdd,
+            balanceVal: windowsHalf + customBalanceAdd
+        };
+    }
+
     static async deleteItem(itemId, estimateId) {
         if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
             return;
@@ -806,9 +828,11 @@ class EstimateRenderer {
 
         const listIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} £${R.formatPrice(e.total_price)}`).join(', ')}.` : '';
 
-        // Windows: 50/50 split. Installation: 50/50 split (separate cards). Delivery: 100% after.
-        const depositAmount = windowsHalf + customDepositAdd;
-        const balanceAmount = windowsHalf + customBalanceAdd;
+        // Windows: 50/50 split (live) OR frozen deposit + flowing balance (after deposit paid).
+        const depCalc = R.computeDeposit(estimate, totalEx, windowsHalf, customDepositAdd, customBalanceAdd);
+        const depositAmount = depCalc.depositVal;
+        const balanceAmount = depCalc.balanceVal;
+        const depositLockedHtml = depCalc.locked;
         const deliveryAmount = deliveryTotal + customDeliveryAdd;
 
         const depositIncludes = listIncludes(customByTiming.with_deposit);
@@ -821,8 +845,8 @@ class EstimateRenderer {
         const nextRoman = () => romans[romanIdx++] || `${romanIdx}`;
 
         const paymentCards = [
-            paymentCard(nextRoman(), 'Windows Deposit', '50%', depositAmount, `Non-refundable deposit upon acceptance. Secures the order and reserves workshop capacity. Calculated on windows only.${depositIncludes}`),
-            paymentCard(nextRoman(), 'Windows Balance', '50%', balanceAmount, `Due prior to dispatch. Windows will not leave the workshop until full payment is received.${balanceIncludes}`),
+            paymentCard(nextRoman(), 'Windows Deposit', depositLockedHtml ? 'PAID' : '50%', depositAmount, depositLockedHtml ? `Deposit paid and confirmed. This amount is fixed and will not change.${depositIncludes}` : `Non-refundable deposit upon acceptance. Secures the order and reserves workshop capacity. Calculated on windows only.${depositIncludes}`, depositLockedHtml),
+            paymentCard(nextRoman(), 'Windows Balance', depositLockedHtml ? '50% +/- adjustment' : '50%', balanceAmount, depositLockedHtml ? `Due prior to dispatch. Adjusted up or down after the on-site survey. Windows will not leave the workshop until full payment is received.${balanceIncludes}` : `Due prior to dispatch. Windows will not leave the workshop until full payment is received.${balanceIncludes}`),
             hasInstallation ? paymentCard(nextRoman(), 'Installation Deposit', '50%', installationHalf, 'Due before installation begins. Secures the installation date and covers scheduling.') : '',
             hasInstallation ? paymentCard(nextRoman(), 'Installation Balance', '50%', installationHalf, 'Payable after installation is completed on site.', true) : '',
             (hasDelivery || customDeliveryAdd > 0) ? paymentCard(nextRoman(), 'Delivery', '100%', deliveryAmount, `Payable upon delivery to site. Separate from windows schedule.${deliveryIncludes}`, true) : '',
@@ -840,6 +864,9 @@ class EstimateRenderer {
         const paymentHTML = `
             <div style="margin:2rem 0;">
                 <h2 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1.5rem;margin:0 0 .8rem;">Payment Schedule</h2>
+                <div style="margin:0 0 1rem;padding:.8rem 1.2rem;background:#fff8ed;border-left:3px solid ${GOLD};font-family:'Jost',sans-serif;font-size:.75rem;color:var(--muted);line-height:1.55;">
+                    <strong style="color:var(--navy);">This is an estimate based on the measurements you provided.</strong> The final price is confirmed after our on-site survey and may be adjusted up or down.
+                </div>
                 <div style="display:grid;grid-template-columns:${paymentGridCols};gap:.8rem;">
                     ${paymentCards.join('')}
                 </div>
@@ -2997,8 +3024,10 @@ class EstimateRenderer {
             const pdfCustomDeliveryAdd = pdfSumTiming(pdfCustomByTiming.on_delivery);
             const pdfListIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} £${R.formatPrice(e.total_price)}`).join(', ')}.` : '';
 
-            const pdfDepositAmount = windowsHalf + pdfCustomDepositAdd;
-            const pdfBalanceAmount = windowsHalf + pdfCustomBalanceAdd;
+            const pdfDep = R.computeDeposit(estimate, totalEx, windowsHalf, pdfCustomDepositAdd, pdfCustomBalanceAdd);
+            const pdfDepositAmount = pdfDep.depositVal;
+            const pdfBalanceAmount = pdfDep.balanceVal;
+            const pdfDepositLocked = pdfDep.locked;
             const pdfDeliveryAmountTotal = deliveryTotal + pdfCustomDeliveryAdd;
 
             const pdfDepositIncludes = pdfListIncludes(pdfCustomByTiming.with_deposit);
@@ -3010,8 +3039,8 @@ class EstimateRenderer {
             const pdfNextRoman = () => pdfRomans[pdfRomanIdx++] || `${pdfRomanIdx}`;
 
             const pdfPaymentCards = [
-                pdfPaymentCard(pdfNextRoman(), 'Windows Deposit', '50%', pdfDepositAmount, `Non-refundable deposit payable upon acceptance of this quotation. Secures the order, reserves workshop capacity, and funds material procurement. Calculated on windows only.${pdfDepositIncludes}`),
-                pdfPaymentCard(pdfNextRoman(), 'Windows Balance', '50%', pdfBalanceAmount, `Due prior to dispatch. Windows will not leave the workshop until full payment is received. Bank transfer to Skylon Joinery Ltd.${pdfBalanceIncludes}`),
+                pdfPaymentCard(pdfNextRoman(), 'Windows Deposit', pdfDepositLocked ? 'PAID' : '50%', pdfDepositAmount, pdfDepositLocked ? `Deposit paid and confirmed. This amount is fixed and will not change.${pdfDepositIncludes}` : `Non-refundable deposit payable upon acceptance of this quotation. Secures the order, reserves workshop capacity, and funds material procurement. Calculated on windows only.${pdfDepositIncludes}`),
+                pdfPaymentCard(pdfNextRoman(), 'Windows Balance', pdfDepositLocked ? '50% +/- adjustment' : '50%', pdfBalanceAmount, pdfDepositLocked ? `Due prior to dispatch. Adjusted up or down after the on-site survey. Windows will not leave the workshop until full payment is received. Bank transfer to Skylon Joinery Ltd.${pdfBalanceIncludes}` : `Due prior to dispatch. Windows will not leave the workshop until full payment is received. Bank transfer to Skylon Joinery Ltd.${pdfBalanceIncludes}`),
                 hasInstallation ? pdfPaymentCard(pdfNextRoman(), 'Installation Deposit', '50%', installationHalf, 'Due before installation begins. Secures the installation date and covers scheduling.') : '',
                 hasInstallation ? pdfPaymentCard(pdfNextRoman(), 'Installation Balance', '50%', installationHalf, 'Payable after installation is completed on site. Covers labour and installation services.', true) : '',
                 (hasDelivery || pdfCustomDeliveryAdd > 0) ? pdfPaymentCard(pdfNextRoman(), 'Delivery', '100%', pdfDeliveryAmountTotal, `Payable upon delivery to site. Separate from windows payment schedule. Covers transport, logistics, and safe unloading.${pdfDeliveryIncludes}`, true) : '',
@@ -3037,6 +3066,10 @@ class EstimateRenderer {
                         <p style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;color:#6b6b6b;line-height:1.65;margin-bottom:8mm;max-width:160mm;">
                             ${pdfIntroText}
                         </p>
+
+                        <div style="margin-bottom:8mm;padding:5mm 6mm;background:#fff8ed;border-left:3px solid #c9a96e;font-family:'Jost',sans-serif;font-size:10.5px;color:#1a1a1a;line-height:1.65;">
+                            <strong style="color:#0A1628;">This is an estimate based on the measurements you provided.</strong> The final price is confirmed after our on-site survey and may be adjusted up or down.
+                        </div>
 
                         <div style="display:grid;grid-template-columns:${pdfPaymentGrid};gap:5mm;">
                             ${pdfPaymentCards.join('')}
