@@ -955,7 +955,8 @@ class EstimateRenderer {
             if (!modalBody) return;
 
             // Re-render
-            const isEditable = ['draft', 'sent', 'quoted'].includes(estimate.status);
+            const editableStatuses = ctx.isAdmin ? ['draft', 'sent', 'quoted', 'survey'] : ['draft', 'sent', 'quoted'];
+            const isEditable = editableStatuses.includes(estimate.status);
             modalBody.innerHTML = EstimateRenderer.renderEstimateHTML(estimate, {
                 isAdmin: ctx.isAdmin,
                 isEditable: isEditable

@@ -1012,7 +1012,7 @@
 
             document.getElementById('modal-body').innerHTML = EstimateRenderer.renderEstimateHTML(est, {
                 isAdmin: true,
-                isEditable: ['draft', 'sent', 'quoted'].includes(est.status)
+                isEditable: ['draft', 'sent', 'quoted', 'survey'].includes(est.status)
             });
             
             document.getElementById('quote-modal').classList.add('active');
