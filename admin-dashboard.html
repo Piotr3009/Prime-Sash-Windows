@@ -942,7 +942,14 @@
                 return;
             }
             
-            container.innerHTML = renderTable(done);
+            const totalValue = done.reduce((s, e) => s + (parseFloat(e.total_price) || 0), 0);
+            const summaryBar = `
+                <div style="display:flex;gap:2rem;align-items:center;background:#f5f4f0;border-left:3px solid #c9a96e;padding:.9rem 1.3rem;margin-bottom:1rem;font-family:'Jost',sans-serif;">
+                    <div><span style="color:#666;font-size:.8rem;">Completed orders:</span> <strong style="font-size:1rem;">${done.length}</strong></div>
+                    <div><span style="color:#666;font-size:.8rem;">Total value (windows, ex VAT):</span> <strong style="font-size:1rem;">£${formatPrice(totalValue)}</strong></div>
+                </div>
+            `;
+            container.innerHTML = summaryBar + renderTable(done);
         }
         
         // Render Customers
