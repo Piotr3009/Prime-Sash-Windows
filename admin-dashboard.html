@@ -400,6 +400,9 @@
                 <button class="admin-tab" data-view="production">
                     🔨 In Production <span class="badge" id="badge-prod">0</span>
                 </button>
+                <button class="admin-tab" data-view="completed">
+                    ✅ Completed <span class="badge" id="badge-completed">0</span>
+                </button>
                 <button class="admin-tab" data-view="customers">
                     👥 Customers
                 </button>
@@ -441,6 +444,18 @@
                 <h2 class="section-title">🔨 In Production</h2>
                 <p style="color: #666; margin-bottom: 20px;">Orders currently being manufactured.</p>
                 <div id="production-list">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completed View -->
+            <div id="view-completed" class="admin-view">
+                <h2 class="section-title">✅ Completed</h2>
+                <p style="color: #666; margin-bottom: 20px;">Completed orders. Kept for warranty, records, and production history.</p>
+                <div id="completed-list">
                     <div class="empty-state">
                         <div class="icon">⏳</div>
                         <p>Loading...</p>
@@ -784,6 +799,7 @@
                 renderNewQuotes();
                 renderAllQuotes();
                 renderProduction();
+                renderCompleted();
                 renderCustomers();
                 AdminCalendar.init();
                 
@@ -797,6 +813,7 @@
             const newQuotes = allEstimates.filter(e => e.status === 'sent').length;
             const awaitingConfirm = allEstimates.filter(e => e.status === 'quoted').length;
             const inProduction = allEstimates.filter(e => e.status === 'in_production' || e.status === 'confirmed').length;
+            const completedCount = allEstimates.filter(e => e.status === 'completed').length;
             
             document.getElementById('stat-new-quotes').textContent = newQuotes;
             document.getElementById('stat-total-quotes').textContent = awaitingConfirm;
@@ -807,6 +824,8 @@
             document.getElementById('badge-new').textContent = newQuotes;
             document.getElementById('badge-quoted').textContent = awaitingConfirm;
             document.getElementById('badge-prod').textContent = inProduction;
+            const badgeCompleted = document.getElementById('badge-completed');
+            if (badgeCompleted) badgeCompleted.textContent = completedCount;
         }
         
         // Render New Quotes
@@ -905,6 +924,25 @@
             }
             
             container.innerHTML = renderTable(inProd, false, true);
+        }
+        
+        // Render Completed
+        function renderCompleted() {
+            const container = document.getElementById('completed-list');
+            if (!container) return;
+            const done = allEstimates.filter(e => e.status === 'completed');
+            
+            if (done.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">✅</div>
+                        <p>No completed orders yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = renderTable(done);
         }
         
         // Render Customers
