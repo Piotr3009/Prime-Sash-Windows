@@ -284,6 +284,7 @@ class CustomerDashboard {
         const timeline = [
             { status: 'sent', label: 'Sent' },
             { status: 'confirmed', label: 'Confirmed' },
+            { status: 'survey', label: 'Survey & Adjustment' },
             { status: 'in_production', label: 'Production' },
             { status: 'completed', label: 'Completed' }
         ];
@@ -311,6 +312,7 @@ class CustomerDashboard {
             pending: { label: 'Pending Review', color: '#ffc107' },
             approved: { label: 'Approved', color: '#28a745' },
             confirmed: { label: 'Confirmed', color: '#28a745' },
+            survey: { label: 'Survey & Adjustment', color: '#fd7e14' },
             in_production: { label: 'In Production', color: '#007bff' },
             ordered: { label: 'In Production', color: '#007bff' },
             completed: { label: 'Completed', color: '#28a745' },
