@@ -117,6 +117,7 @@
         .status-sent { background: #fff3cd; color: #856404; }
         .status-quoted { background: #cce5ff; color: #004085; }
         .status-confirmed { background: #d4edda; color: #155724; }
+        .status-survey { background: #ffe0b3; color: #8a4b00; }
         .status-in_production { background: #e2d5f1; color: #6f42c1; }
         .status-completed { background: #d1ecf1; color: #0c5460; }
         .status-draft { background: #e9ecef; color: #495057; }
@@ -890,7 +891,7 @@
         function renderProduction() {
             const container = document.getElementById('production-list');
             const inProd = allEstimates.filter(e => 
-                e.status === 'confirmed' || e.status === 'in_production'
+                e.status === 'survey' || e.status === 'confirmed' || e.status === 'in_production'
             );
             
             if (inProd.length === 0) {
@@ -903,7 +904,7 @@
                 return;
             }
             
-            container.innerHTML = renderTable(inProd);
+            container.innerHTML = renderTable(inProd, false, true);
         }
         
         // Render Customers
@@ -949,7 +950,7 @@
         }
         
         // Render Table
-        function renderTable(estimates, showQuoteAction = false) {
+        function renderTable(estimates, showQuoteAction = false, productionActions = false) {
             return `
                 <table class="data-table">
                     <thead>
@@ -981,6 +982,8 @@
                                     <td>
                                         <button class="btn btn-primary btn-sm" onclick="viewEstimate('${est.id}')">View</button>
                                         ${showQuoteAction ? `<button class="btn btn-success btn-sm" onclick="sendQuote('${est.id}')">Send Quote</button>` : ''}
+                                        ${productionActions && (est.status === 'survey' || est.status === 'confirmed') ? `<button class="btn btn-success btn-sm" onclick="startProduction('${est.id}')">Start Production</button>` : ''}
+                                        ${productionActions && est.status === 'in_production' ? `<button class="btn btn-success btn-sm" onclick="completeOrder('${est.id}')">Mark Completed</button>` : ''}
                                     </td>
                                 </tr>
                             `;
@@ -1147,8 +1150,27 @@
         }
         
         async function confirmDepositPaid(id) {
-            if (!confirm('Confirm deposit paid - move to production?')) return;
-            await updateStatus(id, 'confirmed');
+            if (!confirm('Confirm deposit paid? This freezes the 50% deposit and moves the order to Survey.')) return;
+            try {
+                const est = allEstimates.find(e => e.id === id);
+                const total = est ? Number(est.total_price) || 0 : 0;
+                const depositLocked = total / 2;
+                const { error } = await supabaseClient
+                    .from('estimates')
+                    .update({
+                        status: 'survey',
+                        deposit_locked: depositLocked,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', id);
+                if (error) throw error;
+                alert('Deposit confirmed and frozen. Order moved to Survey.');
+                closeModal();
+                await loadAllData();
+            } catch (error) {
+                console.error('Error confirming deposit:', error);
+                alert('Error: ' + error.message);
+            }
         }
         
         async function confirmOrder(id) {
@@ -1195,6 +1217,7 @@
                 'sent': 'Awaiting Quote',
                 'quoted': 'Awaiting Confirmation',
                 'confirmed': 'Confirmed',
+                'survey': 'Survey & Adjustment',
                 'in_production': 'In Production',
                 'completed': 'Completed',
                 'cancelled': 'Cancelled'
