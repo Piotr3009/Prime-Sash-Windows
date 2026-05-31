@@ -32,6 +32,26 @@ class EstimateRenderer {
         };
     }
 
+    // Natural sort for window numbers: group by letter prefix, then numeric.
+    // e.g. GL1, GL2, W1, W2, W3, W10, W11 (not W1, W10, W11, W2).
+    static sortWindowItems(items) {
+        if (!Array.isArray(items)) return items;
+        const parse = (name) => {
+            const s = String(name || '');
+            const m = s.match(/^([^0-9]*)(\d+)?(.*)$/);
+            const prefix = (m && m[1] ? m[1] : '').toUpperCase().trim();
+            const num = (m && m[2] !== undefined && m[2] !== '') ? parseInt(m[2], 10) : Infinity;
+            return { prefix, num, raw: s.toUpperCase() };
+        };
+        return [...items].sort((a, b) => {
+            const pa = parse(a.window_number);
+            const pb = parse(b.window_number);
+            if (pa.prefix !== pb.prefix) return pa.prefix < pb.prefix ? -1 : 1;
+            if (pa.num !== pb.num) return pa.num - pb.num;
+            return pa.raw < pb.raw ? -1 : (pa.raw > pb.raw ? 1 : 0);
+        });
+    }
+
     static async deleteItem(itemId, estimateId) {
         if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
             return;
@@ -447,6 +467,7 @@ class EstimateRenderer {
     // options: { isEditable, isAdmin, adminCallbacks, closeCallback, renameCallback, deleteCallback }
     static renderEstimateHTML(estimate, options = {}) {
         const R = EstimateRenderer;
+        if (estimate && estimate.estimate_items) estimate.estimate_items = R.sortWindowItems(estimate.estimate_items);
         const isEditable = options.isEditable ?? (estimate.status === 'sent');
         const isAdmin = options.isAdmin ?? false;
 
@@ -2593,6 +2614,7 @@ class EstimateRenderer {
     // ─── Download Professional PDF (6-page: Cover, Quote+About, Certs, Items, Summary, Terms) ───
     static async downloadEstimatePDF(estimate) {
         const R = EstimateRenderer;
+        if (estimate && estimate.estimate_items) estimate.estimate_items = R.sortWindowItems(estimate.estimate_items);
         try {
             const jsPDF = (window.jspdf && window.jspdf.jsPDF) || (window.jsPDF) || (typeof jspdf !== 'undefined' && jspdf.jsPDF);
             if (!jsPDF) throw new Error('jsPDF library not loaded. Please refresh the page.');
@@ -2607,6 +2629,7 @@ class EstimateRenderer {
             const projectName = estimate.project_name || '';
 
             const createdAt = estimate.created_at ? new Date(estimate.created_at) : new Date();
+            const updatedAt = estimate.updated_at ? new Date(estimate.updated_at) : createdAt;
             const validUntil = new Date(createdAt);
             validUntil.setDate(validUntil.getDate() + 30);
             const fmtDate = d => d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
@@ -2671,6 +2694,10 @@ class EstimateRenderer {
                                 <td style="padding:10px 14px;color:#0A1628;font-weight:500;">${fmtDate(createdAt)}</td>
                             </tr>
                             <tr style="border-bottom:1px solid #e5e4dd;">
+                                <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Last updated</th>
+                                <td style="padding:10px 14px;color:#0A1628;font-weight:500;">${fmtDate(updatedAt)}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #e5e4dd;">
                                 <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Requested by</th>
                                 <td style="padding:10px 14px;">${customerLine}${addressLine ? ' · ' + addressLine : ''}</td>
                             </tr>
@@ -2679,10 +2706,6 @@ class EstimateRenderer {
                                 <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Project</th>
                                 <td style="padding:10px 14px;">${projectName}</td>
                             </tr>` : ''}
-                            <tr style="border-bottom:1px solid #e5e4dd;">
-                                <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Made by</th>
-                                <td style="padding:10px 14px;color:#0A1628;font-weight:500;">Piotr Tarasek</td>
-                            </tr>
                             <tr>
                                 <th style="background:#0A1628;color:#fff;font-weight:400;letter-spacing:.15em;font-size:10px;text-transform:uppercase;text-align:left;padding:10px 14px;width:40mm;">Valid until</th>
                                 <td style="padding:10px 14px;">${fmtDate(validUntil)} (30 days from issue)</td>
@@ -3392,6 +3415,7 @@ class EstimateRenderer {
     // ─── Download Excel ───
     static downloadEstimateExcel(estimate) {
         const R = EstimateRenderer;
+        if (estimate && estimate.estimate_items) estimate.estimate_items = R.sortWindowItems(estimate.estimate_items);
         try {
             const wsData = [
                 ['Prime Sash Windows — Estimate'],
