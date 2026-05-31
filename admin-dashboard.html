@@ -812,7 +812,7 @@
         function updateStats() {
             const newQuotes = allEstimates.filter(e => e.status === 'sent').length;
             const awaitingConfirm = allEstimates.filter(e => e.status === 'quoted').length;
-            const inProduction = allEstimates.filter(e => e.status === 'in_production' || e.status === 'confirmed').length;
+            const inProduction = allEstimates.filter(e => e.status === 'survey' || e.status === 'in_production' || e.status === 'confirmed').length;
             const completedCount = allEstimates.filter(e => e.status === 'completed').length;
             
             document.getElementById('stat-new-quotes').textContent = newQuotes;
