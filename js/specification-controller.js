@@ -1231,7 +1231,7 @@ class SpecificationController {
     }
 
     document.getElementById('spec-glass-spec').style.display = 'block';
-    document.getElementById('spec-glass-spec-type').textContent = glassSpec === 'toughened' ? 'Toughened' : 'Laminated';
+    document.getElementById('spec-glass-spec-type').textContent = glassSpec === 'toughened' ? 'Toughened' : 'Laminated (Security/Acoustic)';
 
     // Update glass finish display
     let finishText = glassFinish === 'clear' ? 'Clear' : 'Frosted';

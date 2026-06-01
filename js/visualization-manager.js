@@ -149,7 +149,7 @@ class VisualizationManager {
     
     // Glass
     if (this.elements.glassDisplay) {
-      const spec = config.glassSpec === 'laminated' ? 'Laminated' : 'Toughened';
+      const spec = config.glassSpec === 'laminated' ? 'Laminated (Security/Acoustic)' : 'Toughened';
       const finish = config.glassFinish === 'frosted' ? 'Frosted' : 'Clear';
       UIHelpers.setText(this.elements.glassDisplay, `${finish} ${spec}`);
     }

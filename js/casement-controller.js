@@ -273,7 +273,7 @@
       var tv = document.getElementById('spec-c-trickle');
       if (sg) {
         var safety = checked('c-safety-glass') || 'none';
-        sg.textContent = safety === 'none' ? 'Standard' : safety === 'toughened' ? 'Toughened' : 'Laminate';
+        sg.textContent = safety === 'none' ? 'Standard' : safety === 'toughened' ? 'Toughened' : 'Laminate (Security/Acoustic)';
       }
       if (tv) {
         var vent = checked('c-trickle-vent') || 'none';

@@ -150,7 +150,7 @@ class EstimateRenderer {
 
         // GLASS SPEC
         const glassSpec = fc.glassSpec || item.glass_spec || 'toughened';
-        const glassSpecText = glassSpec === 'laminated' ? 'Laminated' : 'Toughened';
+        const glassSpecText = glassSpec === 'laminated' ? 'Laminated (Security/Acoustic)' : 'Toughened';
 
         // GLASS FINISH
         const glassFinish = fc.glassFinish || item.glass_finish || 'clear';
@@ -323,7 +323,7 @@ class EstimateRenderer {
         const trickleText = trickleVent === 'none' ? 'None' : (trickleVent === 'frame' ? 'On Frame' : 'On Sash') + ' (' + trickleColour + ')';
         const sealColour = fc.sealColour || 'black';
         const safetyGlass = fc.safetyGlass || 'none';
-        const safetyGlassText = safetyGlass === 'toughened' ? 'Toughened' : safetyGlass === 'laminate' ? 'Laminate' : 'Standard';
+        const safetyGlassText = safetyGlass === 'toughened' ? 'Toughened' : safetyGlass === 'laminate' ? 'Laminate (Security/Acoustic)' : 'Standard';
         const glassSpecCasement = fc.glassSpec || 'float';
         const glassSpecCasementText = glassSpecCasement === 'low-e' ? 'Low-E Coated' : 'Float Glass';
         const fanlightHeight = fc.fanlightHeight || 0;
