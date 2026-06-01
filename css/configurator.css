@@ -620,14 +620,13 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   word-break: break-word;
 }
 
-/* Hard force-wrap for long ironmongery/horns text — must never stretch the panel */
+/* Hard force-wrap for long ironmongery/horns text — absolute cap so it cannot stretch the panel */
 #spec-ironmongery,
 #spec-d-ironmongery,
 #spec-horns,
 .window-specification .spec-value {
   display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
+  max-width: 260px !important;
   white-space: normal !important;
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
