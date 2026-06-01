@@ -2857,7 +2857,7 @@ class EstimateRenderer {
                 const ironItemsHTML = (p.ironList && p.ironList.length > 0)
                     ? p.ironList.map(pr => `
                         <div style="display:flex;align-items:center;gap:3mm;margin-bottom:2mm;">
-                            ${pr.img ? `<img src="${pr.img}" crossorigin="anonymous" style="width:10mm;height:10mm;object-fit:cover;border:1px solid #e5e4dd;border-radius:1mm;flex-shrink:0;background:#f5f4f0;" onerror="this.style.visibility='hidden'">` : `<div style="width:10mm;height:10mm;border:1px solid #e5e4dd;background:#f5f4f0;border-radius:1mm;flex-shrink:0;"></div>`}
+                            ${pr.img ? `<img src="${pr.img}" crossorigin="anonymous" style="width:12mm;height:12mm;object-fit:cover;border:1px solid #e5e4dd;border-radius:1mm;flex-shrink:0;background:#f5f4f0;" onerror="this.style.visibility='hidden'">` : `<div style="width:12mm;height:12mm;border:1px solid #e5e4dd;background:#f5f4f0;border-radius:1mm;flex-shrink:0;"></div>`}
                             <span style="font-family:'Jost',sans-serif;font-size:11px;color:#0A1628;line-height:1.4;">${pr.qty > 1 ? `<strong>${pr.qty}×</strong> ` : ''}${pr.name}${pr.color ? ` — ${pr.color}` : ''}</span>
                         </div>
                     `).join('')
@@ -2878,11 +2878,11 @@ class EstimateRenderer {
                             <div style="font-family:${serif};font-weight:600;font-size:18px;letter-spacing:.02em;">${item.window_number || typeLabel}${item.window_number && item.window_number !== typeLabel ? `<span style="font-family:'Jost',sans-serif;font-weight:300;font-size:11px;opacity:.65;letter-spacing:.15em;margin-left:10px;">${typeLabel}</span>` : ''}</div>
                             <div style="font-family:'Jost',sans-serif;font-weight:500;font-size:18px;letter-spacing:.02em;">${priceStr}</div>
                         </div>
-                        <div style="display:grid;grid-template-columns:84mm 1fr;gap:6mm;padding:6mm;">
+                        <div style="display:grid;grid-template-columns:92mm 1fr;gap:6mm;padding:6mm;">
                             ${screenshots?.interior ? `
                                 <div style="background:#f5f4f0;border:1px solid #e5e4dd;padding:4mm;display:flex;flex-direction:column;gap:3mm;">
-                                    <div style="width:100%;height:58mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
-                                    <div style="width:100%;height:58mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:30mm;">${svg}</div>
+                                    <div style="width:100%;height:66mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
+                                    <div style="width:100%;height:66mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;">${svg}</div>
                                 </div>
                             ` : `
                                 <div style="background:#f5f4f0;border:1px solid #e5e4dd;display:flex;align-items:center;justify-content:center;padding:4mm;">
@@ -2916,7 +2916,7 @@ class EstimateRenderer {
             `;
 
             const itemBlocksHTML = items.map((item, idx) => `
-                <div style="font-family:'Jost',sans-serif;padding:10px 30px;background:#fff;">
+                <div style="font-family:'Jost',sans-serif;padding:10px 14px;background:#fff;">
                     ${buildItemCard(item, idx)}
                 </div>
             `);
