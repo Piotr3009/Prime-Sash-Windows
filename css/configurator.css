@@ -572,6 +572,8 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   margin: 0 !important;
   background: var(--white);
   overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
 }
 
 .window-specification h2 {
