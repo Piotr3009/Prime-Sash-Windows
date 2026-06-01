@@ -48,7 +48,7 @@ const pricingConfig = {
     // Glass specification
     glassSpec: {
       'toughened': 0,     // bazowe
-      'laminated': 30     // +30£ za m² (mnożone przez powierzchnię)
+      'laminated': 90     // +90£ za m² (mnożone przez powierzchnię)
     },
     
     // Glass finish - ŁADOWANE Z DB
