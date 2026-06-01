@@ -595,6 +595,15 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   font-size: 0.8rem !important;
 }
 
+.spec-section,
+.spec-item,
+.spec-value,
+.spec-label {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
 .spec-item.actual-size {
   background: var(--light-gray);
   padding: 8px;
