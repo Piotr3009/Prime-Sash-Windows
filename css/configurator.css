@@ -606,6 +606,20 @@ select::-webkit-scrollbar-thumb { background: rgba(10,22,40,0.3); border-radius:
   min-width: 0;
 }
 
+/* Ironmongery + other flex spec rows: label stays, value wraps instead of stretching panel */
+.spec-item {
+  flex-wrap: wrap;
+}
+.spec-item > .spec-label {
+  flex: 0 0 auto;
+}
+.spec-item > .spec-value {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .spec-item.actual-size {
   background: var(--light-gray);
   padding: 8px;
