@@ -538,6 +538,11 @@ class EstimateRenderer {
                             <img src="${screenshots.interior}" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
                         </div>
                         ` : ''}
+                        ${screenshots?.exterior ? `
+                        <div style="text-align:center;">
+                            <img src="${screenshots.exterior}" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
+                        </div>
+                        ` : ''}
                         <div style="text-align:center;">
                             ${svg}
                         </div>
@@ -2882,6 +2887,7 @@ class EstimateRenderer {
                             ${screenshots?.interior ? `
                                 <div style="background:#f5f4f0;border:1px solid #e5e4dd;padding:4mm;display:flex;flex-direction:column;gap:3mm;">
                                     <div style="width:100%;height:66mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
+                                    ${screenshots?.exterior ? `<div style="width:100%;height:66mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;"><img src="${screenshots.exterior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>` : ''}
                                     <div style="width:100%;height:66mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;">${svg}</div>
                                 </div>
                             ` : `
@@ -3357,6 +3363,7 @@ class EstimateRenderer {
                     <div style="display:flex;gap:0;">
                         <div style="width:280px;min-width:280px;padding:15px;display:flex;flex-direction:column;align-items:center;gap:10px;background:#f8f8f6;border-right:1px solid #eee;">
                             ${screenshots?.interior ? `<img src="${screenshots.interior}" style="width:250px;border:1px solid #ddd;border-radius:2px;" />` : ''}
+                            ${screenshots?.exterior ? `<img src="${screenshots.exterior}" style="width:250px;border:1px solid #ddd;border-radius:2px;" />` : ''}
                             <div>${svg}</div>
                         </div>
                         <div style="flex:1;padding:15px 20px;">

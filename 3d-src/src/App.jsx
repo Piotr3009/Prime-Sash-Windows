@@ -553,6 +553,14 @@ function ScreenshotHelper({ config }) {
         const backPos = new THREE.Vector3(xSign * Math.sin(angleRad) * distance, 0.22, zSign * Math.cos(angleRad) * distance);
         const backRaw = capture(backPos);
 
+        // Dual colour: also capture the opposite side so both colours are visible on the estimate.
+        const isDualColour = config?.sameColor === false;
+        let frontRaw = null;
+        if (isDualColour) {
+          const frontPos = new THREE.Vector3(-xSign * Math.sin(angleRad) * distance, 0.22, -zSign * Math.cos(angleRad) * distance);
+          frontRaw = capture(frontPos);
+        }
+
         // Restore camera
         camera.position.copy(savedPos);
         camera.lookAt(savedTarget);
@@ -561,13 +569,19 @@ function ScreenshotHelper({ config }) {
 
         // Resize to max 600px for storage efficiency
         resize(backRaw, 600, 600).then((interior) => {
-          resolve({ interior });
+          if (frontRaw) {
+            resize(frontRaw, 600, 600).then((exterior) => {
+              resolve({ interior, exterior });
+            });
+          } else {
+            resolve({ interior });
+          }
         });
       });
     };
 
     return () => { delete window.captureWindowScreenshots; };
-  }, [gl, scene, camera, config?.width, config?.height, config?.windowCategory]);
+  }, [gl, scene, camera, config?.width, config?.height, config?.windowCategory, config?.sameColor]);
 
   return null;
 }
