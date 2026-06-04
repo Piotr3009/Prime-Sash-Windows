@@ -2007,6 +2007,7 @@ export default function ParametricSashWindow({
   fixUpperCustomBars = [],
   fixLowerCustomBars = [],
   headType = 'flat',
+  explode = 0,
 }) {
   const cExt = woodColorExt || woodColor;
   const cInt = woodColorInt || woodColor;
@@ -2742,11 +2743,26 @@ export default function ParametricSashWindow({
   }
   // ═══ END TRIPLE SASH ═══
 
+  // ── EXPLODE (additive splash animation) ─────────────────────────────────
+  // explode = 0 → identical to the configurator (every offset below resolves to 0).
+  // Magnitudes are in mm; tune freely. Only this double/single branch reads them.
+  const EXPLODE_JAMB_X = mm(220); // L/R jambs slide apart horizontally
+  const EXPLODE_HEAD_Y = mm(240); // head jamb lifts up
+  const EXPLODE_SILL_Y = mm(240); // cill drops down
+  const EXPLODE_SASH_Y = mm(170); // sashes separate vertically (upper up / lower down)
+  const EXPLODE_SASH_Z = mm(150); // both sashes ease toward the viewer (+world Z = −local Z)
+  const exAmt   = Math.min(1, Math.max(0, explode));
+  const exJambX = exAmt * EXPLODE_JAMB_X;
+  const exHeadY = exAmt * EXPLODE_HEAD_Y;
+  const exSillY = exAmt * EXPLODE_SILL_Y;
+  const exSashY = exAmt * EXPLODE_SASH_Y;
+  const exSashZ = exAmt * EXPLODE_SASH_Z;
+
   return (
     <group rotation={[0, Math.PI, 0]}>
       <JambWithPartingBead
         length={h}
-        position={[-w / 2 + jambThickness / 2, sillVisibleHeight - jambEmbedIntoSill, 0]}
+        position={[-w / 2 + jambThickness / 2 - exJambX, sillVisibleHeight - jambEmbedIntoSill, 0]}
         material={jambMaterial}
         materialInt={jambIntMaterial}
         beadMaterial={beadMaterial}
@@ -2766,7 +2782,7 @@ export default function ParametricSashWindow({
 
       <JambWithPartingBead
         length={h}
-        position={[w / 2 - jambThickness / 2, sillVisibleHeight - jambEmbedIntoSill, 0]}
+        position={[w / 2 - jambThickness / 2 + exJambX, sillVisibleHeight - jambEmbedIntoSill, 0]}
         material={jambMaterial}
         materialInt={jambIntMaterial}
         beadMaterial={beadMaterial}
@@ -2786,7 +2802,7 @@ export default function ParametricSashWindow({
 
       <JambWithPartingBead
         length={w + mm(104)}
-        position={[0, h / 2 - jambThickness / 2 + sillVisibleHeight - jambEmbedIntoSill, 0]}
+        position={[0, h / 2 - jambThickness / 2 + sillVisibleHeight - jambEmbedIntoSill + exHeadY, 0]}
         material={jambMaterial}
         materialInt={jambIntMaterial}
         beadMaterial={beadMaterial}
@@ -2797,7 +2813,7 @@ export default function ParametricSashWindow({
 
       <TraditionalSill
         width={width}
-        position={[0, -h / 2 + sillVisibleHeight / 2, 0]}
+        position={[0, -h / 2 + sillVisibleHeight / 2 - exSillY, 0]}
         material={sillMaterial}
         materialInt={sillIntMaterial}
       />
@@ -2871,8 +2887,8 @@ export default function ParametricSashWindow({
         stileWidth={config.stileWidth}
         topRail={config.upperTopRail}
         bottomRail={config.upperMeetingRail}
-        zOffset={trackRearZ}
-        yOffset={yTopClosed - mm(upperOpeningDrop)}
+        zOffset={trackRearZ - exSashZ}
+        yOffset={yTopClosed - mm(upperOpeningDrop) + exSashY}
         color={cExt}
         glassThickness={config.glassUnitThickness}
         flipChamfer={false}
@@ -2893,8 +2909,8 @@ export default function ParametricSashWindow({
         stileWidth={config.stileWidth}
         topRail={config.lowerMeetingRail}
         bottomRail={config.lowerBottomRail}
-        zOffset={trackFrontZ}
-        yOffset={yBottomClosed + mm(lowerOpeningLift)}
+        zOffset={trackFrontZ - exSashZ}
+        yOffset={yBottomClosed + mm(lowerOpeningLift) - exSashY}
         color={cExt}
         profiledBottom={true}
         glassThickness={config.glassUnitThickness}
@@ -2940,13 +2956,13 @@ export default function ParametricSashWindow({
 
         // Body: na górnym railu dolnej sashki — interior face (uchwyt obrotowy)
         const lowerSashTop = (yBottomClosed + mm(lowerOpeningLift)) + mm(lowerSashHeight) / 2;
-        const bodyY = lowerSashTop; // na górnej powierzchni meeting railu dolnej sashki
-        const bodyZ = trackFrontZ - mm(sashDepth / 2) + mm(65); // interior face dolnej sashki
+        const bodyY = lowerSashTop - exSashY; // na górnej powierzchni meeting railu dolnej sashki
+        const bodyZ = trackFrontZ - mm(sashDepth / 2) + mm(65) - exSashZ; // interior face dolnej sashki
 
         // Keep: na dolnym railu górnej sashki — interior face (blaszka)
         const upperSashBottom = (yTopClosed - mm(upperOpeningDrop)) - mm(upperSashHeight) / 2;
-        const keepY = upperSashBottom + mm(43); // dolna powierzchnia meeting railu górnej sashki
-        const keepZ = trackRearZ - mm(sashDepth / 2); // interior face górnej sashki
+        const keepY = upperSashBottom + mm(43) + exSashY; // dolna powierzchnia meeting railu górnej sashki
+        const keepZ = trackRearZ - mm(sashDepth / 2) - exSashZ; // interior face górnej sashki
 
         return xPositions.map((x, i) => (
           <group key={i}>
@@ -2963,9 +2979,9 @@ export default function ParametricSashWindow({
       {/* Sash Horns — dolne rogi górnej sashki, exterior face */}
       {showHorns && (() => {
         const upperSashBottom = (yTopClosed - mm(upperOpeningDrop)) - mm(upperSashHeight) / 2;
-        const hornY = upperSashBottom - mm(80);
-        const hornZLeft  = trackRearZ + mm(sashDepth / 2) - mm(57);
-        const hornZRight = trackRearZ + mm(sashDepth / 2);
+        const hornY = upperSashBottom - mm(80) + exSashY;
+        const hornZLeft  = trackRearZ + mm(sashDepth / 2) - mm(57) - exSashZ;
+        const hornZRight = trackRearZ + mm(sashDepth / 2) - exSashZ;
         const leftX  = -mm(sashWidth / 2);
         const rightX =  mm(sashWidth / 2);
         const hornMat = new THREE.MeshStandardMaterial({ color: cExt, roughness: 0.46, metalness: 0.02 });
@@ -2978,8 +2994,8 @@ export default function ParametricSashWindow({
       {/* Sash Stoppers — cylindry na stilach górnej sashki, 100mm powyżej meeting railu */}
       {(() => {
         const upperSashBottom = (yTopClosed - mm(upperOpeningDrop)) - mm(upperSashHeight) / 2;
-        const stopperY = upperSashBottom + mm(43) + mm(100);
-        const stopperZ = trackRearZ - mm(sashDepth / 2);
+        const stopperY = upperSashBottom + mm(43) + mm(100) + exSashY;
+        const stopperZ = trackRearZ - mm(sashDepth / 2) - exSashZ;
         const leftX  = -mm(sashWidth / 2) + mm(config.stileWidth / 2);
         const rightX =  mm(sashWidth / 2) - mm(config.stileWidth / 2);
         const stopperMaterial = ironmongeryMats.main;
@@ -2992,8 +3008,8 @@ export default function ParametricSashWindow({
       })()}
       {(() => {
         const lowerSashBottom = (yBottomClosed + mm(lowerOpeningLift)) - mm(lowerSashHeight) / 2;
-        const liftY = lowerSashBottom + mm(45); // centrum bottom rail (90mm/2)
-        const liftZ = trackFrontZ - mm(sashDepth / 2) - mm(1); // interior face
+        const liftY = lowerSashBottom + mm(45) - exSashY; // centrum bottom rail (90mm/2)
+        const liftZ = trackFrontZ - mm(sashDepth / 2) - mm(1) - exSashZ; // interior face
         const xLeft  = -mm(sashWidth / 2 - 200);
         const xRight =  mm(sashWidth / 2 - 200);
         return [xLeft, xRight].map((x, i) => (
@@ -3006,8 +3022,8 @@ export default function ParametricSashWindow({
       {/* Handle — od spodu meeting railu górnej sashki, exterior face */}
       {(() => {
         const upperSashBottom = (yTopClosed - mm(upperOpeningDrop)) - mm(upperSashHeight) / 2;
-        const handleY = upperSashBottom; // dolna powierzchnia meeting railu
-        const handleZ = trackRearZ + mm(sashDepth / 2) - mm(28); // exterior face górnej sashki -28mm
+        const handleY = upperSashBottom + exSashY; // dolna powierzchnia meeting railu
+        const handleZ = trackRearZ + mm(sashDepth / 2) - mm(28) - exSashZ; // exterior face górnej sashki -28mm
         return (
           <group position={[0, handleY, handleZ]} rotation={[Math.PI / 2, 0, 0]}>
             <HandleMesh mat={ironmongeryMats} />
