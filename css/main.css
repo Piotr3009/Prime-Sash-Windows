@@ -115,7 +115,7 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
 
 /* 2-ROW NAV */
 .nav-rows { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
-.nav-row { list-style: none; display: flex; gap: 1.2rem; justify-content: flex-end; margin: 0; padding: 0; }
+.nav-row { list-style: none; display: flex; flex-wrap: wrap; gap: 1.2rem; justify-content: flex-end; margin: 0; padding: 0; }
 
 /* Row 1 — primary, brighter */
 .nav-row:first-child li + li { border-left: 1px solid rgba(158,158,144,.2); padding-left: 1.2rem; }
@@ -343,10 +343,6 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); fo
   .nav-row:nth-child(2) li + li { padding-left: 0.8rem; }
   .nav-row:first-child a { font-size: .60rem; letter-spacing: .12em; }
   .nav-row:nth-child(2) a { font-size: .55rem; letter-spacing: .10em; }
-  /* Hide less important Row 1 links: History(2), Why Not Buy(3), Certifications(5) */
-  .nav-row:first-child li:nth-child(2),
-  .nav-row:first-child li:nth-child(3),
-  .nav-row:first-child li:nth-child(5) { display: none !important; }
 }
 
 /* Nav → hamburger (phones + small tablets only) */
