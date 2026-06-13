@@ -843,7 +843,15 @@
                 return;
             }
             
-            container.innerHTML = renderTable(newQuotes, true);
+            const totalWindows = newQuotes.reduce((s, e) => s + (e.estimate_items || []).reduce((s2, it) => s2 + (parseInt(it.quantity) || 1), 0), 0);
+            const totalValue = newQuotes.reduce((s, e) => s + (parseFloat(e.total_price) || 0), 0);
+            const summaryBar = `
+                <div style="display:flex;gap:2rem;align-items:center;background:#f5f4f0;border-left:3px solid #c9a96e;padding:.9rem 1.3rem;margin-top:1rem;font-family:'Jost',sans-serif;">
+                    <div><span style="color:#666;font-size:.8rem;">Total windows quoted:</span> <strong style="font-size:1rem;">${totalWindows}</strong></div>
+                    <div><span style="color:#666;font-size:.8rem;">Total value (ex VAT):</span> <strong style="font-size:1rem;">£${formatPrice(totalValue)}</strong></div>
+                </div>
+            `;
+            container.innerHTML = renderTable(newQuotes, true) + summaryBar;
         }
         
         // Render Awaiting Confirmation (quoted only)
