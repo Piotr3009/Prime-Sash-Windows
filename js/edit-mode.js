@@ -9,17 +9,13 @@
   const editItemId = params.get('edit');
   const estimateId = params.get('estimate');
 
-  // ─── ADD WINDOW MODE: auto-select estimate in dropdown ───
+  // ─── ADD WINDOW MODE: ?estimate=ID (no edit) ───
+  // Client → auto-select their own estimate in the dropdown.
+  // Admin  → hard-target the client's estimate: hide selector, show banner,
+  //          and return to the admin modal after each window/door is added.
   if (estimateId && !editItemId) {
     document.addEventListener('DOMContentLoaded', () => {
-      // Wait for estimate selector to populate
-      setTimeout(() => {
-        if (window.estimateSelectorManager) {
-          window.estimateSelectorManager.selectedEstimateId = estimateId;
-          const sel = document.getElementById('estimate-select');
-          if (sel) { sel.value = estimateId; }
-        }
-      }, 1500);
+      initAddMode(estimateId);
     });
   }
 
@@ -1194,6 +1190,123 @@
     if (window.estimateManager?.showToast) {
       window.estimateManager.showToast(msg, msg.startsWith('✅') ? 'success' : 'error');
     } else {
+    }
+  }
+
+  // ─── ADD WINDOW MODE controller (client auto-select OR admin add-to-client) ───
+  async function initAddMode(targetEstimateId) {
+    // Wait for the estimate selector manager (deterministic; replaces old setTimeout)
+    try {
+      await waitFor(() => window.estimateSelectorManager, 8000);
+    } catch (e) {
+      return; // selector never initialised — nothing to wire up
+    }
+
+    // The same button + URL is used by clients (own estimate) and admins (client estimate).
+    // Role decides the behaviour.
+    let admin = false;
+    try {
+      if (typeof window.isAdmin === 'function') admin = await window.isAdmin();
+    } catch (e) { admin = false; }
+
+    // ── CLIENT: original auto-select behaviour (with the correct element id) ──
+    if (!admin) {
+      window.estimateSelectorManager.selectedEstimateId = targetEstimateId;
+      const sel = document.getElementById('estimate-selector');
+      if (sel) sel.value = targetEstimateId;
+      const dSel = document.getElementById('d-estimate-selector');
+      if (dSel) dSel.value = targetEstimateId;
+      if (typeof window.estimateSelectorManager.updateEstimateInfo === 'function') {
+        try { window.estimateSelectorManager.updateEstimateInfo(); } catch (e) {}
+      }
+      return;
+    }
+
+    // ── ADMIN: add a window/door to a client's estimate ──
+    // 1. Hard-target the client estimate (selector is hidden, so this is authoritative)
+    window.estimateSelectorManager.selectedEstimateId = targetEstimateId;
+
+    // 2. Hide the estimate selector(s) — the client list is irrelevant here
+    document.querySelectorAll('.estimate-selector-container').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    // 3. Relabel the add buttons + show the admin banner
+    relabelAdminAddButtons();
+    buildAdminAddBanner(targetEstimateId);
+
+    // 4. After a window/door is added, return to the admin modal and close this tab.
+    //    Wrap the existing addWindowToEstimate — no listener duplication, no clone-timing race.
+    await waitFor(
+      () => window.estimateManager && typeof window.estimateManager.addWindowToEstimate === 'function',
+      8000
+    ).catch(() => {});
+    if (window.estimateManager && !window.estimateManager.__adminAddWrapped) {
+      const mgr = window.estimateManager;
+      const origAdd = mgr.addWindowToEstimate.bind(mgr);
+      mgr.addWindowToEstimate = async function(config, price, estId) {
+        const result = await origAdd(config, price, estId || targetEstimateId);
+        returnToAdminPanel(targetEstimateId);
+        return result;
+      };
+      mgr.__adminAddWrapped = true;
+    }
+  }
+
+  function relabelAdminAddButtons() {
+    [['add-to-estimate', '+ Add to Client Estimate'], ['d-add-to-estimate', '+ Add Door to Client Estimate']]
+      .forEach(([id, label]) => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.textContent = label;
+          btn.style.background = '#0A1628';
+        }
+      });
+  }
+
+  async function buildAdminAddBanner(targetEstimateId) {
+    if (document.getElementById('admin-add-banner')) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'admin-add-banner';
+    banner.style.cssText = 'background:#0A1628;color:#fff;padding:.5rem 1.2rem;display:flex;align-items:center;justify-content:space-between;font-family:Jost,sans-serif;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;position:fixed;top:0;left:0;right:0;z-index:9999;';
+    banner.innerHTML =
+      '<span id="admin-add-banner-text">➕ ADMIN — loading estimate…</span>' +
+      '<button id="admin-add-banner-back" style="background:#fff;color:#0A1628;border:none;padding:.35rem 1.2rem;font-family:Jost,sans-serif;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:3px;font-weight:600;">Back to panel</button>';
+    document.body.prepend(banner);
+    document.body.style.paddingTop = '40px';
+
+    document.getElementById('admin-add-banner-back').addEventListener('click', () => {
+      returnToAdminPanel(targetEstimateId);
+    });
+
+    // estimate_number + project_name are admin-readable; client name intentionally omitted (RLS-safe)
+    try {
+      const { data } = await window.supabaseClient
+        .from('estimates')
+        .select('estimate_number, project_name')
+        .eq('id', targetEstimateId)
+        .single();
+      const txt = document.getElementById('admin-add-banner-text');
+      if (txt && data) {
+        const num = data.estimate_number || targetEstimateId;
+        const proj = data.project_name ? ' · ' + data.project_name : '';
+        txt.textContent = '➕ ADMIN — adding window to ' + num + proj;
+      }
+    } catch (e) {
+      const txt = document.getElementById('admin-add-banner-text');
+      if (txt) txt.textContent = '➕ ADMIN — adding window to client estimate';
+    }
+  }
+
+  function returnToAdminPanel(targetEstimateId) {
+    const opener = window.opener;
+    if (opener && !opener.closed && typeof opener.viewEstimate === 'function') {
+      try { opener.viewEstimate(targetEstimateId); } catch (e) {}
+      setTimeout(() => { try { window.close(); } catch (e) {} }, 700);
+    } else {
+      // No opener (e.g. URL pasted manually) — cannot auto-close this tab.
+      showToast('✅ Saved — switch to the admin panel and press Refresh');
     }
   }
 
