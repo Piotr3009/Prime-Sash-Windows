@@ -664,6 +664,14 @@
         </div>
     </div>
 
+    <!-- Follow-up modal -->
+    <div id="followup-modal" class="modal">
+        <div class="modal-content" style="max-width:460px;">
+            <span class="modal-close" onclick="closeFollowupModal()">&times;</span>
+            <div id="followup-body"></div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="js/supabase-config.js?v=2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.3/jspdf.umd.min.js"></script>
@@ -1058,6 +1066,7 @@
                                         ${showQuoteAction ? `<button class="btn btn-success btn-sm" onclick="sendQuote('${est.id}')">Send Quote</button>` : ''}
                                         ${productionActions && (est.status === 'survey' || est.status === 'confirmed') ? `<button class="btn btn-success btn-sm" onclick="startProduction('${est.id}')">Start Production</button>` : ''}
                                         ${productionActions && est.status === 'in_production' ? `<button class="btn btn-success btn-sm" onclick="completeOrder('${est.id}')">Mark Completed</button>` : ''}
+                                        ${!notOrderedView && (est.status === 'sent' || est.status === 'quoted') ? `<button class="btn btn-sm" style="background:#0A1628;color:#fff;" onclick="openFollowupModal('${est.id}')">📞 Follow up${Array.isArray(est.followups) && est.followups.length ? ` · ${est.followups.length}` : ''}</button>` : ''}
                                         ${!notOrderedView && (est.status === 'sent' || est.status === 'quoted') ? `<button class="btn btn-sm" style="background:#dc3545;color:#fff;" onclick="markNotOrdered('${est.id}')">Not Ordered</button>` : ''}
                                     </td>
                                 </tr>
@@ -1765,6 +1774,85 @@
             }
         }
 
+        // ─── Follow-ups (ticks + dates, stored in estimates.followups jsonb) ───
+        let currentFollowupId = null;
+
+        function openFollowupModal(id) {
+            currentFollowupId = id;
+            renderFollowupBody();
+            const modal = document.getElementById('followup-modal');
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeFollowupModal() {
+            const modal = document.getElementById('followup-modal');
+            if (modal) modal.classList.remove('active');
+            currentFollowupId = null;
+        }
+
+        function formatFollowupDate(d) {
+            try {
+                return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+            } catch (e) { return d; }
+        }
+
+        function renderFollowupBody() {
+            const body = document.getElementById('followup-body');
+            if (!body) return;
+            const est = allEstimates.find(e => e.id === currentFollowupId);
+            if (!est) { body.innerHTML = '<p>Estimate not found.</p>'; return; }
+            const label = est.estimate_number || est.id.substring(0, 8);
+            const list = Array.isArray(est.followups) ? est.followups : [];
+            // newest first, keep original index for deletion
+            const indexed = list.map((d, i) => ({ d, i })).sort((a, b) => (a.d < b.d ? 1 : a.d > b.d ? -1 : 0));
+
+            const rows = indexed.length
+                ? indexed.map(({ d, i }) => `
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem .2rem;border-bottom:1px solid #eee;">
+                        <span style="font-family:'Jost',sans-serif;font-size:.95rem;">✅ ${formatFollowupDate(d)}</span>
+                        <button onclick="deleteFollowup(${i})" title="Remove" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1rem;line-height:1;">✕</button>
+                    </div>`).join('')
+                : '<p style="color:#666;font-size:.9rem;padding:.5rem .2rem;">No follow-ups yet.</p>';
+
+            body.innerHTML = `
+                <h2 style="font-family:'Jost',sans-serif;margin:0 0 .25rem;">📞 Follow-ups</h2>
+                <p style="color:#666;font-size:.85rem;margin:0 0 1rem;">${label}</p>
+                <div style="max-height:300px;overflow-y:auto;margin-bottom:1rem;">${rows}</div>
+                <button class="btn btn-success btn-sm" onclick="addFollowup()" style="width:100%;">+ Follow up (today)</button>
+            `;
+        }
+
+        async function addFollowup() {
+            const est = allEstimates.find(e => e.id === currentFollowupId);
+            if (!est) return;
+            const list = Array.isArray(est.followups) ? est.followups.slice() : [];
+            list.push(new Date().toISOString().split('T')[0]); // YYYY-MM-DD (today)
+            await saveFollowups(currentFollowupId, list);
+        }
+
+        async function deleteFollowup(index) {
+            const est = allEstimates.find(e => e.id === currentFollowupId);
+            if (!est) return;
+            const list = Array.isArray(est.followups) ? est.followups.slice() : [];
+            if (index < 0 || index >= list.length) return;
+            list.splice(index, 1);
+            await saveFollowups(currentFollowupId, list);
+        }
+
+        async function saveFollowups(id, list) {
+            try {
+                const { error } = await supabaseClient
+                    .from('estimates')
+                    .update({ followups: list })
+                    .eq('id', id);
+                if (error) throw error;
+                await loadAllData();      // refresh list counters
+                renderFollowupBody();     // refresh modal from fresh data
+            } catch (e) {
+                alert('Could not save follow-up: ' + (e.message || e));
+            }
+        }
+
         // Expose functions to global scope for onclick handlers in estimate-renderer
         window.viewEstimate = viewEstimate;
         window.closeModal = closeModal;
@@ -1779,6 +1867,10 @@
         window.adminDeleteExtra = adminDeleteExtra;
         window.markNotOrdered = markNotOrdered;
         window.restoreEstimate = restoreEstimate;
+        window.openFollowupModal = openFollowupModal;
+        window.closeFollowupModal = closeFollowupModal;
+        window.addFollowup = addFollowup;
+        window.deleteFollowup = deleteFollowup;
     </script>
 </body>
 </html>
