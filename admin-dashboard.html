@@ -120,6 +120,7 @@
         .status-survey { background: #ffe0b3; color: #8a4b00; }
         .status-in_production { background: #e2d5f1; color: #6f42c1; }
         .status-completed { background: #d1ecf1; color: #0c5460; }
+        .status-not_ordered { background: #f8d7da; color: #842029; }
         .status-draft { background: #e9ecef; color: #495057; }
         
         .btn {
@@ -403,6 +404,9 @@
                 <button class="admin-tab" data-view="completed">
                     ✅ Completed <span class="badge" id="badge-completed">0</span>
                 </button>
+                <button class="admin-tab" data-view="not-ordered">
+                    🚫 Not Ordered <span class="badge" id="badge-not-ordered">0</span>
+                </button>
                 <button class="admin-tab" data-view="customers">
                     👥 Customers
                 </button>
@@ -456,6 +460,18 @@
                 <h2 class="section-title">✅ Completed</h2>
                 <p style="color: #666; margin-bottom: 20px;">Completed orders. Kept for warranty, records, and production history.</p>
                 <div id="completed-list">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Not Ordered View -->
+            <div id="view-not-ordered" class="admin-view">
+                <h2 class="section-title">🚫 Not Ordered</h2>
+                <p style="color: #666; margin-bottom: 20px;">Clients who didn't order — kept for records. Use Restore to move an estimate back to live.</p>
+                <div id="not-ordered-list">
                     <div class="empty-state">
                         <div class="icon">⏳</div>
                         <p>Loading...</p>
@@ -800,6 +816,7 @@
                 renderAllQuotes();
                 renderProduction();
                 renderCompleted();
+                renderNotOrdered();
                 renderCustomers();
                 AdminCalendar.init();
                 
@@ -814,6 +831,7 @@
             const awaitingConfirm = allEstimates.filter(e => e.status === 'quoted').length;
             const inProduction = allEstimates.filter(e => e.status === 'survey' || e.status === 'in_production' || e.status === 'confirmed').length;
             const completedCount = allEstimates.filter(e => e.status === 'completed').length;
+            const notOrderedCount = allEstimates.filter(e => e.status === 'not_ordered').length;
             
             document.getElementById('stat-new-quotes').textContent = newQuotes;
             document.getElementById('stat-total-quotes').textContent = awaitingConfirm;
@@ -826,6 +844,8 @@
             document.getElementById('badge-prod').textContent = inProduction;
             const badgeCompleted = document.getElementById('badge-completed');
             if (badgeCompleted) badgeCompleted.textContent = completedCount;
+            const badgeNotOrdered = document.getElementById('badge-not-ordered');
+            if (badgeNotOrdered) badgeNotOrdered.textContent = notOrderedCount;
         }
         
         // Render New Quotes
@@ -1003,7 +1023,7 @@
         }
         
         // Render Table
-        function renderTable(estimates, showQuoteAction = false, productionActions = false) {
+        function renderTable(estimates, showQuoteAction = false, productionActions = false, notOrderedView = false) {
             return `
                 <table class="data-table">
                     <thead>
@@ -1034,9 +1054,11 @@
                                     <td>${formatDate(est.created_at)}</td>
                                     <td>
                                         <button class="btn btn-primary btn-sm" onclick="viewEstimate('${est.id}')">View</button>
+                                        ${notOrderedView ? `<button class="btn btn-success btn-sm" onclick="restoreEstimate('${est.id}')">↩ Restore</button>` : ''}
                                         ${showQuoteAction ? `<button class="btn btn-success btn-sm" onclick="sendQuote('${est.id}')">Send Quote</button>` : ''}
                                         ${productionActions && (est.status === 'survey' || est.status === 'confirmed') ? `<button class="btn btn-success btn-sm" onclick="startProduction('${est.id}')">Start Production</button>` : ''}
                                         ${productionActions && est.status === 'in_production' ? `<button class="btn btn-success btn-sm" onclick="completeOrder('${est.id}')">Mark Completed</button>` : ''}
+                                        ${!notOrderedView && (est.status === 'sent' || est.status === 'quoted') ? `<button class="btn btn-sm" style="background:#dc3545;color:#fff;" onclick="markNotOrdered('${est.id}')">Not Ordered</button>` : ''}
                                     </td>
                                 </tr>
                             `;
@@ -1273,7 +1295,8 @@
                 'survey': 'Survey & Adjustment',
                 'in_production': 'In Production',
                 'completed': 'Completed',
-                'cancelled': 'Cancelled'
+                'cancelled': 'Cancelled',
+                'not_ordered': 'Not Ordered'
             };
             return labels[status] || status;
         }
@@ -1688,6 +1711,60 @@
             }
         };
 
+        // Render Not Ordered (soft-deleted estimates — kept for records)
+        function renderNotOrdered() {
+            const container = document.getElementById('not-ordered-list');
+            if (!container) return;
+            const notOrdered = allEstimates.filter(e => e.status === 'not_ordered');
+
+            if (notOrdered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🚫</div>
+                        <p>No estimates marked as not ordered.</p>
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = renderTable(notOrdered, false, false, true);
+        }
+
+        // Move an estimate to "Not Ordered" — soft-delete (keeps record + client, never deletes)
+        async function markNotOrdered(id) {
+            const est = allEstimates.find(e => e.id === id);
+            const label = est ? (est.estimate_number || id.substring(0, 8)) : id;
+            if (!confirm(`Move ${label} to "Not Ordered"? The estimate and client are kept — you can restore it later.`)) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('estimates')
+                    .update({ previous_status: est ? est.status : null, status: 'not_ordered' })
+                    .eq('id', id);
+                if (error) throw error;
+                await loadAllData();
+                switchView('not-ordered');
+            } catch (e) {
+                alert('Could not update estimate: ' + (e.message || e));
+            }
+        }
+
+        // Restore a "Not Ordered" estimate back to its previous (live) status
+        async function restoreEstimate(id) {
+            const est = allEstimates.find(e => e.id === id);
+            const restoreTo = (est && est.previous_status) ? est.previous_status : 'sent';
+            try {
+                const { error } = await supabaseClient
+                    .from('estimates')
+                    .update({ status: restoreTo, previous_status: null })
+                    .eq('id', id);
+                if (error) throw error;
+                await loadAllData();
+                const viewMap = { sent: 'new-quotes', quoted: 'all-quotes', survey: 'production', confirmed: 'production', in_production: 'production', completed: 'completed' };
+                switchView(viewMap[restoreTo] || 'new-quotes');
+            } catch (e) {
+                alert('Could not restore estimate: ' + (e.message || e));
+            }
+        }
+
         // Expose functions to global scope for onclick handlers in estimate-renderer
         window.viewEstimate = viewEstimate;
         window.closeModal = closeModal;
@@ -1700,6 +1777,8 @@
         window.adminEditExtra = adminEditExtra;
         window.adminAddExtra = adminAddExtra;
         window.adminDeleteExtra = adminDeleteExtra;
+        window.markNotOrdered = markNotOrdered;
+        window.restoreEstimate = restoreEstimate;
     </script>
 </body>
 </html>
