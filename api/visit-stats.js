@@ -143,18 +143,21 @@ async function supabaseQuery(url, key, table, select, filter, prefer, countOnly)
 // Count unique ip_hash using RPC or manual approach
 // If since is null, count all time
 async function supabaseQueryUnique(url, key, since) {
-    const filter = since ? `&visited_at=gte.${since}` : '';
+    // COUNT(DISTINCT ip_hash) computed server-side via RPC.
+    // Avoids the PostgREST 1000-row cap that froze this counter (was stuck at 607).
     const response = await fetch(
-        `${url}/rest/v1/page_visits?select=ip_hash${filter}`,
+        `${url}/rest/v1/rpc/count_unique_visitors`,
         {
+            method: 'POST',
             headers: {
                 'apikey': key,
-                'Authorization': `Bearer ${key}`
-            }
+                'Authorization': `Bearer ${key}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ since_ts: since || null })
         }
     );
     if (!response.ok) return 0;
     const data = await response.json();
-    const unique = new Set(data.map(r => r.ip_hash));
-    return unique.size;
+    return typeof data === 'number' ? data : (parseInt(data) || 0);
 }
