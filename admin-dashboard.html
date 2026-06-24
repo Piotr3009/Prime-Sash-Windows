@@ -140,10 +140,14 @@
         .btn-success:hover { background: #218838; }
         .btn-warning { background: #ffc107; color: #333; }
         .btn-danger { background: #dc3545; color: white; }
-        .btn-sm { padding: 5px 12px; font-size: 0.8rem; background: #2c6e5a; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.3s; }
+        .btn-sm { padding: 4px 11px; font-size: 0.72rem; font-weight: 500; text-transform: none; letter-spacing: normal; line-height: 1.4; margin: 2px; background: #2c6e5a; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; }
         .btn-sm:hover { background: #1a4a3a; }
-        .btn-sm.danger { background: #dc3545; }
-        .btn-sm.danger:hover { background: #c82333; }
+        .btn-sm.neutral { background: #6b7280; }
+        .btn-sm.neutral:hover { background: #565d68; }
+        .btn-sm.navy { background: #0A1628; }
+        .btn-sm.navy:hover { background: #1a2740; }
+        .btn-sm.danger { background: #b3261e; }
+        .btn-sm.danger:hover { background: #951f18; }
         
         .empty-state {
             text-align: center;
@@ -931,8 +935,8 @@
                                     <td><span class="status-badge status-${est.status}">${getStatusLabel(est.status)}</span></td>
                                     <td>${formatDate(est.created_at)}</td>
                                     <td>
-                                        <button class="btn btn-primary btn-sm" onclick="viewEstimate('${est.id}')">View</button>
-                                        <button class="btn btn-success btn-sm" onclick="confirmDepositPaid('${est.id}')">Deposit Paid</button>
+                                        <button class="btn-sm neutral" onclick="viewEstimate('${est.id}')">View</button>
+                                        <button class="btn-sm" onclick="confirmDepositPaid('${est.id}')">Deposit paid</button>
                                     </td>
                                 </tr>
                             `;
@@ -1061,13 +1065,13 @@
                                     <td><span class="status-badge status-${est.status}">${getStatusLabel(est.status)}</span></td>
                                     <td>${formatDate(est.created_at)}</td>
                                     <td>
-                                        <button class="btn btn-primary btn-sm" onclick="viewEstimate('${est.id}')">View</button>
-                                        ${notOrderedView ? `<button class="btn btn-success btn-sm" onclick="restoreEstimate('${est.id}')">↩ Restore</button>` : ''}
-                                        ${showQuoteAction ? `<button class="btn btn-success btn-sm" onclick="sendQuote('${est.id}')">Send Quote</button>` : ''}
-                                        ${productionActions && (est.status === 'survey' || est.status === 'confirmed') ? `<button class="btn btn-success btn-sm" onclick="startProduction('${est.id}')">Start Production</button>` : ''}
-                                        ${productionActions && est.status === 'in_production' ? `<button class="btn btn-success btn-sm" onclick="completeOrder('${est.id}')">Mark Completed</button>` : ''}
-                                        ${!notOrderedView && (est.status === 'sent' || est.status === 'quoted') ? `<button class="btn btn-sm" style="background:#0A1628;color:#fff;" onclick="openFollowupModal('${est.id}')">📞 Follow up${Array.isArray(est.followups) && est.followups.length ? ` · ${est.followups.length}` : ''}</button>` : ''}
-                                        ${!notOrderedView && (est.status === 'sent' || est.status === 'quoted') ? `<button class="btn btn-sm" style="background:#dc3545;color:#fff;" onclick="markNotOrdered('${est.id}')">Not Ordered</button>` : ''}
+                                        <button class="btn-sm neutral" onclick="viewEstimate('${est.id}')">View</button>
+                                        ${notOrderedView ? `<button class="btn-sm" onclick="restoreEstimate('${est.id}')">↩ Restore</button>` : ''}
+                                        ${showQuoteAction ? `<button class="btn-sm" onclick="sendQuote('${est.id}')">Send quote</button>` : ''}
+                                        ${productionActions && (est.status === 'survey' || est.status === 'confirmed') ? `<button class="btn-sm" onclick="startProduction('${est.id}')">Start production</button>` : ''}
+                                        ${productionActions && est.status === 'in_production' ? `<button class="btn-sm" onclick="completeOrder('${est.id}')">Mark completed</button>` : ''}
+                                        ${!notOrderedView && (est.status === 'sent' || est.status === 'quoted') ? `<button class="btn-sm navy" onclick="openFollowupModal('${est.id}')">Follow up${Array.isArray(est.followups) && est.followups.length ? ` · ${est.followups.length}` : ''}</button>` : ''}
+                                        ${!notOrderedView && (est.status === 'sent' || est.status === 'quoted') ? `<button class="btn-sm danger" onclick="markNotOrdered('${est.id}')">Not ordered</button>` : ''}
                                     </td>
                                 </tr>
                             `;
@@ -1818,7 +1822,7 @@
                 <h2 style="font-family:'Jost',sans-serif;margin:0 0 .25rem;">📞 Follow-ups</h2>
                 <p style="color:#666;font-size:.85rem;margin:0 0 1rem;">${label}</p>
                 <div style="max-height:300px;overflow-y:auto;margin-bottom:1rem;">${rows}</div>
-                <button class="btn btn-success btn-sm" onclick="addFollowup()" style="width:100%;">+ Follow up (today)</button>
+                <button class="btn-sm" onclick="addFollowup()" style="width:100%;padding:8px;">+ Follow up (today)</button>
             `;
         }
 
