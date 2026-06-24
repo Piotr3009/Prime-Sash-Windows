@@ -1778,11 +1778,24 @@
             }
         }
 
-        // ─── Follow-ups (ticks + dates, stored in estimates.followups jsonb) ───
+        // ─── Follow-ups (ticks + dates + notes, stored in estimates.followups jsonb) ───
+        // Stored as [{date, note}]. Back-compat: old plain-date strings are read as {date, note:''}.
         let currentFollowupId = null;
+        let editingFollowupIndex = null;
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function normFollowup(f) {
+            if (typeof f === 'string') return { date: f, note: '' };
+            if (f && typeof f === 'object') return { date: f.date || '', note: f.note || '' };
+            return { date: '', note: '' };
+        }
 
         function openFollowupModal(id) {
             currentFollowupId = id;
+            editingFollowupIndex = null;
             renderFollowupBody();
             const modal = document.getElementById('followup-modal');
             if (modal) modal.classList.add('active');
@@ -1792,6 +1805,7 @@
             const modal = document.getElementById('followup-modal');
             if (modal) modal.classList.remove('active');
             currentFollowupId = null;
+            editingFollowupIndex = null;
         }
 
         function formatFollowupDate(d) {
@@ -1807,37 +1821,84 @@
             if (!est) { body.innerHTML = '<p>Estimate not found.</p>'; return; }
             const label = est.estimate_number || est.id.substring(0, 8);
             const list = Array.isArray(est.followups) ? est.followups : [];
-            // newest first, keep original index for deletion
-            const indexed = list.map((d, i) => ({ d, i })).sort((a, b) => (a.d < b.d ? 1 : a.d > b.d ? -1 : 0));
+            // normalize + keep original index, newest first
+            const indexed = list.map((f, i) => ({ f: normFollowup(f), i }))
+                .sort((a, b) => (a.f.date < b.f.date ? 1 : a.f.date > b.f.date ? -1 : 0));
 
             const rows = indexed.length
-                ? indexed.map(({ d, i }) => `
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem .2rem;border-bottom:1px solid #eee;">
-                        <span style="font-family:'Jost',sans-serif;font-size:.95rem;">✅ ${formatFollowupDate(d)}</span>
-                        <button onclick="deleteFollowup(${i})" title="Remove" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1rem;line-height:1;">✕</button>
-                    </div>`).join('')
+                ? indexed.map(({ f, i }) => {
+                    if (editingFollowupIndex === i) {
+                        return `
+                            <div style="padding:.55rem .2rem;border-bottom:1px solid #eee;">
+                                <div style="font-family:'Jost',sans-serif;font-size:.9rem;margin-bottom:.4rem;">✅ ${formatFollowupDate(f.date)}</div>
+                                <textarea id="followup-edit-input" rows="2" style="width:100%;font-family:'Jost',sans-serif;font-size:.85rem;padding:6px;border:1px solid #cfccc2;border-radius:5px;box-sizing:border-box;">${escapeHtml(f.note)}</textarea>
+                                <div style="display:flex;gap:6px;margin-top:.4rem;">
+                                    <button class="btn-sm" onclick="editFollowup(${i})">Save</button>
+                                    <button class="btn-sm neutral" onclick="cancelEditFollowup()">Cancel</button>
+                                </div>
+                            </div>`;
+                    }
+                    return `
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:.55rem .2rem;border-bottom:1px solid #eee;gap:8px;">
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-family:'Jost',sans-serif;font-size:.95rem;">✅ ${formatFollowupDate(f.date)}</div>
+                                ${f.note ? `<div style="font-family:'Jost',sans-serif;font-size:.82rem;color:#555;margin-top:.2rem;white-space:pre-wrap;word-break:break-word;">${escapeHtml(f.note)}</div>` : ''}
+                            </div>
+                            <div style="display:flex;gap:4px;flex-shrink:0;">
+                                <button onclick="startEditFollowup(${i})" title="Edit note" style="background:none;border:none;color:#2c6e5a;cursor:pointer;font-size:.95rem;line-height:1;">✎</button>
+                                <button onclick="deleteFollowup(${i})" title="Remove" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1rem;line-height:1;">✕</button>
+                            </div>
+                        </div>`;
+                }).join('')
                 : '<p style="color:#666;font-size:.9rem;padding:.5rem .2rem;">No follow-ups yet.</p>';
 
             body.innerHTML = `
                 <h2 style="font-family:'Jost',sans-serif;margin:0 0 .25rem;">📞 Follow-ups</h2>
                 <p style="color:#666;font-size:.85rem;margin:0 0 1rem;">${label}</p>
-                <div style="max-height:300px;overflow-y:auto;margin-bottom:1rem;">${rows}</div>
-                <button class="btn-sm" onclick="addFollowup()" style="width:100%;padding:8px;">+ Follow up (today)</button>
+                <div style="max-height:280px;overflow-y:auto;margin-bottom:1rem;">${rows}</div>
+                <textarea id="followup-note-input" rows="2" placeholder="Note — e.g. called, no answer / said too expensive (optional)" style="width:100%;font-family:'Jost',sans-serif;font-size:.85rem;padding:8px;border:1px solid #cfccc2;border-radius:5px;box-sizing:border-box;margin-bottom:.5rem;"></textarea>
+                <button class="btn-sm" onclick="addFollowup()" style="width:100%;padding:8px;">+ Add follow-up (today)</button>
             `;
         }
 
         async function addFollowup() {
             const est = allEstimates.find(e => e.id === currentFollowupId);
             if (!est) return;
-            const list = Array.isArray(est.followups) ? est.followups.slice() : [];
-            list.push(new Date().toISOString().split('T')[0]); // YYYY-MM-DD (today)
+            const input = document.getElementById('followup-note-input');
+            const note = input ? input.value.trim() : '';
+            const list = (Array.isArray(est.followups) ? est.followups : []).map(normFollowup);
+            list.push({ date: new Date().toISOString().split('T')[0], note }); // today
+            await saveFollowups(currentFollowupId, list);
+        }
+
+        function startEditFollowup(index) {
+            editingFollowupIndex = index;
+            renderFollowupBody();
+            const inp = document.getElementById('followup-edit-input');
+            if (inp) inp.focus();
+        }
+
+        function cancelEditFollowup() {
+            editingFollowupIndex = null;
+            renderFollowupBody();
+        }
+
+        async function editFollowup(index) {
+            const est = allEstimates.find(e => e.id === currentFollowupId);
+            if (!est) return;
+            const inp = document.getElementById('followup-edit-input');
+            const note = inp ? inp.value.trim() : '';
+            const list = (Array.isArray(est.followups) ? est.followups : []).map(normFollowup);
+            if (index < 0 || index >= list.length) return;
+            list[index] = { date: list[index].date, note };
+            editingFollowupIndex = null;
             await saveFollowups(currentFollowupId, list);
         }
 
         async function deleteFollowup(index) {
             const est = allEstimates.find(e => e.id === currentFollowupId);
             if (!est) return;
-            const list = Array.isArray(est.followups) ? est.followups.slice() : [];
+            const list = (Array.isArray(est.followups) ? est.followups : []).map(normFollowup);
             if (index < 0 || index >= list.length) return;
             list.splice(index, 1);
             await saveFollowups(currentFollowupId, list);
@@ -1875,6 +1936,9 @@
         window.closeFollowupModal = closeFollowupModal;
         window.addFollowup = addFollowup;
         window.deleteFollowup = deleteFollowup;
+        window.startEditFollowup = startEditFollowup;
+        window.cancelEditFollowup = cancelEditFollowup;
+        window.editFollowup = editFollowup;
     </script>
 </body>
 </html>
