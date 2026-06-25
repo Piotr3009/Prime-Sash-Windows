@@ -532,18 +532,68 @@
     <priority>0.9</priority>
   </url>
   <!-- New Product Pages -->
-  <url><loc>https://www.primesashwindows.co.uk/arched-windows.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://www.primesashwindows.co.uk/picture-windows.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://www.primesashwindows.co.uk/bay-windows.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/arched-windows.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/picture-windows.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/bay-windows.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 
   <!-- New Guide Pages -->
-  <url><loc>https://www.primesashwindows.co.uk/bifold-doors-price-guide.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.primesashwindows.co.uk/are-bifold-doors-worth-it.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.primesashwindows.co.uk/timber-vs-composite-doors.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.primesashwindows.co.uk/failed-double-glazing.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.primesashwindows.co.uk/sash-window-cord-replacement.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.primesashwindows.co.uk/flush-casement-vs-stormproof.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.primesashwindows.co.uk/timber-window-maintenance-guide.html</loc><lastmod>2026-05-27</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/bifold-doors-price-guide.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/are-bifold-doors-worth-it.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/timber-vs-composite-doors.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/failed-double-glazing.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/sash-window-cord-replacement.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/flush-casement-vs-stormproof.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/timber-window-maintenance-guide.html</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
   <url>
     <loc>https://www.primesashwindows.co.uk/sash-windows-bristol.html</loc>
     <lastmod>2026-06-02</lastmod>
@@ -604,58 +654,60 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+
+  <!-- New Pricing & Quote Pages -->
   <url>
-<loc>https://www.primesashwindows.co.uk/sash-window-price-calculator.html</loc>
-<lastmod>2026-06-25</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
+    <loc>https://www.primesashwindows.co.uk/sash-window-price-calculator.html</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-<loc>https://www.primesashwindows.co.uk/timber-window-price-calculator.html</loc>
-<lastmod>2026-06-25</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
+    <loc>https://www.primesashwindows.co.uk/timber-window-price-calculator.html</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-<loc>https://www.primesashwindows.co.uk/casement-window-price-calculator.html</loc>
-<lastmod>2026-06-25</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
+    <loc>https://www.primesashwindows.co.uk/casement-window-price-calculator.html</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-<loc>https://www.primesashwindows.co.uk/timber-door-price-calculator.html</loc>
-<lastmod>2026-06-25</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
+    <loc>https://www.primesashwindows.co.uk/timber-door-price-calculator.html</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-<loc>https://www.primesashwindows.co.uk/bifold-door-price-calculator.html</loc>
-<lastmod>2026-06-25</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
+    <loc>https://www.primesashwindows.co.uk/bifold-door-price-calculator.html</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-<loc>https://www.primesashwindows.co.uk/french-door-price-calculator.html</loc>
-<lastmod>2026-06-25</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
+    <loc>https://www.primesashwindows.co.uk/french-door-price-calculator.html</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-<loc>https://www.primesashwindows.co.uk/instant-window-quote.html</loc>
-<lastmod>2026-06-25</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
+    <loc>https://www.primesashwindows.co.uk/instant-window-quote.html</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-<loc>https://www.primesashwindows.co.uk/online-window-quote.html</loc>
-<lastmod>2026-06-25</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
+    <loc>https://www.primesashwindows.co.uk/online-window-quote.html</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-<loc>https://www.primesashwindows.co.uk/instant-timber-window-quote.html</loc>
-<lastmod>2026-06-25</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
+    <loc>https://www.primesashwindows.co.uk/instant-timber-window-quote.html</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>
