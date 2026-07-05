@@ -680,6 +680,25 @@ class EstimateManager {
 
     // Pobierz aktualną cenę
     getCurrentPrice() {
+        // PRIMARY: recalculate from currentConfig (single source of truth).
+        // Fixes wrong total_price for casement/doors with qty>1 and wrong
+        // unit_price on edit — sidebar DOM shows unit price for those types.
+        try {
+            const cfg = window.currentConfig;
+            if (cfg && typeof window.calculatePrice === 'function') {
+                const priceData = window.calculatePrice(cfg);
+                if (priceData && priceData.unitPrice > 0) {
+                    return {
+                        unitPrice: priceData.unitPrice,
+                        totalPrice: priceData.totalPrice || priceData.unitPrice
+                    };
+                }
+            }
+        } catch (e) {
+            console.warn('getCurrentPrice: recalculation failed, using DOM fallback', e);
+        }
+
+        // FALLBACK (legacy): read price from sidebar DOM
         const priceText = document.getElementById('sidebar-total-price')?.textContent || '0';
         // Usuń £ i inne znaki nie-numeryczne (oprócz kropki)
         const cleanPrice = priceText.replace(/[^0-9.]/g, '');

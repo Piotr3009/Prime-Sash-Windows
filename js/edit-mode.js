@@ -320,7 +320,7 @@
       if (fc.horns && fc.horns !== 'none') setSelect('horns', fc.horns);
 
       // Quantity & Name
-      setInput('window-quantity', fc.quantity || editItem.quantity || 1);
+      setInput('window-quantity', fc.quantity || editItem.quantity || 1, 'input');
       if (editItem.window_number) setInput('window-custom-name', editItem.window_number);
 
       // Ironmongery (gallery + 3D)
