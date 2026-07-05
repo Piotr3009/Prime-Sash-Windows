@@ -18,8 +18,18 @@ class SpecificationController {
     this.setupSectionChangeListeners();
     this.setupFrostedOptions();
     this.setupGlobalAutoSave();
+    this.updateFrameThicknessLabel();
     // Populate spec panel with defaults after short delay (wait for other scripts)
     setTimeout(() => this.populateInitialSpec(), 500);
+  }
+
+  // Frame thickness label (sash): triple glazing needs a 172mm frame, otherwise 164mm.
+  // Slim frame is always 144mm (triple not available with slim) — its label stays static.
+  updateFrameThicknessLabel() {
+    const span = document.getElementById('standard-frame-mm');
+    if (!span) return;
+    const glass = document.querySelector('input[name="glass-type"]:checked')?.value;
+    span.textContent = glass === 'triple' ? '172' : '164';
   }
 
   populateInitialSpec() {
@@ -1013,8 +1023,9 @@ class SpecificationController {
   }
 
   applyGlass() {
+    this.updateFrameThicknessLabel();
     const glassType = document.querySelector('input[name="glass-type"]:checked')?.value;
-    const spacerColor = document.querySelector('input[name="spacer-color"]:checked')?.value || 'silver';
+    const spacerColor = document.querySelector('input[name="spacer-color"]:checked')?.value || 'white';
 
     const glassNames = {
       'double': 'Double Glazing (U-value: 1.4)',

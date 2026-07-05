@@ -115,7 +115,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css?v=5">
-  <link rel="stylesheet" href="css/configurator.css">
+  <link rel="stylesheet" href="css/configurator.css?v=2">
   <style>
 .login-button-top {
     position: fixed;
@@ -1399,8 +1399,8 @@
         <div class="input-group">
           <label>Spacer Bar:</label>
           <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="d-spacer-silver" name="d-spacer-color" value="silver" checked><label for="d-spacer-silver" class="radio-label">Silver</label></div>
-            <div class="radio-option"><input type="radio" id="d-spacer-white" name="d-spacer-color" value="white"><label for="d-spacer-white" class="radio-label">White</label></div>
+            <div class="radio-option"><input type="radio" id="d-spacer-silver" name="d-spacer-color" value="silver"><label for="d-spacer-silver" class="radio-label">Silver</label></div>
+            <div class="radio-option"><input type="radio" id="d-spacer-white" name="d-spacer-color" value="white" checked><label for="d-spacer-white" class="radio-label">White</label></div>
             <div class="radio-option"><input type="radio" id="d-spacer-black" name="d-spacer-color" value="black"><label for="d-spacer-black" class="radio-label">Black</label></div>
           </div>
         </div>
@@ -2163,7 +2163,7 @@
         <div class="radio-group">
           <div class="radio-option">
             <input type="radio" id="standard-frame" name="frame-type" value="standard" checked>
-            <label for="standard-frame" class="radio-label">Standard Frame (164mm)</label>
+            <label for="standard-frame" class="radio-label">Standard Frame (<span id="standard-frame-mm">164</span>mm)</label>
           </div>
           <div class="radio-option">
             <input type="radio" id="slim-frame" name="frame-type" value="slim">
@@ -2272,11 +2272,11 @@
           <label>Spacer Colour:</label>
           <div class="radio-group">
             <div class="radio-option">
-              <input type="radio" id="spacer-silver" name="spacer-color" value="silver" checked>
+              <input type="radio" id="spacer-silver" name="spacer-color" value="silver">
               <label for="spacer-silver" class="radio-label">Silver</label>
             </div>
             <div class="radio-option">
-              <input type="radio" id="spacer-white" name="spacer-color" value="white">
+              <input type="radio" id="spacer-white" name="spacer-color" value="white" checked>
               <label for="spacer-white" class="radio-label">White</label>
             </div>
             <div class="radio-option">
@@ -3484,9 +3484,9 @@
         <div class="input-group">
           <label>Spacer Bar Colour:</label>
           <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="f-spacer-silver" name="f-spacer" value="silver" checked><label for="f-spacer-silver" class="radio-label">Silver</label></div>
+            <div class="radio-option"><input type="radio" id="f-spacer-silver" name="f-spacer" value="silver"><label for="f-spacer-silver" class="radio-label">Silver</label></div>
             <div class="radio-option"><input type="radio" id="f-spacer-black" name="f-spacer" value="black"><label for="f-spacer-black" class="radio-label">Black</label></div>
-            <div class="radio-option"><input type="radio" id="f-spacer-white" name="f-spacer" value="white"><label for="f-spacer-white" class="radio-label">White</label></div>
+            <div class="radio-option"><input type="radio" id="f-spacer-white" name="f-spacer" value="white" checked><label for="f-spacer-white" class="radio-label">White</label></div>
           </div>
         </div>
       </div>
@@ -3965,12 +3965,12 @@
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=3"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=4"></script>
+<script src="js/specification-controller.js?v=5"></script>
 <script src="js/configurator-core.js?v=3"></script>
 <script src="js/color-config.js?v=1"></script>
 <script src="js/color-module.js?v=4"></script>
-<script src="js/casement-controller.js?v=3"></script>
-<script src="js/door-controller.js?v=3"></script>
+<script src="js/casement-controller.js?v=4"></script>
+<script src="js/door-controller.js?v=4"></script>
 
 <!-- Authentication Integration -->
 <script src="js/menu-loader.js?v=3"></script>
@@ -3983,10 +3983,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=3"></script>
-<script src="js/estimate-renderer.js?v=7"></script>
+<script src="js/estimate-renderer.js?v=8"></script>
 <script src="js/estimate-selector.js?v=3"></script>
-<script src="js/estimate-manager.js?v=4"></script>
-<script src="js/edit-mode.js?v=4"></script>
+<script src="js/estimate-manager.js?v=5"></script>
+<script src="js/edit-mode.js?v=5"></script>
 
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
@@ -5597,7 +5597,7 @@
         var hb = parseInt((document.querySelector('input[name="f-hbars"]:checked') || {}).value) || 0;
         var vb = parseInt((document.querySelector('input[name="f-vbars"]:checked') || {}).value) || 0;
         var glazing = (document.querySelector('input[name="f-glazing"]:checked') || {}).value || 'double';
-        var spacer = (document.querySelector('input[name="f-spacer"]:checked') || {}).value || 'silver';
+        var spacer = (document.querySelector('input[name="f-spacer"]:checked') || {}).value || 'white';
 
         var shapeNames = { 'rectangle': 'Rectangle', 'gothic-arch': 'Gothic Arch', 'semi-circle': 'Semi-Circle', 'segmental-arch': 'Segmental Arch', 'elliptical-arch': 'Elliptical Arch', 'circle': 'Circle' };
         var typeNames = { 'standard': 'Standard', 'fd30': 'FD30 Fire Rated', 'fd60': 'FD60 Fire Rated' };
@@ -5752,7 +5752,7 @@
           fixCircleOffset: parseInt((document.getElementById('f-circle-offset') || {}).value) || 200,
           glassType: (document.querySelector('input[name="f-glazing"]:checked') || {}).value || 'double',
           glassFinish: (document.querySelector('input[name="f-glass-finish"]:checked') || {}).value || 'clear',
-          spacer: (document.querySelector('input[name="f-spacer"]:checked') || {}).value || 'silver',
+          spacer: (document.querySelector('input[name="f-spacer"]:checked') || {}).value || 'white',
           colorType: (function() { var v = (document.querySelector('input[name="fx-colour-mode"]:checked') || {}).value || 'same'; return v === 'dual' ? 'dual' : 'single'; })(),
           colorSingle: (function() {
             var pn = document.getElementById('fx-single-preview-name');

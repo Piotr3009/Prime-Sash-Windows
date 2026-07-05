@@ -5,8 +5,8 @@ const config = {
  options: {
  // Frame options
  frame: {
- standard: { name: "Standard Frame (165mm)", priceMultiplier: 1 },
- slim: { name: "Slim Frame (145mm)", priceMultiplier: 1.05 }
+ standard: { name: "Standard Frame (164mm)", priceMultiplier: 1 },
+ slim: { name: "Slim Frame (144mm)", priceMultiplier: 1.05 }
  },
  // Glazing options
  glass: {

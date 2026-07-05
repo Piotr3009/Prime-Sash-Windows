@@ -243,7 +243,7 @@
     // Glass type + spacer (reuse sash spec elements)
     var specGlass = document.getElementById('spec-glass');
     var glassType = checked('c-glass-type') || 'double';
-    var spacer = checked('c-spacer-color') || 'silver';
+    var spacer = checked('c-spacer-color') || 'white';
     if (specGlass) {
       specGlass.style.display = 'block';
       var gt = document.getElementById('spec-glass-type');
@@ -368,7 +368,7 @@
       extHeight: h,
       fanlightRatio: fanlightRatio,
       glassType: checked('c-glass-type') || 'double',
-      spacerColor: checked('c-spacer-color') || 'silver',
+      spacerColor: checked('c-spacer-color') || 'white',
       casementHBars: checked('casement-type') === 'arched' ? (parseInt(checked('f-hbars')) || 0) : (parseInt(checked('c-hbars')) || 0),
       casementVBars: checked('casement-type') === 'arched' ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0),
       casementOpening: (parseInt(val('c-opening')) || 0) / 100,
@@ -818,7 +818,7 @@
       glassType: checked('c-glass-type') || 'double',
       glassSpec: checked('c-glass-spec') || 'float',
       glassFinish: checked('c-glass-finish') || 'clear',
-      spacer: checked('c-spacer-color') || 'silver',
+      spacer: checked('c-spacer-color') || 'white',
       pas24: checked('c-pas24') || 'no',
       safetyGlass: checked('c-safety-glass') || 'none',
       sillExtension: checked('c-sill-ext') || 'none',

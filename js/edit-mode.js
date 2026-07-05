@@ -462,7 +462,7 @@
     // Glass (f-prefixed — note: glass TYPE is 'f-glazing', not 'f-glass-type')
     setRadio('f-glazing', fc.glassType || 'double');
     setRadio('f-glass-finish', fc.glassFinish || 'clear');
-    setRadio('f-spacer', fc.spacerColor || fc.spacer || 'silver');
+    setRadio('f-spacer', fc.spacerColor || fc.spacer || 'white');
 
     // Bars (f-prefixed)
     if (fc.casementHBars !== undefined || fc.hBars !== undefined) {
@@ -727,7 +727,7 @@
         glass_type: windowConfig.glassType || 'double',
         glass_spec: windowConfig.glassSpec,
         glass_finish: windowConfig.glassFinish,
-        spacer_color: windowConfig.spacerColor || windowConfig.fullConfig?.spacerColor || 'silver',
+        spacer_color: windowConfig.spacerColor || windowConfig.fullConfig?.spacerColor || 'white',
         frosted_location: windowConfig.glassFinish === 'frosted' ? (windowConfig.frostedLocation || null) : null,
         opening_type: windowConfig.openingType,
         color_type: windowConfig.colorType,

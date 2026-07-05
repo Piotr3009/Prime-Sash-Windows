@@ -210,7 +210,7 @@ class EstimateManager {
                     glass_type: windowConfig.glassType || 'double',
                     glass_spec: windowConfig.glassSpec,
                     glass_finish: windowConfig.glassFinish,
-                    spacer_color: windowConfig.spacerColor || windowConfig.fullConfig?.spacerColor || 'silver',
+                    spacer_color: windowConfig.spacerColor || windowConfig.fullConfig?.spacerColor || 'white',
                     frosted_location: windowConfig.glassFinish === 'frosted' ? (windowConfig.frostedLocation || windowConfig.fullConfig?.frostedLocation || null) : null,
                     
                     opening_type: windowConfig.openingType,
@@ -639,7 +639,7 @@ class EstimateManager {
                 glassSpec: cfg.glassSpec,
                 glassFinish: cfg.glassFinish,
                 frostedLocation: cfg.frostedLocation,
-                spacerColor: cfg.spacerColor || cfg.spacer || 'silver',
+                spacerColor: cfg.spacerColor || cfg.spacer || 'white',
                 
                 // Opening (sash only)
                 openingType: isCasement ? null : cfg.openingType,

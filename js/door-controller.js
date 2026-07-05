@@ -131,7 +131,7 @@
       sideStyle: (isSliding || isBifold) ? 'full-glass' : (checked(prefix + 'side-style') || 'full-glass'),
       glassType: checked('d-glass-type') || 'double',
       glassFinish: checked('d-glass-finish') || 'clear',
-      spacerColor: checked('d-spacer-color') || 'silver',
+      spacerColor: checked('d-spacer-color') || 'white',
       hingeSide: (isSliding || isBifold) ? '' : (checked('d-hinge-side') || 'left'),
       openDirection: isBifold ? bifoldOpenDirection : (isSliding ? '' : (checked('d-open-direction') || 'inward')),
       lockType: (isSliding || isBifold) ? 'standard' : (checked('d-lock-type') || 'multipoint'),

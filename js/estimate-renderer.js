@@ -170,7 +170,7 @@ class EstimateRenderer {
         };
 
         // SPACER
-        const spacerColor = fc.spacerColor || item.spacer_color || 'silver';
+        const spacerColor = fc.spacerColor || item.spacer_color || 'white';
         const spacerLabels = { 'silver': 'Silver (Stainless Steel)', 'white': 'White', 'black': 'Black' };
         const spacerText = spacerLabels[spacerColor] || spacerColor;
 
@@ -353,7 +353,7 @@ class EstimateRenderer {
         }
 
         // Fix spacer (uses 'spacer' key not 'spacerColor')
-        const fixSpacer = fc.spacer || fc.spacerColor || 'silver';
+        const fixSpacer = fc.spacer || fc.spacerColor || 'white';
         const fixSpacerText = fixSpacer === 'black' ? 'Black' : fixSpacer === 'white' ? 'White' : 'Silver (Stainless Steel)';
 
         // ═══ DOOR FIELDS ═══
@@ -3989,7 +3989,7 @@ class EstimateRenderer {
             `;
 
             // ──────── RENDER HELPERS ────────
-            async function renderToCanvas(html, width) {
+            async function renderToCanvas(html, width, scale = 2) {
                 const container = document.createElement('div');
                 container.style.cssText = `position:fixed;left:-9999px;top:0;width:${width};background:#fff;`;
                 container.innerHTML = html;
@@ -4008,7 +4008,7 @@ class EstimateRenderer {
                 }
 
                 const canvas = await window.html2canvas(container, {
-                    scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
+                    scale: scale, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
                     logging: false, width: container.offsetWidth, height: container.offsetHeight
                 });
                 document.body.removeChild(container);
@@ -4016,7 +4016,7 @@ class EstimateRenderer {
             }
 
             // ──────── ASSEMBLE PDF ────────
-            const doc = new jsPDF('p', 'mm', 'a4');
+            const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
             const pageW = 210, pageH = 297, margin = 8;
             const usableW = pageW - margin * 2;
 
@@ -4024,14 +4024,14 @@ class EstimateRenderer {
             async function addFullPage(html, isFirst = false) {
                 if (!isFirst) doc.addPage();
                 const canvas = await renderToCanvas(html, '210mm');
-                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                const imgData = canvas.toDataURL('image/jpeg', 0.85);
                 doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH);
             }
 
             // Smart page-breaking block (items section only)
             let curY = margin;
             async function addBlock(html) {
-                const canvas = await renderToCanvas(html, '800px');
+                const canvas = await renderToCanvas(html, '800px', 1.5);
                 const blockH = (canvas.height / canvas.width) * usableW;
 
                 if (curY + blockH > pageH - margin && curY > margin + 1) {
@@ -4039,7 +4039,7 @@ class EstimateRenderer {
                     curY = margin;
                 }
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                const imgData = canvas.toDataURL('image/jpeg', 0.82);
                 doc.addImage(imgData, 'JPEG', margin, curY, usableW, blockH);
                 curY += blockH + 4;
             }
