@@ -923,7 +923,7 @@
                     <tbody>
                         ${estimates.map(est => {
                             const customer = est.customers || {};
-                            const itemCount = est.estimate_items?.length || 0;
+                            const itemCount = (est.estimate_items || []).reduce((s, it) => s + (parseInt(it.quantity) || 1), 0);
                             
                             return `
                                 <tr>
@@ -1053,7 +1053,7 @@
                     <tbody>
                         ${estimates.map(est => {
                             const customer = est.customers || {};
-                            const itemCount = est.estimate_items?.length || 0;
+                            const itemCount = (est.estimate_items || []).reduce((s, it) => s + (parseInt(it.quantity) || 1), 0);
                             
                             return `
                                 <tr>
