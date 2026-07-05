@@ -1089,6 +1089,349 @@ class EstimateRenderer {
         return svg;
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // ═══ SASH SVG v2 — real-mm geometry (ported from Sash-Planner) ══
+    // ═══════════════════════════════════════════════════════════════
+    // All coordinates in true millimetres; viewBox scales the drawing,
+    // so proportions are always correct. Line widths use
+    // vector-effect:non-scaling-stroke (constant on screen & in PDF).
+
+    static get SASH_GEO() {
+        return {
+            // Box frame (from workshop constants)
+            jambBot: 86, jambTop: 102, headH: 102,
+            sillNose: 33, sillWeatherbar: 46.5, sillDrip: 58,
+            sillTop: 68, sillCurveTop: 94, bulge: 0.292123,
+            // Sash sections
+            stile: 57, topRail: 57, meetRail: 43, botRail: 90,
+            // Derived deductions
+            sashWDeduct: 178, sashHDeduct: 92, sashHDiff: 33,
+            // Georgian bar
+            barW: 22,
+            // Triple sash mullion
+            mullionW: 57,
+            // Colours (Prime palette)
+            navy: '#0A1628',
+            frameFill: 'rgba(10,22,40,0.05)',
+            glassFill: 'rgba(174,203,227,0.28)',
+            glassStroke: 'rgba(10,22,40,0.25)',
+            barFill: '#FAFAF8',
+            dimRed: '#C0392B',
+            // Layout
+            margin: 60, dimOffset: 55, refW: 700
+        };
+    }
+
+    // Bulge arc: SVG path segment for the jamb→sill curve
+    static sashBulgeArc(x1, y1, x2, y2, bulge) {
+        if (Math.abs(bulge) < 1e-6) return `L ${x2} ${y2}`;
+        const dx = x2 - x1, dy = y2 - y1;
+        const chord = Math.sqrt(dx * dx + dy * dy);
+        const sagitta = Math.abs(bulge) * chord / 2;
+        const r = ((chord / 2) ** 2 + sagitta ** 2) / (2 * sagitta);
+        const sweep = bulge > 0 ? 0 : 1;
+        return `A ${r} ${r} 0 0 ${sweep} ${x2} ${y2}`;
+    }
+
+    // Horn profiles — verbatim from 3D HornMesh (types A & D)
+    static get SASH_HORN_DEF() {
+        return {
+            A: { dropRaw: 84, segs: [
+                ['M',0,80],['L',40,80],['L',40,68],['L',33,62],
+                ['C',44,52,43,34,28,22],['C',16,12,15,6,27,0],
+                ['L',22,-4],['L',0,-4],['Z']
+            ]},
+            D: { dropRaw: 80, segs: [
+                ['M',0,80],['L',40,80],['L',40,64],['L',34,64],['L',34,56],
+                ['C',34,42,30,16,18,0],['L',0,0],['Z']
+            ]}
+        };
+    }
+
+    static sashHornPath(type, sashX, sashW, topY, side, inset) {
+        const def = EstimateRenderer.SASH_HORN_DEF[type] || EstimateRenderer.SASH_HORN_DEF.A;
+        const HORN_BBOX_W = 40, HORN_W = 30, HORN_H = 70;
+        const sX = HORN_W / HORN_BBOX_W;
+        const sY = HORN_H / def.dropRaw;
+        const X = (x) => (side === 'L' ? sashX + inset + x * sX : (sashX + sashW - inset) - x * sX);
+        const Y = (y) => topY + (80 - y) * sY;
+        return def.segs.map(s => {
+            switch (s[0]) {
+                case 'M': return `M ${X(s[1])} ${Y(s[2])}`;
+                case 'L': return `L ${X(s[1])} ${Y(s[2])}`;
+                case 'C': return `C ${X(s[1])} ${Y(s[2])} ${X(s[3])} ${Y(s[4])} ${X(s[5])} ${Y(s[6])}`;
+                case 'Z': return 'Z';
+                default: return '';
+            }
+        }).join(' ');
+    }
+
+    // Georgian bars as real 22mm timber bars (rects), equal division of glass.
+    // Custom bars: mm positions measured from glass left (v) / glass top (h).
+    static sashBarsSVG(glassX, glassY, glassW, glassH, pattern, customList) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+        const barStyle = `fill="${G.barFill}" stroke="${G.navy}" stroke-width="0.6" ${NS}`;
+        const defs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
+        let svg = '';
+
+        if (pattern === 'custom' && customList && customList.length > 0) {
+            customList.forEach(bar => {
+                const mm = parseFloat(bar.mm) || 0;
+                if (bar.type === 'h' || bar.type === 'horizontal') {
+                    const cy = glassY + mm;
+                    if (cy > glassY + G.barW/2 && cy < glassY + glassH - G.barW/2) {
+                        svg += `<rect x="${glassX}" y="${cy - G.barW/2}" width="${glassW}" height="${G.barW}" ${barStyle}/>`;
+                    }
+                } else {
+                    const cx = glassX + mm;
+                    if (cx > glassX + G.barW/2 && cx < glassX + glassW - G.barW/2) {
+                        svg += `<rect x="${cx - G.barW/2}" y="${glassY}" width="${G.barW}" height="${glassH}" ${barStyle}/>`;
+                    }
+                }
+            });
+            return svg;
+        }
+
+        const p = defs[pattern] || defs.none;
+        for (let i = 1; i <= p.v; i++) {
+            const cx = glassX + glassW * i / (p.v + 1);
+            svg += `<rect x="${cx - G.barW/2}" y="${glassY}" width="${G.barW}" height="${glassH}" ${barStyle}/>`;
+        }
+        for (let j = 1; j <= p.h; j++) {
+            const cy = glassY + glassH * j / (p.h + 1);
+            svg += `<rect x="${glassX}" y="${cy - G.barW/2}" width="${glassW}" height="${G.barW}" ${barStyle}/>`;
+        }
+        return svg;
+    }
+
+    // Red dimension line — horizontal (below drawing)
+    static sashDimH(y, x1, x2, extFrom, label, fs) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+        const t = fs * 0.35, over = fs * 0.55, gap = fs * 0.45;
+        let svg = '';
+        svg += `<line x1="${x1}" y1="${extFrom}" x2="${x1}" y2="${y + over}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${x2}" y1="${extFrom}" x2="${x2}" y2="${y + over}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
+        svg += `<line x1="${x1}" y1="${y - t}" x2="${x1}" y2="${y + t}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
+        svg += `<line x1="${x2}" y1="${y - t}" x2="${x2}" y2="${y + t}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
+        svg += `<text x="${(x1 + x2) / 2}" y="${y - gap}" fill="${G.dimRed}" font-family="Jost,sans-serif" font-size="${fs}" text-anchor="middle">${label}</text>`;
+        return svg;
+    }
+
+    // Red dimension line — vertical (right of drawing)
+    static sashDimV(x, y1, y2, extFrom, label, fs) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+        const t = fs * 0.35, over = fs * 0.55, off = fs * 1.0;
+        const mid = (y1 + y2) / 2;
+        let svg = '';
+        svg += `<line x1="${extFrom}" y1="${y1}" x2="${x + over}" y2="${y1}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${extFrom}" y1="${y2}" x2="${x + over}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
+        svg += `<line x1="${x - t}" y1="${y1}" x2="${x + t}" y2="${y1}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
+        svg += `<line x1="${x - t}" y1="${y2}" x2="${x + t}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
+        svg += `<text x="${x + off}" y="${mid}" fill="${G.dimRed}" font-family="Jost,sans-serif" font-size="${fs}" text-anchor="middle" transform="rotate(-90,${x + off},${mid})">${label}</text>`;
+        return svg;
+    }
+
+    // Draws one double-hung unit (frameless — box drawn by caller) inside
+    // the given cavity. Returns { svg, meetY } (meetY = meeting-rail centre, SVG coords).
+    static sashUnitSVG(cavX, cavY, cavW, cavH, opts) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+        const { upperBars, lowerBars, upperCustom, lowerCustom,
+                horns, hornType, openingType, archRise } = opts;
+
+        // Sash sizes derived from cavity (cavity ≈ frame inner light)
+        const sashW = cavW;
+        const totalSashH = cavH + G.meetRail;           // overlap at meeting rail
+        const topSashH = (totalSashH - G.sashHDiff) / 2;
+        const botSashH = topSashH + G.sashHDiff;
+
+        const sashX = cavX;
+        const upperY = cavY;
+        const lowerY = upperY + topSashH - G.meetRail;
+        const meetY = lowerY + G.meetRail / 2;
+
+        // Glass areas
+        const uGlassX = sashX + G.stile, uGlassW = sashW - 2 * G.stile;
+        const uGlassY = upperY + G.topRail;
+        const uGlassH = topSashH - G.topRail - G.meetRail;
+        const lGlassX = uGlassX, lGlassW = uGlassW;
+        const lGlassY = lowerY + G.meetRail;
+        const lGlassH = botSashH - G.meetRail - G.botRail;
+
+        let svg = '';
+        const glassStyle = `fill="${G.glassFill}" stroke="${G.glassStroke}" stroke-width="0.8" ${NS}`;
+
+        // ── Upper glass (arch head: curved top edge) ──
+        if (archRise > 0) {
+            const gy = uGlassY + archRise;
+            const gh = uGlassH - archRise;
+            svg += `<path d="M ${uGlassX} ${gy} Q ${uGlassX + uGlassW/2} ${gy - 2*archRise} ${uGlassX + uGlassW} ${gy} L ${uGlassX + uGlassW} ${gy + gh} L ${uGlassX} ${gy + gh} Z" ${glassStyle}/>`;
+            svg += EstimateRenderer.sashBarsSVG(uGlassX, gy, uGlassW, gh, upperBars, upperCustom);
+        } else {
+            svg += `<rect x="${uGlassX}" y="${uGlassY}" width="${uGlassW}" height="${uGlassH}" ${glassStyle}/>`;
+            svg += EstimateRenderer.sashBarsSVG(uGlassX, uGlassY, uGlassW, uGlassH, upperBars, upperCustom);
+        }
+
+        // ── Lower glass ──
+        svg += `<rect x="${lGlassX}" y="${lGlassY}" width="${lGlassW}" height="${lGlassH}" ${glassStyle}/>`;
+        svg += EstimateRenderer.sashBarsSVG(lGlassX, lGlassY, lGlassW, lGlassH, lowerBars, lowerCustom);
+
+        // ── Lower-sash bottom rail top edge ──
+        svg += `<line x1="${sashX}" y1="${lowerY + botSashH - G.botRail}" x2="${sashX + sashW}" y2="${lowerY + botSashH - G.botRail}" stroke="${G.navy}" stroke-width="0.8" opacity="0.5" ${NS}/>`;
+
+        // ── Meeting rail (band, both edges) ──
+        svg += `<rect x="${sashX}" y="${lowerY}" width="${sashW}" height="${G.meetRail}" fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1" ${NS}/>`;
+
+        // ── Horns (upper-sash bottom corners) ──
+        if (horns) {
+            const hornTopY = upperY + topSashH;
+            const inset = (G.stile - 30) / 2;
+            const type = EstimateRenderer.SASH_HORN_DEF[hornType] ? hornType : 'A';
+            svg += `<path d="${EstimateRenderer.sashHornPath(type, sashX, sashW, hornTopY, 'L', inset)}" fill="${G.frameFill}" stroke="${G.navy}" stroke-width="0.9" ${NS}/>`;
+            svg += `<path d="${EstimateRenderer.sashHornPath(type, sashX, sashW, hornTopY, 'R', inset)}" fill="${G.frameFill}" stroke="${G.navy}" stroke-width="0.9" ${NS}/>`;
+        }
+
+        // ── Opening arrows (green, halo underlay so they read over bars) ──
+        const arrFS = Math.max(60, sashW * 0.12);
+        const arrHalo = `fill="none" stroke="${G.barFill}" stroke-width="${arrFS * 0.22}" stroke-linejoin="round" font-family="Jost,sans-serif" font-size="${arrFS}" text-anchor="middle"`;
+        const arrFill = `fill="#1E8E3E" font-family="Jost,sans-serif" font-size="${arrFS}" text-anchor="middle"`;
+        const arrow = (x, y, ch) =>
+            `<text x="${x}" y="${y}" ${arrHalo}>${ch}</text>` +
+            `<text x="${x}" y="${y}" ${arrFill}>${ch}</text>`;
+        if (openingType === 'both' || openingType === 'bottom') {
+            svg += arrow(sashX + sashW/2, lGlassY + lGlassH/2 + 20, '↑');
+        }
+        if (openingType === 'both' || openingType === 'top') {
+            svg += arrow(sashX + sashW/2, uGlassY + uGlassH * 0.4, '↓');
+        }
+
+        return { svg, meetY };
+    }
+
+    // ─── Main entry: sash front elevation (double / triple, flat / arch) ───
+    static generateSashSVG(item, fc) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+
+        const fw = fc.actualFrameWidth || item.width || 1000;
+        const fh = fc.actualFrameHeight || item.height || 1500;
+        const sashType = fc.sashType || 'double';
+        const headType = fc.headType || 'flat';
+        const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
+        const openingType = fc.openingType || 'both';
+        const horns = fc.horns && fc.horns !== 'none';
+        const hornType = (typeof fc.horns === 'string' && fc.horns.length === 1) ? fc.horns.toUpperCase() : (fc.hornType || 'A');
+        const upperBars = fc.upperBars || 'none';
+        const lowerBars = fc.lowerBars || upperBars;
+        const upperCustom = fc.upperCustomBars || (fc.customBars && fc.customBars.upper ? [].concat((fc.customBars.upper.horizontal||[]),(fc.customBars.upper.vertical||[])) : []);
+        const lowerCustom = (fc.lowerCustomBars && fc.lowerCustomBars.length) ? fc.lowerCustomBars : ((fc.customBars && fc.customBars.lower) ? [].concat((fc.customBars.lower.horizontal||[]),(fc.customBars.lower.vertical||[])) : upperCustom);
+
+        // ── Layout (all mm) ──
+        const M = Math.max(G.margin, Math.max(fw, fh) * 0.06);
+        const DM = Math.max(G.dimOffset, Math.max(fw, fh) * 0.07);
+        const totalW = M + fw + DM + M;
+        const totalH = M + fh + DM + M * 0.4;
+        const ox = M, oy = M;
+        const fs = 15 * (totalW / G.refW);   // dim text ≈ constant on screen
+
+        const SY = (y) => oy + (fh - y);     // real-Y (0=sill bottom) → SVG-Y
+        const frameStyle = `fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1.4" ${NS}`;
+
+        // Arch rise (visual, glazing arch on upper sash + head follows)
+        const archRise = headType === 'arch' ? Math.min(fw * 0.14, 150) : 0;
+
+        let svg = '';
+
+        // ══ BOX FRAME ══
+        // Right jamb (with sill-junction curve)
+        svg += `<path d="M ${ox + fw - G.jambBot} ${SY(0)} L ${ox + fw - G.jambBot} ${SY(G.sillTop)} ${EstimateRenderer.sashBulgeArc(ox + fw - G.jambBot, SY(G.sillTop), ox + fw - G.jambTop, SY(G.sillCurveTop), G.bulge)} L ${ox + fw - G.jambTop} ${SY(fh)} L ${ox + fw} ${SY(fh)} L ${ox + fw} ${SY(0)} Z" ${frameStyle}/>`;
+        // Left jamb (mirrored)
+        svg += `<path d="M ${ox + G.jambBot} ${SY(0)} L ${ox + G.jambBot} ${SY(G.sillTop)} ${EstimateRenderer.sashBulgeArc(ox + G.jambBot, SY(G.sillTop), ox + G.jambTop, SY(G.sillCurveTop), -G.bulge)} L ${ox + G.jambTop} ${SY(fh)} L ${ox} ${SY(fh)} L ${ox} ${SY(0)} Z" ${frameStyle}/>`;
+        // Head (arch: curved underside)
+        if (archRise > 0) {
+            svg += `<path d="M ${ox + G.jambTop} ${SY(fh)} L ${ox + fw - G.jambTop} ${SY(fh)} L ${ox + fw - G.jambTop} ${SY(fh - G.headH) + archRise} Q ${ox + fw/2} ${SY(fh - G.headH) - archRise} ${ox + G.jambTop} ${SY(fh - G.headH) + archRise} Z" ${frameStyle}/>`;
+        } else {
+            svg += `<path d="M ${ox + G.jambTop} ${SY(fh)} L ${ox + fw - G.jambTop} ${SY(fh)} L ${ox + fw - G.jambTop} ${SY(fh - G.headH)} L ${ox + G.jambTop} ${SY(fh - G.headH)} Z" ${frameStyle}/>`;
+        }
+        // Sill body
+        svg += `<path d="M ${ox + G.jambBot} ${SY(0)} L ${ox + fw - G.jambBot} ${SY(0)} L ${ox + fw - G.jambBot} ${SY(G.sillNose)} L ${ox + G.jambBot} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
+        // Sill detail lines (weatherbar + drip — below sash, fully visible)
+        svg += `<line x1="${ox + G.jambBot}" y1="${SY(G.sillWeatherbar)}" x2="${ox + fw - G.jambBot}" y2="${SY(G.sillWeatherbar)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
+        svg += `<line x1="${ox + G.jambBot}" y1="${SY(G.sillDrip)}" x2="${ox + fw - G.jambBot}" y2="${SY(G.sillDrip)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
+
+        // ══ CAVITY (inner light) ══
+        const cavTop = SY(fh - G.headH) + (archRise > 0 ? archRise : 0);
+        const cavBot = SY(G.sillTop);
+
+        if (sashType === 'triple') {
+            // Split ratios
+            let lR = 0.25, cR = 0.5;
+            if (splitRatio === '1/3-1/3-1/3') { lR = 1/3; cR = 1/3; }
+            else if (splitRatio === '1/5-3/5-1/5') { lR = 0.2; cR = 0.6; }
+
+            const innerW = fw - 2 * G.jambTop - 2 * G.mullionW;
+            const leftW = innerW * lR, centerW = innerW * cR, rightW = innerW - leftW - centerW;
+            const lX = ox + G.jambTop;
+            const m1X = lX + leftW, cX = m1X + G.mullionW;
+            const m2X = cX + centerW, rX = m2X + G.mullionW;
+
+            // Mullions
+            [m1X, m2X].forEach(mx => {
+                svg += `<rect x="${mx}" y="${cavTop - (archRise>0?archRise:0)}" width="${G.mullionW}" height="${cavBot - cavTop + (archRise>0?archRise:0)}" ${frameStyle}/>`;
+            });
+
+            // Center: full double-hung
+            const c = EstimateRenderer.sashUnitSVG(cX, cavTop, centerW, cavBot - cavTop, {
+                upperBars, lowerBars, upperCustom, lowerCustom,
+                horns, hornType, openingType, archRise
+            });
+            svg += c.svg;
+
+            // Side FIX panels — split at meeting-rail height, fix bars
+            const fixTop = { bars: fc.fixUpperBars || 'none', custom: fc.fixUpperCustomBars || [] };
+            const fixBot = { bars: fc.fixLowerBars || fixTop.bars, custom: (fc.fixLowerCustomBars && fc.fixLowerCustomBars.length) ? fc.fixLowerCustomBars : fixTop.custom };
+            const glassStyle = `fill="${G.glassFill}" stroke="${G.glassStroke}" stroke-width="0.8" ${NS}`;
+            const labelStyle = `fill="${G.navy}" opacity="0.35" font-family="Jost,sans-serif" font-size="${Math.max(50, leftW*0.18)}" text-anchor="middle" letter-spacing="6"`;
+
+            [[lX, leftW], [rX, rightW]].forEach(([px, pw]) => {
+                const gX = px + G.stile, gW = pw - 2 * G.stile;
+                // upper fix glass
+                const ugY = cavTop + G.topRail + (archRise > 0 ? archRise * 0.5 : 0);
+                const ugH = c.meetY - G.meetRail/2 - ugY;
+                svg += `<rect x="${gX}" y="${ugY}" width="${gW}" height="${ugH}" ${glassStyle}/>`;
+                svg += EstimateRenderer.sashBarsSVG(gX, ugY, gW, ugH, fixTop.bars, fixTop.custom);
+                // transom line at meeting height
+                svg += `<rect x="${px}" y="${c.meetY - G.meetRail/2}" width="${pw}" height="${G.meetRail}" fill="${G.frameFill}" stroke="${G.navy}" stroke-width="0.8" ${NS}/>`;
+                // lower fix glass
+                const lgY = c.meetY + G.meetRail/2;
+                const lgH = cavBot - G.botRail - lgY;
+                svg += `<rect x="${gX}" y="${lgY}" width="${gW}" height="${lgH}" ${glassStyle}/>`;
+                svg += EstimateRenderer.sashBarsSVG(gX, lgY, gW, lgH, fixBot.bars, fixBot.custom);
+                svg += `<text x="${px + pw/2}" y="${lgY + lgH/2}" ${labelStyle}>FIX</text>`;
+            });
+        } else {
+            // ── DOUBLE ──
+            const cavX = ox + G.jambTop;
+            const cavW = fw - 2 * G.jambTop;
+            const u = EstimateRenderer.sashUnitSVG(cavX, cavTop, cavW, cavBot - cavTop, {
+                upperBars, lowerBars, upperCustom, lowerCustom,
+                horns, hornType, openingType, archRise
+            });
+            svg += u.svg;
+        }
+
+        // ══ RED DIMENSIONS ══
+        svg += EstimateRenderer.sashDimH(oy + fh + DM * 0.75, ox, ox + fw, oy + fh, `${Math.round(fw)}`, fs);
+        svg += EstimateRenderer.sashDimV(ox + fw + DM * 0.75, oy, oy + fh, ox + fw, `${Math.round(fh)}`, fs);
+
+        return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
+    }
+
     static generateWindowSVG(item) {
         const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
         const fc = spec.fullConfig || spec || {};
@@ -1109,7 +1452,10 @@ class EstimateRenderer {
             return EstimateRenderer.generateDoorSVG(item, fc);
         }
 
-        // ═══ SASH SVG (existing code below) ═══
+        // ═══ SASH SVG v2 — real-mm geometry ═══
+        return EstimateRenderer.generateSashSVG(item, fc);
+
+        // ═══ SASH SVG (legacy — unreachable, kept pending approval to remove) ═══
         const sashType = fc.sashType || 'double';
         const headType = fc.headType || 'flat';
         const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
@@ -2888,11 +3234,11 @@ class EstimateRenderer {
                                 <div style="background:#f5f4f0;border:1px solid #e5e4dd;padding:4mm;display:flex;flex-direction:column;gap:3mm;">
                                     <div style="width:100%;height:66mm;display:flex;align-items:center;justify-content:center;"><img src="${screenshots.interior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>
                                     ${screenshots?.exterior ? `<div style="width:100%;height:66mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;"><img src="${screenshots.exterior}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;"/></div>` : ''}
-                                    <div style="width:100%;height:66mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;">${svg}</div>
+                                    <div style="width:100%;height:90mm;display:flex;align-items:center;justify-content:center;border-top:1px dashed #ccc;padding-top:3mm;">${svg}</div>
                                 </div>
                             ` : `
                                 <div style="background:#f5f4f0;border:1px solid #e5e4dd;display:flex;align-items:center;justify-content:center;padding:4mm;">
-                                    <div style="width:100%;max-height:100mm;">${svg}</div>
+                                    <div style="width:100%;height:130mm;display:flex;align-items:center;justify-content:center;">${svg}</div>
                                 </div>
                             `}
                             <div>
@@ -3226,7 +3572,11 @@ class EstimateRenderer {
             doc.addPage();
             curY = margin;
             await addBlock(titleBlockHTML);
+            let __itemIdx = 0;
             for (const itemHTML of itemBlocksHTML) {
+                // One item per page (first item shares the page with the title block)
+                if (__itemIdx > 0) { doc.addPage(); curY = margin; }
+                __itemIdx++;
                 await addBlock(itemHTML);
             }
 
