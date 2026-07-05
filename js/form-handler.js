@@ -323,8 +323,8 @@ class FormHandler {
       errors.push('Width must be between 400mm and 1500mm');
     }
     
-    if (!config.height || config.height < 800 || config.height > 2500) {
-      errors.push('Height must be between 800mm and 2500mm');
+    if (!config.height || config.height < 800 || config.height > 3000) {
+      errors.push('Height must be between 800mm and 3000mm');
     }
     
     // Check required fields

@@ -9,7 +9,7 @@ const pricingConfig = {
     { maxSqm: 1.5, multiplier: 0.95 },   // -5%
     { maxSqm: 2.0, multiplier: 0.9 },    // -10%
     { maxSqm: 3.0, multiplier: 0.85 },   // -15%
-    { maxSqm: 999, multiplier: 0.8 }     // duże okna -20%
+    { maxSqm: 999, multiplier: 0.7 }     // duże okna -30%
   ],
   
   // Ceny za szprosy Georgian bars
