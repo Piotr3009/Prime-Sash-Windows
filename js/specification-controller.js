@@ -484,12 +484,16 @@ class SpecificationController {
         row.querySelectorAll('select').forEach(s => { if (s !== e.target) s.value = ''; });
         // Update preview text
         const text = e.target.options[e.target.selectedIndex].text;
+        // Distinguish RAL list from F&B list — both share this handler
+        const isRAL = e.target.classList.contains('color-ral-dropdown');
+        const displayName = isRAL ? 'RAL ' + text : text;              // e.g. "RAL 7024 Graphite Grey"
+        const ralLabel = isRAL ? 'RAL ' + text.split(' ')[0] : 'F&B ' + text;  // e.g. "RAL 7024"
         if (target === 'single') {
-          document.getElementById('single-preview-name').textContent = text;
+          document.getElementById('single-preview-name').textContent = displayName;
           document.getElementById('single-preview-ral').textContent = hex;
           if (window.currentConfig) {
-            window.currentConfig.colorSingleName = text;
-            window.currentConfig.colorSingleRal = 'F&B ' + text;
+            window.currentConfig.colorSingleName = displayName;
+            window.currentConfig.colorSingleRal = ralLabel;
             window.currentConfig.colorType = 'single';
             window.currentConfig.colorSingle = 'custom';
             window.currentConfig.woodColor = hex;
@@ -498,19 +502,19 @@ class SpecificationController {
             window.currentConfig.sameColor = true;
           }
         } else if (target === 'interior') {
-          document.getElementById('dual-preview-interior').textContent = text + ' (' + hex + ')';
+          document.getElementById('dual-preview-interior').textContent = displayName + ' (' + hex + ')';
           if (window.currentConfig) {
-            window.currentConfig.colorInteriorName = text;
-            window.currentConfig.colorInteriorRal = 'F&B ' + text;
+            window.currentConfig.colorInteriorName = displayName;
+            window.currentConfig.colorInteriorRal = ralLabel;
             window.currentConfig.colorType = 'dual';
             window.currentConfig.woodColorInt = hex;
             window.currentConfig.sameColor = false;
           }
         } else if (target === 'exterior') {
-          document.getElementById('dual-preview-exterior').textContent = text + ' (' + hex + ')';
+          document.getElementById('dual-preview-exterior').textContent = displayName + ' (' + hex + ')';
           if (window.currentConfig) {
-            window.currentConfig.colorExteriorName = text;
-            window.currentConfig.colorExteriorRal = 'F&B ' + text;
+            window.currentConfig.colorExteriorName = displayName;
+            window.currentConfig.colorExteriorRal = ralLabel;
             window.currentConfig.colorType = 'dual';
             window.currentConfig.woodColorExt = hex;
             window.currentConfig.sameColor = false;
