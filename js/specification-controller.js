@@ -1024,6 +1024,9 @@ class SpecificationController {
 
   applyGlass() {
     this.updateFrameThicknessLabel();
+    // Keep the 3D frame-depth dimension label in sync (172 for triple, 164 std, 144 slim)
+    const glassNow = document.querySelector('input[name="glass-type"]:checked')?.value;
+    if (window.update3D && glassNow) window.update3D({ glassType: glassNow });
     const glassType = document.querySelector('input[name="glass-type"]:checked')?.value;
     const spacerColor = document.querySelector('input[name="spacer-color"]:checked')?.value || 'white';
 
