@@ -180,6 +180,38 @@
     </div>
   </section>
 
+  <!-- SECTION: CASE STUDIES / JOURNAL -->
+  <section class="admin-section">
+    <div class="section-header">
+      <h2>Case Studies &amp; Journal</h2>
+      <button class="btn-add" onclick="CaseStudyAdmin.openAddPostModal()">+ Add Post</button>
+    </div>
+    <div class="section-content">
+      <p style="font-size:12px;color:#888;margin:0 0 12px;">
+        Public pages: <strong>/case-studies</strong> (index with tabs) and <strong>/case-study/&lt;slug&gt;</strong> (single post).
+        Only posts with status <strong>Published</strong> are visible to visitors. Pages update within ~5 minutes (CDN cache).
+      </p>
+      <div class="products-table-container">
+        <table class="products-table" id="cs-posts-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Location</th>
+              <th>Images</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="cs-posts-tbody">
+            <!-- Posts loaded by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- SECTION: WARRANTY CERTIFICATES -->
   <section class="admin-section">
     <div class="section-header">
@@ -292,6 +324,92 @@
   </div>
 </div>
 
+<!-- MODAL: Add/Edit Case Study Post -->
+<div id="cs-post-modal" class="modal">
+  <div class="modal-content" style="max-width: 780px;">
+    <span class="close" onclick="CaseStudyAdmin.closePostModal()">&times;</span>
+    <h2 id="cs-modal-title">Add Post</h2>
+    <form id="cs-post-form" onsubmit="CaseStudyAdmin.savePost(event)">
+      <input type="hidden" id="cs-post-id">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;">
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Title: *</label>
+          <input type="text" id="cs-title" required placeholder="e.g. Victorian Sash Restoration — Chelsea" onblur="CaseStudyAdmin.autoSlug()">
+        </div>
+        <div class="form-group">
+          <label>URL Slug: * <small style="color:#888;font-weight:normal;">(/case-study/&lt;slug&gt;, lowercase, hyphens)</small></label>
+          <input type="text" id="cs-slug" required placeholder="victorian-sash-chelsea" pattern="[a-z0-9\-]+">
+        </div>
+        <div class="form-group">
+          <label>Type: *</label>
+          <select id="cs-type" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-size:13px;">
+            <option value="case-study">Case Study (client project)</option>
+            <option value="workshop">Workshop (machine / technology / process)</option>
+            <option value="news">News (company update)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Location:</label>
+          <input type="text" id="cs-location" placeholder="e.g. Chelsea, London">
+        </div>
+        <div class="form-group">
+          <label>Status: *</label>
+          <select id="cs-status" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-size:13px;">
+            <option value="draft">Draft (hidden from public)</option>
+            <option value="published">Published (visible to public)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Published Date:</label>
+          <input type="date" id="cs-date">
+        </div>
+        <div class="form-group">
+          <label>Display Order:</label>
+          <input type="number" id="cs-order" value="0" min="0">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Meta Description (SEO, max 160 chars):</label>
+          <textarea id="cs-meta" rows="2" maxlength="160" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-size:13px;" placeholder="Short summary shown in Google search results"></textarea>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Overview / Story: *</label>
+          <textarea id="cs-overview" rows="9" required style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-size:13px;line-height:1.6;" placeholder="150–300 words. The project, the challenge, the result. Leave a blank line to start a new paragraph."></textarea>
+        </div>
+      </div>
+      <h3 style="margin:6px 0 12px;font-size:14px;color:#1a1f2e;">Specification (optional — mainly for Case Study type)</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;">
+        <div class="form-group"><label>Window Type:</label><input type="text" id="cs-spec-window-type" placeholder="e.g. Box Sash Windows ×6"></div>
+        <div class="form-group"><label>Colour:</label><input type="text" id="cs-spec-colour" placeholder="e.g. F&amp;B All White No.2005"></div>
+        <div class="form-group"><label>Georgian Bars:</label><input type="text" id="cs-spec-bars" placeholder="e.g. 2×2 both sashes"></div>
+        <div class="form-group"><label>Glazing:</label><input type="text" id="cs-spec-glass" placeholder="e.g. Slim double glazed, white spacer"></div>
+        <div class="form-group"><label>Dimensions:</label><input type="text" id="cs-spec-dimensions" placeholder="e.g. 900 × 1800 mm"></div>
+        <div class="form-group"><label>Ironmongery:</label><input type="text" id="cs-spec-ironmongery" placeholder="e.g. Polished brass fitch fastener"></div>
+        <div class="form-group"><label>Opening:</label><input type="text" id="cs-spec-opening" placeholder="e.g. Both sashes sliding"></div>
+      </div>
+      <button type="submit" class="btn-save" style="margin-top:10px;">Save Post</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Manage Case Study Images -->
+<div id="cs-images-modal" class="modal">
+  <div class="modal-content" style="max-width: 800px;">
+    <span class="close" onclick="CaseStudyAdmin.closeImagesModal()">&times;</span>
+    <h2>Post Images: <span id="cs-images-post-title"></span></h2>
+    <input type="hidden" id="cs-images-post-id">
+
+    <div class="form-group" style="margin-bottom: 20px;">
+      <label>Upload New Images:</label>
+      <input type="file" id="cs-image-upload" accept="image/*" multiple onchange="CaseStudyAdmin.uploadImages()">
+      <small style="display: block; margin-top: 5px; color: #666;">You can select multiple images at once. Click &#9733; Set Cover to choose the image used on the index page and social previews.</small>
+    </div>
+
+    <div id="cs-images-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+      <!-- Images loaded by JS -->
+    </div>
+  </div>
+</div>
+
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
   <div class="ironmongery-gallery">
@@ -394,6 +512,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load warranty certificates
   WarrantyAdmin.loadCertificates();
   WarrantyAdmin.generateNextWarrantyNo();
+  
+  // Load case studies / journal posts
+  CaseStudyAdmin.loadPosts();
   
 });
 
@@ -912,6 +1033,389 @@ const WarrantyAdmin = {
     }
   }
 };
+
+
+// Case Study / Journal Admin Controller
+const CaseStudyAdmin = {
+
+  TYPE_LABELS: { 'case-study': 'Case Study', 'workshop': 'Workshop', 'news': 'News' },
+  STORAGE_BUCKET: 'gallery-images', // reuse existing public bucket; case study files prefixed "cs_"
+  _posts: [],
+
+  escapeHtml(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+  },
+
+  slugify(str) {
+    return String(str || '').toLowerCase().trim()
+      .replace(/['\u2018\u2019]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 80);
+  },
+
+  autoSlug() {
+    const slugInput = document.getElementById('cs-slug');
+    const title = document.getElementById('cs-title').value;
+    if (slugInput && !slugInput.value.trim() && title.trim()) {
+      slugInput.value = this.slugify(title);
+    }
+  },
+
+  // ---------------- Posts table ----------------
+
+  async loadPosts() {
+    const tbody = document.getElementById('cs-posts-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7">Loading...</td></tr>';
+
+    try {
+      const { data: posts, error } = await window.supabaseClient
+        .from('case_studies')
+        .select('id, slug, title, location, post_type, status, display_order, case_study_images (id)')
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      this._posts = posts || [];
+
+      if (!posts || posts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="color:#888;">No posts yet. Click "+ Add Post" to create the first one.</td></tr>';
+        return;
+      }
+
+      const esc = this.escapeHtml.bind(this);
+      tbody.innerHTML = posts.map(p => {
+        const imgCount = (p.case_study_images || []).length;
+        const statusBadge = p.status === 'published'
+          ? '<span style="background:#e6f4ea;color:#1e7e34;padding:2px 8px;border-radius:10px;font-size:11px;">Published</span>'
+          : '<span style="background:#fff3cd;color:#856404;padding:2px 8px;border-radius:10px;font-size:11px;">Draft</span>';
+        const viewBtn = p.status === 'published'
+          ? '<a class="btn-small" href="/case-study/' + encodeURIComponent(p.slug) + '" target="_blank" rel="noopener" style="text-decoration:none;">\ud83d\udc41 View</a> '
+          : '';
+        return '<tr>'
+          + '<td>' + (p.display_order != null ? p.display_order : 0) + '</td>'
+          + '<td>' + esc(p.title) + '</td>'
+          + '<td>' + esc(this.TYPE_LABELS[p.post_type] || p.post_type) + '</td>'
+          + '<td>' + statusBadge + '</td>'
+          + '<td>' + esc(p.location || '') + '</td>'
+          + '<td>' + imgCount + '</td>'
+          + '<td style="white-space:nowrap;">'
+          +   '<button class="btn-small" onclick="CaseStudyAdmin.openImagesModal(\'' + p.id + '\')">\ud83d\udcf7 Images</button> '
+          +   '<button class="btn-small" onclick="CaseStudyAdmin.editPost(\'' + p.id + '\')">\u270f\ufe0f Edit</button> '
+          +   viewBtn
+          +   '<button class="btn-small btn-danger-small" onclick="CaseStudyAdmin.deletePost(\'' + p.id + '\')">\ud83d\uddd1\ufe0f Delete</button>'
+          + '</td>'
+          + '</tr>';
+      }).join('');
+
+    } catch (error) {
+      console.error('Error loading case studies:', error);
+      tbody.innerHTML = '<tr><td colspan="7" style="color:#c00;">Error: ' + this.escapeHtml(error.message)
+        + ' — have you run case-studies-setup.sql in Supabase SQL Editor?</td></tr>';
+    }
+  },
+
+  // ---------------- Add / Edit modal ----------------
+
+  openAddPostModal() {
+    document.getElementById('cs-modal-title').textContent = 'Add Post';
+    document.getElementById('cs-post-form').reset();
+    document.getElementById('cs-post-id').value = '';
+    document.getElementById('cs-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('cs-post-modal').style.display = 'block';
+  },
+
+  async editPost(id) {
+    try {
+      const { data: post, error } = await window.supabaseClient
+        .from('case_studies')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+
+      document.getElementById('cs-modal-title').textContent = 'Edit Post';
+      document.getElementById('cs-post-id').value = post.id;
+      document.getElementById('cs-title').value = post.title || '';
+      document.getElementById('cs-slug').value = post.slug || '';
+      document.getElementById('cs-type').value = post.post_type || 'case-study';
+      document.getElementById('cs-location').value = post.location || '';
+      document.getElementById('cs-status').value = post.status || 'draft';
+      document.getElementById('cs-date').value = post.published_at || '';
+      document.getElementById('cs-order').value = (post.display_order != null ? post.display_order : 0);
+      document.getElementById('cs-meta').value = post.meta_description || '';
+      document.getElementById('cs-overview').value = post.overview || '';
+      document.getElementById('cs-spec-window-type').value = post.spec_window_type || '';
+      document.getElementById('cs-spec-colour').value = post.spec_colour || '';
+      document.getElementById('cs-spec-bars').value = post.spec_bars || '';
+      document.getElementById('cs-spec-glass').value = post.spec_glass || '';
+      document.getElementById('cs-spec-dimensions').value = post.spec_dimensions || '';
+      document.getElementById('cs-spec-ironmongery').value = post.spec_ironmongery || '';
+      document.getElementById('cs-spec-opening').value = post.spec_opening || '';
+      document.getElementById('cs-post-modal').style.display = 'block';
+    } catch (error) {
+      console.error('Error loading post:', error);
+      alert('Error: ' + error.message);
+    }
+  },
+
+  closePostModal() {
+    document.getElementById('cs-post-modal').style.display = 'none';
+  },
+
+  async savePost(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('cs-post-id').value;
+    const slug = this.slugify(document.getElementById('cs-slug').value);
+    if (!slug) { alert('Slug is required (lowercase letters, numbers, hyphens).'); return; }
+    document.getElementById('cs-slug').value = slug;
+
+    const payload = {
+      title: document.getElementById('cs-title').value.trim(),
+      slug: slug,
+      post_type: document.getElementById('cs-type').value,
+      location: document.getElementById('cs-location').value.trim() || null,
+      status: document.getElementById('cs-status').value,
+      published_at: document.getElementById('cs-date').value || null,
+      display_order: parseInt(document.getElementById('cs-order').value) || 0,
+      meta_description: document.getElementById('cs-meta').value.trim() || null,
+      overview: document.getElementById('cs-overview').value.trim() || null,
+      spec_window_type: document.getElementById('cs-spec-window-type').value.trim() || null,
+      spec_colour: document.getElementById('cs-spec-colour').value.trim() || null,
+      spec_bars: document.getElementById('cs-spec-bars').value.trim() || null,
+      spec_glass: document.getElementById('cs-spec-glass').value.trim() || null,
+      spec_dimensions: document.getElementById('cs-spec-dimensions').value.trim() || null,
+      spec_ironmongery: document.getElementById('cs-spec-ironmongery').value.trim() || null,
+      spec_opening: document.getElementById('cs-spec-opening').value.trim() || null
+    };
+
+    try {
+      let error;
+      if (id) {
+        ({ error } = await window.supabaseClient.from('case_studies').update(payload).eq('id', id));
+      } else {
+        ({ error } = await window.supabaseClient.from('case_studies').insert([payload]));
+      }
+      if (error) {
+        if (error.code === '23505') { alert('This slug is already used by another post. Please choose a different slug.'); return; }
+        throw error;
+      }
+      this.closePostModal();
+      await this.loadPosts();
+    } catch (error) {
+      console.error('Error saving post:', error);
+      alert('Error saving: ' + error.message);
+    }
+  },
+
+  async deletePost(id) {
+    if (!confirm('Delete this post AND all its images? This cannot be undone.')) return;
+
+    try {
+      // 1. Collect image URLs
+      const { data: images } = await window.supabaseClient
+        .from('case_study_images')
+        .select('image_url')
+        .eq('case_study_id', id);
+
+      // 2. Delete files from storage bucket
+      if (images && images.length > 0) {
+        const fileNames = images
+          .filter(img => img.image_url && img.image_url.includes('/' + this.STORAGE_BUCKET + '/'))
+          .map(img => img.image_url.split('/' + this.STORAGE_BUCKET + '/')[1])
+          .filter(Boolean);
+        if (fileNames.length > 0) {
+          const { error: storageError } = await window.supabaseClient.storage
+            .from(this.STORAGE_BUCKET)
+            .remove(fileNames);
+          if (storageError) console.warn('Could not delete some images from storage:', storageError);
+        }
+      }
+
+      // 3. Delete post (image rows cascade)
+      const { error } = await window.supabaseClient
+        .from('case_studies')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+
+      await this.loadPosts();
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Error deleting: ' + error.message);
+    }
+  },
+
+  // ---------------- Images modal ----------------
+
+  openImagesModal(postId) {
+    const post = this._posts.find(p => p.id === postId);
+    document.getElementById('cs-images-post-title').textContent = post ? post.title : '';
+    document.getElementById('cs-images-post-id').value = postId;
+    document.getElementById('cs-images-modal').style.display = 'block';
+    this.loadPostImages(postId);
+  },
+
+  closeImagesModal() {
+    document.getElementById('cs-images-modal').style.display = 'none';
+    this.loadPosts(); // refresh image counts
+  },
+
+  async loadPostImages(postId) {
+    const grid = document.getElementById('cs-images-grid');
+    grid.innerHTML = '<p>Loading images...</p>';
+
+    try {
+      const { data: images, error } = await window.supabaseClient
+        .from('case_study_images')
+        .select('*')
+        .eq('case_study_id', postId)
+        .order('display_order', { ascending: true });
+      if (error) throw error;
+
+      if (!images || images.length === 0) {
+        grid.innerHTML = '<p style="color:#888;">No images yet. Upload some above.</p>';
+        return;
+      }
+
+      grid.innerHTML = images.map(img => {
+        const coverBadge = img.is_cover
+          ? '<div style="position:absolute;top:4px;left:4px;background:#1a1f2e;color:#ffd700;font-size:11px;padding:2px 8px;border-radius:3px;">\u2605 Cover</div>'
+          : '';
+        const coverBtn = img.is_cover
+          ? ''
+          : '<button onclick="CaseStudyAdmin.setCover(\'' + img.id + '\')" style="width:100%;padding:4px;background:#eee;color:#555;border:1px solid #ccc;border-radius:0 0 0 0;font-size:11px;cursor:pointer;">\u2605 Set Cover</button>';
+        return '<div style="position:relative;border:1px solid #ddd;border-radius:4px;overflow:hidden;">'
+          + coverBadge
+          + '<img src="' + this.escapeHtml(img.image_url) + '" style="width:100%;height:120px;object-fit:cover;display:block;">'
+          + coverBtn
+          + '<button onclick="CaseStudyAdmin.deleteImage(\'' + img.id + '\', \'' + this.escapeHtml(img.image_url) + '\')" '
+          + 'style="width:100%;padding:4px;background:#fdecea;color:#c0392b;border:none;font-size:11px;cursor:pointer;">Delete</button>'
+          + '</div>';
+      }).join('');
+
+    } catch (error) {
+      console.error('Error loading images:', error);
+      grid.innerHTML = '<p style="color:#c00;">Error: ' + this.escapeHtml(error.message) + '</p>';
+    }
+  },
+
+  async uploadImages() {
+    const fileInput = document.getElementById('cs-image-upload');
+    const files = fileInput.files;
+    const postId = document.getElementById('cs-images-post-id').value;
+
+    if (!files || files.length === 0) return;
+
+    const grid = document.getElementById('cs-images-grid');
+    grid.innerHTML = '<p>Uploading ' + files.length + ' image(s)...</p>';
+
+    try {
+      // Get current max display_order
+      const { data: existing } = await window.supabaseClient
+        .from('case_study_images')
+        .select('display_order')
+        .eq('case_study_id', postId)
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      let nextOrder = (existing && existing.length > 0) ? (existing[0].display_order + 1) : 0;
+      const isFirstBatchImage = nextOrder === 0;
+
+      let first = true;
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        const fileName = 'cs_' + postId + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9) + '.' + fileExt;
+
+        const { error: uploadError } = await window.supabaseClient.storage
+          .from(this.STORAGE_BUCKET)
+          .upload(fileName, file);
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = window.supabaseClient.storage
+          .from(this.STORAGE_BUCKET)
+          .getPublicUrl(fileName);
+
+        const { error: dbError } = await window.supabaseClient
+          .from('case_study_images')
+          .insert([{
+            case_study_id: postId,
+            image_url: publicUrl,
+            display_order: nextOrder++,
+            is_cover: isFirstBatchImage && first // first ever image becomes cover automatically
+          }]);
+        if (dbError) throw dbError;
+        first = false;
+      }
+
+      fileInput.value = '';
+      await this.loadPostImages(postId);
+
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert('Error uploading: ' + error.message);
+      await this.loadPostImages(postId);
+    }
+  },
+
+  async setCover(imageId) {
+    const postId = document.getElementById('cs-images-post-id').value;
+    try {
+      const { error: clearError } = await window.supabaseClient
+        .from('case_study_images')
+        .update({ is_cover: false })
+        .eq('case_study_id', postId);
+      if (clearError) throw clearError;
+
+      const { error } = await window.supabaseClient
+        .from('case_study_images')
+        .update({ is_cover: true })
+        .eq('id', imageId);
+      if (error) throw error;
+
+      await this.loadPostImages(postId);
+    } catch (error) {
+      console.error('Error setting cover:', error);
+      alert('Error: ' + error.message);
+    }
+  },
+
+  async deleteImage(imageId, imageUrl) {
+    if (!confirm('Delete this image?')) return;
+
+    const postId = document.getElementById('cs-images-post-id').value;
+
+    try {
+      // Delete file from storage
+      if (imageUrl && imageUrl.includes('/' + this.STORAGE_BUCKET + '/')) {
+        const fileName = imageUrl.split('/' + this.STORAGE_BUCKET + '/')[1];
+        if (fileName) {
+          const { error: storageError } = await window.supabaseClient.storage
+            .from(this.STORAGE_BUCKET)
+            .remove([fileName]);
+          if (storageError) console.warn('Could not delete file from storage:', storageError);
+        }
+      }
+
+      // Delete DB row
+      const { error } = await window.supabaseClient
+        .from('case_study_images')
+        .delete()
+        .eq('id', imageId);
+      if (error) throw error;
+
+      await this.loadPostImages(postId);
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      alert('Error deleting: ' + error.message);
+    }
+  }
+};
+
 </script>
 
 </body>
