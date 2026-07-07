@@ -21,6 +21,20 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <style>
+    /* Admin tab navigation */
+    .admin-tabs { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 4px;
+      background: #0A1628; padding: 0 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .admin-tab-btn { font-family: 'Jost', sans-serif; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+      color: rgba(255,255,255,.55); background: transparent; border: none; border-bottom: 2px solid transparent;
+      padding: 14px 20px; cursor: pointer; transition: color .15s, border-color .15s; white-space: nowrap; }
+    .admin-tab-btn:hover { color: rgba(255,255,255,.85); }
+    .admin-tab-btn.active { color: #fff; border-bottom-color: #C0C0C0; }
+    /* No-JS fallback: show pricing first, hide the rest until JS runs */
+    .admin-section[data-tab] { display: none; }
+    .admin-section[data-tab="pricing"] { display: block; }
+    @media (max-width: 700px){ .admin-tabs { padding: 0 6px; } .admin-tab-btn { padding: 12px 12px; font-size: 11px; } }
+  </style>
 </head>
 <body>
 
@@ -48,8 +62,17 @@
 
 <main class="admin-container">
 
+  <nav class="admin-tabs" id="admin-tabs">
+    <button class="admin-tab-btn active" data-tab="pricing" onclick="adminTab('pricing', this)">Pricing</button>
+    <button class="admin-tab-btn" data-tab="ironmongery" onclick="adminTab('ironmongery', this)">Ironmongery Library</button>
+    <button class="admin-tab-btn" data-tab="gallery" onclick="adminTab('gallery', this)">Gallery</button>
+    <button class="admin-tab-btn" data-tab="warranties" onclick="adminTab('warranties', this)">Warranties</button>
+    <button class="admin-tab-btn" data-tab="casestudies" onclick="adminTab('casestudies', this)">Case Studies</button>
+  </nav>
+
+
   <!-- SECTION 2: GEORGIAN BARS -->
-  <section class="admin-section">
+  <section class="admin-section" data-tab="pricing">
     <div class="section-header">
       <h2>Section 2: Georgian Bars</h2>
     </div>
@@ -63,7 +86,7 @@
   </section>
 
   <!-- SECTION 5: GLASS TYPE -->
-  <section class="admin-section">
+  <section class="admin-section" data-tab="pricing">
     <div class="section-header">
       <h2>Section 5: Glass Type</h2>
     </div>
@@ -83,7 +106,7 @@
   </section>
 
   <!-- SECTION 6: OPENING MECHANISM -->
-  <section class="admin-section">
+  <section class="admin-section" data-tab="pricing">
     <div class="section-header">
       <h2>Section 6: Opening Mechanism</h2>
     </div>
@@ -113,7 +136,7 @@
   </section>
 
   <!-- SECTION 8: IRONMONGERY -->
-  <section class="admin-section">
+  <section class="admin-section" data-tab="ironmongery">
     <div class="section-header">
       <h2>Section 8: Ironmongery</h2>
       <button class="btn-add" onclick="openIronmongeryManager()">🛠️ Manage Ironmongery Gallery</button>
@@ -141,7 +164,7 @@
 
   <!-- SECTION 8: HORNS -->
   <!-- SECTION 9: FROSTED GLASS -->
-  <section class="admin-section">
+  <section class="admin-section" data-tab="pricing">
     <div class="section-header">
       <h2>Section 9: Frosted Glass</h2>
     </div>
@@ -155,7 +178,7 @@
   </section>
 
   <!-- SECTION: GALLERY MANAGEMENT -->
-  <section class="admin-section">
+  <section class="admin-section" data-tab="gallery">
     <div class="section-header">
       <h2>Gallery Management</h2>
       <button class="btn-add" onclick="GalleryAdmin.openAddProjectModal()">+ Add Project</button>
@@ -181,7 +204,7 @@
   </section>
 
   <!-- SECTION: CASE STUDIES / JOURNAL -->
-  <section class="admin-section">
+  <section class="admin-section" data-tab="casestudies">
     <div class="section-header">
       <h2>Case Studies &amp; Journal</h2>
       <button class="btn-add" onclick="CaseStudyAdmin.openAddPostModal()">+ Add Post</button>
@@ -213,7 +236,7 @@
   </section>
 
   <!-- SECTION: WARRANTY CERTIFICATES -->
-  <section class="admin-section">
+  <section class="admin-section" data-tab="warranties">
     <div class="section-header">
       <h2>Warranty Certificates</h2>
       <button class="btn-add" onclick="WarrantyAdmin.toggleForm()">+ New Warranty</button>
@@ -495,6 +518,20 @@
 <script src="js/ironmongery-gallery.js?v=20250124"></script>
 <script src="js/admin-controller.js?v=2"></script>
 <script>
+// Admin tab navigation (top menu — show one group, hide the rest)
+function adminTab(tab, btn) {
+  document.querySelectorAll('.admin-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  else {
+    var t = document.querySelector('.admin-tab-btn[data-tab="' + tab + '"]');
+    if (t) t.classList.add('active');
+  }
+  document.querySelectorAll('.admin-section[data-tab]').forEach(function(sec){
+    sec.style.display = (sec.getAttribute('data-tab') === tab) ? 'block' : 'none';
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){ adminTab('pricing'); });
+
 // Logout handler
 document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn = document.getElementById('logout-btn');
