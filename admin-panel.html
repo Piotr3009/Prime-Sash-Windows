@@ -33,6 +33,11 @@
     /* No-JS fallback: show pricing first, hide the rest until JS runs */
     .admin-section[data-tab] { display: none; }
     .admin-section[data-tab="pricing"] { display: block; }
+    /* Wide-table tabs span the full container width (admin-container is a 2-col grid) */
+    .admin-section[data-tab="ironmongery"],
+    .admin-section[data-tab="gallery"],
+    .admin-section[data-tab="warranties"],
+    .admin-section[data-tab="casestudies"] { grid-column: 1 / -1; }
     @media (max-width: 700px){ .admin-tabs { padding: 0 6px; } .admin-tab-btn { padding: 12px 12px; font-size: 11px; } }
     /* Ironmongery filter toolbar */
     .iron-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 16px; }
