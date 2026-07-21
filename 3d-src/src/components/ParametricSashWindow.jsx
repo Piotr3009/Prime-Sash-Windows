@@ -1981,6 +1981,7 @@ export default function ParametricSashWindow({
   width = 1200,
   height = 1800,
   boxDepth = 164,
+  boxDepthLabel = null,
   sashDepth = 57,
   opening = 0,
   upperOpening = 0,
@@ -2728,7 +2729,7 @@ export default function ParametricSashWindow({
             <DimensionGuide
               from={[-w / 2 - 0.22, 0, -bd / 2]}
               to={[-w / 2 - 0.22, 0, bd / 2]}
-              label={`${Math.round(boxDepth)} mm`}
+              label={`${Math.round(boxDepthLabel ?? boxDepth)} mm`}
               offset={[-0.1, 0, 0]}
             />
           </group>
@@ -2925,7 +2926,7 @@ export default function ParametricSashWindow({
           <DimensionGuide
             from={[-w / 2 - 0.22, 0, -bd / 2]}
             to={[-w / 2 - 0.22, 0, bd / 2]}
-            label={`${Math.round(boxDepth)} mm`}
+            label={`${Math.round(boxDepthLabel ?? boxDepth)} mm`}
             offset={[-0.1, 0, 0]}
           />
         </group>

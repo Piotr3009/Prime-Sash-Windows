@@ -880,6 +880,11 @@ class SpecificationController {
     document.getElementById('spec-frame').style.display = 'block';
     document.getElementById('spec-frame-type').textContent = frameType === 'standard' ? 'Standard Frame (165mm)' : 'Slim Frame (145mm)';
 
+    // Update 3D — frame depth (slim/standard) drives the depth dimension label in the scene
+    if (typeof window.update3D === 'function' && frameType) {
+      window.update3D({ boxType: frameType });
+    }
+
     this.showAppliedFeedback('apply-frame');
   }
 
