@@ -27,6 +27,7 @@
     '051R': { w: 1200, h: 1200 },
     '052L': { w: 1200, h: 1500 },
     '052R': { w: 1200, h: 1500 },
+    '022':  { w: 1200, h: 1500 },
     '180L': { w: 1500, h: 1200 },
     '180R': { w: 1500, h: 1200 },
     '021':  { w: 800,  h: 1400 },
@@ -44,7 +45,7 @@
   };
 
   // Layouts that have fanlights (transom)
-  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '131', '132'];
+  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132'];
 
   // ─── Helpers ───
   function $(id) { return document.getElementById(id); }

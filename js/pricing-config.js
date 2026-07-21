@@ -145,6 +145,7 @@ const pricingConfig = {
       '051R': { mullions: 1, transoms: 0, sashes: 1 },
       '052L': { mullions: 1, transoms: 1, sashes: 2 },
       '052R': { mullions: 1, transoms: 1, sashes: 2 },
+      '022':  { mullions: 1, transoms: 2, sashes: 2 },
       '180L': { mullions: 1, transoms: 0, sashes: 1 },
       '180R': { mullions: 1, transoms: 0, sashes: 1 },
       '021':  { mullions: 0, transoms: 1, sashes: 1 },

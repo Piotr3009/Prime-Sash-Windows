@@ -1440,6 +1440,26 @@ class EstimateRenderer {
         }
     
         // ─── WITH FANLIGHT (top-hung top + side-hung bottom) ───
+        case '022': {
+          const panelW = (innerW - mullW) / 2;
+          const mullX = FRAME_FACE + panelW + mullW / 2;
+          const topH = innerH * FR;
+          const bottomH = innerH - MULLION_W - topH;
+          const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
+          return {
+            mullions: [mullX],
+            transoms: [
+              { y: transomY, width: panelW, offsetX: -(panelW + mullW) / 2 },
+              { y: transomY, width: panelW, offsetX: (panelW + mullW) / 2 },
+            ],
+            panels: [
+              { x: -(panelW + mullW) / 2, y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+              { x: (panelW + mullW) / 2, y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+              { x: -(panelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+              { x: (panelW + mullW) / 2, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+            ],
+          };
+        }
         case '021': {
           const fanlightH = innerH * FR;
           const mainH = innerH - MULLION_W - fanlightH;
@@ -2831,6 +2851,17 @@ class EstimateRenderer {
                     list: [
                         { x:0,y:0,w:fixedW40-mW/2,h:ih,hinge:'fixed' },
                         { x:fixedW40+mW/2,y:0,w:openW40-mW/2,h:ih,hinge:'right' }
+                    ]
+                };
+            case '022':
+                return {
+                    mullions: [iw/2],
+                    transoms: [{ y:fH+mW/2, x:0, w:half },{ y:fH+mW/2, x:half+mW, w:half }],
+                    list: [
+                        { x:0,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:half+mW,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:half,h:mainH,hinge:'fixed' },
+                        { x:half+mW,y:fH+mW,w:half,h:mainH,hinge:'fixed' }
                     ]
                 };
             case '021':
