@@ -357,6 +357,14 @@
     // Layout
     setRadio('casement-layout', fc.casementLayout || fc.layout || editItem.casement_layout);
 
+    // 022 clickable openers restore
+    if (Array.isArray(fc.casementHinges)) {
+      window.currentConfig = window.currentConfig || {};
+      window.currentConfig.casementHinges = fc.casementHinges.slice();
+      if (typeof window.update3D === 'function') window.update3D({ casementHinges: fc.casementHinges.slice() });
+      if (window.CasementTypeModal && window.CasementTypeModal.setHinges) window.CasementTypeModal.setHinges(fc.casementHinges.slice());
+    }
+
     // Dimensions (c-prefixed selects + hidden inputs)
     setCasementDimension('c-width', w);
     setCasementDimension('c-height', h);

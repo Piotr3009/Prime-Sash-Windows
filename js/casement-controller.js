@@ -797,6 +797,7 @@
       measurementType: 'frame',
       casementLayout: checked('casement-layout') || '040L',
       layout: checked('casement-layout') || '040L',
+      casementHinges: (window.currentConfig && Array.isArray(window.currentConfig.casementHinges)) ? window.currentConfig.casementHinges.slice() : null,
       width: parseInt(val('c-width')) || 800,
       height: parseInt(val('c-height')) || 1200,
       fanlightHeight: parseInt(val('c-fanlight-height')) || 350,

@@ -392,6 +392,7 @@ export default function CasementWindow({
   width = 800,
   height = 1200,
   layout = '040L',
+  casementHinges = null,
   opening = 0.3,
   fanlightRatio = 0.3,
   woodColor = '#F6F6F6',
@@ -436,8 +437,16 @@ export default function CasementWindow({
 
   // Get layout definition
   const layoutDef = useMemo(
-    () => getLayout(layout, innerW, innerH, height, fanlightRatio),
-    [layout, innerW, innerH, height, fanlightRatio]
+    () => {
+      const def = getLayout(layout, innerW, innerH, height, fanlightRatio);
+      // 022 clickable openers overlay. Panel order: [fanL, fanR, bottomL, bottomR]
+      if (layout === '022' && Array.isArray(casementHinges) && def && def.panels) {
+        const OPEN_HINGES_022 = ['top', 'top', 'left', 'right'];
+        def.panels = def.panels.map((p, i) => ({ ...p, hinge: casementHinges[i] ? OPEN_HINGES_022[i] : 'fixed' }));
+      }
+      return def;
+    },
+    [layout, innerW, innerH, height, fanlightRatio, casementHinges]
   );
 
   const W = mm(width);

@@ -1689,6 +1689,11 @@ class EstimateRenderer {
 
         const def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, fh, FR)
                  || { panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'fixed' }] };
+        // 022 clickable openers overlay. Panel order: [fanL, fanR, bottomL, bottomR]
+        if (code === '022' && Array.isArray(fc.casementHinges) && def.panels) {
+            const OPEN_HINGES_022 = ['top', 'top', 'left', 'right'];
+            def.panels = def.panels.map((p, i) => ({ ...p, hinge: fc.casementHinges[i] ? OPEN_HINGES_022[i] : 'fixed' }));
+        }
 
         // Layout (mm canvas)
         const M = Math.max(G.margin, Math.max(fw, fh) * 0.06);
@@ -2277,6 +2282,11 @@ class EstimateRenderer {
 
         // Get panels for this layout
         const panels = EstimateRenderer._casementPanels(layout, iw, ih, mW, FR);
+        // 022 clickable openers overlay. Panel order: [fanL, fanR, bottomL, bottomR]
+        if (layout === '022' && Array.isArray(fc.casementHinges) && panels && panels.list) {
+            const OPEN_HINGES_022 = ['top', 'top', 'left', 'right'];
+            panels.list = panels.list.map((p, i) => ({ ...p, hinge: fc.casementHinges[i] ? OPEN_HINGES_022[i] : 'fixed' }));
+        }
 
         // Draw mullions
         if (panels.mullions) {

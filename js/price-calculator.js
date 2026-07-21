@@ -307,7 +307,14 @@ class PriceCalculator {
     
     const mullionPrice = layoutData.mullions * c.mullionPrice;
     const transomPrice = layoutData.transoms * c.transomPrice;
-    const sashPrice = layoutData.sashes * c.sashPrice;
+    // 022 clickable openers: pay per opening pane when hinges array present
+    let sashPrice;
+    if (Array.isArray(configuration.casementHinges)) {
+      const openers = configuration.casementHinges.filter(Boolean).length;
+      sashPrice = openers * c.sashPrice;
+    } else {
+      sashPrice = layoutData.sashes * c.sashPrice;
+    }
     
     basePrice += mullionPrice + transomPrice + sashPrice;
     

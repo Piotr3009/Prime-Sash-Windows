@@ -84,7 +84,7 @@
       + '.ctm-card:hover{border-color:#0A1628;}'
       + '.ctm-card.sel{border:2px solid #0A1628;padding:11px 7px;}'
       + '.ctm-card svg{display:block;margin:0 auto;}'
-      + '.ctm-card-code{font-family:Jost,sans-serif;font-size:16px;font-weight:600;color:#0A1628;margin-top:6px;}'
+      + '.ctm-card-code{font-family:Jost,sans-serif;font-size:16px;font-weight:600;color:#0A1628;margin-top:6px;}.ctm-step2{padding:18px;display:none;flex-direction:column;align-items:center;gap:12px;overflow-y:auto;}.ctm-step2.open{display:flex;}.ctm-hint{font-family:Jost,sans-serif;font-size:13px;color:#555;background:#fff8e6;border:1px solid #f0d9a0;border-radius:4px;padding:8px 14px;text-align:center;}.ctm-pane{cursor:pointer;}.ctm-pane rect{transition:fill .12s;}.ctm-pane:hover rect{fill:#eef2f8;}.ctm-step2-btns{display:flex;gap:10px;}.ctm-btn2{font-family:Jost,sans-serif;font-size:13px;padding:9px 22px;border-radius:4px;cursor:pointer;border:1px solid #ccc;background:#fff;color:#444;}.ctm-btn2:hover{border-color:#0A1628;color:#0A1628;}.ctm-btn2.primary{background:#0A1628;color:#fff;border-color:#0A1628;}.ctm-btn2.primary:hover{background:#132441;}'
       + '@media (max-width:600px){.ctm-modal{max-height:96vh;}.ctm-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));}}';
     var st = document.createElement('style');
     st.id = 'ctm-styles';
@@ -94,7 +94,8 @@
 
   // ─── Module state ───
   var entries = [];
-  var filterLights = null; // null = all, 1,2,3 exact, 4 = 4+
+  var filterLights = null;
+  var hinges022 = null; // [fanL, fanR, bottomL, bottomR] — true = opens // null = all, 1,2,3 exact, 4 = 4+
   var els = {};
 
   function checkedEntry() {
@@ -173,7 +174,8 @@
     if (!e || !els.selThumb) return;
     els.selThumb.innerHTML = scaledSvg(e.svgHtml, 34);
     els.selCode.textContent = e.code;
-    els.selSub.textContent = (e.lights >= 4 ? '4+' : e.lights) + ' light' + (e.lights > 1 ? 's' : '');
+    els.selSub.textContent = (e.lights >= 4 ? '4+' : e.lights) + ' light' + (e.lights > 1 ? 's' : '')
+      + (e.code === '022' && hinges022 ? ' \u2022 ' + hinges022.filter(Boolean).length + ' opening' : '');
     if (filterLights === null) {
       filterLights = e.lights >= 4 ? 4 : e.lights;
       refreshPills();
@@ -192,10 +194,12 @@
       + '    <button type="button" class="ctm-close" id="ctm-close" aria-label="Close">&times;</button>'
       + '  </div>'
       + '  <div class="ctm-grid" id="ctm-grid"></div>'
+      + '  <div class="ctm-step2" id="ctm-step2"></div>'
       + '</div>';
     document.body.appendChild(ov);
     els.overlay = ov;
     els.grid = ov.querySelector('#ctm-grid');
+    els.step2 = ov.querySelector('#ctm-step2');
     els.count = ov.querySelector('#ctm-count');
     ov.querySelector('#ctm-close').addEventListener('click', closeModal);
     document.addEventListener('keydown', function (ev) {
@@ -225,6 +229,8 @@
   }
 
   function openModal() {
+    els.step2.classList.remove('open');
+    els.grid.style.display = '';
     renderGrid();
     var box = els.overlay.querySelector('.ctm-modal');
     box.style.transform = '';
@@ -246,6 +252,9 @@
       card.className = 'ctm-card' + (current && current.code === e.code ? ' sel' : '');
       card.innerHTML = scaledSvg(e.svgHtml, 118) + '<div class="ctm-card-code">' + e.code + '</div>';
       card.addEventListener('click', function () {
+        if (e.code === '022') { openStep2(); return; }
+        // switching away from 022 clears custom openers
+        clearHinges();
         e.radio.checked = true;
         e.radio.dispatchEvent(new Event('change', { bubbles: true }));
         refreshPreview();
@@ -253,6 +262,87 @@
       });
       els.grid.appendChild(card);
     });
+  }
+
+  // ─── Step 2: 022 clickable openers ───
+  function clearHinges() {
+    hinges022 = null;
+    if (window.currentConfig) window.currentConfig.casementHinges = null;
+    if (typeof window.update3D === 'function') window.update3D({ casementHinges: null });
+  }
+
+  function openStep2() {
+    if (!hinges022) hinges022 = [false, false, false, false]; // start: all FIXED
+    els.grid.style.display = 'none';
+    els.step2.classList.add('open');
+    els.count.textContent = 'Type 022 \u2014 choose which panes open';
+    renderStep2();
+  }
+
+  function renderStep2() {
+    var W = 300, H = 340, m = 10, fT = 14;
+    var ix = m + fT, iy = m + fT, iw = W - 2 * (m + fT), ih = H - 2 * (m + fT);
+    var mullW = 10, half = (iw - mullW) / 2, fH = Math.round(ih * 0.3), mainH = ih - fH - mullW;
+    var zones = [
+      { x: ix, y: iy, w: half, h: fH, tent: 'top' },
+      { x: ix + half + mullW, y: iy, w: half, h: fH, tent: 'top' },
+      { x: ix, y: iy + fH + mullW, w: half, h: mainH, tent: 'left' },
+      { x: ix + half + mullW, y: iy + fH + mullW, w: half, h: mainH, tent: 'right' }
+    ];
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">';
+    svg += '<rect x="' + m + '" y="' + m + '" width="' + (W - 2 * m) + '" height="' + (H - 2 * m) + '" fill="none" stroke="#0a1628" stroke-width="3"/>';
+    zones.forEach(function (z, i) {
+      var open = hinges022[i];
+      svg += '<g class="ctm-pane" data-i="' + i + '">';
+      svg += '<rect x="' + z.x + '" y="' + z.y + '" width="' + z.w + '" height="' + z.h + '" fill="' + (open ? '#f6efe0' : '#fafafa') + '" stroke="#0a1628" stroke-width="2"/>';
+      if (open) {
+        var t = '';
+        if (z.tent === 'top') t = 'M ' + z.x + ' ' + (z.y + z.h) + ' L ' + (z.x + z.w / 2) + ' ' + z.y + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h);
+        if (z.tent === 'left') t = 'M ' + z.x + ' ' + z.y + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h / 2) + ' L ' + z.x + ' ' + (z.y + z.h);
+        if (z.tent === 'right') t = 'M ' + (z.x + z.w) + ' ' + z.y + ' L ' + z.x + ' ' + (z.y + z.h / 2) + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h);
+        svg += '<path d="' + t + '" fill="none" stroke="#c8a24e" stroke-width="1.4" stroke-dasharray="6 4"/>';
+        svg += '<text x="' + (z.x + z.w / 2) + '" y="' + (z.y + z.h / 2 + 5) + '" text-anchor="middle" font-family="Jost,sans-serif" font-size="14" font-weight="600" fill="#8a6d1f">OPENS</text>';
+      } else {
+        svg += '<text x="' + (z.x + z.w / 2) + '" y="' + (z.y + z.h / 2 + 5) + '" text-anchor="middle" font-family="Jost,sans-serif" font-size="13" fill="#999">FIXED</text>';
+      }
+      svg += '</g>';
+    });
+    svg += '</svg>';
+
+    els.step2.innerHTML = ''
+      + '<div class="ctm-hint">Click a pane to set it as <strong>opening</strong> or <strong>fixed</strong>. Fanlights open top-hung; bottom panes hinge left / right automatically.</div>'
+      + svg
+      + '<div class="ctm-step2-btns">'
+      + '  <button type="button" class="ctm-btn2" id="ctm-back">\u2190 Back</button>'
+      + '  <button type="button" class="ctm-btn2 primary" id="ctm-apply">Apply</button>'
+      + '</div>';
+
+    els.step2.querySelectorAll('.ctm-pane').forEach(function (g) {
+      g.addEventListener('click', function () {
+        var i = parseInt(g.getAttribute('data-i'), 10);
+        hinges022[i] = !hinges022[i];
+        renderStep2();
+      });
+    });
+    els.step2.querySelector('#ctm-back').addEventListener('click', function () {
+      els.step2.classList.remove('open');
+      els.grid.style.display = '';
+      renderGrid();
+    });
+    els.step2.querySelector('#ctm-apply').addEventListener('click', applyStep2);
+  }
+
+  function applyStep2() {
+    var e = null;
+    for (var i = 0; i < entries.length; i++) if (entries[i].code === '022') { e = entries[i]; break; }
+    if (!e) return;
+    window.currentConfig = window.currentConfig || {};
+    window.currentConfig.casementHinges = hinges022.slice();
+    if (typeof window.update3D === 'function') window.update3D({ casementHinges: hinges022.slice() });
+    e.radio.checked = true;
+    e.radio.dispatchEvent(new Event('change', { bubbles: true }));
+    refreshPreview();
+    closeModal();
   }
 
   // ─── Init ───
@@ -275,6 +365,13 @@
       if (ev.target && ev.target.name === 'casement-layout') refreshPreview();
     });
   }
+
+  window.CasementTypeModal = {
+    setHinges: function (arr) {
+      hinges022 = Array.isArray(arr) ? arr.slice() : null;
+      refreshPreview();
+    }
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
