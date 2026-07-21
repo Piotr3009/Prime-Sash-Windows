@@ -74,11 +74,11 @@
       + '.ctm-overlay{display:none;position:fixed;inset:0;background:rgba(10,22,40,.55);z-index:3000;align-items:center;justify-content:center;padding:20px;}'
       + '.ctm-overlay.open{display:flex;}'
       + '.ctm-modal{background:#fff;border-radius:8px;max-width:1000px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}'
-      + '.ctm-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eee;}'
+      + '.ctm-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eee;cursor:grab;user-select:none;touch-action:none;}.ctm-head.dragging{cursor:grabbing;}'
       + '.ctm-title{font-family:Jost,sans-serif;font-size:15px;font-weight:600;color:#0A1628;margin:0;}'
       + '.ctm-count{font-family:Jost,sans-serif;font-size:12px;color:#888;margin:2px 0 0;}'
-      + '.ctm-close{background:none;border:none;font-size:22px;line-height:1;color:#666;cursor:pointer;padding:4px 8px;}'
-      + '.ctm-close:hover{color:#0A1628;}'
+      + '.ctm-close{background:#0A1628;border:none;font-size:20px;line-height:1;color:#fff;cursor:pointer;width:38px;height:38px;border-radius:50%;flex:none;}'
+      + '.ctm-close:hover{background:#c0392b;}'
       + '.ctm-grid{padding:16px 18px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:14px;}'
       + '.ctm-card{border:1px solid #ddd;border-radius:6px;padding:12px 8px;text-align:center;cursor:pointer;background:#fff;}'
       + '.ctm-card:hover{border-color:#0A1628;}'
@@ -198,14 +198,36 @@
     els.grid = ov.querySelector('#ctm-grid');
     els.count = ov.querySelector('#ctm-count');
     ov.querySelector('#ctm-close').addEventListener('click', closeModal);
-    ov.addEventListener('click', function (ev) { if (ev.target === ov) closeModal(); });
     document.addEventListener('keydown', function (ev) {
       if (ev.key === 'Escape' && ov.classList.contains('open')) closeModal();
+    });
+
+    // Drag: grab the header and move the whole modal
+    var box = ov.querySelector('.ctm-modal');
+    var head = ov.querySelector('.ctm-head');
+    var drag = null;
+    head.addEventListener('pointerdown', function (ev) {
+      if (ev.target.closest('.ctm-close')) return;
+      var t = box.style.transform.match(/translate\((-?\d+(?:\.\d+)?)px,\s*(-?\d+(?:\.\d+)?)px\)/);
+      drag = { sx: ev.clientX, sy: ev.clientY, ox: t ? parseFloat(t[1]) : 0, oy: t ? parseFloat(t[2]) : 0 };
+      head.classList.add('dragging');
+      head.setPointerCapture(ev.pointerId);
+    });
+    head.addEventListener('pointermove', function (ev) {
+      if (!drag) return;
+      box.style.transform = 'translate(' + (drag.ox + ev.clientX - drag.sx) + 'px, ' + (drag.oy + ev.clientY - drag.sy) + 'px)';
+    });
+    head.addEventListener('pointerup', function (ev) {
+      drag = null;
+      head.classList.remove('dragging');
+      try { head.releasePointerCapture(ev.pointerId); } catch (e) {}
     });
   }
 
   function openModal() {
     renderGrid();
+    var box = els.overlay.querySelector('.ctm-modal');
+    box.style.transform = '';
     els.overlay.classList.add('open');
   }
 
