@@ -84,7 +84,7 @@
       + '.ctm-card:hover{border-color:#0A1628;}'
       + '.ctm-card.sel{border:2px solid #0A1628;padding:11px 7px;}'
       + '.ctm-card svg{display:block;margin:0 auto;}'
-      + '.ctm-card-code{font-family:Jost,sans-serif;font-size:16px;font-weight:600;color:#0A1628;margin-top:6px;}.ctm-step2{padding:18px;display:none;flex-direction:column;align-items:center;gap:12px;overflow-y:auto;}.ctm-step2.open{display:flex;}.ctm-hint{font-family:Jost,sans-serif;font-size:13px;color:#555;background:#fff8e6;border:1px solid #f0d9a0;border-radius:4px;padding:8px 14px;text-align:center;}.ctm-pane{cursor:pointer;}.ctm-pane rect{transition:fill .12s;}.ctm-pane:hover rect{fill:#eef2f8;}.ctm-step2-btns{display:flex;gap:10px;}.ctm-btn2{font-family:Jost,sans-serif;font-size:13px;padding:9px 22px;border-radius:4px;cursor:pointer;border:1px solid #ccc;background:#fff;color:#444;}.ctm-btn2:hover{border-color:#0A1628;color:#0A1628;}.ctm-btn2.primary{background:#0A1628;color:#fff;border-color:#0A1628;}.ctm-btn2.primary:hover{background:#132441;}'
+      + '.ctm-card-code{font-family:Jost,sans-serif;font-size:16px;font-weight:600;color:#0A1628;margin-top:6px;}.ctm-card-badge{display:inline-block;font-family:Jost,sans-serif;font-size:11px;letter-spacing:.04em;background:#0A1628;color:#fff;border-radius:10px;padding:3px 10px;margin-top:6px;}.ctm-step2{padding:18px;display:none;flex-direction:column;align-items:center;gap:12px;overflow-y:auto;}.ctm-step2.open{display:flex;}.ctm-hint{font-family:Jost,sans-serif;font-size:13px;color:#555;background:#fff8e6;border:1px solid #f0d9a0;border-radius:4px;padding:8px 14px;text-align:center;}.ctm-pane{cursor:pointer;}.ctm-pane rect{transition:fill .12s;}.ctm-pane:hover rect{fill:#eef2f8;}.ctm-step2-btns{display:flex;gap:10px;}.ctm-btn2{font-family:Jost,sans-serif;font-size:13px;padding:9px 22px;border-radius:4px;cursor:pointer;border:1px solid #ccc;background:#fff;color:#444;}.ctm-btn2:hover{border-color:#0A1628;color:#0A1628;}.ctm-btn2.primary{background:#0A1628;color:#fff;border-color:#0A1628;}.ctm-btn2.primary:hover{background:#132441;}'
       + '@media (max-width:600px){.ctm-modal{max-height:96vh;}.ctm-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));}}';
     var st = document.createElement('style');
     st.id = 'ctm-styles';
@@ -250,7 +250,8 @@
     list.forEach(function (e) {
       var card = document.createElement('div');
       card.className = 'ctm-card' + (current && current.code === e.code ? ' sel' : '');
-      card.innerHTML = scaledSvg(e.svgHtml, 118) + '<div class="ctm-card-code">' + e.code + '</div>';
+      card.innerHTML = scaledSvg(e.svgHtml, 118) + '<div class="ctm-card-code">' + e.code + '</div>'
+        + (e.code === '022' ? '<div class="ctm-card-badge">Click \u2192 choose opening</div>' : '');
       card.addEventListener('click', function () {
         if (e.code === '022') { openStep2(); return; }
         // switching away from 022 clears custom openers
@@ -297,9 +298,9 @@
       svg += '<rect x="' + z.x + '" y="' + z.y + '" width="' + z.w + '" height="' + z.h + '" fill="' + (open ? '#f6efe0' : '#fafafa') + '" stroke="#0a1628" stroke-width="2"/>';
       if (open) {
         var t = '';
-        if (z.tent === 'top') t = 'M ' + z.x + ' ' + (z.y + z.h) + ' L ' + (z.x + z.w / 2) + ' ' + z.y + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h);
-        if (z.tent === 'left') t = 'M ' + z.x + ' ' + z.y + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h / 2) + ' L ' + z.x + ' ' + (z.y + z.h);
-        if (z.tent === 'right') t = 'M ' + (z.x + z.w) + ' ' + z.y + ' L ' + z.x + ' ' + (z.y + z.h / 2) + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h);
+        if (z.tent === 'top') t = 'M ' + z.x + ' ' + z.y + ' L ' + (z.x + z.w / 2) + ' ' + (z.y + z.h) + ' L ' + (z.x + z.w) + ' ' + z.y;
+        if (z.tent === 'left') t = 'M ' + (z.x + z.w) + ' ' + z.y + ' L ' + z.x + ' ' + (z.y + z.h / 2) + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h);
+        if (z.tent === 'right') t = 'M ' + z.x + ' ' + z.y + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h / 2) + ' L ' + z.x + ' ' + (z.y + z.h);
         svg += '<path d="' + t + '" fill="none" stroke="#c8a24e" stroke-width="1.4" stroke-dasharray="6 4"/>';
         svg += '<text x="' + (z.x + z.w / 2) + '" y="' + (z.y + z.h / 2 + 5) + '" text-anchor="middle" font-family="Jost,sans-serif" font-size="14" font-weight="600" fill="#8a6d1f">OPENS</text>';
       } else {
