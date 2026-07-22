@@ -109,9 +109,12 @@
     // Set default fanlight height (30% of inner height)
     if (hasFanlight) {
       var innerH = def.h - 57 - 68;
-      var defaultFH = Math.round(innerH * 0.3);
+      var defaultFH = Math.round(innerH * 0.3 / 10) * 10;
+      var dMin = Math.ceil(innerH * 0.15 / 10) * 10;
+      var dMax = Math.min(800, Math.floor(innerH * 0.5 / 10) * 10);
+      defaultFH = Math.max(dMin, Math.min(dMax, defaultFH));
       var fInput = $('c-fanlight-height');
-      if (fInput) fInput.value = defaultFH;
+      if (fInput) { fInput.min = dMin; fInput.max = dMax; fInput.value = defaultFH; }
     }
   }
 
@@ -359,10 +362,18 @@
     // Update min/max display
     var fMinEl = $('c-fanlight-min');
     var fMaxEl = $('c-fanlight-max');
-    var fMin = Math.round(innerH * 0.15);
-    var fMax = Math.round(innerH * 0.5);
+    var fMin = Math.ceil(innerH * 0.15 / 10) * 10;
+    var fMax = Math.min(800, Math.floor(innerH * 0.5 / 10) * 10);
     if (fMinEl) fMinEl.textContent = fMin;
     if (fMaxEl) fMaxEl.textContent = fMax;
+    // Round to 10 mm + clamp; write back so 3D, spec and saved estimate always match
+    var fEl = $('c-fanlight-height');
+    if (fEl) {
+      fEl.min = fMin; fEl.max = fMax;
+      var fClamped = Math.max(fMin, Math.min(fMax, Math.round(fanlightMm / 10) * 10));
+      if (fClamped !== fanlightMm) { fanlightMm = fClamped; fEl.value = fClamped; }
+      fanlightRatio = Math.max(0.15, Math.min(0.5, fanlightMm / innerH));
+    }
 
     window.update3D({
       windowCategory: 'casement',
@@ -684,7 +695,7 @@
 
     // Fanlight ratio
     var fRatio = $('c-fanlight-height');
-    if (fRatio) fRatio.addEventListener('change', updateCasement3D);
+    if (fRatio) { fRatio.addEventListener('change', updateCasement3D); fRatio.addEventListener('input', updateCasement3D); }
 
     // Bars
     document.querySelectorAll('input[name="c-hbars"], input[name="c-vbars"], input[name="c-fan-hbars"], input[name="c-fan-vbars"]').forEach(function(r) {
