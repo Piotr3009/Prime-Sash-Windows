@@ -447,6 +447,7 @@ class EstimateRenderer {
             sillExtension, sillText, trickleVent, trickleColour, trickleText,
             sealColour, safetyGlass, safetyGlassText,
             glassSpecCasement, glassSpecCasementText, fanlightHeight,
+            casementFanHBars: Math.min(2, fc.casementFanHBars || 0), casementFanVBars: Math.min(2, fc.casementFanVBars || 0),
             fixShape, fixType, fixCircleBarPattern, fixCircleOffset, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText,
             doorType, doorHingeSide, doorOpenDirection, doorLockType,
             doorThreshold, doorThresholdExtension, doorSillWider, doorThresholdText,
@@ -553,6 +554,7 @@ class EstimateRenderer {
                             ${R.specRow('Type', p.casementTypeText)}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
                             ${p.fanlightHeight > 0 ? R.specRow('Fanlight Height', p.fanlightHeight + 'mm') : ''}
+                            ${(p.casementFanHBars > 0 || p.casementFanVBars > 0) ? R.specRow('Fanlight Bars', p.casementFanHBars + ' horizontal, ' + p.casementFanVBars + ' vertical (per fan pane)') : ''}
                             ${R.specRow('Glass', p.glassText)}
                             ${R.specRow('Glass Spec', p.glassSpecCasementText)}
                             ${R.specRow('Glass Finish', p.glassFinishText)}
@@ -1686,6 +1688,9 @@ class EstimateRenderer {
         const FR = Math.max(0.15, Math.min(0.5, (fanMm || innerH * 0.3) / innerH));
         const hN = parseInt(fc.hBars || fc.casementHBars) || 0;
         const vN = parseInt(fc.vBars || fc.casementVBars) || 0;
+        const fanHN = Math.min(2, parseInt(fc.casementFanHBars) || 0);
+        const fanVN = Math.min(2, parseInt(fc.casementFanVBars) || 0);
+        const FAN_LAYOUTS_P1 = ['021','031','032','052L','052R','131','132','022'];
 
         const def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, fh, FR)
                  || { panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'fixed' }] };
@@ -1751,16 +1756,16 @@ class EstimateRenderer {
                  + `<path d="${d}" fill="none" stroke="#1E8E3E" stroke-width="1.6" stroke-linejoin="round" ${NS}/>`;
         };
 
-        const casBars = (gx, gy, gw, gh) => {
+        const casBars = (gx, gy, gw, gh, bH, bV) => {
             let s = '';
             const barStyle = `fill="${G.barFill}" stroke="${G.navy}" stroke-width="0.6" ${NS}`;
-            for (let i = 1; i <= vN; i++) {
-                const cx = gx + gw * i / (vN + 1);
-                if (gw > G.barW * (vN + 1)) s += `<rect x="${cx - G.barW / 2}" y="${gy}" width="${G.barW}" height="${gh}" ${barStyle}/>`;
+            for (let i = 1; i <= bV; i++) {
+                const cx = gx + gw * i / (bV + 1);
+                if (gw > G.barW * (bV + 1)) s += `<rect x="${cx - G.barW / 2}" y="${gy}" width="${G.barW}" height="${gh}" ${barStyle}/>`;
             }
-            for (let j = 1; j <= hN; j++) {
-                const cy = gy + gh * j / (hN + 1);
-                if (gh > G.barW * (hN + 1)) s += `<rect x="${gx}" y="${cy - G.barW / 2}" width="${gw}" height="${G.barW}" ${barStyle}/>`;
+            for (let j = 1; j <= bH; j++) {
+                const cy = gy + gh * j / (bH + 1);
+                if (gh > G.barW * (bH + 1)) s += `<rect x="${gx}" y="${cy - G.barW / 2}" width="${gw}" height="${G.barW}" ${barStyle}/>`;
             }
             return s;
         };
@@ -1769,11 +1774,14 @@ class EstimateRenderer {
         const gcx = ox + FRAME_FACE + innerW / 2;
         const gcRealY = BOTTOM_FACE + innerH / 2;
         (def.panels || []).forEach(p => {
+            const isFanPane = FAN_LAYOUTS_P1.includes(code) && p.h < innerH * 0.5;
+            const bH = isFanPane ? fanHN : hN;
+            const bV = isFanPane ? fanVN : vN;
             const px = gcx + p.x - p.w / 2;
             const py = SY(gcRealY + p.y + p.h / 2);
             if (p.hinge === 'fixed') {
                 svg += `<rect x="${px}" y="${py}" width="${p.w}" height="${p.h}" ${glassStyle}/>`;
-                svg += casBars(px, py, p.w, p.h);
+                svg += casBars(px, py, p.w, p.h, bH, bV);
                 const lfs = Math.max(40, Math.min(p.w, p.h) * 0.2);
                 svg += `<text x="${px + p.w / 2}" y="${py + p.h / 2 + lfs * 0.35}" fill="${G.navy}" opacity="0.35" font-family="Jost,sans-serif" font-size="${lfs}" text-anchor="middle" letter-spacing="6">FIX</text>`;
             } else {
@@ -1783,7 +1791,7 @@ class EstimateRenderer {
                 const gw = p.w - 2 * LEAF_FACE, gh = p.h - 2 * LEAF_FACE;
                 if (gw > 20 && gh > 20) {
                     svg += `<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" ${glassStyle}/>`;
-                    svg += casBars(gx, gy, gw, gh);
+                    svg += casBars(gx, gy, gw, gh, bH, bV);
                     svg += vSym(gx, gy, gw, gh, p.hinge);
                 }
             }
@@ -2249,6 +2257,8 @@ class EstimateRenderer {
         const h = fc.height || item.height || 1200;
         const hBars = fc.casementHBars || fc.hBars || 0;
         const vBars = fc.casementVBars || fc.vBars || 0;
+        const fanH = Math.min(2, fc.casementFanHBars || 0);
+        const fanV = Math.min(2, fc.casementFanVBars || 0);
         const fanlightHeight = fc.fanlightHeight || 0;
         const FR = fanlightHeight > 0 ? fanlightHeight / h : 0.25;
 
@@ -2333,8 +2343,17 @@ class EstimateRenderer {
             }
 
             // Bars (only on non-fanlight panels unless specified)
-            if (hBars > 0 || vBars > 0) {
-                if (!p.fanlight) {
+            if (hBars > 0 || vBars > 0 || fanH > 0 || fanV > 0) {
+                if (p.fanlight) {
+                    for (let i = 1; i <= fanH; i++) {
+                        const by = py + (ph / (fanH + 1)) * i;
+                        svg += `<line x1="${px+2}" y1="${by}" x2="${px+pw-2}" y2="${by}" stroke="${stroke}" stroke-width="0.4"/>`;
+                    }
+                    for (let i = 1; i <= fanV; i++) {
+                        const bx = px + (pw / (fanV + 1)) * i;
+                        svg += `<line x1="${bx}" y1="${py+2}" x2="${bx}" y2="${py+ph-2}" stroke="${stroke}" stroke-width="0.4"/>`;
+                    }
+                } else {
                     for (let i = 1; i <= hBars; i++) {
                         const by = py + (ph / (hBars + 1)) * i;
                         svg += `<line x1="${px+2}" y1="${by}" x2="${px+pw-2}" y2="${by}" stroke="${stroke}" stroke-width="0.4"/>`;
@@ -2886,7 +2905,7 @@ class EstimateRenderer {
                 return {
                     transoms: [fH + mW/2],
                     list: [
-                        { x:0,y:0,w:iw,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:0,w:iw,h:fH,hinge:'top' },
                         { x:0,y:fH+mW,w:iw,h:mainH,hinge:'right' }
                     ]
                 };
@@ -2894,7 +2913,7 @@ class EstimateRenderer {
                 return {
                     transoms: [fH + mW/2],
                     list: [
-                        { x:0,y:0,w:iw,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:0,w:iw,h:fH,hinge:'top' },
                         { x:0,y:fH+mW,w:iw,h:mainH,hinge:'left' }
                     ]
                 };
@@ -2913,8 +2932,8 @@ class EstimateRenderer {
                     transoms: [fH + mW/2],
                     mullions: [iw/2],
                     list: [
-                        { x:0,y:0,w:half,h:fH,hinge:'top',fanlight:true },
-                        { x:half+mW,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:0,w:half,h:fH,hinge:'top' },
+                        { x:half+mW,y:0,w:half,h:fH,hinge:'top' },
                         { x:0,y:fH+mW,w:iw,h:mainH,hinge:'right' }
                     ]
                 };
@@ -2923,8 +2942,8 @@ class EstimateRenderer {
                     transoms: [fH + mW/2],
                     mullions: [iw/2],
                     list: [
-                        { x:0,y:0,w:half,h:fH,hinge:'top',fanlight:true },
-                        { x:half+mW,y:0,w:half,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:0,w:half,h:fH,hinge:'top' },
+                        { x:half+mW,y:0,w:half,h:fH,hinge:'top' },
                         { x:0,y:fH+mW,w:iw,h:mainH,hinge:'left' }
                     ]
                 };

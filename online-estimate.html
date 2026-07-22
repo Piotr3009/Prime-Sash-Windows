@@ -3021,7 +3021,7 @@
       <!-- C-STEP 2: GEORGIAN BARS -->
       <div class="config-section" data-for="casement" data-category="dim-design" id="casement-bars-section" style="display:none;">
         <h3>Step 2: Georgian Bars</h3>
-        <p style="font-size:0.75rem; color:var(--secondary-color); margin-bottom:10px;">Bars apply to main (large) panes only. Fanlights have no bars.</p>
+        <p style="font-size:0.75rem; color:var(--secondary-color); margin-bottom:10px;">Bars apply to main (large) panes. For layouts with a fanlight you can add fanlight bars below (priced per bar, per fan pane).</p>
         <div class="input-group">
           <label>Horizontal Bars:</label>
           <div class="radio-group">
@@ -3038,6 +3038,24 @@
             <div class="radio-option"><input type="radio" id="c-vbars-1" name="c-vbars" value="1"><label for="c-vbars-1" class="radio-label">1</label></div>
             <div class="radio-option"><input type="radio" id="c-vbars-2" name="c-vbars" value="2"><label for="c-vbars-2" class="radio-label">2</label></div>
             <div class="radio-option"><input type="radio" id="c-vbars-3" name="c-vbars" value="3"><label for="c-vbars-3" class="radio-label">3</label></div>
+          </div>
+        </div>
+        <div id="c-fan-bars-wrap" style="display:none;">
+          <div class="input-group">
+            <label>Fanlight Horizontal Bars <small style="color:var(--secondary-color);">(per fan pane, max 2)</small>:</label>
+            <div class="radio-group">
+              <div class="radio-option"><input type="radio" id="c-fan-hbars-0" name="c-fan-hbars" value="0" checked><label for="c-fan-hbars-0" class="radio-label">None</label></div>
+              <div class="radio-option"><input type="radio" id="c-fan-hbars-1" name="c-fan-hbars" value="1"><label for="c-fan-hbars-1" class="radio-label">1</label></div>
+              <div class="radio-option"><input type="radio" id="c-fan-hbars-2" name="c-fan-hbars" value="2"><label for="c-fan-hbars-2" class="radio-label">2</label></div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Fanlight Vertical Bars <small style="color:var(--secondary-color);">(per fan pane, max 2)</small>:</label>
+            <div class="radio-group">
+              <div class="radio-option"><input type="radio" id="c-fan-vbars-0" name="c-fan-vbars" value="0" checked><label for="c-fan-vbars-0" class="radio-label">None</label></div>
+              <div class="radio-option"><input type="radio" id="c-fan-vbars-1" name="c-fan-vbars" value="1"><label for="c-fan-vbars-1" class="radio-label">1</label></div>
+              <div class="radio-option"><input type="radio" id="c-fan-vbars-2" name="c-fan-vbars" value="2"><label for="c-fan-vbars-2" class="radio-label">2</label></div>
+            </div>
           </div>
         </div>
       </div>
@@ -3964,7 +3982,7 @@
 <script src="js/ironmongery-gallery.js?v=3"></script>
 <script src="js/pricing-config.js?v=4"></script>
 <script src="js/config.js?v=3"></script>
-<script src="js/price-calculator.js?v=4"></script>
+<script src="js/price-calculator.js?v=5"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
@@ -3975,7 +3993,7 @@
 <script src="js/configurator-core.js?v=3"></script>
 <script src="js/color-config.js?v=1"></script>
 <script src="js/color-module.js?v=4"></script>
-<script src="js/casement-controller.js?v=5"></script>
+<script src="js/casement-controller.js?v=6"></script>
 <script src="js/casement-type-modal.js?v=6"></script>
 <script src="js/door-controller.js?v=4"></script>
 
@@ -3990,10 +4008,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=3"></script>
-<script src="js/estimate-renderer.js?v=10"></script>
+<script src="js/estimate-renderer.js?v=11"></script>
 <script src="js/estimate-selector.js?v=3"></script>
-<script src="js/estimate-manager.js?v=6"></script>
-<script src="js/edit-mode.js?v=6"></script>
+<script src="js/estimate-manager.js?v=7"></script>
+<script src="js/edit-mode.js?v=7"></script>
 
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
@@ -4334,7 +4352,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=53";
+      psw3dScript.src = "3d/assets/window3d.js?v=54";
       document.head.appendChild(psw3dScript);
     }
   </script>

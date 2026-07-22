@@ -393,6 +393,8 @@ export default function CasementWindow({
   height = 1200,
   layout = '040L',
   casementHinges = null,
+  fanHBars = 0,
+  fanVBars = 0,
   opening = 0.3,
   fanlightRatio = 0.3,
   woodColor = '#F6F6F6',
@@ -490,8 +492,8 @@ export default function CasementWindow({
             materialInt={intMaterial}
             spacerColor={spacerColor}
             glassFinish={glassFinish}
-            hBars={isFanlight ? 0 : hBars}
-            vBars={isFanlight ? 0 : vBars}
+            hBars={isFanlight ? fanHBars : hBars}
+            vBars={isFanlight ? fanVBars : vBars}
             ironmongery={ironmongery}
             position={[mm(p.x), mm(p.y) + openingCenterY, leafZ]}
           />

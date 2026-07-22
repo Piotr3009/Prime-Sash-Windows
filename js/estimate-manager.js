@@ -630,6 +630,8 @@ class EstimateManager {
                 // Casement-specific
                 casementLayout: isCasement ? (cfg.casementLayout || cfg.layout || '040L') : null,
                 casementHinges: isCasement ? (Array.isArray(cfg.casementHinges) ? cfg.casementHinges : null) : null,
+                casementFanHBars: isCasement ? Math.min(2, cfg.casementFanHBars || 0) : null,
+                casementFanVBars: isCasement ? Math.min(2, cfg.casementFanVBars || 0) : null,
                 sillExtension: isCasement ? (cfg.sillExtension || 'none') : null,
                 trickleVent: isCasement ? (cfg.trickleVent || 'none') : null,
                 sealColour: isCasement ? (cfg.sealColour || 'black') : null,

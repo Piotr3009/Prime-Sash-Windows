@@ -329,6 +329,15 @@ class PriceCalculator {
       const panelCount = layoutData.mullions + 1 + (layoutData.transoms > 0 ? layoutData.mullions + 1 : 0);
       barsPrice *= Math.max(1, layoutData.sashes + (layoutData.mullions + 1 - layoutData.sashes));
     }
+
+    // Fanlight bars — priced per bar, per fan pane (H and V, max 2 each)
+    const FAN_CELLS = { '021': 1, '031': 2, '032': 1, '052L': 1, '052R': 1, '131': 1, '132': 2, '022': 2 };
+    const fanHBars = Math.min(2, configuration.casementFanHBars || 0);
+    const fanVBars = Math.min(2, configuration.casementFanVBars || 0);
+    const fanCells = FAN_CELLS[layout] || 0;
+    if ((fanHBars + fanVBars) > 0 && fanCells > 0) {
+      barsPrice += (fanHBars + fanVBars) * 2 * this.pricing.barPricing.pricePerBar * fanCells;
+    }
     
     // Additional options (glass, finish, PAS24, sill, ironmongery — same as sash, glass per sqm)
     const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice, sqm);
