@@ -1694,10 +1694,18 @@ class EstimateRenderer {
 
         const def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, fh, FR)
                  || { panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'fixed' }] };
-        // 022 clickable openers overlay. Panel order: [fanL, fanR, bottomL, bottomR]
-        if (code === '022' && Array.isArray(fc.casementHinges) && def.panels) {
-            const OPEN_HINGES_022 = ['top', 'top', 'left', 'right'];
-            def.panels = def.panels.map((p, i) => ({ ...p, hinge: fc.casementHinges[i] ? OPEN_HINGES_022[i] : 'fixed' }));
+        // Clickable openers overlay — generic (strings; legacy 022 booleans normalised)
+        if (Array.isArray(fc.casementHinges) && def.panels) {
+            const H022 = ['top', 'top', 'left', 'right'];
+            const norm = fc.casementHinges.map((v, i) => {
+                if (v === true) return code === '022' ? H022[i] : (def.panels[i] ? def.panels[i].hinge : 'fixed');
+                if (v === false) return 'fixed';
+                return v;
+            });
+            def.panels = def.panels.map((p, i) => {
+                const h = norm[i];
+                return (h === 'fixed' || h === 'left' || h === 'right' || h === 'top') ? { ...p, hinge: h } : p;
+            });
         }
 
         // Layout (mm canvas)
@@ -2292,10 +2300,33 @@ class EstimateRenderer {
 
         // Get panels for this layout
         const panels = EstimateRenderer._casementPanels(layout, iw, ih, mW, FR);
-        // 022 clickable openers overlay. Panel order: [fanL, fanR, bottomL, bottomR]
-        if (layout === '022' && Array.isArray(fc.casementHinges) && panels && panels.list) {
-            const OPEN_HINGES_022 = ['top', 'top', 'left', 'right'];
-            panels.list = panels.list.map((p, i) => ({ ...p, hinge: fc.casementHinges[i] ? OPEN_HINGES_022[i] : 'fixed' }));
+        // Clickable openers overlay — switch2 panel order can differ from the canonical
+        // def (e.g. 132), so match panels GEOMETRICALLY, not by index.
+        if (Array.isArray(fc.casementHinges) && panels && panels.list) {
+            try {
+                const cdef = EstimateRenderer.casementLayoutDef(layout, iw, ih, ih + 125, FR);
+                if (cdef && cdef.panels && cdef.panels.length === panels.list.length) {
+                    const canon = cdef.panels.map((p, idx) => ({
+                        idx, x: iw / 2 + p.x - p.w / 2, y: ih / 2 - p.y - p.h / 2, w: p.w, h: p.h
+                    }));
+                    const H022 = ['top', 'top', 'left', 'right'];
+                    const norm = fc.casementHinges.map((v, i) => {
+                        if (v === true) return layout === '022' ? H022[i] : (cdef.panels[i] ? cdef.panels[i].hinge : 'fixed');
+                        if (v === false) return 'fixed';
+                        return v;
+                    });
+                    panels.list = panels.list.map(pl => {
+                        let best = -1, bd = Infinity;
+                        canon.forEach(c => {
+                            const d = Math.abs(c.x - pl.x) + Math.abs(c.y - pl.y) + Math.abs(c.w - pl.w) + Math.abs(c.h - pl.h);
+                            if (d < bd) { bd = d; best = c.idx; }
+                        });
+                        const h = bd < 150 ? norm[best] : undefined; // tolerance: 57/68 face asymmetry + half-mullion offsets (max ~70mm); nearest WRONG pane is >=300mm away
+                        return (h === 'fixed' || h === 'left' || h === 'right' || h === 'top')
+                            ? Object.assign({}, pl, { hinge: h }) : pl;
+                    });
+                }
+            } catch (e) { /* safe fallback: original hinges */ }
         }
 
         // Draw mullions

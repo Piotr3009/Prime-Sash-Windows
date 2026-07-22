@@ -310,7 +310,7 @@ class PriceCalculator {
     // 022 clickable openers: pay per opening pane when hinges array present
     let sashPrice;
     if (Array.isArray(configuration.casementHinges)) {
-      const openers = configuration.casementHinges.filter(Boolean).length;
+      const openers = configuration.casementHinges.filter(h => h === true || (typeof h === 'string' && h !== 'fixed')).length;
       sashPrice = openers * c.sashPrice;
     } else {
       sashPrice = layoutData.sashes * c.sashPrice;

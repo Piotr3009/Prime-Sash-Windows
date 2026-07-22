@@ -62,7 +62,7 @@
       + '.ctm-panel{margin-bottom:12px;}'
       + '.ctm-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}'
       + '.ctm-lbl{font-size:13px;color:#555;font-family:Jost,sans-serif;}'
-      + '.ctm-pill{font-family:Jost,sans-serif;font-size:13px;padding:6px 14px;border:1px solid #ccc;background:#fff;color:#444;border-radius:16px;cursor:pointer;line-height:1;}'
+      + '.ctm-pill{font-family:Jost,sans-serif;font-size:13px;padding:6px 14px;border:1px solid #ccc;background:#fff;color:#444;border-radius:16px;cursor:pointer;line-height:1;}.ctm-segrow{display:flex;gap:8px;margin:6px 0 12px;}.ctm-seg{flex:1;cursor:pointer;text-align:center;padding:8px 0 7px;border-radius:4px;background:#fff;color:#333;border:1px solid #ddd;font-family:Jost,sans-serif;}.ctm-seg:hover{border-color:#0A1628;}.ctm-seg.active{background:#0A1628;color:#fff;border-color:#0A1628;}.ctm-seg svg{display:block;margin:0 auto 3px;}.ctm-seg span{font-size:13px;}.ctm-seg.active span{font-weight:600;}'
       + '.ctm-pill:hover{border-color:#0A1628;color:#0A1628;}'
       + '.ctm-pill.active{background:#0A1628;color:#fff;border-color:#0A1628;}'
       + '.ctm-sel{display:flex;align-items:center;gap:12px;border:1px solid #ddd;border-radius:6px;padding:8px 10px;margin-bottom:10px;background:#fff;}'
@@ -129,7 +129,8 @@
     var panel = document.createElement('div');
     panel.className = 'ctm-panel';
     panel.innerHTML = ''
-      + '<div class="ctm-row"><span class="ctm-lbl">Lights:</span><span id="ctm-pills"></span></div>'
+      + '<div class="ctm-lbl" style="margin-bottom:2px;">Number of Lights <span style="color:#999;">(vertical panes)</span>:</div>'
+      + '<div class="ctm-segrow" id="ctm-pills"></div>'
       + '<div class="ctm-sel">'
       + '  <div class="ctm-thumb" id="ctm-sel-thumb"></div>'
       + '  <div><div class="ctm-sel-code" id="ctm-sel-code"></div>'
@@ -150,8 +151,8 @@
     buckets.forEach(function (b) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'ctm-pill';
-      btn.textContent = b === 4 ? '4+' : String(b);
+      btn.className = 'ctm-seg';
+      btn.innerHTML = segGlyph(b) + '<span>' + (b === 4 ? '4+' : String(b)) + '</span>';
       btn.setAttribute('data-lights', b);
       btn.addEventListener('click', function () {
         filterLights = b;
@@ -162,9 +163,21 @@
     });
   }
 
+  // Mini window glyph with N vertical panes (stroke follows currentColor)
+  function segGlyph(p) {
+    var w = 34, h = 24;
+    var out = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="30">';
+    out += '<rect x="1.5" y="1.5" width="' + (w - 3) + '" height="' + (h - 3) + '" fill="none" stroke="currentColor" stroke-width="2"/>';
+    for (var i = 1; i < p; i++) {
+      var x = 1.5 + (w - 3) * i / p;
+      out += '<line x1="' + x + '" y1="1.5" x2="' + x + '" y2="' + (h - 1.5) + '" stroke="currentColor" stroke-width="1.4"/>';
+    }
+    return out + '</svg>';
+  }
+
   function refreshPills() {
     if (!els.pills) return;
-    els.pills.querySelectorAll('.ctm-pill').forEach(function (p) {
+    els.pills.querySelectorAll('.ctm-seg').forEach(function (p) {
       p.classList.toggle('active', parseInt(p.getAttribute('data-lights'), 10) === filterLights);
     });
   }
@@ -174,8 +187,11 @@
     if (!e || !els.selThumb) return;
     els.selThumb.innerHTML = scaledSvg(e.svgHtml, 34);
     els.selCode.textContent = e.code;
+    var openCount = (window.currentConfig && Array.isArray(window.currentConfig.casementHinges))
+      ? window.currentConfig.casementHinges.filter(function (h) { return h === true || (typeof h === 'string' && h !== 'fixed'); }).length
+      : null;
     els.selSub.textContent = (e.lights >= 4 ? '4+' : e.lights) + ' light' + (e.lights > 1 ? 's' : '')
-      + (e.code === '022' && hinges022 ? ' \u2022 ' + hinges022.filter(Boolean).length + ' opening' : '');
+      + (openCount !== null ? ' \u2022 ' + openCount + ' opening' : '');
     if (filterLights === null) {
       filterLights = e.lights >= 4 ? 4 : e.lights;
       refreshPills();
@@ -251,77 +267,133 @@
       var card = document.createElement('div');
       card.className = 'ctm-card' + (current && current.code === e.code ? ' sel' : '');
       card.innerHTML = scaledSvg(e.svgHtml, 118) + '<div class="ctm-card-code">' + e.code + '</div>'
-        + (e.code === '022' ? '<div class="ctm-card-badge">Click \u2192 choose opening</div>' : '');
+        + '<div class="ctm-card-badge">Click \u2192 choose opening</div>';
       card.addEventListener('click', function () {
-        if (e.code === '022') { openStep2(); return; }
-        // switching away from 022 clears custom openers
-        clearHinges();
-        e.radio.checked = true;
-        e.radio.dispatchEvent(new Event('change', { bubbles: true }));
-        refreshPreview();
-        closeModal();
+        openStep2(e.code);
       });
       els.grid.appendChild(card);
     });
   }
 
-  // ─── Step 2: 022 clickable openers ───
+  // ─── Step 2: clickable openers — generic for every layout ───
+  // hinges022 (historic name) = array of 'fixed'|'left'|'right'|'top', aligned to canonical def.panels order.
+  var step2Code = null;
+  var step2Def = null;
+
   function clearHinges() {
     hinges022 = null;
     if (window.currentConfig) window.currentConfig.casementHinges = null;
     if (typeof window.update3D === 'function') window.update3D({ casementHinges: null });
   }
 
-  function openStep2() {
-    if (!hinges022) hinges022 = [false, false, false, false]; // start: all FIXED
+  function currentGeometry(code) {
+    if (typeof EstimateRenderer === 'undefined' || !EstimateRenderer.casementLayoutDef) return null;
+    var w = parseInt((document.getElementById('c-width') || {}).value) || 1200;
+    var h = parseInt((document.getElementById('c-height') || {}).value) || 1500;
+    var innerW = w - 114, innerH = h - 125;
+    var fanMm = parseInt((document.getElementById('c-fanlight-height') || {}).value) || Math.round(innerH * 0.3);
+    var FR = Math.max(0.15, Math.min(0.5, fanMm / innerH));
+    var def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, h, FR);
+    if (!def || !def.panels) return null;
+    return { def: def, innerW: innerW, innerH: innerH };
+  }
+
+  function normalizeHinges(arr, def, code) {
+    var H022 = ['top', 'top', 'left', 'right'];
+    return def.panels.map(function (p, i) {
+      var v = arr ? arr[i] : undefined;
+      if (v === true) return code === '022' ? H022[i] : p.hinge;
+      if (v === false) return 'fixed';
+      if (v === 'fixed' || v === 'left' || v === 'right' || v === 'top') return v;
+      return 'fixed'; // entering step 2: everything starts FIXED
+    });
+  }
+
+  function openStep2(code) {
+    var g = currentGeometry(code);
+    if (!g) { // renderer unavailable — fall back to direct select
+      var ent = entries.filter(function (x) { return x.code === code; })[0];
+      if (ent) { clearHinges(); ent.radio.checked = true; ent.radio.dispatchEvent(new Event('change', { bubbles: true })); refreshPreview(); closeModal(); }
+      return;
+    }
+    step2Code = code;
+    step2Def = g;
+    var checked = checkedEntry();
+    var existing = (checked && checked.code === code && window.currentConfig) ? window.currentConfig.casementHinges : null;
+    hinges022 = normalizeHinges(existing, g.def, code);
     els.grid.style.display = 'none';
     els.step2.classList.add('open');
-    els.count.textContent = 'Type 022 \u2014 choose which panes open';
+    els.count.textContent = 'Type ' + code + ' — choose which panes open';
     renderStep2();
   }
 
   function renderStep2() {
-    var W = 300, H = 340, m = 10, fT = 14;
-    var ix = m + fT, iy = m + fT, iw = W - 2 * (m + fT), ih = H - 2 * (m + fT);
-    var mullW = 10, half = (iw - mullW) / 2, fH = Math.round(ih * 0.3), mainH = ih - fH - mullW;
-    var zones = [
-      { x: ix, y: iy, w: half, h: fH, tent: 'top' },
-      { x: ix + half + mullW, y: iy, w: half, h: fH, tent: 'top' },
-      { x: ix, y: iy + fH + mullW, w: half, h: mainH, tent: 'left' },
-      { x: ix + half + mullW, y: iy + fH + mullW, w: half, h: mainH, tent: 'right' }
-    ];
-    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">';
-    svg += '<rect x="' + m + '" y="' + m + '" width="' + (W - 2 * m) + '" height="' + (H - 2 * m) + '" fill="none" stroke="#0a1628" stroke-width="3"/>';
-    zones.forEach(function (z, i) {
-      var open = hinges022[i];
+    var g = step2Def, def = g.def;
+    var SW = 340;
+    var scale = (SW - 40) / g.innerW;
+    var IH = Math.round(g.innerH * scale);
+    var m = 20, fT = 12;
+    var W = SW, H = IH + 2 * m;
+    var gcx = W / 2, gcy = H / 2;
+
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" style="max-width:100%;">';
+    svg += '<rect x="' + (m - fT) + '" y="' + (m - fT) + '" width="' + (W - 2 * m + 2 * fT) + '" height="' + (H - 2 * m + 2 * fT) + '" fill="none" stroke="#0a1628" stroke-width="3"/>';
+
+    (def.mullions || []).forEach(function (mu) {
+      var mx = (typeof mu === 'number') ? mu : mu.x;
+      var x = m + (mx - 57) * scale; // def mullion x includes FRAME_FACE(57)
+      svg += '<line x1="' + x + '" y1="' + m + '" x2="' + x + '" y2="' + (H - m) + '" stroke="#0a1628" stroke-width="3"/>';
+    });
+    (def.transoms || []).forEach(function (tr) {
+      var ty = (typeof tr === 'number') ? tr : tr.y;
+      var y = H - m - (ty - 68) * scale; // def y measured from BOTTOM_FACE(68), SVG y down
+      if (typeof tr === 'number' || tr.width === undefined) {
+        svg += '<line x1="' + m + '" y1="' + y + '" x2="' + (W - m) + '" y2="' + y + '" stroke="#0a1628" stroke-width="3"/>';
+      } else {
+        var cx0 = m + (g.innerW / 2 + (tr.offsetX || 0)) * scale;
+        svg += '<line x1="' + (cx0 - tr.width * scale / 2) + '" y1="' + y + '" x2="' + (cx0 + tr.width * scale / 2) + '" y2="' + y + '" stroke="#0a1628" stroke-width="3"/>';
+      }
+    });
+
+    def.panels.forEach(function (p, i) {
+      var px = gcx + (p.x - p.w / 2) * scale;
+      var py = gcy - (p.y + p.h / 2) * scale;
+      var pw = p.w * scale, ph = p.h * scale;
+      var st = hinges022[i];
+      var isFanRole = p.hinge === 'top';
+      var open = st !== 'fixed';
       svg += '<g class="ctm-pane" data-i="' + i + '">';
-      svg += '<rect x="' + z.x + '" y="' + z.y + '" width="' + z.w + '" height="' + z.h + '" fill="' + (open ? '#f6efe0' : '#fafafa') + '" stroke="#0a1628" stroke-width="2"/>';
+      svg += '<rect x="' + px + '" y="' + py + '" width="' + pw + '" height="' + ph + '" fill="' + (open ? '#f6efe0' : '#fafafa') + '" stroke="#0a1628" stroke-width="2"/>';
       if (open) {
         var t = '';
-        if (z.tent === 'top') t = 'M ' + z.x + ' ' + z.y + ' L ' + (z.x + z.w / 2) + ' ' + (z.y + z.h) + ' L ' + (z.x + z.w) + ' ' + z.y;
-        if (z.tent === 'left') t = 'M ' + (z.x + z.w) + ' ' + z.y + ' L ' + z.x + ' ' + (z.y + z.h / 2) + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h);
-        if (z.tent === 'right') t = 'M ' + z.x + ' ' + z.y + ' L ' + (z.x + z.w) + ' ' + (z.y + z.h / 2) + ' L ' + z.x + ' ' + (z.y + z.h);
+        if (st === 'top') t = 'M ' + px + ' ' + py + ' L ' + (px + pw / 2) + ' ' + (py + ph) + ' L ' + (px + pw) + ' ' + py;
+        if (st === 'left') t = 'M ' + (px + pw) + ' ' + py + ' L ' + px + ' ' + (py + ph / 2) + ' L ' + (px + pw) + ' ' + (py + ph);
+        if (st === 'right') t = 'M ' + px + ' ' + py + ' L ' + (px + pw) + ' ' + (py + ph / 2) + ' L ' + px + ' ' + (py + ph);
         svg += '<path d="' + t + '" fill="none" stroke="#c8a24e" stroke-width="1.4" stroke-dasharray="6 4"/>';
-        svg += '<text x="' + (z.x + z.w / 2) + '" y="' + (z.y + z.h / 2 + 5) + '" text-anchor="middle" font-family="Jost,sans-serif" font-size="14" font-weight="600" fill="#8a6d1f">OPENS</text>';
-      } else {
-        svg += '<text x="' + (z.x + z.w / 2) + '" y="' + (z.y + z.h / 2 + 5) + '" text-anchor="middle" font-family="Jost,sans-serif" font-size="13" fill="#999">FIXED</text>';
       }
+      var lbl = st === 'fixed' ? 'FIXED' : (st === 'top' ? 'OPENS' : (st === 'left' ? 'LEFT' : 'RIGHT'));
+      var fs = Math.max(10, Math.min(14, pw / 6));
+      svg += '<text x="' + (px + pw / 2) + '" y="' + (py + ph / 2 + fs * 0.35) + '" text-anchor="middle" font-family="Jost,sans-serif" font-size="' + fs + '" ' + (st === 'fixed' ? 'fill="#999"' : 'font-weight="600" fill="#8a6d1f"') + '>' + lbl + '</text>';
+      void isFanRole;
       svg += '</g>';
     });
     svg += '</svg>';
 
     els.step2.innerHTML = ''
-      + '<div class="ctm-hint">Click a pane to set it as <strong>opening</strong> or <strong>fixed</strong>. Fanlights open top-hung; bottom panes hinge left / right automatically.</div>'
+      + '<div class="ctm-hint">Click a pane to set its opening. Side panes cycle <strong>Fixed → Left hinge → Right hinge</strong>. Fanlights and top-hung panes toggle <strong>Fixed / Opens</strong>.</div>'
       + svg
       + '<div class="ctm-step2-btns">'
-      + '  <button type="button" class="ctm-btn2" id="ctm-back">\u2190 Back</button>'
+      + '  <button type="button" class="ctm-btn2" id="ctm-back">← Back</button>'
       + '  <button type="button" class="ctm-btn2 primary" id="ctm-apply">Apply</button>'
       + '</div>';
 
-    els.step2.querySelectorAll('.ctm-pane').forEach(function (g) {
-      g.addEventListener('click', function () {
-        var i = parseInt(g.getAttribute('data-i'), 10);
-        hinges022[i] = !hinges022[i];
+    els.step2.querySelectorAll('.ctm-pane').forEach(function (gEl) {
+      gEl.addEventListener('click', function () {
+        var i = parseInt(gEl.getAttribute('data-i'), 10);
+        var role = step2Def.def.panels[i].hinge === 'top' ? 'fan' : 'side';
+        var st = hinges022[i];
+        if (role === 'fan') hinges022[i] = (st === 'fixed') ? 'top' : 'fixed';
+        else hinges022[i] = (st === 'fixed') ? 'left' : (st === 'left' ? 'right' : 'fixed');
         renderStep2();
       });
     });
@@ -335,7 +407,7 @@
 
   function applyStep2() {
     var e = null;
-    for (var i = 0; i < entries.length; i++) if (entries[i].code === '022') { e = entries[i]; break; }
+    for (var i = 0; i < entries.length; i++) if (entries[i].code === step2Code) { e = entries[i]; break; }
     if (!e) return;
     window.currentConfig = window.currentConfig || {};
     window.currentConfig.casementHinges = hinges022.slice();

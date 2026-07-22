@@ -441,10 +441,20 @@ export default function CasementWindow({
   const layoutDef = useMemo(
     () => {
       const def = getLayout(layout, innerW, innerH, height, fanlightRatio);
-      // 022 clickable openers overlay. Panel order: [fanL, fanR, bottomL, bottomR]
-      if (layout === '022' && Array.isArray(casementHinges) && def && def.panels) {
-        const OPEN_HINGES_022 = ['top', 'top', 'left', 'right'];
-        def.panels = def.panels.map((p, i) => ({ ...p, hinge: casementHinges[i] ? OPEN_HINGES_022[i] : 'fixed' }));
+      // Clickable openers overlay — generic for every layout.
+      // casementHinges[i] = 'fixed' | 'left' | 'right' | 'top' (aligned to def.panels order).
+      // Legacy 022 estimates stored booleans: true -> ['top','top','left','right'][i], false -> 'fixed'.
+      if (Array.isArray(casementHinges) && def && def.panels) {
+        const H022 = ['top', 'top', 'left', 'right'];
+        const norm = casementHinges.map((v, i) => {
+          if (v === true) return layout === '022' ? H022[i] : (def.panels[i] ? def.panels[i].hinge : 'fixed');
+          if (v === false) return 'fixed';
+          return v;
+        });
+        def.panels = def.panels.map((p, i) => {
+          const h = norm[i];
+          return (h === 'fixed' || h === 'left' || h === 'right' || h === 'top') ? { ...p, hinge: h } : p;
+        });
       }
       return def;
     },
