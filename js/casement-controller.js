@@ -111,6 +111,8 @@
     if (fbWrap) fbWrap.style.display = hasFanlight ? 'block' : 'none';
     var f2Row = $('c-fan2-row');
     if (f2Row) f2Row.style.display = FAN2_LAYOUTS.includes(layout) ? 'block' : 'none';
+    var f2b = $('c-fan2-bars-wrap');
+    if (f2b) f2b.style.display = FAN2_LAYOUTS.includes(layout) ? 'block' : 'none';
     if (fRow) {
       fRow.style.display = hasFanlight ? 'block' : 'none';
     }
@@ -411,6 +413,8 @@
       casementVBars: checked('casement-type') === 'arched' ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0),
       casementFanHBars: checked('casement-type') === 'arched' ? 0 : Math.min(2, parseInt(checked('c-fan-hbars')) || 0),
       casementFanVBars: checked('casement-type') === 'arched' ? 0 : Math.min(2, parseInt(checked('c-fan-vbars')) || 0),
+      casementFan2HBars: checked('casement-type') === 'arched' ? 0 : Math.min(2, parseInt(checked('c-fan2-hbars')) || 0),
+      casementFan2VBars: checked('casement-type') === 'arched' ? 0 : Math.min(2, parseInt(checked('c-fan2-vbars')) || 0),
       casementOpening: (parseInt(val('c-opening')) || 0) / 100,
       trickleVent: checked('c-trickle-vent') || 'none',
       trickleColour: checked('c-trickle-colour') || 'white',
@@ -724,7 +728,7 @@
     if (f2R) { f2R.addEventListener('change', updateCasement3D); f2R.addEventListener('input', updateCasement3D); }
 
     // Bars
-    document.querySelectorAll('input[name="c-hbars"], input[name="c-vbars"], input[name="c-fan-hbars"], input[name="c-fan-vbars"]').forEach(function(r) {
+    document.querySelectorAll('input[name="c-hbars"], input[name="c-vbars"], input[name="c-fan-hbars"], input[name="c-fan-vbars"], input[name="c-fan2-hbars"], input[name="c-fan2-vbars"]').forEach(function(r) {
       r.addEventListener('change', updateCasement3D);
     });
 
@@ -847,6 +851,8 @@
       casementVBars: isArched ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0),
       casementFanHBars: isArched ? 0 : Math.min(2, parseInt(checked('c-fan-hbars')) || 0),
       casementFanVBars: isArched ? 0 : Math.min(2, parseInt(checked('c-fan-vbars')) || 0),
+      casementFan2HBars: isArched ? 0 : Math.min(2, parseInt(checked('c-fan2-hbars')) || 0),
+      casementFan2VBars: isArched ? 0 : Math.min(2, parseInt(checked('c-fan2-vbars')) || 0),
       hBars: isArched ? (parseInt(checked('f-hbars')) || 0) : (parseInt(checked('c-hbars')) || 0),
       vBars: isArched ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0),
       colorType: checked('c-color-type') || 'single',

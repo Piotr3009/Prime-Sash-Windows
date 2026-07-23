@@ -376,6 +376,8 @@
     // Fanlight bars restore
     setRadio('c-fan-hbars', String(Math.min(2, fc.casementFanHBars || 0)));
     setRadio('c-fan-vbars', String(Math.min(2, fc.casementFanVBars || 0)));
+    setRadio('c-fan2-hbars', String(Math.min(2, fc.casementFan2HBars || 0)));
+    setRadio('c-fan2-vbars', String(Math.min(2, fc.casementFan2VBars || 0)));
 
     // Glass (c-prefixed)
     setRadio('c-glass-type', fc.glassType);

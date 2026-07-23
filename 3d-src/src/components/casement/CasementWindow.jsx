@@ -462,6 +462,8 @@ export default function CasementWindow({
   fan2Ratio = 0.3,
   fanHBars = 0,
   fanVBars = 0,
+  fan2HBars = 0,
+  fan2VBars = 0,
   opening = 0.3,
   fanlightRatio = 0.3,
   woodColor = '#F6F6F6',
@@ -508,6 +510,15 @@ export default function CasementWindow({
   const layoutDef = useMemo(
     () => {
       const def = getLayout(layout, innerW, innerH, height, fanlightRatio, fan2Ratio);
+      // Panel ROLES from ORIGINAL hinge (before opener overlay) — height heuristics
+      // break on 3-tier layouts where the middle pane can be under 50% of innerH.
+      if (def && def.panels) {
+        const FAN2_CODES = ['013', '023'];
+        def.panels = def.panels.map(p => ({
+          ...p,
+          _role: p.hinge === 'top' ? 'fan' : (FAN2_CODES.includes(layout) && p.hinge === 'fixed' ? 'fan2' : 'main')
+        }));
+      }
       // Clickable openers overlay — generic for every layout.
       // casementHinges[i] = 'fixed' | 'left' | 'right' | 'top' (aligned to def.panels order).
       // Legacy 022 estimates stored booleans: true -> ['top','top','left','right'][i], false -> 'fixed'.
@@ -557,7 +568,7 @@ export default function CasementWindow({
         // Opening center Y offset (bottom rail taller than top rail)
         const openingCenterY = mm(BOTTOM_FACE - FRAME_FACE) / 2;
         // Bars: only on main (large) panels, not fanlights
-        const isFanlight = p.h < innerH * 0.5;
+        const isFanlight = p._role === 'fan'; // role-based (original hinge), not height
         return (
           <CasementPanel
             key={`panel-${i}`}
@@ -569,8 +580,8 @@ export default function CasementWindow({
             materialInt={intMaterial}
             spacerColor={spacerColor}
             glassFinish={glassFinish}
-            hBars={isFanlight ? fanHBars : hBars}
-            vBars={isFanlight ? fanVBars : vBars}
+            hBars={p._role === 'fan' ? fanHBars : p._role === 'fan2' ? fan2HBars : hBars}
+            vBars={p._role === 'fan' ? fanVBars : p._role === 'fan2' ? fan2VBars : vBars}
             ironmongery={ironmongery}
             position={[mm(p.x), mm(p.y) + openingCenterY, leafZ]}
           />

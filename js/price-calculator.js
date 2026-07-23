@@ -335,12 +335,19 @@ class PriceCalculator {
     }
 
     // Fanlight bars — priced per bar, per fan pane (H and V, max 2 each)
-    const FAN_CELLS = { '021': 1, '031': 2, '032': 1, '052L': 1, '052R': 1, '131': 1, '132': 2, '133': 3, '022': 2, '013': 2, '023': 4 };
+    const FAN_CELLS = { '021': 1, '031': 2, '032': 1, '052L': 1, '052R': 1, '131': 1, '132': 2, '133': 3, '022': 2, '013': 1, '023': 2 };  // TOP fan cells
+    const FAN2_CELLS = { '013': 1, '023': 2 };  // BOTTOM tier cells
     const fanHBars = Math.min(2, configuration.casementFanHBars || 0);
     const fanVBars = Math.min(2, configuration.casementFanVBars || 0);
     const fanCells = FAN_CELLS[layout] || 0;
     if ((fanHBars + fanVBars) > 0 && fanCells > 0) {
       barsPrice += (fanHBars + fanVBars) * 2 * this.pricing.barPricing.pricePerBar * fanCells;
+    }
+    const fan2HBars = Math.min(2, configuration.casementFan2HBars || 0);
+    const fan2VBars = Math.min(2, configuration.casementFan2VBars || 0);
+    const fan2Cells = FAN2_CELLS[layout] || 0;
+    if ((fan2HBars + fan2VBars) > 0 && fan2Cells > 0) {
+      barsPrice += (fan2HBars + fan2VBars) * 2 * this.pricing.barPricing.pricePerBar * fan2Cells;
     }
     
     // Additional options (glass, finish, PAS24, sill, ironmongery — same as sash, glass per sqm)

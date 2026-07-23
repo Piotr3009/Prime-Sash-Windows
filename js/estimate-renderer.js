@@ -449,6 +449,7 @@ class EstimateRenderer {
             glassSpecCasement, glassSpecCasementText, fanlightHeight,
             casementFanHBars: Math.min(2, fc.casementFanHBars || 0), casementFanVBars: Math.min(2, fc.casementFanVBars || 0),
             casementFan2Height: parseInt(fc.casementFan2Height) || 0,
+            casementFan2HBars: Math.min(2, fc.casementFan2HBars || 0), casementFan2VBars: Math.min(2, fc.casementFan2VBars || 0),
             fixShape, fixType, fixCircleBarPattern, fixCircleOffset, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText,
             doorType, doorHingeSide, doorOpenDirection, doorLockType,
             doorThreshold, doorThresholdExtension, doorSillWider, doorThresholdText,
@@ -556,6 +557,7 @@ class EstimateRenderer {
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
                             ${p.fanlightHeight > 0 ? R.specRow('Fanlight Height', p.fanlightHeight + 'mm') : ''}
                             ${p.casementFan2Height > 0 ? R.specRow('Fanlight 2 (Bottom) Height', p.casementFan2Height + 'mm') : ''}
+                            ${(p.casementFan2HBars > 0 || p.casementFan2VBars > 0) ? R.specRow('Fanlight 2 Bars', p.casementFan2HBars + ' horizontal, ' + p.casementFan2VBars + ' vertical (per pane)') : ''}
                             ${(p.casementFanHBars > 0 || p.casementFanVBars > 0) ? R.specRow('Fanlight Bars', p.casementFanHBars + ' horizontal, ' + p.casementFanVBars + ' vertical (per fan pane)') : ''}
                             ${R.specRow('Glass', p.glassText)}
                             ${R.specRow('Glass Spec', p.glassSpecCasementText)}
@@ -1760,10 +1762,20 @@ class EstimateRenderer {
         const vN = parseInt(fc.vBars || fc.casementVBars) || 0;
         const fanHN = Math.min(2, parseInt(fc.casementFanHBars) || 0);
         const fanVN = Math.min(2, parseInt(fc.casementFanVBars) || 0);
+        const fan2HN = Math.min(2, parseInt(fc.casementFan2HBars) || 0);
+        const fan2VN = Math.min(2, parseInt(fc.casementFan2VBars) || 0);
+        const FAN2_CODES_P1 = ['013','023'];
         const FAN_LAYOUTS_P1 = ['021','031','032','052L','052R','131','132','133','022','013','023'];
 
         const def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, fh, FR, FR2)
                  || { panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'fixed' }] };
+        // Panel roles from ORIGINAL hinge (before opener overlay) — robust for 3-tier
+        if (def.panels) {
+            def.panels = def.panels.map(p => ({
+                ...p,
+                _role: p.hinge === 'top' ? 'fan' : (FAN2_CODES_P1.includes(code) && p.hinge === 'fixed' ? 'fan2' : 'main')
+            }));
+        }
         // Clickable openers overlay — generic (strings; legacy 022 booleans normalised)
         if (Array.isArray(fc.casementHinges) && def.panels) {
             const H022 = ['top', 'top', 'left', 'right'];
@@ -1852,9 +1864,8 @@ class EstimateRenderer {
         const gcx = ox + FRAME_FACE + innerW / 2;
         const gcRealY = BOTTOM_FACE + innerH / 2;
         (def.panels || []).forEach(p => {
-            const isFanPane = FAN_LAYOUTS_P1.includes(code) && p.h < innerH * 0.5;
-            const bH = isFanPane ? fanHN : hN;
-            const bV = isFanPane ? fanVN : vN;
+            const bH = p._role === 'fan' ? fanHN : p._role === 'fan2' ? fan2HN : hN;
+            const bV = p._role === 'fan' ? fanVN : p._role === 'fan2' ? fan2VN : vN;
             const px = gcx + p.x - p.w / 2;
             const py = SY(gcRealY + p.y + p.h / 2);
             if (p.hinge === 'fixed') {
@@ -2337,7 +2348,8 @@ class EstimateRenderer {
         const vBars = fc.casementVBars || fc.vBars || 0;
         const fanH = Math.min(2, fc.casementFanHBars || 0);
         const fanV = Math.min(2, fc.casementFanVBars || 0);
-        const FR2 = Math.max(0.15, Math.min(0.5, ((parseFloat(fc.casementFan2Height) || 0) || ih * 0.3) / ih));
+        const fan2H = Math.min(2, fc.casementFan2HBars || 0);
+        const fan2V = Math.min(2, fc.casementFan2VBars || 0);
         const fanlightHeight = fc.fanlightHeight || 0;
         const FR = fanlightHeight > 0 ? fanlightHeight / h : 0.25;
 
@@ -2370,6 +2382,7 @@ class EstimateRenderer {
         svg += `<rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" fill="none" stroke="${stroke}" stroke-width="0.5"/>`;
 
         // Get panels for this layout
+        const FR2 = Math.max(0.15, Math.min(0.5, ((parseFloat(fc.casementFan2Height) || 0) || ih * 0.3) / ih));
         const panels = EstimateRenderer._casementPanels(layout, iw, ih, mW, FR, FR2);
         // Clickable openers overlay — switch2 panel order can differ from the canonical
         // def (e.g. 132), so match panels GEOMETRICALLY, not by index.
@@ -2445,8 +2458,17 @@ class EstimateRenderer {
             }
 
             // Bars (only on non-fanlight panels unless specified)
-            if (hBars > 0 || vBars > 0 || fanH > 0 || fanV > 0) {
-                if (p.fanlight) {
+            if (hBars > 0 || vBars > 0 || fanH > 0 || fanV > 0 || fan2H > 0 || fan2V > 0) {
+                if (p.fanlight2) {
+                    for (let i = 1; i <= fan2H; i++) {
+                        const by = py + (ph / (fan2H + 1)) * i;
+                        svg += `<line x1="${px+2}" y1="${by}" x2="${px+pw-2}" y2="${by}" stroke="${stroke}" stroke-width="0.4"/>`;
+                    }
+                    for (let i = 1; i <= fan2V; i++) {
+                        const bx = px + (pw / (fan2V + 1)) * i;
+                        svg += `<line x1="${bx}" y1="${py+2}" x2="${bx}" y2="${py+ph-2}" stroke="${stroke}" stroke-width="0.4"/>`;
+                    }
+                } else if (p.fanlight) {
                     for (let i = 1; i <= fanH; i++) {
                         const by = py + (ph / (fanH + 1)) * i;
                         svg += `<line x1="${px+2}" y1="${by}" x2="${px+pw-2}" y2="${by}" stroke="${stroke}" stroke-width="0.4"/>`;
@@ -3021,7 +3043,7 @@ class EstimateRenderer {
                     list: [
                         { x:0, y:0, w:iw, h:fH, hinge:'top', fanlight:true },
                         { x:0, y:fH+mW, w:iw, h:tierMidH, hinge:'left' },
-                        { x:0, y:fH+mW+tierMidH+mW, w:iw, h:f2H, hinge:'fixed', fanlight:true }
+                        { x:0, y:fH+mW+tierMidH+mW, w:iw, h:f2H, hinge:'fixed', fanlight2:true }
                     ]
                 };
             case '023':
@@ -3036,8 +3058,8 @@ class EstimateRenderer {
                         { x:half+mW, y:0, w:half, h:fH, hinge:'top', fanlight:true },
                         { x:0, y:fH+mW, w:half, h:tierMidH, hinge:'left' },
                         { x:half+mW, y:fH+mW, w:half, h:tierMidH, hinge:'right' },
-                        { x:0, y:fH+mW+tierMidH+mW, w:half, h:f2H, hinge:'fixed', fanlight:true },
-                        { x:half+mW, y:fH+mW+tierMidH+mW, w:half, h:f2H, hinge:'fixed', fanlight:true }
+                        { x:0, y:fH+mW+tierMidH+mW, w:half, h:f2H, hinge:'fixed', fanlight2:true },
+                        { x:half+mW, y:fH+mW+tierMidH+mW, w:half, h:f2H, hinge:'fixed', fanlight2:true }
                     ]
                 };
             case '021':
