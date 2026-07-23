@@ -538,12 +538,12 @@ class EstimateRenderer {
                         ${screenshots?.interior ? `
                         <div style="text-align:center;">
                             <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">${p.windowType === 'door' ? 'Exterior View' : 'Interior View'}</div>
-                            <img src="${screenshots.interior}" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
+                            <div style="position:relative;display:inline-block;"><img src="${screenshots.interior}" onclick="EstimateRenderer.zoomImage(this)" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;cursor:zoom-in;display:block;" /><span style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;background:rgba(10,22,40,.78);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><line x1="15.5" y1="15.5" x2="21" y2="21"/><line x1="10" y1="7" x2="10" y2="13"/><line x1="7" y1="10" x2="13" y2="10"/></svg></span></div>
                         </div>
                         ` : ''}
                         ${screenshots?.exterior ? `
                         <div style="text-align:center;">
-                            <img src="${screenshots.exterior}" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;" />
+                            <div style="position:relative;display:inline-block;"><img src="${screenshots.exterior}" onclick="EstimateRenderer.zoomImage(this)" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;cursor:zoom-in;display:block;" /><span style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;background:rgba(10,22,40,.78);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><line x1="15.5" y1="15.5" x2="21" y2="21"/><line x1="10" y1="7" x2="10" y2="13"/><line x1="7" y1="10" x2="13" y2="10"/></svg></span></div>
                         </div>
                         ` : ''}
                         <div style="text-align:center;">
@@ -977,6 +977,7 @@ class EstimateRenderer {
                 <button class="btn-sm" onclick="EstimateRenderer.refreshEstimate()" style="background:#2a5a3a;color:#fff;">🔄 Refresh</button>
                 <button class="btn-sm btn-download-pdf">Download PDF</button>
                 <button class="btn-sm" id="download-estimate-excel">Download Excel</button>
+                ${isAdmin && estimate.share_token ? `<button class="btn-sm" onclick="navigator.clipboard.writeText(location.origin + \'/e/\' + \'${estimate.share_token}\').then(() => { this.textContent = \'Copied \u2713\'; setTimeout(() => this.textContent = \'Copy Client Link\', 1600); })">Copy Client Link</button>` : ''}
                 <button class="btn-sm" onclick="${closeAction}">Close</button>
             </div>
 
@@ -4655,6 +4656,23 @@ class EstimateRenderer {
     }
 
     // ─── Attach PDF/Excel buttons after rendering ───
+    // ─── Image lightbox — click a screenshot on the estimate card to enlarge ───
+    static zoomImage(imgOrSrc) {
+        const src = typeof imgOrSrc === 'string' ? imgOrSrc : (imgOrSrc && imgOrSrc.src);
+        if (!src) return;
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,22,40,.92);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+        const img = document.createElement('img');
+        img.src = src;
+        img.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:3px;box-shadow:0 10px 40px rgba(0,0,0,.5);';
+        overlay.appendChild(img);
+        const onKey = (e) => { if (e.key === 'Escape') close(); };
+        const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
+        overlay.addEventListener('click', close);
+        document.addEventListener('keydown', onKey);
+        document.body.appendChild(overlay);
+    }
+
     static attachExportButtons(estimate) {
         const pdfBtns = document.querySelectorAll('.btn-download-pdf');
         pdfBtns.forEach(btn => btn.addEventListener('click', () => EstimateRenderer.downloadEstimatePDF(estimate)));

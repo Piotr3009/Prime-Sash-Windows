@@ -9,7 +9,7 @@
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://rfelsfwjszjdtzuovlal.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmZWxzZndqc3pqZHR6dW92bGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Nzc1MTgsImV4cCI6MjA5MDA1MzUxOH0.Ut9EtffoU-L1g6IKiqcaVaoA2sEDoc0so821L1Uxn_A';
 
-const RENDERER_VERSION = '19'; // keep in sync with the ?v= used on dashboards
+const RENDERER_VERSION = '21'; // keep in sync with the ?v= used on dashboards
 
 function escapeHtml(str) {
   return String(str == null ? '' : str).replace(/[&<>"']/g, m => ({
