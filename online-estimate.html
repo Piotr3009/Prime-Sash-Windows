@@ -615,6 +615,18 @@
               </div>
             </label>
             <label class="layout-option">
+              <input type="radio" name="casement-layout" value="013">
+              <div class="layout-thumb" title="013">
+                <svg viewBox="0 0 60 96" width="41" height="65"><rect x="2" y="2" width="56" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="2" y1="20" x2="58" y2="20" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="58" x2="58" y2="58" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="2" x2="30" y2="20" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><line x1="58" y1="2" x2="30" y2="20" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><text x="30" y="92" text-anchor="middle" font-size="9" fill="#666">013</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
+              <input type="radio" name="casement-layout" value="023">
+              <div class="layout-thumb" title="023">
+                <svg viewBox="0 0 80 96" width="54" height="65"><rect x="2" y="2" width="76" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="40" y1="2" x2="40" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="20" x2="40" y2="20" stroke="#0a1628" stroke-width="1.5"/><line x1="40" y1="20" x2="78" y2="20" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="58" x2="40" y2="58" stroke="#0a1628" stroke-width="1.5"/><line x1="40" y1="58" x2="78" y2="58" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="2" x2="21" y2="20" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><line x1="40" y1="2" x2="21" y2="20" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><line x1="40" y1="2" x2="59" y2="20" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><line x1="78" y1="2" x2="59" y2="20" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><text x="40" y="92" text-anchor="middle" font-size="9" fill="#666">023</text></svg>
+              </div>
+            </label>
+            <label class="layout-option">
               <input type="radio" name="casement-layout" value="140L">
               <div class="layout-thumb" title="140L">
                 <svg viewBox="0 0 120 96" width="82" height="65"><rect x="2" y="2" width="116" height="76" fill="none" stroke="#0a1628" stroke-width="2"/><line x1="31" y1="2" x2="31" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="60" y1="2" x2="60" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="89" y1="2" x2="89" y2="78" stroke="#0a1628" stroke-width="1.5"/><line x1="2" y1="2" x2="16.5" y2="40" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><line x1="2" y1="78" x2="16.5" y2="40" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><line x1="31" y1="2" x2="16.5" y2="40" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><line x1="31" y1="78" x2="16.5" y2="40" stroke="#c8a24e" stroke-width="0.7" opacity="0.5"/><text x="60" y="92" text-anchor="middle" font-size="9" fill="#666">140L</text></svg>
@@ -3012,6 +3024,12 @@
           </div>
           <p style="font-size:0.7rem; color:#c0392b; margin-top:4px; font-weight:600;">⚠ For consistent appearance, keep the same fanlight height across all windows on the same elevation.</p>
         </div>
+        <div id="c-fan2-row" class="input-group" style="display:none; margin-top:10px;">
+          <label for="c-fan2-height">Fanlight 2 (Bottom) Height (mm):</label>
+          <div class="dimension-input-wrapper">
+            <input type="number" id="c-fan2-height" class="colour-select" style="max-width:150px;" value="500" step="10" min="150" max="800"> <span style="font-size:0.75rem;color:var(--secondary-color);">mm (10&nbsp;mm steps; top + bottom ≤ 70% of height)</span>
+          </div>
+        </div>
       </div>
 
       <!-- C-STEP 2: GEORGIAN BARS -->
@@ -3978,9 +3996,9 @@
 <!-- 2. Pricing config -->
 <script src="js/ironmongery-data.js?v=3"></script>
 <script src="js/ironmongery-gallery.js?v=4"></script>
-<script src="js/pricing-config.js?v=7"></script>
+<script src="js/pricing-config.js?v=8"></script>
 <script src="js/config.js?v=3"></script>
-<script src="js/price-calculator.js?v=8"></script>
+<script src="js/price-calculator.js?v=9"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
@@ -3991,8 +4009,8 @@
 <script src="js/configurator-core.js?v=3"></script>
 <script src="js/color-config.js?v=1"></script>
 <script src="js/color-module.js?v=4"></script>
-<script src="js/casement-controller.js?v=9"></script>
-<script src="js/casement-type-modal.js?v=10"></script>
+<script src="js/casement-controller.js?v=10"></script>
+<script src="js/casement-type-modal.js?v=11"></script>
 <script src="js/door-controller.js?v=4"></script>
 
 <!-- Authentication Integration -->
@@ -4006,10 +4024,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=3"></script>
-<script src="js/estimate-renderer.js?v=14"></script>
+<script src="js/estimate-renderer.js?v=15"></script>
 <script src="js/estimate-selector.js?v=3"></script>
 <script src="js/estimate-manager.js?v=7"></script>
-<script src="js/edit-mode.js?v=7"></script>
+<script src="js/edit-mode.js?v=8"></script>
 
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
@@ -4350,7 +4368,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=56";
+      psw3dScript.src = "3d/assets/window3d.js?v=57";
       document.head.appendChild(psw3dScript);
     }
   </script>

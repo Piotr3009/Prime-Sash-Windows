@@ -108,6 +108,7 @@
     '021': '1 Light + Fanlight', '022': '2 Lights + Fanlights',
     '052L': '2 Lights + Fan Left', '052R': '2 Lights + Fan Right',
     '133': '3 Lights + Fanlights',
+    '013': 'Single — 3 Tier', '023': '2 Lights — 3 Tier',
     '140L': '4 Lights'
   }; // null = all, 1,2,3 exact, 4 = 4+
   var els = {};
@@ -319,7 +320,9 @@
     var innerW = w - 114, innerH = h - 125;
     var fanMm = parseInt((document.getElementById('c-fanlight-height') || {}).value) || Math.round(innerH * 0.3);
     var FR = Math.max(0.15, Math.min(0.5, fanMm / innerH));
-    var def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, h, FR);
+    var f2Mm = parseInt((document.getElementById('c-fan2-height') || {}).value) || Math.round(innerH * 0.33);
+    var FR2 = Math.max(0.15, Math.min(0.5, f2Mm / innerH));
+    var def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, h, FR, FR2);
     if (!def || !def.panels) return null;
     return { def: def, innerW: innerW, innerH: innerH };
   }

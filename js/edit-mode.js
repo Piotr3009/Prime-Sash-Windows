@@ -371,6 +371,7 @@
 
     // Fanlight height
     if (fc.fanlightHeight) setSelect('c-fanlight-height', fc.fanlightHeight);
+    if (fc.casementFan2Height) setSelect('c-fan2-height', fc.casementFan2Height);
 
     // Fanlight bars restore
     setRadio('c-fan-hbars', String(Math.min(2, fc.casementFanHBars || 0)));

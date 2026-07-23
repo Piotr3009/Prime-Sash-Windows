@@ -34,11 +34,12 @@ import CasementPanel, { SASH_RAIL } from './CasementPanel';
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
 // Panel: { x, y, w, h, hinge } — position & size relative to glass area, hinge type
-function getLayout(code, innerW, innerH, height, fanlightRatio) {
+function getLayout(code, innerW, innerH, height, fanlightRatio, fan2Ratio) {
   const half = innerW / 2;
   const third = innerW / 3;
   const mullW = MULLION_W;
   const FR = fanlightRatio || 0.3;
+  const FR2 = fan2Ratio || 0.3;
 
   switch (code) {
     // ─── SINGLE PANELS ───
@@ -198,6 +199,47 @@ function getLayout(code, innerW, innerH, height, fanlightRatio) {
           { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
           { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
           { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+        ],
+      };
+    }
+    case '013': {
+      const topH = innerH * FR;
+      const botH = innerH * FR2;
+      const midH = innerH - topH - botH - MULLION_W * 2;
+      const t1Y = BOTTOM_FACE + botH + MULLION_W + midH + MULLION_W / 2;
+      const t2Y = BOTTOM_FACE + botH + MULLION_W / 2;
+      return {
+        mullions: [],
+        transoms: [t1Y, t2Y],
+        panels: [
+          { x: 0, y: (innerH - topH) / 2, w: innerW, h: topH, hinge: 'top' },
+          { x: 0, y: -innerH / 2 + botH + MULLION_W + midH / 2, w: innerW, h: midH, hinge: 'left' },
+          { x: 0, y: -(innerH - botH) / 2, w: innerW, h: botH, hinge: 'fixed' },
+        ],
+      };
+    }
+    case '023': {
+      const panelW = (innerW - mullW) / 2;
+      const mullX = FRAME_FACE + panelW + mullW / 2;
+      const topH = innerH * FR;
+      const botH = innerH * FR2;
+      const midH = innerH - topH - botH - MULLION_W * 2;
+      const t1Y = BOTTOM_FACE + botH + MULLION_W + midH + MULLION_W / 2;
+      const t2Y = BOTTOM_FACE + botH + MULLION_W / 2;
+      const xL = -(panelW + mullW) / 2, xR = (panelW + mullW) / 2;
+      return {
+        mullions: [mullX],
+        transoms: [
+          { y: t1Y, width: panelW, offsetX: xL }, { y: t1Y, width: panelW, offsetX: xR },
+          { y: t2Y, width: panelW, offsetX: xL }, { y: t2Y, width: panelW, offsetX: xR },
+        ],
+        panels: [
+          { x: xL, y: (innerH - topH) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: xR, y: (innerH - topH) / 2, w: panelW, h: topH, hinge: 'top' },
+          { x: xL, y: -innerH / 2 + botH + MULLION_W + midH / 2, w: panelW, h: midH, hinge: 'left' },
+          { x: xR, y: -innerH / 2 + botH + MULLION_W + midH / 2, w: panelW, h: midH, hinge: 'right' },
+          { x: xL, y: -(innerH - botH) / 2, w: panelW, h: botH, hinge: 'fixed' },
+          { x: xR, y: -(innerH - botH) / 2, w: panelW, h: botH, hinge: 'fixed' },
         ],
       };
     }
@@ -417,6 +459,7 @@ export default function CasementWindow({
   height = 1200,
   layout = '040L',
   casementHinges = null,
+  fan2Ratio = 0.3,
   fanHBars = 0,
   fanVBars = 0,
   opening = 0.3,
@@ -464,7 +507,7 @@ export default function CasementWindow({
   // Get layout definition
   const layoutDef = useMemo(
     () => {
-      const def = getLayout(layout, innerW, innerH, height, fanlightRatio);
+      const def = getLayout(layout, innerW, innerH, height, fanlightRatio, fan2Ratio);
       // Clickable openers overlay — generic for every layout.
       // casementHinges[i] = 'fixed' | 'left' | 'right' | 'top' (aligned to def.panels order).
       // Legacy 022 estimates stored booleans: true -> ['top','top','left','right'][i], false -> 'fixed'.
@@ -482,7 +525,7 @@ export default function CasementWindow({
       }
       return def;
     },
-    [layout, innerW, innerH, height, fanlightRatio, casementHinges]
+    [layout, innerW, innerH, height, fanlightRatio, fan2Ratio, casementHinges]
   );
 
   const W = mm(width);
@@ -552,7 +595,7 @@ export default function CasementWindow({
         let ventZextOffset = 0;
         let ventZintOffset = 0;
         if (trickleVent === 'sash') {
-          const layoutData = getLayout(layout, innerW, innerH, height, fanlightRatio);
+          const layoutData = getLayout(layout, innerW, innerH, height, fanlightRatio, fan2Ratio);
           const openPanel = (layoutData.panels || []).find(p => p.hinge !== 'fixed' && p.hinge !== 'top');
           if (openPanel) {
             ventX = mm(openPanel.x);

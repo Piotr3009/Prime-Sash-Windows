@@ -335,7 +335,7 @@ class PriceCalculator {
     }
 
     // Fanlight bars — priced per bar, per fan pane (H and V, max 2 each)
-    const FAN_CELLS = { '021': 1, '031': 2, '032': 1, '052L': 1, '052R': 1, '131': 1, '132': 2, '133': 3, '022': 2 };
+    const FAN_CELLS = { '021': 1, '031': 2, '032': 1, '052L': 1, '052R': 1, '131': 1, '132': 2, '133': 3, '022': 2, '013': 2, '023': 4 };
     const fanHBars = Math.min(2, configuration.casementFanHBars || 0);
     const fanVBars = Math.min(2, configuration.casementFanVBars || 0);
     const fanCells = FAN_CELLS[layout] || 0;

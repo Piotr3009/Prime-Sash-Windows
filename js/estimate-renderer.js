@@ -448,6 +448,7 @@ class EstimateRenderer {
             sealColour, safetyGlass, safetyGlassText,
             glassSpecCasement, glassSpecCasementText, fanlightHeight,
             casementFanHBars: Math.min(2, fc.casementFanHBars || 0), casementFanVBars: Math.min(2, fc.casementFanVBars || 0),
+            casementFan2Height: parseInt(fc.casementFan2Height) || 0,
             fixShape, fixType, fixCircleBarPattern, fixCircleOffset, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText,
             doorType, doorHingeSide, doorOpenDirection, doorLockType,
             doorThreshold, doorThresholdExtension, doorSillWider, doorThresholdText,
@@ -554,6 +555,7 @@ class EstimateRenderer {
                             ${R.specRow('Type', p.casementTypeText)}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
                             ${p.fanlightHeight > 0 ? R.specRow('Fanlight Height', p.fanlightHeight + 'mm') : ''}
+                            ${p.casementFan2Height > 0 ? R.specRow('Fanlight 2 (Bottom) Height', p.casementFan2Height + 'mm') : ''}
                             ${(p.casementFanHBars > 0 || p.casementFanVBars > 0) ? R.specRow('Fanlight Bars', p.casementFanHBars + ' horizontal, ' + p.casementFanVBars + ' vertical (per fan pane)') : ''}
                             ${R.specRow('Glass', p.glassText)}
                             ${R.specRow('Glass Spec', p.glassSpecCasementText)}
@@ -1317,13 +1319,14 @@ class EstimateRenderer {
 
     // Layout table — ported VERBATIM from 3D CasementWindow.jsx getLayout()
     // (single source of truth: drawing matches the 3D model exactly)
-    static casementLayoutDef(code, innerW, innerH, height, fanlightRatio) {
+    static casementLayoutDef(code, innerW, innerH, height, fanlightRatio, fan2Ratio) {
         const FRAME_FACE = 57, BOTTOM_FACE = 68, MULLION_W = 68;
 
       const half = innerW / 2;
       const third = innerW / 3;
       const mullW = MULLION_W;
       const FR = fanlightRatio || 0.3;
+      const FR2 = fan2Ratio || 0.3;
     
       switch (code) {
         // ─── SINGLE PANELS ───
@@ -1483,6 +1486,47 @@ class EstimateRenderer {
               { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
               { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
               { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+            ],
+          };
+        }
+        case '013': {
+          const topH = innerH * FR;
+          const botH = innerH * FR2;
+          const midH = innerH - topH - botH - MULLION_W * 2;
+          const t1Y = BOTTOM_FACE + botH + MULLION_W + midH + MULLION_W / 2;
+          const t2Y = BOTTOM_FACE + botH + MULLION_W / 2;
+          return {
+            mullions: [],
+            transoms: [t1Y, t2Y],
+            panels: [
+              { x: 0, y: (innerH - topH) / 2, w: innerW, h: topH, hinge: 'top' },
+              { x: 0, y: -innerH / 2 + botH + MULLION_W + midH / 2, w: innerW, h: midH, hinge: 'left' },
+              { x: 0, y: -(innerH - botH) / 2, w: innerW, h: botH, hinge: 'fixed' },
+            ],
+          };
+        }
+        case '023': {
+          const panelW = (innerW - mullW) / 2;
+          const mullX = FRAME_FACE + panelW + mullW / 2;
+          const topH = innerH * FR;
+          const botH = innerH * FR2;
+          const midH = innerH - topH - botH - MULLION_W * 2;
+          const t1Y = BOTTOM_FACE + botH + MULLION_W + midH + MULLION_W / 2;
+          const t2Y = BOTTOM_FACE + botH + MULLION_W / 2;
+          const xL = -(panelW + mullW) / 2, xR = (panelW + mullW) / 2;
+          return {
+            mullions: [mullX],
+            transoms: [
+              { y: t1Y, width: panelW, offsetX: xL }, { y: t1Y, width: panelW, offsetX: xR },
+              { y: t2Y, width: panelW, offsetX: xL }, { y: t2Y, width: panelW, offsetX: xR },
+            ],
+            panels: [
+              { x: xL, y: (innerH - topH) / 2, w: panelW, h: topH, hinge: 'top' },
+              { x: xR, y: (innerH - topH) / 2, w: panelW, h: topH, hinge: 'top' },
+              { x: xL, y: -innerH / 2 + botH + MULLION_W + midH / 2, w: panelW, h: midH, hinge: 'left' },
+              { x: xR, y: -innerH / 2 + botH + MULLION_W + midH / 2, w: panelW, h: midH, hinge: 'right' },
+              { x: xL, y: -(innerH - botH) / 2, w: panelW, h: botH, hinge: 'fixed' },
+              { x: xR, y: -(innerH - botH) / 2, w: panelW, h: botH, hinge: 'fixed' },
             ],
           };
         }
@@ -1710,13 +1754,15 @@ class EstimateRenderer {
         const innerH = fh - FRAME_FACE - BOTTOM_FACE;
         const fanMm = parseFloat(fc.fanlightHeight) || 0;
         const FR = Math.max(0.15, Math.min(0.5, (fanMm || innerH * 0.3) / innerH));
+        const fan2Mm = parseFloat(fc.casementFan2Height) || 0;
+        const FR2 = Math.max(0.15, Math.min(0.5, (fan2Mm || innerH * 0.3) / innerH));
         const hN = parseInt(fc.hBars || fc.casementHBars) || 0;
         const vN = parseInt(fc.vBars || fc.casementVBars) || 0;
         const fanHN = Math.min(2, parseInt(fc.casementFanHBars) || 0);
         const fanVN = Math.min(2, parseInt(fc.casementFanVBars) || 0);
-        const FAN_LAYOUTS_P1 = ['021','031','032','052L','052R','131','132','133','022'];
+        const FAN_LAYOUTS_P1 = ['021','031','032','052L','052R','131','132','133','022','013','023'];
 
-        const def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, fh, FR)
+        const def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, fh, FR, FR2)
                  || { panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'fixed' }] };
         // Clickable openers overlay — generic (strings; legacy 022 booleans normalised)
         if (Array.isArray(fc.casementHinges) && def.panels) {
@@ -2291,6 +2337,7 @@ class EstimateRenderer {
         const vBars = fc.casementVBars || fc.vBars || 0;
         const fanH = Math.min(2, fc.casementFanHBars || 0);
         const fanV = Math.min(2, fc.casementFanVBars || 0);
+        const FR2 = Math.max(0.15, Math.min(0.5, ((parseFloat(fc.casementFan2Height) || 0) || ih * 0.3) / ih));
         const fanlightHeight = fc.fanlightHeight || 0;
         const FR = fanlightHeight > 0 ? fanlightHeight / h : 0.25;
 
@@ -2323,12 +2370,12 @@ class EstimateRenderer {
         svg += `<rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" fill="none" stroke="${stroke}" stroke-width="0.5"/>`;
 
         // Get panels for this layout
-        const panels = EstimateRenderer._casementPanels(layout, iw, ih, mW, FR);
+        const panels = EstimateRenderer._casementPanels(layout, iw, ih, mW, FR, FR2);
         // Clickable openers overlay — switch2 panel order can differ from the canonical
         // def (e.g. 132), so match panels GEOMETRICALLY, not by index.
         if (Array.isArray(fc.casementHinges) && panels && panels.list) {
             try {
-                const cdef = EstimateRenderer.casementLayoutDef(layout, iw, ih, ih + 125, FR);
+                const cdef = EstimateRenderer.casementLayoutDef(layout, iw, ih, ih + 125, FR, FR2);
                 if (cdef && cdef.panels && cdef.panels.length === panels.list.length) {
                     const canon = cdef.panels.map((p, idx) => ({
                         idx, x: iw / 2 + p.x - p.w / 2, y: ih / 2 - p.y - p.h / 2, w: p.w, h: p.h
@@ -2880,11 +2927,13 @@ class EstimateRenderer {
     }
 
     // Panel layout definitions for casement SVG
-    static _casementPanels(code, iw, ih, mW, FR) {
+    static _casementPanels(code, iw, ih, mW, FR, FR2) {
         const half = (iw - mW) / 2;
         const third = (iw - mW * 2) / 3;
         const fH = ih * FR;
         const mainH = ih - mW - fH;
+        const f2H = ih * (FR2 || 0.3);
+        const tierMidH = ih - fH - f2H - mW * 2;
         const openW40 = iw * 0.4;
         const fixedW40 = iw - mW - openW40;
 
@@ -2963,6 +3012,32 @@ class EstimateRenderer {
                         { x:0,y:fH+mW,w:third-mW/2,h:mainH,hinge:'fixed' },
                         { x:third+mW/2,y:fH+mW,w:third-mW/2,h:mainH,hinge:'fixed' },
                         { x:third*2+mW+mW/2,y:fH+mW,w:third-mW/2,h:mainH,hinge:'fixed' }
+                    ]
+                };
+            case '013':
+                return {
+                    mullions: [],
+                    transoms: [fH + mW/2, fH + mW + tierMidH + mW/2],
+                    list: [
+                        { x:0, y:0, w:iw, h:fH, hinge:'top', fanlight:true },
+                        { x:0, y:fH+mW, w:iw, h:tierMidH, hinge:'left' },
+                        { x:0, y:fH+mW+tierMidH+mW, w:iw, h:f2H, hinge:'fixed', fanlight:true }
+                    ]
+                };
+            case '023':
+                return {
+                    mullions: [half],
+                    transoms: [
+                        { y:fH+mW/2, x:0, w:half }, { y:fH+mW/2, x:half+mW, w:half },
+                        { y:fH+mW+tierMidH+mW/2, x:0, w:half }, { y:fH+mW+tierMidH+mW/2, x:half+mW, w:half }
+                    ],
+                    list: [
+                        { x:0, y:0, w:half, h:fH, hinge:'top', fanlight:true },
+                        { x:half+mW, y:0, w:half, h:fH, hinge:'top', fanlight:true },
+                        { x:0, y:fH+mW, w:half, h:tierMidH, hinge:'left' },
+                        { x:half+mW, y:fH+mW, w:half, h:tierMidH, hinge:'right' },
+                        { x:0, y:fH+mW+tierMidH+mW, w:half, h:f2H, hinge:'fixed', fanlight:true },
+                        { x:half+mW, y:fH+mW+tierMidH+mW, w:half, h:f2H, hinge:'fixed', fanlight:true }
                     ]
                 };
             case '021':

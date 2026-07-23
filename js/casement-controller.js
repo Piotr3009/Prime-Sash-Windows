@@ -41,6 +41,8 @@
     '131':  { w: 1800, h: 1500 },
     '132':  { w: 1800, h: 1500 },
     '133':  { w: 1800, h: 1500 },
+    '013':  { w: 700,  h: 2400 },
+    '023':  { w: 1300, h: 2400 },
     '140L': { w: 2400, h: 1200 },
     '140R': { w: 2400, h: 1200 },
   };
@@ -48,7 +50,8 @@
   window.CASEMENT_LAYOUT_DEFAULTS = LAYOUT_DEFAULTS;
 
   // Layouts that have fanlights (transom)
-  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132', '133'];
+  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132', '133', '013', '023'];
+  const FAN2_LAYOUTS = ['013', '023'];
 
   // ─── Helpers ───
   function $(id) { return document.getElementById(id); }
@@ -106,6 +109,8 @@
     const hasFanlight = FANLIGHT_LAYOUTS.includes(layout);
     var fbWrap = $('c-fan-bars-wrap');
     if (fbWrap) fbWrap.style.display = hasFanlight ? 'block' : 'none';
+    var f2Row = $('c-fan2-row');
+    if (f2Row) f2Row.style.display = FAN2_LAYOUTS.includes(layout) ? 'block' : 'none';
     if (fRow) {
       fRow.style.display = hasFanlight ? 'block' : 'none';
     }
@@ -378,12 +383,28 @@
       fanlightRatio = Math.max(0.15, Math.min(0.5, fanlightMm / innerH));
     }
 
+    // Fanlight 2 (bottom tier) — same rules + shared 70% guard (middle keeps ≥30%)
+    var fan2Ratio = 0.3;
+    var layoutNow = checked('casement-layout') || '040L';
+    if (FAN2_LAYOUTS.includes(layoutNow)) {
+      var f2El = $('c-fan2-height');
+      var fan2Mm = parseInt(f2El && f2El.value) || Math.round(innerH * 0.33 / 10) * 10;
+      var f2Min = Math.ceil(innerH * 0.15 / 10) * 10;
+      var f2Max = Math.min(800, Math.floor(innerH * 0.5 / 10) * 10);
+      var guardMax = Math.floor((innerH * 0.7 - fanlightMm) / 10) * 10;
+      f2Max = Math.min(f2Max, Math.max(f2Min, guardMax));
+      var f2Clamped = Math.max(f2Min, Math.min(f2Max, Math.round(fan2Mm / 10) * 10));
+      if (f2El) { f2El.min = f2Min; f2El.max = f2Max; if (f2Clamped !== fan2Mm) f2El.value = f2Clamped; }
+      fan2Ratio = Math.max(0.15, Math.min(0.5, f2Clamped / innerH));
+    }
+
     window.update3D({
       windowCategory: 'casement',
       casementLayout: layout,
       extWidth: w,
       extHeight: h,
       fanlightRatio: fanlightRatio,
+      casementFan2Ratio: fan2Ratio,
       glassType: checked('c-glass-type') || 'double',
       spacerColor: checked('c-spacer-color') || 'white',
       casementHBars: checked('casement-type') === 'arched' ? (parseInt(checked('f-hbars')) || 0) : (parseInt(checked('c-hbars')) || 0),
@@ -699,6 +720,8 @@
     // Fanlight ratio
     var fRatio = $('c-fanlight-height');
     if (fRatio) { fRatio.addEventListener('change', updateCasement3D); fRatio.addEventListener('input', updateCasement3D); }
+    var f2R = $('c-fan2-height');
+    if (f2R) { f2R.addEventListener('change', updateCasement3D); f2R.addEventListener('input', updateCasement3D); }
 
     // Bars
     document.querySelectorAll('input[name="c-hbars"], input[name="c-vbars"], input[name="c-fan-hbars"], input[name="c-fan-vbars"]').forEach(function(r) {
@@ -819,6 +842,7 @@
       width: parseInt(val('c-width')) || 800,
       height: parseInt(val('c-height')) || 1200,
       fanlightHeight: parseInt(val('c-fanlight-height')) || 350,
+      casementFan2Height: FAN2_LAYOUTS.includes(checked('casement-layout') || '') ? (parseInt(val('c-fan2-height')) || 0) : 0,
       casementHBars: isArched ? (parseInt(checked('f-hbars')) || 0) : (parseInt(checked('c-hbars')) || 0),
       casementVBars: isArched ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0),
       casementFanHBars: isArched ? 0 : Math.min(2, parseInt(checked('c-fan-hbars')) || 0),
