@@ -597,7 +597,10 @@ class IronmongeryGallery {
 
     // Enable/disable confirm button
     if (this.confirmBtn) {
-      this.confirmBtn.disabled = Object.keys(this.selectedProducts).length === 0;
+      // Empty selection is a valid choice (e.g. fully-fixed window needs no ironmongery)
+      this.confirmBtn.disabled = false;
+      const emptySel = Object.keys(this.selectedProducts).length === 0;
+      this.confirmBtn.textContent = emptySel ? 'Confirm — No Ironmongery' : (this.confirmBtn.dataset.origLabel || (this.confirmBtn.dataset.origLabel = this.confirmBtn.textContent));
     }
   }
 

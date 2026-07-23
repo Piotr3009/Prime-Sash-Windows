@@ -1714,7 +1714,7 @@ class EstimateRenderer {
         const vN = parseInt(fc.vBars || fc.casementVBars) || 0;
         const fanHN = Math.min(2, parseInt(fc.casementFanHBars) || 0);
         const fanVN = Math.min(2, parseInt(fc.casementFanVBars) || 0);
-        const FAN_LAYOUTS_P1 = ['021','031','032','052L','052R','131','132','022'];
+        const FAN_LAYOUTS_P1 = ['021','031','032','052L','052R','131','132','133','022'];
 
         const def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, fh, FR)
                  || { panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'fixed' }] };
