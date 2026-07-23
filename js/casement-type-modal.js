@@ -308,8 +308,14 @@
 
   function currentGeometry(code) {
     if (typeof EstimateRenderer === 'undefined' || !EstimateRenderer.casementLayoutDef) return null;
-    var w = parseInt((document.getElementById('c-width') || {}).value) || 1200;
-    var h = parseInt((document.getElementById('c-height') || {}).value) || 1500;
+    // Proportions: this layout's DEFAULT size — the width/height inputs still hold the
+    // previous layout's dimensions at this point. Real inputs only when re-editing the
+    // already-selected layout.
+    var checkedE = checkedEntry();
+    var useInputs = checkedE && checkedE.code === code;
+    var dflt = (window.CASEMENT_LAYOUT_DEFAULTS && window.CASEMENT_LAYOUT_DEFAULTS[code]) || null;
+    var w = useInputs ? (parseInt((document.getElementById('c-width') || {}).value) || (dflt ? dflt.w : 1200)) : (dflt ? dflt.w : 1200);
+    var h = useInputs ? (parseInt((document.getElementById('c-height') || {}).value) || (dflt ? dflt.h : 1500)) : (dflt ? dflt.h : 1500);
     var innerW = w - 114, innerH = h - 125;
     var fanMm = parseInt((document.getElementById('c-fanlight-height') || {}).value) || Math.round(innerH * 0.3);
     var FR = Math.max(0.15, Math.min(0.5, fanMm / innerH));
@@ -349,14 +355,14 @@
 
   function renderStep2() {
     var g = step2Def, def = g.def;
-    var SW = 340;
-    var scale = (SW - 40) / g.innerW;
-    var IH = Math.round(g.innerH * scale);
+    // Fit both axes: never wider than ~300px inner, never taller than ~420px — no towers
+    var scale = Math.min(300 / g.innerW, 420 / g.innerH);
     var m = 20, fT = 12;
-    var W = SW, H = IH + 2 * m;
+    var W = Math.round(g.innerW * scale) + 2 * m;
+    var H = Math.round(g.innerH * scale) + 2 * m;
     var gcx = W / 2, gcy = H / 2;
 
-    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" style="max-width:100%;">';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" style="max-width:100%;height:auto;">';
     svg += '<rect x="' + (m - fT) + '" y="' + (m - fT) + '" width="' + (W - 2 * m + 2 * fT) + '" height="' + (H - 2 * m + 2 * fT) + '" fill="none" stroke="#0a1628" stroke-width="3"/>';
 
     (def.mullions || []).forEach(function (mu) {

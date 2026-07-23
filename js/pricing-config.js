@@ -130,6 +130,7 @@ const pricingConfig = {
   casement: {
     basePriceMin: 300,         // minimum £300 (0.5 sqm)
     basePricePerSqm: 300,      // £300 per additional sqm above 1
+    largeSqmFactor: 0.8,       // sqm above 3 charged at basePricePerSqm * 0.8 (volume discount, no price cliff)
     firstSqmPrice: 500,        // first sqm = £500
     mullionPrice: 150,         // per mullion
     transomPrice: 150,         // per transom

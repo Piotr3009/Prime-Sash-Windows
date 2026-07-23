@@ -44,6 +44,8 @@
     '140L': { w: 2400, h: 1200 },
     '140R': { w: 2400, h: 1200 },
   };
+  // Exposed for the type-picker modal (preview proportions) — single source, no copy
+  window.CASEMENT_LAYOUT_DEFAULTS = LAYOUT_DEFAULTS;
 
   // Layouts that have fanlights (transom)
   const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132', '133'];

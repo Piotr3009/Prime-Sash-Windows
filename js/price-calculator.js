@@ -301,7 +301,11 @@ class PriceCalculator {
     // Base price: firstSqmPrice + (sqm - 1) * basePricePerSqm + mullions/transoms/sashes from pricing-config (single source of truth)
     let basePrice = c.firstSqmPrice;
     if (sqm > 1) {
-      basePrice += (sqm - 1) * c.basePricePerSqm;
+      const midSqm = Math.min(sqm, 3) - 1;              // sqm 1–3 at full rate
+      basePrice += midSqm * c.basePricePerSqm;
+      if (sqm > 3) {                                     // portion above 3 sqm discounted
+        basePrice += (sqm - 3) * c.basePricePerSqm * (c.largeSqmFactor || 1);
+      }
     }
     basePrice = Math.max(basePrice, c.basePriceMin);
     
