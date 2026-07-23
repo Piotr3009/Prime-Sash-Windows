@@ -84,7 +84,7 @@
       + '.ctm-card:hover{border-color:#0A1628;}'
       + '.ctm-card.sel{border:2px solid #0A1628;padding:11px 7px;}'
       + '.ctm-card svg{display:block;margin:0 auto;}'
-      + '.ctm-card-code{font-family:Jost,sans-serif;font-size:16px;font-weight:600;color:#0A1628;margin-top:6px;}.ctm-card-badge{display:inline-block;font-family:Jost,sans-serif;font-size:11px;letter-spacing:.04em;background:#0A1628;color:#fff;border-radius:10px;padding:3px 10px;margin-top:6px;}.ctm-step2{padding:18px;display:none;flex-direction:column;align-items:center;gap:12px;overflow-y:auto;}.ctm-step2.open{display:flex;}.ctm-hint{font-family:Jost,sans-serif;font-size:13px;color:#555;background:#fff8e6;border:1px solid #f0d9a0;border-radius:4px;padding:8px 14px;text-align:center;}.ctm-pane{cursor:pointer;}.ctm-pane rect{transition:fill .12s;}.ctm-pane:hover rect{fill:#eef2f8;}.ctm-step2-btns{display:flex;gap:10px;}.ctm-btn2{font-family:Jost,sans-serif;font-size:13px;padding:9px 22px;border-radius:4px;cursor:pointer;border:1px solid #ccc;background:#fff;color:#444;}.ctm-btn2:hover{border-color:#0A1628;color:#0A1628;}.ctm-btn2.primary{background:#0A1628;color:#fff;border-color:#0A1628;}.ctm-btn2.primary:hover{background:#132441;}'
+      + '.ctm-card-code{font-family:Jost,sans-serif;font-size:16px;font-weight:600;color:#0A1628;margin-top:6px;}.ctm-card-sub{font-family:Jost,sans-serif;font-size:11px;color:#999;margin-top:1px;}.ctm-card-badge{display:inline-block;font-family:Jost,sans-serif;font-size:11px;letter-spacing:.04em;background:#0A1628;color:#fff;border-radius:10px;padding:3px 10px;margin-top:6px;}.ctm-step2{padding:18px;display:none;flex-direction:column;align-items:center;gap:12px;overflow-y:auto;}.ctm-step2.open{display:flex;}.ctm-hint{font-family:Jost,sans-serif;font-size:13px;color:#555;background:#fff8e6;border:1px solid #f0d9a0;border-radius:4px;padding:8px 14px;text-align:center;}.ctm-pane{cursor:pointer;}.ctm-pane rect{transition:fill .12s;}.ctm-pane:hover rect{fill:#eef2f8;}.ctm-step2-btns{display:flex;gap:10px;}.ctm-btn2{font-family:Jost,sans-serif;font-size:13px;padding:9px 22px;border-radius:4px;cursor:pointer;border:1px solid #ccc;background:#fff;color:#444;}.ctm-btn2:hover{border-color:#0A1628;color:#0A1628;}.ctm-btn2.primary{background:#0A1628;color:#fff;border-color:#0A1628;}.ctm-btn2.primary:hover{background:#132441;}'
       + '@media (max-width:600px){.ctm-modal{max-height:96vh;}.ctm-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));}}';
     var st = document.createElement('style');
     st.id = 'ctm-styles';
@@ -95,7 +95,20 @@
   // ─── Module state ───
   var entries = [];
   var filterLights = null;
-  var hinges022 = null; // [fanL, fanR, bottomL, bottomR] — true = opens // null = all, 1,2,3 exact, 4 = 4+
+  var hinges022 = null; // hinge states array — see step 2 (historic name)
+
+  // Structural duplicates — same panel geometry, only default opening differed.
+  // Opening is now chosen by clicking, so one card per structure is enough.
+  // Codes stay fully functional underneath (old estimates, pricing, edit-mode).
+  var HIDDEN_DUPLICATES = { '051L':1, '051R':1, '021L':1, '021R':1, '031L':1, '031R':1, '040R':1, '140R':1 };
+
+  // Friendly names (only where the structure is unambiguous; others show the code)
+  var DISPLAY_NAMES = {
+    '040L': 'Single', '010T': 'Single Top-Hung', '040D': '2 Lights',
+    '021': '1 Light + Fanlight', '022': '2 Lights + Fanlights',
+    '052L': '2 Lights + Fan Left', '052R': '2 Lights + Fan Right',
+    '140L': '4 Lights'
+  }; // null = all, 1,2,3 exact, 4 = 4+
   var els = {};
 
   function checkedEntry() {
@@ -105,9 +118,13 @@
     return entries[0] || null;
   }
 
+  function visibleEntries() {
+    return entries.filter(function (e) { return !HIDDEN_DUPLICATES[e.code]; });
+  }
+
   function lightsBuckets() {
     var present = {};
-    entries.forEach(function (e) { present[e.lights >= 4 ? 4 : e.lights] = true; });
+    visibleEntries().forEach(function (e) { present[e.lights >= 4 ? 4 : e.lights] = true; });
     return [1, 2, 3, 4].filter(function (b) { return present[b]; });
   }
 
@@ -259,14 +276,16 @@
 
   function renderGrid() {
     var current = checkedEntry();
-    var list = entries.filter(matches);
+    var list = visibleEntries().filter(matches);
     els.count.textContent = list.length + ' type' + (list.length !== 1 ? 's' : '')
       + (filterLights !== null ? ' \u2014 ' + (filterLights === 4 ? '4+' : filterLights) + ' light' + (filterLights !== 1 ? 's' : '') : '');
     els.grid.innerHTML = '';
     list.forEach(function (e) {
       var card = document.createElement('div');
       card.className = 'ctm-card' + (current && current.code === e.code ? ' sel' : '');
-      card.innerHTML = scaledSvg(e.svgHtml, 118) + '<div class="ctm-card-code">' + e.code + '</div>'
+      var name = DISPLAY_NAMES[e.code] || e.code;
+      card.innerHTML = scaledSvg(e.svgHtml, 118) + '<div class="ctm-card-code">' + name + '</div>'
+        + (name !== e.code ? '<div class="ctm-card-sub">' + e.code + '</div>' : '')
         + '<div class="ctm-card-badge">Click \u2192 choose opening</div>';
       card.addEventListener('click', function () {
         openStep2(e.code);
