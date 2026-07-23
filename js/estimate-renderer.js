@@ -4292,8 +4292,101 @@ class EstimateRenderer {
                 await addBlock(itemHTML);
             }
 
-            // 5. Summary (windows + additional services + grand total + VAT note)
-            await addFullPage(pageSummary);
+            // 5. Summary — jsPDF-AutoTable: native row pagination (a raster page clipped
+            // with many windows; vector tables never do). pageSummary template above kept as reference.
+            {
+                const NAVY = [10, 22, 40], LINE = [229, 228, 221], GREY = [107, 107, 107], GOLD = [201, 169, 110];
+                doc.addPage();
+                const sumFirstPage = doc.internal.getNumberOfPages();
+                const drawSummaryHeader = (data) => {
+                    doc.setFillColor(NAVY[0], NAVY[1], NAVY[2]);
+                    doc.rect(0, 0, pageW, 26, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(11);
+                    doc.text('P R I M E   S A S H', 10, 14);
+                    doc.setDrawColor(255, 255, 255); doc.setLineWidth(0.2);
+                    doc.line(10, 9.5, 62, 9.5); doc.line(10, 16.5, 62, 16.5);
+                    doc.setFontSize(6.5);
+                    doc.text('W I N D O W S', 10, 21);
+                    doc.setTextColor(NAVY[0], NAVY[1], NAVY[2]);
+                    doc.setFont('times', 'bold'); doc.setFontSize(19);
+                    doc.text(data.pageNumber === sumFirstPage ? 'Summary' : 'Summary (continued)', 10, 36);
+                };
+                const winBody = items.map((it, idx) => {
+                    const p = R.parseItem(it);
+                    const typeShort = p.windowType === 'door' ? 'Door'
+                        : p.windowType === 'casement' ? 'Casement'
+                        : p.windowType === 'fix-only' ? 'Fix Frame'
+                        : p.sashType === 'triple' ? 'Triple Sash'
+                        : p.sashType === 'single' ? 'Single Sash'
+                        : 'Sash';
+                    return [
+                        it.window_number || String(idx + 1).padStart(2, '0'),
+                        `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`,
+                        String(p.quantity || 1),
+                        '£' + R.formatPrice(it.total_price || 0)
+                    ];
+                });
+                const tableBase = {
+                    margin: { left: 10, right: 10, top: 42 },
+                    theme: 'striped',
+                    styles: { font: 'helvetica', fontSize: 8.5, textColor: NAVY, cellPadding: { top: 2.4, bottom: 2.4, left: 3, right: 3 }, lineWidth: 0 },
+                    alternateRowStyles: { fillColor: [247, 246, 242] },
+                    headStyles: { fillColor: NAVY, textColor: 255, fontSize: 7, fontStyle: 'normal', cellPadding: { top: 2.4, bottom: 2.4, left: 3, right: 3 } },
+                    footStyles: { fillColor: [255, 255, 255], textColor: NAVY, fontStyle: 'bold', fontSize: 8.5, lineWidth: { top: 0.5 }, lineColor: NAVY },
+                    columnStyles: { 0: { cellWidth: 22 }, 2: { cellWidth: 12, halign: 'center' }, 3: { cellWidth: 28, halign: 'right' } },
+                    didDrawPage: drawSummaryHeader
+                };
+                doc.autoTable(Object.assign({}, tableBase, {
+                    startY: 42,
+                    head: [['ITEM', 'DESCRIPTION', 'QTY', 'PRICE']],
+                    body: winBody,
+                    foot: [[{ content: 'Subtotal — Windows', colSpan: 3, styles: { halign: 'right' } }, { content: '£' + R.formatPrice(totalEx) + '  + VAT', styles: { halign: 'right' } }]]
+                }));
+                let curSumY = doc.lastAutoTable.finalY + 10;
+                const ensureRoom = (need) => {
+                    if (curSumY + need > pageH - 12) { doc.addPage(); drawSummaryHeader({ pageNumber: doc.internal.getNumberOfPages() }); curSumY = 44; }
+                };
+                ensureRoom(20);
+                doc.setFont('times', 'bold'); doc.setFontSize(14);
+                doc.setTextColor(NAVY[0], NAVY[1], NAVY[2]);
+                doc.text('Additional Services', 10, curSumY);
+                curSumY += 3;
+                if (hasAnyExtras) {
+                    let exIdx = 1;
+                    const exBody = [
+                        ...installationExtras.map(e => ['I-' + String(exIdx++).padStart(2, '0'), e.name + (e.description ? '\n' + e.description : ''), String(e.quantity), '£' + R.formatPrice(e.total_price)]),
+                        ...deliveryExtras.map(e => ['D-' + String(exIdx++).padStart(2, '0'), e.name + (e.description ? '\n' + e.description : ''), String(e.quantity), '£' + R.formatPrice(e.total_price)]),
+                        ...customExtras.map(e => ['X-' + String(exIdx++).padStart(2, '0'), e.name + (e.description ? '\n' + e.description : ''), String(e.quantity), '£' + R.formatPrice(e.total_price)])
+                    ];
+                    doc.autoTable(Object.assign({}, tableBase, {
+                        startY: curSumY,
+                        head: [['ITEM', 'DESCRIPTION', 'QTY', 'PRICE']],
+                        body: exBody,
+                        foot: [[{ content: 'Subtotal — Additional Services', colSpan: 3, styles: { halign: 'right' } }, { content: '£' + R.formatPrice(extrasTotalAll) + '  + VAT', styles: { halign: 'right' } }]]
+                    }));
+                    curSumY = doc.lastAutoTable.finalY + 8;
+                } else {
+                    ensureRoom(16);
+                    doc.setFillColor(245, 244, 240); doc.rect(10, curSumY, usableW, 12, 'F');
+                    doc.setFillColor(LINE[0], LINE[1], LINE[2]); doc.rect(10, curSumY, 1.2, 12, 'F');
+                    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(GREY[0], GREY[1], GREY[2]);
+                    doc.text('No additional services selected. Installation and delivery can be added to this estimate.', 14, curSumY + 7);
+                    curSumY += 20;
+                }
+                // VAT note (gold-bar box, wrapped)
+                const vatBold = 'All prices exclude VAT.';
+                const vatRest = ' VAT will be applied at the applicable rate (0%, 5%, or 20%) depending on your property status and project type. The correct rate will be confirmed prior to invoicing.';
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+                const vatLines = doc.splitTextToSize(vatBold + vatRest, usableW - 10);
+                const vatH = vatLines.length * 4 + 6;
+                ensureRoom(vatH + 4);
+                doc.setFillColor(255, 248, 237); doc.rect(10, curSumY, usableW, vatH, 'F');
+                doc.setFillColor(GOLD[0], GOLD[1], GOLD[2]); doc.rect(10, curSumY, 1.2, vatH, 'F');
+                doc.setTextColor(GREY[0], GREY[1], GREY[2]);
+                doc.text(vatLines, 14, curSumY + 5);
+            }
             // 5b. Payment Schedule (own page)
             await addFullPage(pagePayment);
             // 6. Terms
