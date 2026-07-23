@@ -326,7 +326,7 @@ class EstimateRenderer {
         const safetyGlassText = safetyGlass === 'toughened' ? 'Toughened' : safetyGlass === 'laminate' ? 'Laminate (Security/Acoustic)' : 'Standard';
         const glassSpecCasement = fc.glassSpec || 'float';
         const glassSpecCasementText = glassSpecCasement === 'low-e' ? 'Low-E Coated' : 'Float Glass';
-        const fanlightHeight = fc.fanlightHeight || 0;
+        const fanlightHeight = (['021','031','032','052L','052R','022','131','132','133','013','023'].includes(fc.casementLayout || fc.layout || '')) ? (fc.fanlightHeight || 0) : 0; // layout gate: never show fan fields for fan-less layouts (legacy records)
 
         // ═══ FIX-ONLY FIELDS ═══
         const fixShape = fc.fixShape || 'rectangle';
@@ -447,9 +447,9 @@ class EstimateRenderer {
             sillExtension, sillText, trickleVent, trickleColour, trickleText,
             sealColour, safetyGlass, safetyGlassText,
             glassSpecCasement, glassSpecCasementText, fanlightHeight,
-            casementFanHBars: Math.min(2, fc.casementFanHBars || 0), casementFanVBars: Math.min(2, fc.casementFanVBars || 0),
-            casementFan2Height: parseInt(fc.casementFan2Height) || 0,
-            casementFan2HBars: Math.min(2, fc.casementFan2HBars || 0), casementFan2VBars: Math.min(2, fc.casementFan2VBars || 0),
+            casementFanHBars: (['021','031','032','052L','052R','022','131','132','133','013','023'].includes(fc.casementLayout || fc.layout || '')) ? Math.min(2, fc.casementFanHBars || 0) : 0, casementFanVBars: (['021','031','032','052L','052R','022','131','132','133','013','023'].includes(fc.casementLayout || fc.layout || '')) ? Math.min(2, fc.casementFanVBars || 0) : 0,
+            casementFan2Height: (['013','023'].includes(fc.casementLayout || fc.layout || '')) ? (parseInt(fc.casementFan2Height) || 0) : 0,
+            casementFan2HBars: (['013','023'].includes(fc.casementLayout || fc.layout || '')) ? Math.min(2, fc.casementFan2HBars || 0) : 0, casementFan2VBars: (['013','023'].includes(fc.casementLayout || fc.layout || '')) ? Math.min(2, fc.casementFan2VBars || 0) : 0,
             fixShape, fixType, fixCircleBarPattern, fixCircleOffset, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText,
             doorType, doorHingeSide, doorOpenDirection, doorLockType,
             doorThreshold, doorThresholdExtension, doorSillWider, doorThresholdText,
@@ -2350,7 +2350,7 @@ class EstimateRenderer {
         const fanV = Math.min(2, fc.casementFanVBars || 0);
         const fan2H = Math.min(2, fc.casementFan2HBars || 0);
         const fan2V = Math.min(2, fc.casementFan2VBars || 0);
-        const fanlightHeight = fc.fanlightHeight || 0;
+        const fanlightHeight = (['021','031','032','052L','052R','022','131','132','133','013','023'].includes(fc.casementLayout || fc.layout || '')) ? (fc.fanlightHeight || 0) : 0; // layout gate: never show fan fields for fan-less layouts (legacy records)
         const FR = fanlightHeight > 0 ? fanlightHeight / h : 0.25;
 
         const stroke = 'rgba(10,22,40,.7)';
