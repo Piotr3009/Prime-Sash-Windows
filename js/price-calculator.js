@@ -298,7 +298,7 @@ class PriceCalculator {
     const layout = configuration.casementLayout || '040L';
     const layoutData = c.layouts[layout] || { mullions: 0, transoms: 0, sashes: 1 };
     
-    // Base price: 600 + (sqm - 1) * 300 + mullions * 150 + transoms * 200 + sashes * 200
+    // Base price: firstSqmPrice + (sqm - 1) * basePricePerSqm + mullions/transoms/sashes from pricing-config (single source of truth)
     let basePrice = c.firstSqmPrice;
     if (sqm > 1) {
       basePrice += (sqm - 1) * c.basePricePerSqm;
