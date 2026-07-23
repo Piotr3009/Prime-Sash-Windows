@@ -40,12 +40,13 @@
     '130':  { w: 1800, h: 1200 },
     '131':  { w: 1800, h: 1500 },
     '132':  { w: 1800, h: 1500 },
+    '133':  { w: 1800, h: 1500 },
     '140L': { w: 2400, h: 1200 },
     '140R': { w: 2400, h: 1200 },
   };
 
   // Layouts that have fanlights (transom)
-  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132'];
+  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132', '133'];
 
   // ─── Helpers ───
   function $(id) { return document.getElementById(id); }

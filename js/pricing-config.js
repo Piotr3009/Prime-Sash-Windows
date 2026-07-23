@@ -158,6 +158,7 @@ const pricingConfig = {
       '130':  { mullions: 2, transoms: 0, sashes: 2 },
       '131':  { mullions: 2, transoms: 1, sashes: 3 },
       '132':  { mullions: 2, transoms: 2, sashes: 4 },
+      '133':  { mullions: 2, transoms: 3, sashes: 3 },
       '140L': { mullions: 3, transoms: 0, sashes: 1 },
       '140R': { mullions: 3, transoms: 0, sashes: 1 }
     }

@@ -1462,6 +1462,30 @@ class EstimateRenderer {
             ],
           };
         }
+        case '133': {
+          const panelW = (innerW - mullW * 2) / 3;
+          const m1 = FRAME_FACE + panelW + mullW / 2;
+          const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+          const topH = innerH * FR;
+          const bottomH = innerH - MULLION_W - topH;
+          const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
+          return {
+            mullions: [m1, m2],
+            transoms: [
+              { y: transomY, width: panelW, offsetX: -(panelW + mullW) },
+              { y: transomY, width: panelW, offsetX: 0 },
+              { y: transomY, width: panelW, offsetX: (panelW + mullW) },
+            ],
+            panels: [
+              { x: -(panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+              { x: 0,                 y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+              { x:  (panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+              { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+              { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+              { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+            ],
+          };
+        }
         case '021': {
           const fanlightH = innerH * FR;
           const mainH = innerH - MULLION_W - fanlightH;
@@ -2922,6 +2946,23 @@ class EstimateRenderer {
                         { x:half+mW,y:0,w:half,h:fH,hinge:'top',fanlight:true },
                         { x:0,y:fH+mW,w:half,h:mainH,hinge:'fixed' },
                         { x:half+mW,y:fH+mW,w:half,h:mainH,hinge:'fixed' }
+                    ]
+                };
+            case '133':
+                return {
+                    mullions: [third, third*2+mW],
+                    transoms: [
+                        { y:fH+mW/2, x:0, w:third-mW/2 },
+                        { y:fH+mW/2, x:third+mW/2, w:third-mW/2 },
+                        { y:fH+mW/2, x:third*2+mW+mW/2, w:third-mW/2 }
+                    ],
+                    list: [
+                        { x:0,y:0,w:third-mW/2,h:fH,hinge:'top',fanlight:true },
+                        { x:third+mW/2,y:0,w:third-mW/2,h:fH,hinge:'top',fanlight:true },
+                        { x:third*2+mW+mW/2,y:0,w:third-mW/2,h:fH,hinge:'top',fanlight:true },
+                        { x:0,y:fH+mW,w:third-mW/2,h:mainH,hinge:'fixed' },
+                        { x:third+mW/2,y:fH+mW,w:third-mW/2,h:mainH,hinge:'fixed' },
+                        { x:third*2+mW+mW/2,y:fH+mW,w:third-mW/2,h:mainH,hinge:'fixed' }
                     ]
                 };
             case '021':
