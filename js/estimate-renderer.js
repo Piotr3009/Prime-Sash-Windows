@@ -948,7 +948,7 @@ class EstimateRenderer {
                 </div>
                 <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
                     <span class="estimate-status status-${estimate.status}" style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;padding:.4rem 1rem;">${R.getStatusConfig(estimate.status).label}</span>
-                    <button class="btn-sm btn-download-pdf" style="background:var(--navy);color:#fff;border:none;padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;">Download PDF</button>
+                    <button class="btn-sm btn-download-pdf" style="background:var(--navy);color:#fff;border:none;padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;">Download PDF</button>${isAdmin && estimate.share_token ? `<button class="btn-sm" onclick="navigator.clipboard.writeText(location.origin + \'/e/\' + \'${estimate.share_token}\').then(() => { this.textContent = \'Copied \u2713\'; setTimeout(() => this.textContent = \'Copy Client Link\', 1600); })" style="background:transparent;color:var(--navy);border:1px solid var(--navy);padding:.5rem 1rem;font-family:\'Jost\',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;">Copy Client Link</button>` : ''}
                 </div>
             </div>
 

@@ -1,6 +1,16 @@
 {
   "rewrites": [
-    { "source": "/case-studies", "destination": "/api/case-study" },
-    { "source": "/case-study/:slug", "destination": "/api/case-study?slug=:slug" }
+    {
+      "source": "/case-studies",
+      "destination": "/api/case-study"
+    },
+    {
+      "source": "/case-study/:slug",
+      "destination": "/api/case-study?slug=:slug"
+    },
+    {
+      "source": "/e/:token",
+      "destination": "/api/estimate-view?token=:token"
+    }
   ]
 }
