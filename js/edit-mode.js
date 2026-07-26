@@ -356,6 +356,9 @@
 
     // Layout
     setRadio('casement-layout', fc.casementLayout || fc.layout || editItem.casement_layout);
+    if (fc.casementMiddleWidth > 0) {
+      setInput('c-middle-width', fc.casementMiddleWidth, 'input');
+    }
 
     // 022 clickable openers restore
     if (Array.isArray(fc.casementHinges)) {

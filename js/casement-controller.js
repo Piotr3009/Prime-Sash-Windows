@@ -52,6 +52,32 @@
   // Layouts that have fanlights (transom)
   const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132', '133', '013', '023'];
   const FAN2_LAYOUTS = ['013', '023'];
+  const TRIPLE_LAYOUTS = ['130', '131', '132', '133'];
+
+  // ─── Custom middle section (triple layouts): clamp + sides hint; null = equal ───
+  function getTripleMiddle(totalW) {
+    var layout = checked('casement-layout') || '';
+    if (TRIPLE_LAYOUTS.indexOf(layout) === -1) return null;
+    var el = $('c-middle-width');
+    if (!el || el.value === '' || el.value === null) {
+      updateMiddleSidesHint(totalW, null);
+      return null;
+    }
+    var v = parseInt(el.value) || 0;
+    var maxC = Math.floor((totalW - 600) / 10) * 10;   // each side >= 300mm
+    var minC = 300;
+    var clamped = Math.max(minC, Math.min(maxC, Math.round(v / 10) * 10));
+    if (clamped !== v) el.value = clamped;
+    el.min = minC; el.max = maxC;
+    updateMiddleSidesHint(totalW, clamped);
+    return clamped;
+  }
+  function updateMiddleSidesHint(totalW, mid) {
+    var hint = $('c-middle-sides-hint');
+    if (!hint) return;
+    if (!mid) { hint.textContent = 'Sides: equal split'; return; }
+    hint.textContent = 'Sides: ' + Math.round((totalW - mid) / 2) + 'mm each';
+  }
 
   // ─── Helpers ───
   function $(id) { return document.getElementById(id); }
@@ -116,6 +142,8 @@
     if (fRow) {
       fRow.style.display = hasFanlight ? 'block' : 'none';
     }
+    var mRow = $('c-middle-width-row');
+    if (mRow) mRow.style.display = TRIPLE_LAYOUTS.includes(layout) ? 'block' : 'none';
     // Set default fanlight height (30% of inner height)
     if (hasFanlight) {
       var innerH = def.h - 57 - 68;
@@ -168,6 +196,19 @@
     if (specDims) specDims.style.display = 'block';
     if (specWidth) specWidth.textContent = w + 'mm';
     if (specHeight) specHeight.textContent = h + 'mm';
+    var secItem = document.getElementById('spec-c-sections-item');
+    var secVal = document.getElementById('spec-c-sections');
+    if (secItem && secVal) {
+      var midEl = $('c-middle-width');
+      var midV = midEl ? parseInt(midEl.value) : 0;
+      if (TRIPLE_LAYOUTS.includes(layout) && midV > 0) {
+        var sideV = Math.round((w - midV) / 2);
+        secItem.style.display = '';
+        secVal.textContent = sideV + ' | ' + midV + ' | ' + sideV + 'mm';
+      } else {
+        secItem.style.display = 'none';
+      }
+    }
     if (specMeasurement) specMeasurement.textContent = 'Frame Dimensions';
 
     // Hide sash-only sections
@@ -400,9 +441,12 @@
       fan2Ratio = Math.max(0.15, Math.min(0.5, f2Clamped / innerH));
     }
 
+    var middleSec = getTripleMiddle(w);
+
     window.update3D({
       windowCategory: 'casement',
       casementLayout: layout,
+      casementMiddleWidth: middleSec,
       extWidth: w,
       extHeight: h,
       fanlightRatio: fanlightRatio,
@@ -480,6 +524,17 @@
         r.addEventListener('change', debouncedPriceSync);
       });
     });
+    var midEl = $('c-middle-width');
+    if (midEl) {
+      midEl.addEventListener('input', function() {
+        updateCasement3D();
+        debouncedPriceSync();
+      });
+      midEl.addEventListener('change', function() {
+        updateCasement3D();
+        debouncedPriceSync();
+      });
+    }
   }
 
   // ─── Colour logic (matching sash tile system) ───
@@ -863,6 +918,23 @@
       casArchHinge: isArched ? (checked('cas-arch-opening') || 'right') : null,
       measurementType: 'frame',
       casementLayout: checked('casement-layout') || '040L',
+      casementMiddleWidth: (function() {
+        var L = checked('casement-layout') || '';
+        if (TRIPLE_LAYOUTS.indexOf(L) === -1) return null;
+        var el = $('c-middle-width');
+        var v = el ? parseInt(el.value) : 0;
+        return (v > 0) ? v : null;
+      })(),
+      casementLightSections: (function() {
+        var L = checked('casement-layout') || '';
+        if (TRIPLE_LAYOUTS.indexOf(L) === -1) return null;
+        var el = $('c-middle-width');
+        var v = el ? parseInt(el.value) : 0;
+        if (!(v > 0)) return null;
+        var wTot = parseInt(val('c-width')) || 0;
+        var side = Math.round((wTot - v) / 2);
+        return [side, v, side];
+      })(),
       layout: checked('casement-layout') || '040L',
       casementHinges: (window.currentConfig && Array.isArray(window.currentConfig.casementHinges)) ? window.currentConfig.casementHinges.slice() : null,
       width: parseInt(val('c-width')) || 800,

@@ -284,6 +284,13 @@ class EstimateRenderer {
         // ═══ CASEMENT FIELDS ═══
         const windowType = fc.windowType || fc.windowCategory || 'sash';
         const casementLayout = fc.casementLayout || fc.layout || '';
+        let casementSectionsText = '';
+        if (['130','131','132','133'].includes(casementLayout) && parseInt(fc.casementMiddleWidth) > 0) {
+            const wTotSec = parseInt(fc.actualFrameWidth || fc.width) || 0;
+            const midSec = parseInt(fc.casementMiddleWidth) || 0;
+            const sideSec = Math.round((wTotSec - midSec) / 2);
+            if (wTotSec > 0) casementSectionsText = sideSec + ' | ' + midSec + ' | ' + sideSec + 'mm';
+        }
         const casementType = fc.casementType || 'standard';
         const casArchShape = fc.casArchShape || null;
         const casArchHinge = fc.casArchHinge || null;
@@ -450,7 +457,7 @@ class EstimateRenderer {
             fixUpperBars, fixLowerBars, fixBarsText,
             horns, hornsText, pas24,
             ironList, hardwareFinish, quantity,
-            casementLayout, casementType, casArchShape, casArchHinge, casementTypeText,
+            casementLayout, casementType, casArchShape, casArchHinge, casementTypeText, casementSectionsText,
             casementHBars, casementVBars, casementBarsText,
             sillExtension, sillText, trickleVent, trickleColour, trickleText,
             sealColour, safetyGlass, safetyGlassText,
@@ -564,6 +571,7 @@ class EstimateRenderer {
                             ${R.specRow('Type', p.casementTypeText)}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
                             ${p.fanlightHeight > 0 ? R.specRow('Fanlight Height', p.fanlightHeight + 'mm') : ''}
+                            ${p.casementSectionsText ? R.specRow('Light Sections', p.casementSectionsText) : ''}
                             ${p.casementFan2Height > 0 ? R.specRow('Fanlight 2 (Bottom) Height', p.casementFan2Height + 'mm') : ''}
                             ${(p.casementFan2HBars > 0 || p.casementFan2VBars > 0) ? R.specRow('Fanlight 2 Bars', p.casementFan2HBars + ' horizontal, ' + p.casementFan2VBars + ' vertical (per pane)') : ''}
                             ${(p.casementFanHBars > 0 || p.casementFanVBars > 0) ? R.specRow('Fanlight Bars', p.casementFanHBars + ' horizontal, ' + p.casementFanVBars + ' vertical (per fan pane)') : ''}

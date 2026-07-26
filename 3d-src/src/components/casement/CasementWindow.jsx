@@ -34,7 +34,7 @@ import CasementPanel, { SASH_RAIL } from './CasementPanel';
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
 // Panel: { x, y, w, h, hinge } — position & size relative to glass area, hinge type
-function getLayout(code, innerW, innerH, height, fanlightRatio, fan2Ratio) {
+function getLayout(code, innerW, innerH, height, fanlightRatio, fan2Ratio, middleSectionMm = 0) {
   const half = innerW / 2;
   const third = innerW / 3;
   const mullW = MULLION_W;
@@ -179,26 +179,30 @@ function getLayout(code, innerW, innerH, height, fanlightRatio, fan2Ratio) {
       };
     }
     case '133': {
-      const panelW = (innerW - mullW * 2) / 3;
-      const m1 = FRAME_FACE + panelW + mullW / 2;
-      const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+      // Custom middle section (mullion-axis setting-out); middleSectionMm=0 -> equal thirds
+      const eqW = (innerW - mullW * 2) / 3;
+      const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+      const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+      const off = panelC / 2 + mullW + panelS / 2;
+      const m1 = FRAME_FACE + panelS + mullW / 2;
+      const m2 = m1 + panelC + mullW;
       const topH = innerH * FR;
       const bottomH = innerH - MULLION_W - topH;
       const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
       return {
         mullions: [m1, m2],
         transoms: [
-          { y: transomY, width: panelW, offsetX: -(panelW + mullW) },
-          { y: transomY, width: panelW, offsetX: 0 },
-          { y: transomY, width: panelW, offsetX: (panelW + mullW) },
+          { y: transomY, width: panelS, offsetX: -off },
+          { y: transomY, width: panelC, offsetX: 0 },
+          { y: transomY, width: panelS, offsetX: off },
         ],
         panels: [
-          { x: -(panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-          { x: 0,                 y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-          { x:  (panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-          { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
-          { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
-          { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+          { x: -off, y: (bottomH + MULLION_W) / 2, w: panelS, h: topH, hinge: 'top' },
+          { x: 0,                 y: (bottomH + MULLION_W) / 2, w: panelC, h: topH, hinge: 'top' },
+          { x:  off, y: (bottomH + MULLION_W) / 2, w: panelS, h: topH, hinge: 'top' },
+          { x: -off, y: -(topH + MULLION_W) / 2, w: panelS, h: bottomH, hinge: 'fixed' },
+          { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelC, h: bottomH, hinge: 'fixed' },
+          { x:  off, y: -(topH + MULLION_W) / 2, w: panelS, h: bottomH, hinge: 'fixed' },
         ],
       };
     }
@@ -355,15 +359,19 @@ function getLayout(code, innerW, innerH, height, fanlightRatio, fan2Ratio) {
 
     // ─── TRIPLE ───
     case '130': {
-      const panelW = (innerW - mullW * 2) / 3;
-      const m1 = FRAME_FACE + panelW + mullW / 2;
-      const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+      // Custom middle section (mullion-axis setting-out); middleSectionMm=0 -> equal thirds
+      const eqW = (innerW - mullW * 2) / 3;
+      const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+      const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+      const off = panelC / 2 + mullW + panelS / 2;
+      const m1 = FRAME_FACE + panelS + mullW / 2;
+      const m2 = m1 + panelC + mullW;
       return {
         mullions: [m1, m2],
         panels: [
-          { x: -(panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'left' },
-          { x: 0,                 y: 0, w: panelW, h: innerH, hinge: 'fixed' },
-          { x:  (panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'right' },
+          { x: -off, y: 0, w: panelS, h: innerH, hinge: 'left' },
+          { x: 0,                 y: 0, w: panelC, h: innerH, hinge: 'fixed' },
+          { x:  off, y: 0, w: panelS, h: innerH, hinge: 'right' },
         ],
       };
     }
@@ -404,44 +412,52 @@ function getLayout(code, innerW, innerH, height, fanlightRatio, fan2Ratio) {
 
     // ─── 131: Triple + transom ONLY in center ───
     case '131': {
-      const panelW = (innerW - mullW * 2) / 3;
-      const m1 = FRAME_FACE + panelW + mullW / 2;
-      const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+      // Custom middle section (mullion-axis setting-out); middleSectionMm=0 -> equal thirds
+      const eqW = (innerW - mullW * 2) / 3;
+      const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+      const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+      const off = panelC / 2 + mullW + panelS / 2;
+      const m1 = FRAME_FACE + panelS + mullW / 2;
+      const m2 = m1 + panelC + mullW;
       const topH = innerH * FR;
       const bottomH = innerH - MULLION_W - topH;
       const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
       return {
         mullions: [m1, m2],
-        transoms: [{ y: transomY, width: panelW }],
+        transoms: [{ y: transomY, width: panelC }],
         panels: [
-          { x: -(panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'left' },
-          { x: 0, y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-          { x: 0, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
-          { x:  (panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'right' },
+          { x: -off, y: 0, w: panelS, h: innerH, hinge: 'left' },
+          { x: 0, y: (bottomH + MULLION_W) / 2, w: panelC, h: topH, hinge: 'top' },
+          { x: 0, y: -(topH + MULLION_W) / 2, w: panelC, h: bottomH, hinge: 'fixed' },
+          { x:  off, y: 0, w: panelS, h: innerH, hinge: 'right' },
         ],
       };
     }
 
-    // ─── 132: Triple + transom full width ───
+    // ─── 132: Triple — fanlights over outer lights, centre fixed full height ───
     case '132': {
-      const panelW = (innerW - mullW * 2) / 3;
-      const m1 = FRAME_FACE + panelW + mullW / 2;
-      const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+      // Custom middle section (mullion-axis setting-out); middleSectionMm=0 -> equal thirds
+      const eqW = (innerW - mullW * 2) / 3;
+      const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+      const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+      const off = panelC / 2 + mullW + panelS / 2;
+      const m1 = FRAME_FACE + panelS + mullW / 2;
+      const m2 = m1 + panelC + mullW;
       const topH = innerH * FR;
       const bottomH = innerH - MULLION_W - topH;
       const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
       return {
         mullions: [m1, m2],
         transoms: [
-          { y: transomY, width: panelW, offsetX: -(panelW + mullW) },  // left transom
-          { y: transomY, width: panelW, offsetX: (panelW + mullW) },   // right transom
+          { y: transomY, width: panelS, offsetX: -off },  // left transom
+          { y: transomY, width: panelS, offsetX: off },   // right transom
         ],
         panels: [
-          { x: -(panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-          { x: 0,                 y: 0, w: panelW, h: innerH, hinge: 'fixed' },
-          { x:  (panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-          { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'left' },
-          { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'right' },
+          { x: -off, y: (bottomH + MULLION_W) / 2, w: panelS, h: topH, hinge: 'top' },
+          { x: 0,                 y: 0, w: panelC, h: innerH, hinge: 'fixed' },
+          { x:  off, y: (bottomH + MULLION_W) / 2, w: panelS, h: topH, hinge: 'top' },
+          { x: -off, y: -(topH + MULLION_W) / 2, w: panelS, h: bottomH, hinge: 'left' },
+          { x:  off, y: -(topH + MULLION_W) / 2, w: panelS, h: bottomH, hinge: 'right' },
         ],
       };
     }
@@ -458,6 +474,7 @@ export default function CasementWindow({
   width = 800,
   height = 1200,
   layout = '040L',
+  middleSection = 0,
   casementHinges = null,
   fan2Ratio = 0.3,
   fanHBars = 0,
@@ -509,7 +526,7 @@ export default function CasementWindow({
   // Get layout definition
   const layoutDef = useMemo(
     () => {
-      const def = getLayout(layout, innerW, innerH, height, fanlightRatio, fan2Ratio);
+      const def = getLayout(layout, innerW, innerH, height, fanlightRatio, fan2Ratio, middleSection);
       // Panel ROLES from ORIGINAL hinge (before opener overlay) — height heuristics
       // break on 3-tier layouts where the middle pane can be under 50% of innerH.
       if (def && def.panels) {
@@ -606,7 +623,7 @@ export default function CasementWindow({
         let ventZextOffset = 0;
         let ventZintOffset = 0;
         if (trickleVent === 'sash') {
-          const layoutData = getLayout(layout, innerW, innerH, height, fanlightRatio, fan2Ratio);
+          const layoutData = getLayout(layout, innerW, innerH, height, fanlightRatio, fan2Ratio, middleSection);
           const openPanel = (layoutData.panels || []).find(p => p.hinge !== 'fixed' && p.hinge !== 'top');
           if (openPanel) {
             ventX = mm(openPanel.x);
