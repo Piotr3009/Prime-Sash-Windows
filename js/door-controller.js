@@ -623,9 +623,16 @@
     // Transom type -> show/hide height+bars options
     function updateTransomUI() {
       var tt = checked('fd-transom-type') || 'none';
+      var isFr = (checked('door-type') || '') === 'french';
+      var show = isFr && tt !== 'none';
       var row = $('fd-transom-options');
-      if (row) row.style.display = tt === 'none' ? 'none' : '';
+      if (row) row.style.display = show ? '' : 'none';
+      var hGroup = $('fd-transom-height-group');
+      if (hGroup) hGroup.style.display = show ? '' : 'none';
     }
+    document.querySelectorAll('input[name="door-type"]').forEach(function(radio) {
+      radio.addEventListener('change', updateTransomUI);
+    });
     document.querySelectorAll('input[name="fd-transom-type"]').forEach(function(radio) {
       radio.addEventListener('change', updateTransomUI);
     });

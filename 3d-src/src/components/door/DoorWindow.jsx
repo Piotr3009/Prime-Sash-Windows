@@ -650,6 +650,11 @@ export default function DoorWindow({
         const paneBottomY = paneY - mm(paneH) / 2;
         return (
           <group>
+            {/* Top-hung tilt: follows the Door Opening slider (max ~30°) */}
+            <group
+              position={[0, paneTopY, paneZ]}
+              rotation={[transomType === 'opening' ? -Math.max(0, Math.min(1, opening)) * Math.PI / 6 : 0, 0, 0]}
+            >
             <DoorPanel
               width={paneW}
               height={paneH}
@@ -669,8 +674,9 @@ export default function DoorWindow({
               topRailMm={TRANSOM_SASH_STILE}
               bottomRailMm={TRANSOM_SASH_STILE}
               showWeatherBar={false}
-              position={[0, paneY, paneZ]}
+              position={[0, -mm(paneH) / 2, 0]}
             />
+            </group>
             {transomType === 'opening' && (
               <group>
                 <mesh position={[-mm(innerW) / 2 + mm(150), paneTopY - mm(20), halfD]} rotation={[0, 0, Math.PI / 2]} castShadow>

@@ -553,6 +553,30 @@ class PriceCalculator {
     const sideBarCount = sideHBars + sideVBars;
     barsPrice += sideBarCount * panelCount * barRate;
 
+    // ── 3b. Transom / fanlight (french only, stage 2) ──
+    // Area = full width (doors + side panels) × transom height, priced at the
+    // french base rate (£730/m²). Opening: flat £100 hardware surcharge.
+    // Bars 'match': computed transom bar count × standard barRate.
+    let transomPrice = 0;
+    let transomSqm = 0;
+    const transomType = configuration.transomType || 'none';
+    if (isFrenchDoor && transomType !== 'none') {
+      const tH = (configuration.transomHeight || 450) / 1000;
+      const totalWm = (doorW / 1000)
+        + (hasLeft ? (configuration.sideLeftWidth || 500) / 1000 : 0)
+        + (hasRight ? (configuration.sideRightWidth || 500) / 1000 : 0);
+      transomSqm = totalWm * tH;
+      transomPrice = (DOOR_BASE_PER_SQM + FRENCH_SURCHARGE_PER_SQM) * transomSqm;
+      if (transomType === 'opening') {
+        const TRANSOM_OPENING_SURCHARGE = 100;
+        transomPrice += TRANSOM_OPENING_SURCHARGE;
+      }
+      if (configuration.transomBars === 'match') {
+        const tBarsOverDoors = doorVBars > 0 ? (doorVBars * 2 + 1) : 0;
+        const tBarsOverSides = sideVBars * panelCount;
+        transomPrice += (tBarsOverDoors + tBarsOverSides) * barRate;
+      }
+    }
 
     // ── 4. Sill extension ──
     let sillPrice = 0;
@@ -582,13 +606,14 @@ class PriceCalculator {
 
     // ── 6. Glass (from DB — uses calculateAdditionalOptions) ──
     const totalSqm = doorSqm + (hasLeft ? (configuration.sideLeftWidth || 500) / 1000 * doorH / 1000 : 0)
-                              + (hasRight ? (configuration.sideRightWidth || 500) / 1000 * doorH / 1000 : 0);
+                              + (hasRight ? (configuration.sideRightWidth || 500) / 1000 * doorH / 1000 : 0)
+                              + transomSqm;
     // Sliding/Bifold: glass surcharges scale with total sqm (each panel has its own glass)
     const glassMultiplier = (isSlidingDoor || isBifoldDoor) ? totalSqm : 1;
     const additionalPrice = this.calculateAdditionalOptions(configuration, totalSqm, basePrice + panelPrice, glassMultiplier);
 
     // ── Subtotal ──
-    let subtotal = basePrice + panelPrice + barsPrice + sillPrice + panelingPrice + additionalPrice;
+    let subtotal = basePrice + panelPrice + barsPrice + sillPrice + panelingPrice + transomPrice + additionalPrice;
 
     // ── 7. Colour surcharge ──
     let colourSurcharge = 0;
@@ -620,6 +645,8 @@ class PriceCalculator {
         panelPrice: panelPrice.toFixed(2),
         panelCount: panelCount,
         barsPrice: barsPrice.toFixed(2),
+        transomPrice: transomPrice.toFixed(2),
+        transomSqm: transomSqm.toFixed(2),
         sillPrice: sillPrice.toFixed(2),
         panelingPrice: panelingPrice.toFixed(2),
         additionalOptions: additionalPrice,
