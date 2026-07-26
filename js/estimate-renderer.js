@@ -3274,6 +3274,13 @@ class EstimateRenderer {
         const sideStyle = fc.sideStyle || 'full-glass';
         const doorStyle = fc.doorStyle || 'full-glass';
 
+        // Transom / fanlight (french only) — coupled unit stacked above the doors
+        const transomType = fc.transomType || 'none';
+        const transomH = parseInt(fc.transomHeight) || 0;
+        const transomBars = fc.transomBars || 'none';
+        const hasTransom = (fc.doorType === 'french') && transomType !== 'none' && transomH > 0;
+        const unitH = h + (hasTransom ? transomH : 0);
+
         // Bottom rail ratio based on door style
         const bottomRailRatio = doorStyle === 'half-glazed' ? 0.50 : doorStyle === 'three-quarter' ? 0.28 : 0;
 
@@ -3284,11 +3291,14 @@ class EstimateRenderer {
         // SVG sizing
         const svgW = 280, svgH = 260;
         const maxDrawW = 240, maxDrawH = 200;
-        const scale = Math.min(maxDrawW / totalW, maxDrawH / h);
+        const scale = Math.min(maxDrawW / totalW, maxDrawH / unitH);
         const drawW = totalW * scale;
         const drawH = h * scale;
         const ox = (svgW - drawW) / 2;
-        const oy = 10;
+        const oyUnit = 10;                                    // top of the whole unit
+        const transomDrawH = hasTransom ? transomH * scale : 0;
+        const drawUnitH = drawH + transomDrawH;
+        const oy = oyUnit + transomDrawH;                     // top of the door section
         const frameT = 8; // frame thickness in SVG px
 
         const dark = '#1a2a3a';
@@ -3299,8 +3309,8 @@ class EstimateRenderer {
 
         let svg = `<svg viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Jost',sans-serif;">`;
 
-        // Outer frame
-        svg += `<rect x="${ox}" y="${oy}" width="${drawW}" height="${drawH}" fill="none" stroke="${dark}" stroke-width="2.5" rx="1"/>`;
+        // Outer frame (full unit — doors + transom share one coupled frame)
+        svg += `<rect x="${ox}" y="${oyUnit}" width="${drawW}" height="${drawUnitH}" fill="none" stroke="${dark}" stroke-width="2.5" rx="1"/>`;
 
         let doorX = ox;
         if (hasLeft) doorX += sideLeftW * scale;
@@ -3355,6 +3365,34 @@ class EstimateRenderer {
         if (hasRight) {
             const mx = doorX + doorW;
             svg += `<line x1="${mx}" y1="${oy}" x2="${mx}" y2="${oy + drawH}" stroke="${dark}" stroke-width="2"/>`;
+        }
+
+        // ── Transom / fanlight band (french only) ──
+        if (hasTransom) {
+            const ti = Math.min(frameT, Math.max(2, transomDrawH * 0.22));   // inset inside the band
+            // Internal rail: door head = transom cill (one coupled frame)
+            svg += `<line x1="${ox}" y1="${oy}" x2="${ox + drawW}" y2="${oy}" stroke="${dark}" stroke-width="2.5"/>`;
+            const tPanes = [];
+            if (hasLeft) tPanes.push({ x: ox, w: sideLeftW * scale, bars: transomBars === 'match' ? sideVBars : 0 });
+            tPanes.push({ x: doorX, w: doorW, bars: transomBars === 'match' ? (vBars > 0 ? vBars * 2 + 1 : 0) : 0, main: true });
+            if (hasRight) tPanes.push({ x: doorX + doorW, w: sideRightW * scale, bars: transomBars === 'match' ? sideVBars : 0 });
+            tPanes.forEach((pn, pi) => {
+                if (pi > 0) {
+                    svg += `<line x1="${pn.x}" y1="${oyUnit}" x2="${pn.x}" y2="${oy}" stroke="${dark}" stroke-width="2"/>`;
+                }
+                const gx = pn.x + ti, gy = oyUnit + ti;
+                const gw = pn.w - ti * 2, gh = transomDrawH - ti * 2;
+                if (gw <= 0 || gh <= 0) return;
+                svg += `<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                for (let bi = 1; bi <= pn.bars; bi++) {
+                    const bx = gx + gw * bi / (pn.bars + 1);
+                    svg += `<line x1="${bx}" y1="${gy}" x2="${bx}" y2="${gy + gh}" stroke="${light}" stroke-width="1"/>`;
+                }
+                if (pn.main && transomType === 'opening') {
+                    // Top-hung symbol (apex at the bottom edge)
+                    svg += `<polyline points="${gx + 1},${gy + 1} ${gx + gw / 2},${gy + gh - 1} ${gx + gw - 1},${gy + 1}" fill="none" stroke="${mid}" stroke-width="0.9" stroke-dasharray="3 2"/>`;
+                }
+            });
         }
 
         // ── Door leaf(s) ──
@@ -3564,8 +3602,13 @@ class EstimateRenderer {
             });
         }
 
-        // Height
-        svg += `<text x="${ox + drawW + 14}" y="${oy + drawH / 2}" text-anchor="middle" font-size="${fontSize}" fill="${dimColor}" transform="rotate(90,${ox + drawW + 14},${oy + drawH / 2})">${h}mm</text>`;
+        // Height — total unit (doors + transom)
+        const hDimY = oyUnit + drawUnitH / 2;
+        svg += `<text x="${ox + drawW + 14}" y="${hDimY}" text-anchor="middle" font-size="${fontSize}" fill="${dimColor}" transform="rotate(90,${ox + drawW + 14},${hDimY})">${unitH}mm</text>`;
+        if (hasTransom) {
+            const tDimY = oyUnit + transomDrawH / 2;
+            svg += `<text x="${ox + drawW + 5}" y="${tDimY}" text-anchor="middle" font-size="7" fill="${dimColor}" transform="rotate(90,${ox + drawW + 5},${tDimY})">${transomH}</text>`;
+        }
 
         svg += '</svg>';
         return svg;
