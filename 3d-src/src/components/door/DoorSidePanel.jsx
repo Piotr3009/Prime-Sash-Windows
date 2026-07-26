@@ -133,6 +133,9 @@ export default function DoorSidePanel({
           vBars={transomVBars}
           ironmongery="brass"
           stileWidthMm={TRANSOM_SASH_STILE}
+          topRailMm={TRANSOM_SASH_STILE}
+          bottomRailMm={TRANSOM_SASH_STILE}
+          showWeatherBar={false}
           position={[0, mm(transomPaneCenterLocal) - mm(height) / 2, leafZ]}
         />
       )}

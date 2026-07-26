@@ -666,6 +666,9 @@ export default function DoorWindow({
               vBars={paneVBars}
               ironmongery={tIron}
               stileWidthMm={TRANSOM_SASH_STILE}
+              topRailMm={TRANSOM_SASH_STILE}
+              bottomRailMm={TRANSOM_SASH_STILE}
+              showWeatherBar={false}
               position={[0, paneY, paneZ]}
             />
             {transomType === 'opening' && (

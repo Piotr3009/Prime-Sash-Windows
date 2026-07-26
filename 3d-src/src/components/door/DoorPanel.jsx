@@ -162,7 +162,7 @@ function buildCenterMullionInt(F, halfDepth) {
 }
 
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, doorStyle = 'full-glass', centerMullion = false, paneling = 'flat', stileWidthMm = LEAF_STILE }) {
+function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, doorStyle = 'full-glass', centerMullion = false, paneling = 'flat', stileWidthMm = LEAF_STILE, topRailMm = LEAF_TOP_RAIL, bottomRailOverrideMm = null }) {
   const W = mm(width);
   const H = mm(height);
   const fS = mm(stileWidthMm);  // stile face width (default 93mm door, 57mm for side panels)
@@ -171,20 +171,21 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   // half-glazed: bottom rail = leaf height / 2
   // three-quarter: bottom rail = leaf height / 3
   // full-glass: bottom rail = LEAF_BOTTOM_RAIL (185mm fixed minimum)
-  const bottomRailMm =
+  const bottomRailMm = bottomRailOverrideMm != null ? bottomRailOverrideMm : (
     doorStyle === 'half-glazed'  ? height / 2 :
     doorStyle === 'three-quarter' ? height / 3 :
-    LEAF_BOTTOM_RAIL;
+    LEAF_BOTTOM_RAIL);
   const fBot = mm(bottomRailMm);
+  const fTop = mm(topRailMm);
 
   // BOTH stiles and rails go full extent — overlap at corners = natural miter
   const glassW = width - stileWidthMm * 2;
-  const glassH = height - LEAF_TOP_RAIL - bottomRailMm;
+  const glassH = height - topRailMm - bottomRailMm;
 
   const lStile = useMemo(() => buildLeftStileShape(fS), [fS]);
   const rStile = useMemo(() => buildRightStileShape(fS), [fS]);
   const bRail = useMemo(() => buildBottomRailShape(fBot), [fBot]);
-  const tRail = useMemo(() => buildTopRailShape(F_TOP), []);
+  const tRail = useMemo(() => buildTopRailShape(fTop), [fTop]);
 
   const stileSettings = useMemo(() => ({ depth: H, bevelEnabled: false }), [H]);
   const railSettings = useMemo(() => ({ depth: W, bevelEnabled: false }), [W]);
@@ -206,9 +207,9 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
     return shapeFromPts(pts);
   }, [fBot]);
   const tRailExt = useMemo(() => {
-    const pts = [[0,F_TOP],[0,EBW],[EBD,0],[halfDepth,0],[halfDepth,F_TOP]];
+    const pts = [[0,fTop],[0,EBW],[EBD,0],[halfDepth,0],[halfDepth,fTop]];
     return shapeFromPts(pts);
-  }, []);
+  }, [fTop]);
 
   // INT halves
   const lStileInt = useMemo(() => {
@@ -233,10 +234,10 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
     return shapeFromPts(pts);
   }, [fBot]);
   const tRailInt = useMemo(() => {
-    const pts = [[halfDepth,F_TOP],[halfDepth,0],[D-IBR,0]];
+    const pts = [[halfDepth,fTop],[halfDepth,0],[D-IBR,0]];
     const arc = ovoloArc(D-IBR, IBR, IBR, -Math.PI/2, 0, OVOLO_N);
     pts.push(...arc);
-    pts.push([D,F_TOP]);
+    pts.push([D,fTop]);
     return shapeFromPts(pts);
   }, []);
 
@@ -257,7 +258,7 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   // ── Center mullion geometry (only used when centerMullion=true) ──
   const cmExt = useMemo(() => buildCenterMullionExt(fS, halfDepth), [fS]);
   const cmInt = useMemo(() => buildCenterMullionInt(fS, halfDepth), [fS]);
-  const mullionH = H - fBot - F_TOP;
+  const mullionH = H - fBot - fTop;
   const mullionSettings = useMemo(
     () => ({ depth: Math.max(mullionH, 0.001), bevelEnabled: false }),
     [mullionH]
@@ -824,12 +825,12 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
       )}
 
       {/* ─── Top rail EXT ─── */}
-      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-F_TOP,halfD]}>
+      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-fTop,halfD]}>
         <extrudeGeometry args={[tRailExt, railSettings]} />
         <primitive object={mat} attach="material" />
       </mesh>
       {/* ─── Top rail INT ─── */}
-      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-F_TOP,halfD]}>
+      <mesh castShadow receiveShadow rotation={[0,Math.PI/2,0]} position={[-W/2,H/2-fTop,halfD]}>
         <extrudeGeometry args={[tRailInt, railSettings]} />
         <primitive object={mi} attach="material" />
       </mesh>
@@ -850,13 +851,13 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
 
       {/* ─── Glazing (single when no mullion, split into 2 panels when centerMullion=true) ─── */}
       {glassW > 0 && glassH > 0 && !centerMullion && (
-        <DoorGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[0, mm((bottomRailMm - LEAF_TOP_RAIL) / 2), 0]} />
+        <DoorGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[0, mm((bottomRailMm - topRailMm) / 2), 0]} />
       )}
       {glassW > 0 && glassH > 0 && centerMullion && (() => {
         // Split glass into 2 panels with stileWidthMm-wide mullion between them
         const halfGlassW = (glassW - stileWidthMm) / 2;
         if (halfGlassW <= 0) return null;
-        const yOffset = mm((bottomRailMm - LEAF_TOP_RAIL) / 2);
+        const yOffset = mm((bottomRailMm - topRailMm) / 2);
         const xOff = mm(halfGlassW / 2 + stileWidthMm / 2);
         return (
           <>
@@ -891,6 +892,9 @@ export default function DoorPanel({
   centerMullion = false,
   paneling = 'flat',
   stileWidthMm,
+  topRailMm,
+  bottomRailMm,
+  showWeatherBar = true,
 }) {
   const mat = material;
   const W = mm(width);
@@ -964,7 +968,7 @@ export default function DoorPanel({
 
   const content = (
     <group>
-      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} stileWidthMm={stileWidthMm} />
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} stileWidthMm={stileWidthMm} topRailMm={topRailMm} bottomRailOverrideMm={bottomRailMm != null ? bottomRailMm : null} />
       {handleX !== null && (isSliding ? showHandle : hingeType !== 'fixed') && (
         <>
           {/* EXT handle — opposite side (was wrong in v1, flip side to fix) */}
@@ -984,7 +988,7 @@ export default function DoorPanel({
         </>
       )}
       {/* Weather bar — quarter-round drip bar, exterior bottom (not for sliding) */}
-      {!isSliding && (
+      {showWeatherBar && !isSliding && (
       <mesh castShadow receiveShadow position={[W / 2 - mm(10), -H / 2 + mm(40), halfD]} rotation={[0, -Math.PI / 2, 0]}>
         <extrudeGeometry args={[weatherBarShape, { depth: W - mm(20), bevelEnabled: false }]} />
         <primitive object={mat} attach="material" />
