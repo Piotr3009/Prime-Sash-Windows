@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/sitemap-journal.xml",
+      "destination": "/api/journal-sitemap"
+    },
+    {
       "source": "/case-studies",
       "destination": "/api/case-study"
     },

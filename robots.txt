@@ -11,6 +11,7 @@ Allow: /
 
 # Sitemap location
 Sitemap: https://www.primesashwindows.co.uk/sitemap.xml
+Sitemap: https://www.primesashwindows.co.uk/sitemap-journal.xml
 
 # Disallow admin and login pages
 Disallow: /admin-panel.html
