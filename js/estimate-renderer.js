@@ -1339,7 +1339,7 @@ class EstimateRenderer {
 
     // Layout table — ported VERBATIM from 3D CasementWindow.jsx getLayout()
     // (single source of truth: drawing matches the 3D model exactly)
-    static casementLayoutDef(code, innerW, innerH, height, fanlightRatio, fan2Ratio) {
+    static casementLayoutDef(code, innerW, innerH, height, fanlightRatio, fan2Ratio, middleSectionMm = 0) {
         const FRAME_FACE = 57, BOTTOM_FACE = 68, MULLION_W = 68;
 
       const half = innerW / 2;
@@ -1486,26 +1486,30 @@ class EstimateRenderer {
           };
         }
         case '133': {
-          const panelW = (innerW - mullW * 2) / 3;
-          const m1 = FRAME_FACE + panelW + mullW / 2;
-          const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+          // Custom middle section (mullion-axis setting-out); 0 -> equal thirds
+          const eqW = (innerW - mullW * 2) / 3;
+          const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+          const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+          const off = panelC / 2 + mullW + panelS / 2;
+          const m1 = FRAME_FACE + panelS + mullW / 2;
+          const m2 = m1 + panelC + mullW;
           const topH = innerH * FR;
           const bottomH = innerH - MULLION_W - topH;
           const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
           return {
             mullions: [m1, m2],
             transoms: [
-              { y: transomY, width: panelW, offsetX: -(panelW + mullW) },
-              { y: transomY, width: panelW, offsetX: 0 },
-              { y: transomY, width: panelW, offsetX: (panelW + mullW) },
+              { y: transomY, width: panelS, offsetX: -off },
+              { y: transomY, width: panelC, offsetX: 0 },
+              { y: transomY, width: panelS, offsetX: off },
             ],
             panels: [
-              { x: -(panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-              { x: 0,                 y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-              { x:  (panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-              { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
-              { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
-              { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+              { x: -off, y: (bottomH + MULLION_W) / 2, w: panelS, h: topH, hinge: 'top' },
+              { x: 0,                 y: (bottomH + MULLION_W) / 2, w: panelC, h: topH, hinge: 'top' },
+              { x:  off, y: (bottomH + MULLION_W) / 2, w: panelS, h: topH, hinge: 'top' },
+              { x: -off, y: -(topH + MULLION_W) / 2, w: panelS, h: bottomH, hinge: 'fixed' },
+              { x: 0,                 y: -(topH + MULLION_W) / 2, w: panelC, h: bottomH, hinge: 'fixed' },
+              { x:  off, y: -(topH + MULLION_W) / 2, w: panelS, h: bottomH, hinge: 'fixed' },
             ],
           };
         }
@@ -1662,15 +1666,19 @@ class EstimateRenderer {
     
         // ─── TRIPLE ───
         case '130': {
-          const panelW = (innerW - mullW * 2) / 3;
-          const m1 = FRAME_FACE + panelW + mullW / 2;
-          const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+          // Custom middle section (mullion-axis setting-out); 0 -> equal thirds
+          const eqW = (innerW - mullW * 2) / 3;
+          const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+          const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+          const off = panelC / 2 + mullW + panelS / 2;
+          const m1 = FRAME_FACE + panelS + mullW / 2;
+          const m2 = m1 + panelC + mullW;
           return {
             mullions: [m1, m2],
             panels: [
-              { x: -(panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'left' },
-              { x: 0,                 y: 0, w: panelW, h: innerH, hinge: 'fixed' },
-              { x:  (panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'right' },
+              { x: -off, y: 0, w: panelS, h: innerH, hinge: 'left' },
+              { x: 0,                 y: 0, w: panelC, h: innerH, hinge: 'fixed' },
+              { x:  off, y: 0, w: panelS, h: innerH, hinge: 'right' },
             ],
           };
         }
@@ -1711,44 +1719,52 @@ class EstimateRenderer {
     
         // ─── 131: Triple + transom ONLY in center ───
         case '131': {
-          const panelW = (innerW - mullW * 2) / 3;
-          const m1 = FRAME_FACE + panelW + mullW / 2;
-          const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+          // Custom middle section (mullion-axis setting-out); 0 -> equal thirds
+          const eqW = (innerW - mullW * 2) / 3;
+          const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+          const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+          const off = panelC / 2 + mullW + panelS / 2;
+          const m1 = FRAME_FACE + panelS + mullW / 2;
+          const m2 = m1 + panelC + mullW;
           const topH = innerH * FR;
           const bottomH = innerH - MULLION_W - topH;
           const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
           return {
             mullions: [m1, m2],
-            transoms: [{ y: transomY, width: panelW }],
+            transoms: [{ y: transomY, width: panelC }],
             panels: [
-              { x: -(panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'left' },
-              { x: 0, y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-              { x: 0, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
-              { x:  (panelW + mullW), y: 0, w: panelW, h: innerH, hinge: 'right' },
+              { x: -off, y: 0, w: panelS, h: innerH, hinge: 'left' },
+              { x: 0, y: (bottomH + MULLION_W) / 2, w: panelC, h: topH, hinge: 'top' },
+              { x: 0, y: -(topH + MULLION_W) / 2, w: panelC, h: bottomH, hinge: 'fixed' },
+              { x:  off, y: 0, w: panelS, h: innerH, hinge: 'right' },
             ],
           };
         }
     
         // ─── 132: Triple + transom full width ───
         case '132': {
-          const panelW = (innerW - mullW * 2) / 3;
-          const m1 = FRAME_FACE + panelW + mullW / 2;
-          const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+          // Custom middle section (mullion-axis setting-out); 0 -> equal thirds
+          const eqW = (innerW - mullW * 2) / 3;
+          const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+          const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+          const off = panelC / 2 + mullW + panelS / 2;
+          const m1 = FRAME_FACE + panelS + mullW / 2;
+          const m2 = m1 + panelC + mullW;
           const topH = innerH * FR;
           const bottomH = innerH - MULLION_W - topH;
           const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
           return {
             mullions: [m1, m2],
             transoms: [
-              { y: transomY, width: panelW, offsetX: -(panelW + mullW) },  // left transom
-              { y: transomY, width: panelW, offsetX: (panelW + mullW) },   // right transom
+              { y: transomY, width: panelS, offsetX: -off },  // left transom
+              { y: transomY, width: panelS, offsetX: off },   // right transom
             ],
             panels: [
-              { x: -(panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-              { x: 0,                 y: 0, w: panelW, h: innerH, hinge: 'fixed' },
-              { x:  (panelW + mullW), y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
-              { x: -(panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'left' },
-              { x:  (panelW + mullW), y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'right' },
+              { x: -off, y: (bottomH + MULLION_W) / 2, w: panelS, h: topH, hinge: 'top' },
+              { x: 0,                 y: 0, w: panelC, h: innerH, hinge: 'fixed' },
+              { x:  off, y: (bottomH + MULLION_W) / 2, w: panelS, h: topH, hinge: 'top' },
+              { x: -off, y: -(topH + MULLION_W) / 2, w: panelS, h: bottomH, hinge: 'left' },
+              { x:  off, y: -(topH + MULLION_W) / 2, w: panelS, h: bottomH, hinge: 'right' },
             ],
           };
         }
@@ -1785,7 +1801,8 @@ class EstimateRenderer {
         const FAN2_CODES_P1 = ['013','023'];
         const FAN_LAYOUTS_P1 = ['021','031','032','052L','052R','131','132','133','022','013','023'];
 
-        const def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, fh, FR, FR2)
+        const midSec = (['130','131','132','133'].includes(code) && parseInt(fc.casementMiddleWidth) > 0) ? parseInt(fc.casementMiddleWidth) : 0;
+        const def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, fh, FR, FR2, midSec)
                  || { panels: [{ x: 0, y: 0, w: innerW, h: innerH, hinge: 'fixed' }] };
         // Panel roles from ORIGINAL hinge (before opener overlay) — robust for 3-tier
         if (def.panels) {
@@ -1913,6 +1930,16 @@ class EstimateRenderer {
             svg += EstimateRenderer.sashDimVLeft(ox - DM * 0.55, oy, SY(transomTopRealY), ox, `${fanLabel}`, fs * 0.9);
         }
 
+        // Section-width caption for triple layouts (matches 3D guides / Light Sections row)
+        if (['130','131','132','133'].includes(code)) {
+            const capC = midSec > 0 ? midSec : Math.round(fw / 3);
+            const capS = Math.round((fw - capC) / 2);
+            const capY = oy - Math.max(6, M * 0.3);
+            const capFs = fs * 0.85;
+            svg += `<text x="${ox + capS / 2}" y="${capY}" font-size="${capFs}" fill="${G.navy}" text-anchor="middle" font-family="sans-serif">${capS}</text>`;
+            svg += `<text x="${ox + capS + capC / 2}" y="${capY}" font-size="${capFs}" fill="${G.navy}" text-anchor="middle" font-family="sans-serif">${capC}</text>`;
+            svg += `<text x="${ox + capS + capC + capS / 2}" y="${capY}" font-size="${capFs}" fill="${G.navy}" text-anchor="middle" font-family="sans-serif">${capS}</text>`;
+        }
         return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
     }
 
