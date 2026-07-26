@@ -550,6 +550,10 @@
           setRadio('fd-door-side-panels', fc.sidePanels);
           setRadio('fd-door-side-style', fc.sideStyle);
           setRadio('fd-door-center-mullion', fc.centerMullion);
+          // Transom (Stage 2)
+          setRadio('fd-transom-type', fc.transomType || 'none');
+          if (fc.transomHeight) setInput('fd-transom-height', fc.transomHeight, 'input');
+          setRadio('fd-transom-bars', fc.transomBars || 'none');
         }
 
         // Single external (uses door- prefix)

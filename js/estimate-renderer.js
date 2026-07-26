@@ -395,6 +395,14 @@ class EstimateRenderer {
         const bifoldFrameDepth = 95;
         const doorSillWider = fc.sillWider || false;
         const doorSidePanels = fc.sidePanels || 'none';
+        const doorTransomType = fc.transomType || 'none';
+        const doorTransomHeight = fc.transomHeight || 450;
+        const doorTransomBars = fc.transomBars || 'none';
+        let doorTransomText = '';
+        if (doorType === 'french' && doorTransomType !== 'none') {
+            doorTransomText = (doorTransomType === 'opening' ? 'Opening (Top-Hung)' : 'Fixed') + ' \u00b7 ' + doorTransomHeight + 'mm'
+                + (doorTransomBars === 'match' ? ' \u00b7 Bars: match door' : '');
+        }
         const doorSideLeftWidth = fc.sideLeftWidth || 500;
         const doorSideRightWidth = fc.sideRightWidth || 500;
         const doorHBars = fc.hBars || fc.doorHBars || 0;
@@ -453,7 +461,7 @@ class EstimateRenderer {
             fixShape, fixType, fixCircleBarPattern, fixCircleOffset, fixTypeText, fixBarsFull, fixSpacer, fixSpacerText,
             doorType, doorHingeSide, doorOpenDirection, doorLockType,
             doorThreshold, doorThresholdExtension, doorSillWider, doorThresholdText,
-            doorSidePanels, doorSideLeftWidth, doorSideRightWidth, doorPanelsText,
+            doorSidePanels, doorSideLeftWidth, doorSideRightWidth, doorPanelsText, doorTransomText,
             doorHBars, doorVBars, doorBarsText, doorSideHBars, doorSideVBars, doorSideBarsText,
             doorShape, doorShapeText, doorStyle, doorStyleText, doorSideStyle, doorSideStyleText,
             doorPaneling, doorPanelingText, doorCenterMullion,
@@ -588,6 +596,7 @@ class EstimateRenderer {
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
                             ${!p.isSlidingOrBifold && p.doorPanelsText ? R.specRow('Side Panels', p.doorPanelsText) : ''}
                             ${!p.isSlidingOrBifold && p.doorSidePanels !== 'none' ? R.specRow('Side Panel Style', p.doorSideStyleText) : ''}
+                            ${p.doorTransomText ? R.specRow('Transom', p.doorTransomText) : ''}
                             ${p.isSliding ? R.specRow('Slide Direction', p.slidingDirText) : (p.isBifold ? R.specRow('Fold Direction', p.bifoldFoldText) : R.specRow('Open First', p.doorHingeSide === 'right' ? 'Left' : 'Right'))}
                             ${p.isBifold ? R.specRow('Traffic Door', p.bifoldTrafficText) : ''}
                             ${p.isSliding ? R.specRow('Panel Size', p.slidingPanelWidth + 'mm × ' + p.slidingPanelDepth + 'mm') : (p.isBifold ? R.specRow('Panel Size', p.bifoldPanelWidth + 'mm × ' + p.bifoldPanelDepth + 'mm') : R.specRow('Opening', p.doorOpenDirection === 'outward' ? 'Outward' : 'Inward'))}

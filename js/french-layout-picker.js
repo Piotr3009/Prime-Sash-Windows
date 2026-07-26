@@ -21,6 +21,31 @@
     { value: 'both',  label: '+ Both Panels',  svg: thumbSvg('both')  }
   ];
 
+  var TRANSOM_RADIO = 'fd-transom-type';
+  var TRANSOMS = [
+    { value: 'none',    label: 'No Transom', svg: transomSvg('none')    },
+    { value: 'fixed',   label: 'Fixed',      svg: transomSvg('fixed')   },
+    { value: 'opening', label: 'Opening',    svg: transomSvg('opening') }
+  ];
+  var TRANSOM_ARCHED_GHOST = { label: 'Arched', svg: transomSvg('arched') };
+
+  function transomSvg(kind) {
+    var s = '<svg viewBox="0 0 60 72" fill="none" stroke="currentColor" stroke-width="2">';
+    if (kind === 'none') {
+      s += '<rect x="8" y="4" width="44" height="64"/><line x1="30" y1="4" x2="30" y2="68"/>';
+    } else if (kind === 'arched') {
+      s += '<path d="M8 68 L8 24 A22 20 0 0 1 52 24 L52 68 Z"/><path d="M12 23 A18 16 0 0 1 48 23"/>'
+         + '<line x1="8" y1="27" x2="52" y2="27" stroke-width="3.5"/><line x1="30" y1="27" x2="30" y2="68"/>';
+    } else {
+      s += '<rect x="8" y="4" width="44" height="64"/><rect x="12" y="8" width="36" height="14"/>'
+         + '<line x1="8" y1="26" x2="52" y2="26" stroke-width="3.5"/><line x1="30" y1="26" x2="30" y2="68"/>';
+      if (kind === 'opening') {
+        s += '<path d="M30 21 L14 9.5 M30 21 L46 9.5" stroke-dasharray="2.5 2.5" stroke-width="1.2"/>';
+      }
+    }
+    return s + '</svg>';
+  }
+
   function thumbSvg(kind) {
     var s = '<svg viewBox="0 0 60 72" fill="none" stroke="currentColor" stroke-width="2">';
     if (kind === 'none') {
@@ -54,6 +79,22 @@
   function layoutByValue(v) {
     for (var i = 0; i < LAYOUTS.length; i++) if (LAYOUTS[i].value === v) return LAYOUTS[i];
     return LAYOUTS[0];
+  }
+  function getTransomRadio(value) {
+    return document.querySelector('input[name="' + TRANSOM_RADIO + '"][value="' + value + '"]');
+  }
+  function currentTransom() {
+    var r = document.querySelector('input[name="' + TRANSOM_RADIO + '"]:checked');
+    return r ? r.value : 'none';
+  }
+  function transomByValue(v) {
+    for (var i = 0; i < TRANSOMS.length; i++) if (TRANSOMS[i].value === v) return TRANSOMS[i];
+    return TRANSOMS[0];
+  }
+  function transomHeightVal() {
+    var el = document.getElementById('fd-transom-height');
+    var n = el ? parseInt(el.value, 10) : 450;
+    return (n && n > 0) ? n : 450;
   }
   function isFrenchSelected() {
     var dt = document.querySelector('input[name="door-type"]:checked');
@@ -91,6 +132,9 @@
       + '.flp-opt.selected{border:2px solid #0a1628;padding:9px 7px;}'
       + '.flp-opt svg{width:60px;height:70px;display:block;margin:0 auto;}'
       + '.flp-opt-label{font-family:"Jost",sans-serif;font-size:11px;color:#0a1628;margin:6px 0 0;}'
+      + '.flp-opt.ghost{border:1px dashed #9E9E90;color:#9E9E90;cursor:default;}'
+      + '.flp-opt.ghost:hover{border-color:#9E9E90;}'
+      + '.flp-ghost-tag{font-family:"Jost",sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#9E9E90;margin:2px 0 0;}'
       + '@media (max-width:600px){.flp-opt{width:calc(50% - 5px);}}';
     var st = document.createElement('style');
     st.id = 'flp-styles';
@@ -112,7 +156,20 @@
       + '<p class="flp-tile-label" id="flp-tile-label"></p>'
       + '<p class="flp-tile-change">Change &rsaquo;</p>'
       + '</div>'
+      + '</div>'
+      + '<div class="input-group">'
+      + '<div class="flp-tile" id="flp-transom-tile" role="button" tabindex="0" aria-label="Change transom">'
+      + '<span id="flp-transom-tile-svg"></span>'
+      + '<p class="flp-tile-label" id="flp-transom-tile-label"></p>'
+      + '<p class="flp-tile-change">Change &rsaquo;</p>'
+      + '</div>'
       + '</div>';
+
+    var ttile = document.getElementById('flp-transom-tile');
+    ttile.addEventListener('click', function () { openModal('transom'); });
+    ttile.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('transom'); }
+    });
 
     var tile = document.getElementById('flp-tile');
     tile.addEventListener('click', openModal);
@@ -136,11 +193,23 @@
             + L.svg + '<p class="flp-opt-label">' + L.label + '</p></div>';
     }
 
+    var topts = '';
+    for (var j = 0; j < TRANSOMS.length; j++) {
+      var T = TRANSOMS[j];
+      topts += '<div class="flp-opt flp-transom-opt" data-value="' + T.value + '" role="button" tabindex="0">'
+             + T.svg + '<p class="flp-opt-label">' + T.label + '</p></div>';
+    }
+    topts += '<div class="flp-opt ghost" aria-disabled="true">'
+           + TRANSOM_ARCHED_GHOST.svg + '<p class="flp-opt-label" style="color:#9E9E90;">' + TRANSOM_ARCHED_GHOST.label + '</p>'
+           + '<p class="flp-ghost-tag">Coming Soon</p></div>';
+
     overlay.innerHTML = ''
       + '<div class="flp-modal" role="dialog" aria-label="Select door layout">'
       + '<button class="flp-close" id="flp-close" aria-label="Close">&times;</button>'
       + '<p class="flp-modal-title">Select Door Layout</p>'
       + '<div class="flp-grid" id="flp-grid">' + opts + '</div>'
+      + '<p class="flp-modal-title" id="flp-transom-title" style="margin-top:18px;">Transom / Fanlight</p>'
+      + '<div class="flp-grid" id="flp-transom-grid">' + topts + '</div>'
       + '</div>';
 
     document.body.appendChild(overlay);
@@ -168,13 +237,33 @@
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
       });
     });
+
+    overlay.querySelectorAll('.flp-transom-opt').forEach(function (opt) {
+      function pickT() {
+        var radio = getTransomRadio(opt.dataset.value);
+        if (radio && !radio.checked) {
+          radio.checked = true;
+          radio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        refresh();
+        closeModal();
+      }
+      opt.addEventListener('click', pickT);
+      opt.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickT(); }
+      });
+    });
   }
 
-  function openModal() {
+  function openModal(section) {
     buildModal();
     refresh();
     var ov = document.getElementById('flp-overlay');
     if (ov) ov.classList.add('open');
+    if (section === 'transom') {
+      var tt = document.getElementById('flp-transom-title');
+      if (tt) tt.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
   }
   function closeModal() {
     var ov = document.getElementById('flp-overlay');
@@ -199,6 +288,20 @@
         opt.classList.toggle('selected', opt.dataset.value === L.value);
       });
     }
+
+    var tv = currentTransom();
+    var T = transomByValue(tv);
+    var tSvg = document.getElementById('flp-transom-tile-svg');
+    var tLabel = document.getElementById('flp-transom-tile-label');
+    if (tSvg) tSvg.innerHTML = T.svg;
+    if (tLabel) tLabel.textContent = tv === 'none' ? 'No Transom' : (T.label + ' \u00b7 ' + transomHeightVal() + 'mm');
+
+    var tGrid = document.getElementById('flp-transom-grid');
+    if (tGrid) {
+      tGrid.querySelectorAll('.flp-transom-opt').forEach(function (opt) {
+        opt.classList.toggle('selected', opt.dataset.value === tv);
+      });
+    }
   }
 
   // ─── Init ───
@@ -212,6 +315,11 @@
     document.querySelectorAll('input[name="' + RADIO_NAME + '"]').forEach(function (r) {
       r.addEventListener('change', refresh);
     });
+    document.querySelectorAll('input[name="' + TRANSOM_RADIO + '"]').forEach(function (r) {
+      r.addEventListener('change', refresh);
+    });
+    var thEl = document.getElementById('fd-transom-height');
+    if (thEl) thEl.addEventListener('input', refresh);
     document.querySelectorAll('input[name="door-type"]').forEach(function (r) {
       r.addEventListener('change', refresh);
     });

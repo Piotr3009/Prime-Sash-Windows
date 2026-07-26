@@ -31,6 +31,7 @@ import { Text, Line } from '@react-three/drei';
 import DoorFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, GASKET_T, mm } from './DoorFrame';
 import DoorPanel, { SASH_RAIL } from './DoorPanel';
 import DoorSidePanel from './DoorSidePanel';
+import TransomPanel from './TransomPanel';
 
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
@@ -467,6 +468,9 @@ export default function DoorWindow({
   foldDirection = 'left',
   trafficDoor = 'no',
   bifoldOpenDirection = 'outward',
+  transomType = 'none',
+  transomHeight = 450,
+  transomBars = 'none',
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -968,6 +972,56 @@ export default function DoorWindow({
         />
       )}
 
+      {/* ═══ Transom / fanlight units — stacked above (french only, stage 2) ═══ */}
+      {transomType !== 'none' && transomHeight > 0 && layout === '040F' && (() => {
+        const tHasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
+        const tHasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
+        const transomY = H / 2 + mm(transomHeight) / 2;
+        const matchBars = transomBars === 'match';
+        const shared = {
+          height: transomHeight,
+          woodColor, woodColorExt, woodColorInt, sameColor,
+          spacerColor, glassFinish, glassType, sealColour,
+          ironmongery: typeof ironmongery === 'string' ? ironmongery : 'brass',
+        };
+        return (
+          <group>
+            {/* Over the doors — 2 panes, central mullion in line with the meeting stiles */}
+            <TransomPanel
+              {...shared}
+              width={width}
+              panes={2}
+              stileWidthMm={93}
+              vBars={matchBars ? vBars : 0}
+              transomOpening={transomType === 'opening'}
+              position={[0, transomY, 0]}
+            />
+            {tHasLeft && (
+              <TransomPanel
+                {...shared}
+                width={sideLeftWidth}
+                panes={1}
+                stileWidthMm={57}
+                vBars={matchBars ? sideVBars : 0}
+                transomOpening={false}
+                position={[-W / 2 - mm(sideLeftWidth) / 2, transomY, 0]}
+              />
+            )}
+            {tHasRight && (
+              <TransomPanel
+                {...shared}
+                width={sideRightWidth}
+                panes={1}
+                stileWidthMm={57}
+                vBars={matchBars ? sideVBars : 0}
+                transomOpening={false}
+                position={[W / 2 + mm(sideRightWidth) / 2, transomY, 0]}
+              />
+            )}
+          </group>
+        );
+      })()}
+
       {/* ═══ Door Hinges — visible barrel cylinders on exterior ═══ */}
       {(() => {
         if (!layoutDef.panels) return null;
@@ -1075,12 +1129,29 @@ export default function DoorWindow({
             )}
 
             {/* Height — right side */}
-            <DimensionGuide
-              from={[totalRightX + mm(80), -H/2, 0]}
-              to={[totalRightX + mm(80), H/2, 0]}
-              label={`${height}mm`}
-              offset={[0.07, 0, 0]}
-            />
+            {(() => {
+              const hasTransom = transomType !== 'none' && transomHeight > 0 && layout === '040F';
+              const topY = hasTransom ? H / 2 + mm(transomHeight) : H / 2;
+              const totalHeightMm = hasTransom ? height + transomHeight : height;
+              return (
+                <group>
+                  <DimensionGuide
+                    from={[totalRightX + mm(80), -H/2, 0]}
+                    to={[totalRightX + mm(80), topY, 0]}
+                    label={`${totalHeightMm}mm`}
+                    offset={[0.07, 0, 0]}
+                  />
+                  {hasTransom && (
+                    <DimensionGuide
+                      from={[totalRightX + mm(30), H/2, 0]}
+                      to={[totalRightX + mm(30), topY, 0]}
+                      label={`${transomHeight}`}
+                      offset={[0.05, 0, 0]}
+                    />
+                  )}
+                </group>
+              );
+            })()}
             {/* Depth — left side */}
             <DimensionGuide
               from={[totalLeftX - mm(80), 0, -halfD]}

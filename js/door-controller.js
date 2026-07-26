@@ -112,6 +112,11 @@
       frameDepth = 15 + (trackCount * panelDepth) + ((trackCount - 1) * 5) + 15;
     }
 
+    // Transom / fanlight (Stage 2 — french only)
+    var transomType = isFrench ? (checked('fd-transom-type') || 'none') : 'none';
+    var transomHeight = isFrench ? (numVal('fd-transom-height') || 450) : 0;
+    var transomBars = isFrench ? (checked('fd-transom-bars') || 'none') : 'none';
+
     return {
       productType: 'door',
       doorType: doorType,
@@ -129,6 +134,9 @@
       sideHBars: parseInt(checked('d-side-hbars') || '0'),
       sideVBars: parseInt(checked('d-side-vbars') || '0'),
       sideStyle: (isSliding || isBifold) ? 'full-glass' : (checked(prefix + 'side-style') || 'full-glass'),
+      transomType: transomType,
+      transomHeight: transomHeight,
+      transomBars: transomBars,
       glassType: checked('d-glass-type') || 'double',
       glassFinish: checked('d-glass-finish') || 'clear',
       spacerColor: checked('d-spacer-color') || 'white',
@@ -198,6 +206,9 @@
       sideHBars: config.sideHBars,
       sideVBars: config.sideVBars,
       sideStyle: config.sideStyle,
+      transomType: config.transomType,
+      transomHeight: config.transomHeight,
+      transomBars: config.transomBars,
       glassFinish: config.glassFinish,
       spacerColor: config.spacerColor,
       doorHinge: config.hingeSide,
@@ -327,6 +338,20 @@
         panelsVal.textContent = panelDesc.join(' + ');
       } else {
         panelsItem.style.display = 'none';
+      }
+    }
+
+    // Transom spec line (french only)
+    var transomItem = $('spec-d-transom-item');
+    var transomVal = $('spec-d-transom');
+    if (transomItem && transomVal) {
+      if (config.doorType === 'french' && config.transomType && config.transomType !== 'none') {
+        transomItem.style.display = '';
+        var tLabel = (config.transomType === 'opening' ? 'Opening (Top-Hung)' : 'Fixed') + ' \u00b7 ' + config.transomHeight + 'mm';
+        if (config.transomBars === 'match') tLabel += ' \u00b7 Bars: match door';
+        transomVal.textContent = tLabel;
+      } else {
+        transomItem.style.display = 'none';
       }
     }
 
@@ -566,6 +591,7 @@
      'fd-door-shape', 'fd-door-style', 'fd-door-paneling', 'fd-door-side-panels', 'fd-door-center-mullion', 'fd-door-side-style',
      'sl-door-panel-count', 'sl-door-slide-direction',
      'bf-fold-direction', 'bf-traffic-door', 'bf-open-direction',
+     'fd-transom-type', 'fd-transom-bars',
      'd-seal-colour', 'd-trickle-vent', 'd-trickle-colour'].forEach(function(name) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(function(radio) {
         radio.addEventListener('change', debouncedUpdate);
@@ -593,6 +619,19 @@
       });
     });
     updateThresholdUI(); // initial state
+
+    // Transom type -> show/hide height+bars options
+    function updateTransomUI() {
+      var tt = checked('fd-transom-type') || 'none';
+      var row = $('fd-transom-options');
+      if (row) row.style.display = tt === 'none' ? 'none' : '';
+    }
+    document.querySelectorAll('input[name="fd-transom-type"]').forEach(function(radio) {
+      radio.addEventListener('change', updateTransomUI);
+    });
+    var transomHeightEl = $('fd-transom-height');
+    if (transomHeightEl) transomHeightEl.addEventListener('input', debouncedUpdate);
+    updateTransomUI(); // initial state
 
     // Opening slider — immediate update (no debounce) for smooth animation
     var openSlider = $('d-door-opening');
