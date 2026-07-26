@@ -1124,13 +1124,14 @@ export default function DoorWindow({
         const totalLeftX = hasLeft ? -W / 2 - mm(sideLeftWidth) : -W / 2;
         const totalRightX = hasRight ? W / 2 + mm(sideRightWidth) : W / 2;
         const totalWidthMm = width + (hasLeft ? sideLeftWidth : 0) + (hasRight ? sideRightWidth : 0);
+        const dimTopBase = (transomType !== 'none' && transomHeight > 0 && layout === '040F') ? H / 2 + mm(transomHeight) : H / 2;
 
         return (
           <group>
             {/* Total width — top */}
             <DimensionGuide
-              from={[totalLeftX, H/2 + mm(hasPanels ? 140 : 80), 0]}
-              to={[totalRightX, H/2 + mm(hasPanels ? 140 : 80), 0]}
+              from={[totalLeftX, dimTopBase + mm(hasPanels ? 140 : 80), 0]}
+              to={[totalRightX, dimTopBase + mm(hasPanels ? 140 : 80), 0]}
               label={`${totalWidthMm}mm`}
               offset={[0, 0.05, 0]}
             />
@@ -1140,22 +1141,22 @@ export default function DoorWindow({
               <group>
                 {hasLeft && (
                   <DimensionGuide
-                    from={[totalLeftX, H/2 + mm(60), 0]}
-                    to={[-W / 2, H/2 + mm(60), 0]}
+                    from={[totalLeftX, dimTopBase + mm(60), 0]}
+                    to={[-W / 2, dimTopBase + mm(60), 0]}
                     label={`${sideLeftWidth}`}
                     offset={[0, 0.04, 0]}
                   />
                 )}
                 <DimensionGuide
-                  from={[-W / 2, H/2 + mm(60), 0]}
-                  to={[W / 2, H/2 + mm(60), 0]}
+                  from={[-W / 2, dimTopBase + mm(60), 0]}
+                  to={[W / 2, dimTopBase + mm(60), 0]}
                   label={`${width}`}
                   offset={[0, 0.04, 0]}
                 />
                 {hasRight && (
                   <DimensionGuide
-                    from={[W / 2, H/2 + mm(60), 0]}
-                    to={[totalRightX, H/2 + mm(60), 0]}
+                    from={[W / 2, dimTopBase + mm(60), 0]}
+                    to={[totalRightX, dimTopBase + mm(60), 0]}
                     label={`${sideRightWidth}`}
                     offset={[0, 0.04, 0]}
                   />

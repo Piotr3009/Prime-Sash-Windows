@@ -553,7 +553,7 @@ export default function CasementWindow({
       }
       return def;
     },
-    [layout, innerW, innerH, height, fanlightRatio, fan2Ratio, casementHinges]
+    [layout, innerW, innerH, height, fanlightRatio, fan2Ratio, casementHinges, middleSection]
   );
 
   const W = mm(width);
@@ -685,13 +685,32 @@ export default function CasementWindow({
 
       {showGuides && (
         <group>
-          {/* Width — top */}
-          <DimensionGuide
-            from={[-W/2, H/2 + mm(80), 0]}
-            to={[W/2, H/2 + mm(80), 0]}
-            label={`${width}mm`}
-            offset={[0, 0.05, 0]}
-          />
+          {/* Width — top: total; per-section row below for triple layouts */}
+          {(() => {
+            const isTripleL = ['130', '131', '132', '133'].includes(layout);
+            const secC = isTripleL ? (middleSection > 0 ? middleSection : width / 3) : 0;
+            const secS = isTripleL ? (width - secC) / 2 : 0;
+            const a1 = -W / 2 + mm(secS);
+            const a2 = a1 + mm(secC);
+            const totY = H / 2 + mm(isTripleL ? 140 : 80);
+            return (
+              <group>
+                <DimensionGuide
+                  from={[-W/2, totY, 0]}
+                  to={[W/2, totY, 0]}
+                  label={`${width}mm`}
+                  offset={[0, 0.05, 0]}
+                />
+                {isTripleL && (
+                  <group>
+                    <DimensionGuide from={[-W/2, H/2 + mm(60), 0]} to={[a1, H/2 + mm(60), 0]} label={`${Math.round(secS)}`} offset={[0, 0.04, 0]} />
+                    <DimensionGuide from={[a1, H/2 + mm(60), 0]} to={[a2, H/2 + mm(60), 0]} label={`${Math.round(secC)}`} offset={[0, 0.04, 0]} />
+                    <DimensionGuide from={[a2, H/2 + mm(60), 0]} to={[W/2, H/2 + mm(60), 0]} label={`${Math.round(secS)}`} offset={[0, 0.04, 0]} />
+                  </group>
+                )}
+              </group>
+            );
+          })()}
           {/* Height — right side */}
           <DimensionGuide
             from={[W/2 + mm(130), -H/2, 0]}
