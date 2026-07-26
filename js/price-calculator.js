@@ -555,7 +555,7 @@ class PriceCalculator {
 
     // ── 3b. Transom / fanlight (french only, stage 2) ──
     // Area = full width (doors + side panels) × transom height, priced at the
-    // french base rate (£730/m²). Opening: flat £100 hardware surcharge.
+    // side-panel rate (£500/m²). Opening: flat £100 hardware surcharge.
     // Bars 'match': computed transom bar count × standard barRate.
     let transomPrice = 0;
     let transomSqm = 0;
@@ -566,7 +566,7 @@ class PriceCalculator {
         + (hasLeft ? (configuration.sideLeftWidth || 500) / 1000 : 0)
         + (hasRight ? (configuration.sideRightWidth || 500) / 1000 : 0);
       transomSqm = totalWm * tH;
-      transomPrice = (DOOR_BASE_PER_SQM + FRENCH_SURCHARGE_PER_SQM) * transomSqm;
+      transomPrice = PANEL_BASE_PER_SQM * transomSqm;
       if (transomType === 'opening') {
         const TRANSOM_OPENING_SURCHARGE = 100;
         transomPrice += TRANSOM_OPENING_SURCHARGE;
