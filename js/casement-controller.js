@@ -460,6 +460,28 @@
     }
   }
 
+  // ─── Price sync (audit fix): option inputs previously refreshed 3D only ───
+  // Every price-affecting option now ALSO refreshes spec + fresh config + price.
+  // Existing 3D listeners are untouched — this is attached in parallel.
+  var debouncedPriceSync = debounce(function() {
+    updateSpecPanel();
+    window.currentConfig = getCasementConfig();
+    updateCasementPrice();
+  }, 300);
+
+  function setupPriceSync() {
+    var priceNames = [
+      'c-hbars', 'c-vbars', 'c-fan-hbars', 'c-fan-vbars', 'c-fan2-hbars', 'c-fan2-vbars',
+      'c-glass-type', 'c-glass-spec', 'c-glass-finish', 'c-spacer-color', 'c-pas24',
+      'c-trickle-vent', 'c-trickle-colour', 'c-sill-ext', 'c-sill-wider', 'c-safety-glass'
+    ];
+    priceNames.forEach(function(name) {
+      document.querySelectorAll('input[name="' + name + '"]').forEach(function(r) {
+        r.addEventListener('change', debouncedPriceSync);
+      });
+    });
+  }
+
   // ─── Colour logic (matching sash tile system) ───
   function setupColour() {
     // Single/Dual toggle
@@ -903,6 +925,7 @@
     setupDimSelect('c-width-select', 'c-width-custom', 'c-width');
     setupDimSelect('c-height-select', 'c-height-custom', 'c-height');
     setupLayoutChange();
+    setupPriceSync();
     setupColour();
     setupLiveWatchers();
 

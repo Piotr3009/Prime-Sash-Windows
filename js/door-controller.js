@@ -589,7 +589,7 @@
     // Door shape/style/paneling changes (single + french + sliding)
     ['door-shape', 'door-style', 'door-paneling', 'door-side-panels', 'door-center-mullion', 'door-side-style',
      'fd-door-shape', 'fd-door-style', 'fd-door-paneling', 'fd-door-side-panels', 'fd-door-center-mullion', 'fd-door-side-style',
-     'sl-door-panel-count', 'sl-door-slide-direction',
+     'sl-door-panel-count', 'sl-door-slide-direction', 'sl-door-extra-width',
      'bf-fold-direction', 'bf-traffic-door', 'bf-open-direction',
      'fd-transom-type', 'fd-transom-bars',
      'd-seal-colour', 'd-trickle-vent', 'd-trickle-colour'].forEach(function(name) {
