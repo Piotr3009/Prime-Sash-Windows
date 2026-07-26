@@ -502,6 +502,17 @@ export default function DoorWindow({
   const innerW = width - effectiveFrameFace * 2;
   const innerH = height - (isSlidingOrBifold ? SLIDING_FRAME_FACE : FRAME_FACE) - BOTTOM_FACE;
 
+  // ─── Coupled transom (stage 2, french only): ONE taller frame, internal 68mm rail,
+  //     single fixed 64mm-stile pane above the doors. Door top frame member IS the
+  //     transom bottom (shared internal rail) — ref. corrected spec.
+  const transomActive = transomType !== 'none' && transomHeight > 0 && layout === '040F' && !isSlidingOrBifold;
+  const frTransomH = transomActive ? transomHeight : 0;
+  const TRANSOM_SASH_STILE = 64;
+  // Internal rail: bottom edge flush with the door opening top (height - FRAME_FACE)
+  const transomRailY = height - FRAME_FACE + MULLION_W / 2;            // frame-local, from bottom
+  const transomCavityH = frTransomH - MULLION_W;        // opening above the rail
+  const transomPaneCenterLocal = height - FRAME_FACE + MULLION_W + transomCavityH / 2;
+
   // Get layout definition
   const layoutDef = useMemo(
     () => {
@@ -602,21 +613,80 @@ export default function DoorWindow({
       ) : (
         /* Standard doors: profiled frame with rebate and seal */
         <group scale={[1, 1, openDirection === 'inward' ? -1 : 1]}>
+          <group position={[0, mm(frTransomH) / 2, 0]}>
           <DoorFrame
             width={width}
-            height={height}
+            height={height + frTransomH}
             material={openDirection === 'inward' ? intMaterial : extMaterial}
             materialInt={openDirection === 'inward' ? extMaterial : intMaterial}
             sealColour={sealColour}
             mullions={layoutDef.mullions || []}
-            transoms={layoutDef.transoms || []}
+            transoms={transomActive ? (layoutDef.transoms || []).concat([{ y: transomRailY, width: innerW, offsetX: 0 }]) : (layoutDef.transoms || [])}
             debugColors={false}
             thresholdType={thresholdType}
             thresholdExtension={thresholdExtension}
             openDirection={openDirection}
           />
+          </group>
         </group>
       )}
+
+      {/* ─── Transom fixed pane (single, 64mm sash stiles) + top-hung hardware ─── */}
+      {transomActive && transomCavityH > 100 && (() => {
+        const leafGap = 4;
+        const paneW = innerW + REBATE_STEP * 2 - leafGap * 2;
+        const paneH = transomCavityH + REBATE_STEP * 2 - leafGap * 2;
+        const paneY = mm(transomPaneCenterLocal) - H / 2;
+        const paneZ = halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(57) / 2;
+        const matchBars = transomBars === 'match';
+        const paneVBars = matchBars ? (vBars > 0 ? vBars * 2 + 1 : 0) : 0;
+        const hingeColorsT = {
+          brass: '#d4af37', chrome: '#e8eaec', stainless: '#c8c8c8',
+          antique_brass: '#9c7722', black: '#1a1a1a', white: '#f0f0f0',
+        };
+        const tIron = typeof ironmongery === 'string' ? ironmongery : 'brass';
+        const hingeColor = hingeColorsT[tIron] || '#c8c8c8';
+        const paneTopY = paneY + mm(paneH) / 2;
+        const paneBottomY = paneY - mm(paneH) / 2;
+        return (
+          <group>
+            <DoorPanel
+              width={paneW}
+              height={paneH}
+              hingeType="fixed"
+              opening={0}
+              doorStyle="full-glass"
+              centerMullion={false}
+              paneling="flat"
+              material={extMaterial}
+              materialInt={intMaterial}
+              spacerColor={spacerColor}
+              glassFinish={glassFinish}
+              hBars={0}
+              vBars={paneVBars}
+              ironmongery={tIron}
+              stileWidthMm={TRANSOM_SASH_STILE}
+              position={[0, paneY, paneZ]}
+            />
+            {transomType === 'opening' && (
+              <group>
+                <mesh position={[-mm(innerW) / 2 + mm(150), paneTopY - mm(20), halfD]} rotation={[0, 0, Math.PI / 2]} castShadow>
+                  <cylinderGeometry args={[mm(5), mm(5), mm(80), 16]} />
+                  <meshStandardMaterial color={hingeColor} metalness={0.7} roughness={0.3} />
+                </mesh>
+                <mesh position={[mm(innerW) / 2 - mm(150), paneTopY - mm(20), halfD]} rotation={[0, 0, Math.PI / 2]} castShadow>
+                  <cylinderGeometry args={[mm(5), mm(5), mm(80), 16]} />
+                  <meshStandardMaterial color={hingeColor} metalness={0.7} roughness={0.3} />
+                </mesh>
+                <mesh position={[0, paneBottomY + mm(30), halfD - mm(6)]} rotation={[0, 0, 0.5]} castShadow>
+                  <boxGeometry args={[mm(90), mm(8), mm(4)]} />
+                  <meshStandardMaterial color={hingeColor} metalness={0.7} roughness={0.3} />
+                </mesh>
+              </group>
+            )}
+          </group>
+        );
+      })()}
 
       {/* ─── Panels (leaves) ─── */}
       {/* Bi-fold: accordion fold rendering */}
@@ -946,6 +1016,9 @@ export default function DoorWindow({
           sealColour={sealColour}
           thresholdType={thresholdType}
           thresholdExtension={thresholdExtension}
+          transomHeight={transomActive ? transomHeight : 0}
+          transomVBars={transomBars === 'match' ? sideVBars : 0}
+          transomOpening={false}
           position={[-W / 2 - mm(sideLeftWidth) / 2, 0, 0]}
         />
       )}
@@ -968,59 +1041,12 @@ export default function DoorWindow({
           sealColour={sealColour}
           thresholdType={thresholdType}
           thresholdExtension={thresholdExtension}
+          transomHeight={transomActive ? transomHeight : 0}
+          transomVBars={transomBars === 'match' ? sideVBars : 0}
+          transomOpening={false}
           position={[W / 2 + mm(sideRightWidth) / 2, 0, 0]}
         />
       )}
-
-      {/* ═══ Transom / fanlight units — stacked above (french only, stage 2) ═══ */}
-      {transomType !== 'none' && transomHeight > 0 && layout === '040F' && (() => {
-        const tHasLeft = (sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0;
-        const tHasRight = (sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0;
-        const transomY = H / 2 + mm(transomHeight) / 2;
-        const matchBars = transomBars === 'match';
-        const shared = {
-          height: transomHeight,
-          woodColor, woodColorExt, woodColorInt, sameColor,
-          spacerColor, glassFinish, glassType, sealColour,
-          ironmongery: typeof ironmongery === 'string' ? ironmongery : 'brass',
-        };
-        return (
-          <group>
-            {/* Over the doors — 2 panes, central mullion in line with the meeting stiles */}
-            <TransomPanel
-              {...shared}
-              width={width}
-              panes={2}
-              stileWidthMm={93}
-              vBars={matchBars ? vBars : 0}
-              transomOpening={transomType === 'opening'}
-              position={[0, transomY, 0]}
-            />
-            {tHasLeft && (
-              <TransomPanel
-                {...shared}
-                width={sideLeftWidth}
-                panes={1}
-                stileWidthMm={57}
-                vBars={matchBars ? sideVBars : 0}
-                transomOpening={false}
-                position={[-W / 2 - mm(sideLeftWidth) / 2, transomY, 0]}
-              />
-            )}
-            {tHasRight && (
-              <TransomPanel
-                {...shared}
-                width={sideRightWidth}
-                panes={1}
-                stileWidthMm={57}
-                vBars={matchBars ? sideVBars : 0}
-                transomOpening={false}
-                position={[W / 2 + mm(sideRightWidth) / 2, transomY, 0]}
-              />
-            )}
-          </group>
-        );
-      })()}
 
       {/* ═══ Door Hinges — visible barrel cylinders on exterior ═══ */}
       {(() => {

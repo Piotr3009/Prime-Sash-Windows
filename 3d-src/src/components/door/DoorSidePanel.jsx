@@ -33,6 +33,9 @@ export default function DoorSidePanel({
   sealColour = 'black',
   thresholdType = 'standard',
   thresholdExtension = 0,
+  transomHeight = 0,
+  transomVBars = 0,
+  transomOpening = false,
 }) {
   const colorE = sameColor ? woodColor : woodColorExt;
   const colorI = sameColor ? woodColor : woodColorInt;
@@ -54,6 +57,15 @@ export default function DoorSidePanel({
   const innerW = width - FRAME_FACE * 2;
   const innerH = height - FRAME_FACE - BOTTOM_FACE;
 
+  // Coupled transom above the side panel (stage 2): taller frame + internal 68mm rail
+  const MULLION_W = 68;
+  const TRANSOM_SASH_STILE = 64;
+  const hasTransom = transomHeight > 0;
+  const frTransomH = hasTransom ? transomHeight : 0;
+  const transomRailY = height - FRAME_FACE + MULLION_W / 2;
+  const transomCavityH = frTransomH - MULLION_W;
+  const transomPaneCenterLocal = height - FRAME_FACE + MULLION_W + transomCavityH / 2;
+
   // Leaf dimensions — extends into rebate, same as DoorWindow (line 420-422)
   const leafGap = 4;
   const leafW = innerW + REBATE_STEP * 2 - leafGap * 2;
@@ -70,15 +82,18 @@ export default function DoorSidePanel({
   return (
     <group position={position}>
       {/* Outer frame + threshold — same profile as main door */}
+      <group position={[0, mm(frTransomH) / 2, 0]}>
       <DoorFrame
         width={width}
-        height={height}
+        height={height + frTransomH}
         material={extMaterial}
         materialInt={intMaterial}
         sealColour={sealColour}
+        transoms={hasTransom ? [{ y: transomRailY, width: innerW, offsetX: 0 }] : []}
         thresholdType={thresholdType}
         thresholdExtension={thresholdExtension}
       />
+      </group>
 
       {/* Fixed leaf — full SashFrame with chamfer/ovolo beads, beading, paneling */}
       <DoorPanel
@@ -99,6 +114,28 @@ export default function DoorSidePanel({
         stileWidthMm={57}
         position={[0, openingCenterY, leafZ]}
       />
+
+      {/* Coupled transom pane — 64mm sash stiles */}
+      {hasTransom && transomCavityH > 100 && (
+        <DoorPanel
+          width={innerW + REBATE_STEP * 2 - 8}
+          height={transomCavityH + REBATE_STEP * 2 - 8}
+          hingeType="fixed"
+          opening={0}
+          doorStyle="full-glass"
+          centerMullion={false}
+          paneling="flat"
+          material={extMaterial}
+          materialInt={intMaterial}
+          spacerColor={spacerColor}
+          glassFinish={glassFinish}
+          hBars={0}
+          vBars={transomVBars}
+          ironmongery="brass"
+          stileWidthMm={TRANSOM_SASH_STILE}
+          position={[0, mm(transomPaneCenterLocal) - mm(height) / 2, leafZ]}
+        />
+      )}
     </group>
   );
 }
