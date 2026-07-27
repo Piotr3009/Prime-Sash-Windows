@@ -108,7 +108,7 @@ class EstimateRenderer {
     static visualBox(caption, inner, bg, pad) {
         return `<div style="min-width:0;border:1px solid rgba(10,22,40,.85);border-radius:2px;overflow:hidden;box-shadow:0 2px 8px rgba(10,22,40,.10);background:#FAFAF8;">
             <div style="background:#0A1628;color:#F3F0EA;font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;padding:5px 6px;text-align:center;">${caption}</div>
-            <div style="position:relative;display:flex;align-items:center;justify-content:center;background:${bg || '#DAD7D0'};padding:${pad || '0'};">${inner}</div>
+            <div style="position:relative;display:flex;align-items:center;justify-content:center;background:${bg || '#A9A69B'};padding:${pad || '0'};">${inner}</div>
         </div>`;
     }
 

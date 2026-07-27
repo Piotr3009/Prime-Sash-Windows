@@ -510,7 +510,7 @@ function ScreenshotHelper({ config }) {
         const capture = (pos) => {
           // Set grey background for clean screenshot
           const oldBg = scene.background;
-          scene.background = new THREE.Color(0xdad7d0);
+          scene.background = new THREE.Color(0xa9a69b);
           
           // Hide wall, floor, shadows, and dimension guides
           const hidden = [];
