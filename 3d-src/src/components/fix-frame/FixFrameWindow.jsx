@@ -1230,7 +1230,7 @@ function EllipticalFrame({ width, height, depth, mat, matInt, glassMat, spacerCo
 function DimensionGuide({ from, to, label, offset = [0,0,0] }) {
   const mid = [(from[0]+to[0])/2+offset[0],(from[1]+to[1])/2+offset[1],(from[2]+to[2])/2+offset[2]];
   const points = [from, to].map(p => new THREE.Vector3(p[0],p[1],p[2]));
-  return (<group><Line points={points} color="#22324a" lineWidth={1.25} transparent opacity={0.9} /><Text position={mid} fontSize={0.06} color="#22324a" anchorX="center" anchorY="middle" outlineColor="#f5f2ec" outlineWidth={0.008}>{label}</Text></group>);
+  return (<group name="dim-guide"><Line points={points} color="#22324a" lineWidth={1.25} transparent opacity={0.9} /><Text position={mid} fontSize={0.06} color="#22324a" anchorX="center" anchorY="middle" outlineColor="#f5f2ec" outlineWidth={0.008}>{label}</Text></group>);
 }
 
 /* ═══ MAIN ═══ */

@@ -1211,7 +1211,7 @@ function DimensionGuide({ from, to, label, offset = [0, 0, 0] }) {
   ];
   const points = [from, to].map((p) => new THREE.Vector3(p[0], p[1], p[2]));
   return (
-    <group>
+    <group name="dim-guide">
       <Line points={points} color="#22324a" lineWidth={1.25} transparent opacity={0.9} />
       <Text position={mid} fontSize={0.06} color="#22324a" anchorX="center" anchorY="middle"
         outlineColor="#f5f2ec" outlineWidth={0.008}>

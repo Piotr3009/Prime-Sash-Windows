@@ -510,12 +510,18 @@ function ScreenshotHelper({ config }) {
         const capture = (pos) => {
           // Set grey background for clean screenshot
           const oldBg = scene.background;
-          scene.background = new THREE.Color(0xe8e8e8);
+          scene.background = new THREE.Color(0xdad7d0);
           
           // Hide wall, floor, shadows, and dimension guides
           const hidden = [];
           scene.traverse((obj) => {
             if (!obj.visible) return;
+            // Hide dimension guides (line + label) — tagged group, see DimensionGuide
+            if (obj.name === 'dim-guide') {
+              obj.visible = false;
+              hidden.push(obj);
+              return;
+            }
             // Hide large background planes (wall, floor)
             if (obj.isMesh && obj.geometry) {
               const params = obj.geometry.parameters;

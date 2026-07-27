@@ -103,6 +103,21 @@ class EstimateRenderer {
         </div>`;
     }
 
+    // Framed visual box: navy caption strip + fixed 4:5 stage.
+    // Used for both 3D renders and the technical drawing so the card reads as one set.
+    static visualBox(caption, inner, bg) {
+        return `<div style="min-width:0;border:1px solid rgba(10,22,40,.85);border-radius:2px;overflow:hidden;box-shadow:0 2px 8px rgba(10,22,40,.10);background:#FAFAF8;">
+            <div style="background:#0A1628;color:#F3F0EA;font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;padding:5px 6px;text-align:center;">${caption}</div>
+            <div style="position:relative;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;padding:10px;background:${bg || '#DAD7D0'};overflow:hidden;">${inner}</div>
+        </div>`;
+    }
+
+    // Zoomable render inside a visual box
+    static visualImage(src) {
+        return `<img src="${src}" onclick="EstimateRenderer.zoomImage(this)" style="max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;display:block;" />
+            <span style="position:absolute;bottom:8px;right:8px;width:22px;height:22px;background:rgba(10,22,40,.78);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><line x1="15.5" y1="15.5" x2="21" y2="21"/><line x1="10" y1="7" x2="10" y2="13"/><line x1="7" y1="10" x2="13" y2="10"/></svg></span>`;
+    }
+
     // Parse item data for rendering and export
     static parseItem(item) {
         const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
@@ -548,25 +563,29 @@ class EstimateRenderer {
                     <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${p.quantity} · £${R.formatPrice(item.total_price)}</span>
                 </div>
 
-                <div style="display:grid;grid-template-columns:280px 1fr;gap:0;">
-                    <div style="padding:1rem;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:rgba(158,158,144,.04);border-right:1px solid rgba(158,158,144,.1);gap:10px;">
-                        ${screenshots?.interior ? `
-                        <div style="text-align:center;">
-                            <div style="font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);margin-bottom:4px;">${p.windowType === 'door' ? 'Exterior View' : 'Interior View'}</div>
-                            <div style="position:relative;display:inline-block;"><img src="${screenshots.interior}" onclick="EstimateRenderer.zoomImage(this)" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;cursor:zoom-in;display:block;" /><span style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;background:rgba(10,22,40,.78);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><line x1="15.5" y1="15.5" x2="21" y2="21"/><line x1="10" y1="7" x2="10" y2="13"/><line x1="7" y1="10" x2="13" y2="10"/></svg></span></div>
-                        </div>
-                        ` : ''}
-                        ${screenshots?.exterior ? `
-                        <div style="text-align:center;">
-                            <div style="position:relative;display:inline-block;"><img src="${screenshots.exterior}" onclick="EstimateRenderer.zoomImage(this)" style="width:250px;border:1px solid rgba(158,158,144,.15);border-radius:2px;cursor:zoom-in;display:block;" /><span style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;background:rgba(10,22,40,.78);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><line x1="15.5" y1="15.5" x2="21" y2="21"/><line x1="10" y1="7" x2="10" y2="13"/><line x1="7" y1="10" x2="13" y2="10"/></svg></span></div>
-                        </div>
-                        ` : ''}
-                        <div style="text-align:center;">
-                            ${svg}
-                        </div>
-                    </div>
-                    <div style="padding:1.5rem;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 2rem;">
+                <div style="padding:1.25rem;">
+                ${(() => {
+                    const _lblIn = p.windowType === 'door' ? 'Exterior View' : 'Interior View';
+                    const _lblEx = p.windowType === 'door' ? 'Interior View' : 'Exterior View';
+                    const _boxes = [];
+                    if (screenshots?.interior) _boxes.push(R.visualBox(_lblIn, R.visualImage(screenshots.interior)));
+                    if (screenshots?.exterior) _boxes.push(R.visualBox(_lblEx, R.visualImage(screenshots.exterior)));
+                    const _drawing = R.visualBox('Technical Drawing', svg, '#FAFAF8');
+                    const _rowStyle = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.1rem;';
+                    // 2 renders on top, drawing next to the spec below; with a single
+                    // render the drawing moves up so no cell is left empty.
+                    if (_boxes.length >= 2) {
+                        return `<div style="${_rowStyle}">${_boxes[0]}${_boxes[1]}</div>`
+                             + `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.25rem;align-items:start;">${_drawing}`;
+                    }
+                    if (_boxes.length === 1) {
+                        return `<div style="${_rowStyle}">${_boxes[0]}${_drawing}</div>`
+                             + `<div style="display:grid;grid-template-columns:minmax(0,1fr);">`;
+                    }
+                    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.25rem;align-items:start;">${_drawing}`;
+                })()}
+                    <div style="min-width:0;">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.3rem 1.3rem;">
                             ${p.windowType === 'casement' ? `
                             ${R.specRow('Type', p.casementTypeText)}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
@@ -659,6 +678,7 @@ class EstimateRenderer {
                         </div>
                         ` : ''}
                     </div>
+                </div>
                 </div>
             </div>
             `;
@@ -1140,7 +1160,7 @@ class EstimateRenderer {
             glassFill: 'rgba(174,203,227,0.28)',
             glassStroke: 'rgba(10,22,40,0.25)',
             barFill: '#FAFAF8',
-            dimRed: '#C0392B',
+            dimRed: '#0A1628',   // dimension colour — navy (was red, poor legibility on cream)
             // Layout
             margin: 60, dimOffset: 55, refW: 700
         };
@@ -1235,11 +1255,11 @@ class EstimateRenderer {
         const NS = 'vector-effect="non-scaling-stroke"';
         const t = fs * 0.35, over = fs * 0.55, gap = fs * 0.45;
         let svg = '';
-        svg += `<line x1="${x1}" y1="${extFrom}" x2="${x1}" y2="${y + over}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
-        svg += `<line x1="${x2}" y1="${extFrom}" x2="${x2}" y2="${y + over}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
-        svg += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
-        svg += `<line x1="${x1}" y1="${y - t}" x2="${x1}" y2="${y + t}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
-        svg += `<line x1="${x2}" y1="${y - t}" x2="${x2}" y2="${y + t}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
+        svg += `<line x1="${x1}" y1="${extFrom}" x2="${x1}" y2="${y + over}" stroke="${G.dimRed}" stroke-width="0.6" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${x2}" y1="${extFrom}" x2="${x2}" y2="${y + over}" stroke="${G.dimRed}" stroke-width="0.6" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${G.dimRed}" stroke-width="1.3" ${NS}/>`;
+        svg += `<line x1="${x1}" y1="${y - t}" x2="${x1}" y2="${y + t}" stroke="${G.dimRed}" stroke-width="1.3" ${NS}/>`;
+        svg += `<line x1="${x2}" y1="${y - t}" x2="${x2}" y2="${y + t}" stroke="${G.dimRed}" stroke-width="1.3" ${NS}/>`;
         svg += `<text x="${(x1 + x2) / 2}" y="${y - gap}" fill="${G.dimRed}" font-family="Jost,sans-serif" font-size="${fs}" text-anchor="middle">${label}</text>`;
         return svg;
     }
@@ -1251,11 +1271,11 @@ class EstimateRenderer {
         const t = fs * 0.35, over = fs * 0.55, off = fs * 1.0;
         const mid = (y1 + y2) / 2;
         let svg = '';
-        svg += `<line x1="${extFrom}" y1="${y1}" x2="${x + over}" y2="${y1}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
-        svg += `<line x1="${extFrom}" y1="${y2}" x2="${x + over}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
-        svg += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
-        svg += `<line x1="${x - t}" y1="${y1}" x2="${x + t}" y2="${y1}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
-        svg += `<line x1="${x - t}" y1="${y2}" x2="${x + t}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
+        svg += `<line x1="${extFrom}" y1="${y1}" x2="${x + over}" y2="${y1}" stroke="${G.dimRed}" stroke-width="0.6" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${extFrom}" y1="${y2}" x2="${x + over}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.6" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${G.dimRed}" stroke-width="1.3" ${NS}/>`;
+        svg += `<line x1="${x - t}" y1="${y1}" x2="${x + t}" y2="${y1}" stroke="${G.dimRed}" stroke-width="1.3" ${NS}/>`;
+        svg += `<line x1="${x - t}" y1="${y2}" x2="${x + t}" y2="${y2}" stroke="${G.dimRed}" stroke-width="1.3" ${NS}/>`;
         svg += `<text x="${x + off}" y="${mid}" fill="${G.dimRed}" font-family="Jost,sans-serif" font-size="${fs}" text-anchor="middle" transform="rotate(-90,${x + off},${mid})">${label}</text>`;
         return svg;
     }
@@ -1826,14 +1846,14 @@ class EstimateRenderer {
         }
 
         // Layout (mm canvas)
-        const M = Math.max(G.margin, Math.max(fw, fh) * 0.06);
+        const M = Math.max(G.margin * 1.35, Math.max(fw, fh) * 0.085);
         const DM = Math.max(G.dimOffset, Math.max(fw, fh) * 0.07);
         const hasFan = !!(def.transoms && def.transoms.length);
         const leftDM = hasFan ? DM : M * 0.4;           // room for fanlight dim on the left
         const totalW = leftDM + fw + DM + M;
         const totalH = M + fh + DM + M * 0.4;
         const ox = leftDM, oy = M;
-        const fs = 15 * (totalW / G.refW);
+        const fs = 21 * (totalW / G.refW);
         const SY = (y) => oy + (fh - y);                 // real-Y (0 = frame bottom) → SVG-Y
         const frameStyle = `fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1.4" ${NS}`;
         const glassStyle = `fill="${G.glassFill}" stroke="${G.glassStroke}" stroke-width="0.8" ${NS}`;
@@ -1950,11 +1970,11 @@ class EstimateRenderer {
         const t = fs * 0.35, over = fs * 0.55, off = fs * 1.0;
         const mid = (y1 + y2) / 2;
         let svg = '';
-        svg += `<line x1="${extFrom}" y1="${y1}" x2="${x - over}" y2="${y1}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
-        svg += `<line x1="${extFrom}" y1="${y2}" x2="${x - over}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.35" stroke-dasharray="5,4" ${NS}/>`;
-        svg += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
-        svg += `<line x1="${x - t}" y1="${y1}" x2="${x + t}" y2="${y1}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
-        svg += `<line x1="${x - t}" y1="${y2}" x2="${x + t}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.8" ${NS}/>`;
+        svg += `<line x1="${extFrom}" y1="${y1}" x2="${x - over}" y2="${y1}" stroke="${G.dimRed}" stroke-width="0.6" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${extFrom}" y1="${y2}" x2="${x - over}" y2="${y2}" stroke="${G.dimRed}" stroke-width="0.6" stroke-dasharray="5,4" ${NS}/>`;
+        svg += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${G.dimRed}" stroke-width="1.3" ${NS}/>`;
+        svg += `<line x1="${x - t}" y1="${y1}" x2="${x + t}" y2="${y1}" stroke="${G.dimRed}" stroke-width="1.3" ${NS}/>`;
+        svg += `<line x1="${x - t}" y1="${y2}" x2="${x + t}" y2="${y2}" stroke="${G.dimRed}" stroke-width="1.3" ${NS}/>`;
         svg += `<text x="${x - off}" y="${mid}" fill="${G.dimRed}" font-family="Jost,sans-serif" font-size="${fs}" text-anchor="middle" transform="rotate(-90,${x - off},${mid})">${label}</text>`;
         return svg;
     }
@@ -1978,12 +1998,12 @@ class EstimateRenderer {
         const lowerCustom = (fc.lowerCustomBars && fc.lowerCustomBars.length) ? fc.lowerCustomBars : ((fc.customBars && fc.customBars.lower) ? [].concat((fc.customBars.lower.horizontal||[]),(fc.customBars.lower.vertical||[])) : upperCustom);
 
         // ── Layout (all mm) ──
-        const M = Math.max(G.margin, Math.max(fw, fh) * 0.06);
+        const M = Math.max(G.margin * 1.35, Math.max(fw, fh) * 0.085);
         const DM = Math.max(G.dimOffset, Math.max(fw, fh) * 0.07);
         const totalW = M + fw + DM + M;
         const totalH = M + fh + DM + M * 0.4;
         const ox = M, oy = M;
-        const fs = 15 * (totalW / G.refW);   // dim text ≈ constant on screen
+        const fs = 21 * (totalW / G.refW);   // dim text ≈ constant on screen
 
         const SY = (y) => oy + (fh - y);     // real-Y (0=sill bottom) → SVG-Y
         const frameStyle = `fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1.4" ${NS}`;
@@ -2119,8 +2139,8 @@ class EstimateRenderer {
         const fixLowerBarsPattern = fc.fixLowerBars || fixUpperBarsPattern;
         const stroke = 'rgba(10,22,40,.7)';
         const light = 'rgba(10,22,40,.25)';
-        const dimColor = 'rgba(10,22,40,.45)';
-        const dimFont = 'font-family="Jost,sans-serif" font-size="7" fill="' + dimColor + '"';
+        const dimColor = '#0A1628';
+        const dimFont = 'font-family="Jost,sans-serif" font-size="9" font-weight="500" fill="' + dimColor + '"';
 
         // Box frame dimensions in mm
         const boxLeft = 100, boxRight = 100, mullionW = 50;
@@ -2338,7 +2358,7 @@ class EstimateRenderer {
             } else if (openingType === 'bottom') {
                 svg += `<text x="${arrowX}" y="${oy + meetingY + lowerH/2 + 3}" font-family="Jost,sans-serif" font-size="10" fill="${stroke}" text-anchor="middle">↓</text>`;
             } else if (openingType === 'fixed') {
-                svg += `<text x="${arrowX}" y="${oy + sh/2 + 3}" font-family="Jost,sans-serif" font-size="7" fill="rgba(10,22,40,.3)" text-anchor="middle">FIX</text>`;
+                svg += `<text x="${arrowX}" y="${oy + sh/2 + 3}" font-family="Jost,sans-serif" font-size="9" font-weight="500" fill="rgba(10,22,40,.3)" text-anchor="middle">FIX</text>`;
             }
 
             // ═══ DIMENSION LINES ═══
@@ -2400,8 +2420,8 @@ class EstimateRenderer {
 
         const stroke = 'rgba(10,22,40,.7)';
         const light = 'rgba(10,22,40,.25)';
-        const dimColor = 'rgba(10,22,40,.45)';
-        const dimFont = `font-family="Jost,sans-serif" font-size="7" fill="${dimColor}"`;
+        const dimColor = '#0A1628';
+        const dimFont = `font-family="Jost,sans-serif" font-size="9" font-weight="500" fill="${dimColor}"`;
         const gold = 'rgba(200,162,78,.5)';
 
         // SVG coordinate system
@@ -2648,8 +2668,8 @@ class EstimateRenderer {
 
         const stroke = 'rgba(10,22,40,.7)';
         const barStroke = 'rgba(10,22,40,.5)';
-        const dimColor = 'rgba(10,22,40,.45)';
-        const dimFont = `font-family="Jost,sans-serif" font-size="7" fill="${dimColor}"`;
+        const dimColor = '#0A1628';
+        const dimFont = `font-family="Jost,sans-serif" font-size="9" font-weight="500" fill="${dimColor}"`;
         const gold = 'rgba(200,162,78,.5)';
 
         const svgW = 260, drawW = 160;
@@ -2891,8 +2911,8 @@ class EstimateRenderer {
 
         const stroke = 'rgba(10,22,40,.7)';
         const barStroke = 'rgba(10,22,40,.5)';
-        const dimColor = 'rgba(10,22,40,.45)';
-        const dimFont = `font-family="Jost,sans-serif" font-size="7" fill="${dimColor}"`;
+        const dimColor = '#0A1628';
+        const dimFont = `font-family="Jost,sans-serif" font-size="9" font-weight="500" fill="${dimColor}"`;
 
         const svgW = 260, drawW = 160;
         const scale = drawW / w;
@@ -3584,8 +3604,8 @@ class EstimateRenderer {
 
         // ── Dimensions ──
         const dimY = oy + drawH + 15;
-        const fontSize = '9';
-        const dimColor = '#666';
+        const fontSize = '11';
+        const dimColor = '#0A1628';
 
         // Total width
         svg += `<text x="${ox + drawW / 2}" y="${dimY}" text-anchor="middle" font-size="${fontSize}" fill="${dimColor}">${totalW}mm</text>`;
