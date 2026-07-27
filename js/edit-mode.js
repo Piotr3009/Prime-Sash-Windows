@@ -732,6 +732,16 @@
         } catch (e) { console.warn('Screenshot failed:', e); }
       }
 
+      // Refresh the stored 3D config together with the screenshots
+      if (typeof window.get3DConfig === 'function') {
+        try {
+          const viewer3d = window.get3DConfig();
+          if (viewer3d) windowConfig.viewer3d = viewer3d;
+        } catch (e) {
+          console.warn('3D config capture failed:', e);
+        }
+      }
+
       // Build update object (same fields as INSERT in estimate-manager.js)
       const updateData = {
         window_type: windowConfig.windowType || 'sash',

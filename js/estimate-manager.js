@@ -186,6 +186,17 @@ class EstimateManager {
                 }
             }
 
+            // 🧊 Store the exact 3D config used for this render, so the estimate can
+            // replay the window in an interactive viewer without re-deriving it.
+            if (typeof window.get3DConfig === 'function') {
+                try {
+                    const viewer3d = window.get3DConfig();
+                    if (viewer3d) windowConfig.viewer3d = viewer3d;
+                } catch(e) {
+                    console.warn('3D config capture failed:', e);
+                }
+            }
+
             // Zapisz okno
             const { data: item, error: itemError } = await supabaseClient
                 .from('estimate_items')

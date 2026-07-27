@@ -1282,6 +1282,20 @@ export default function App() {
     [width, height, extWidth, extHeight, opening, upperOpening, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, glassType, casementHinges, casementFan2Ratio, casementFanHBars, casementFanVBars, casementFan2HBars, casementFan2VBars, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge, doorType, doorShape, doorStyle, doorHinge, doorHBars, doorVBars, centerMullion, paneling, sidePanels, sideLeftWidth, sideRightWidth, sideHBars, sideVBars, sideStyle, thresholdType, thresholdExtension, doorOpening, doorOpenDirection, panelCount, slideDirection, extraWidth, glassWidth, panelDepth, frameDepth, foldDirection, trafficDoor, bifoldOpenDirection, transomType, transomHeight, transomBars, casementMiddleWidth],
   );
 
+  // Expose the live 3D config so the estimate can store it verbatim.
+  // Saving the exact object the renderer is using avoids any spec->3D translation
+  // layer (and the mistakes that come with it) when replaying a window later.
+  useEffect(() => {
+    window.get3DConfig = () => {
+      try {
+        return JSON.parse(JSON.stringify({ ...config, opening: 0, upperOpening: 0, showGuides: false }));
+      } catch (e) {
+        return null;
+      }
+    };
+    return () => { if (window.get3DConfig) delete window.get3DConfig; };
+  }, [config]);
+
   return (
     <div className="app-shell" style={{ gridTemplateColumns: '1fr' }}>
       <main className="viewport" style={{ position: 'relative' }}>
