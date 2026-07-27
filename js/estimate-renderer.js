@@ -105,16 +105,16 @@ class EstimateRenderer {
 
     // Framed visual box: navy caption strip + fixed 4:5 stage.
     // Used for both 3D renders and the technical drawing so the card reads as one set.
-    static visualBox(caption, inner, bg) {
+    static visualBox(caption, inner, bg, pad) {
         return `<div style="min-width:0;border:1px solid rgba(10,22,40,.85);border-radius:2px;overflow:hidden;box-shadow:0 2px 8px rgba(10,22,40,.10);background:#FAFAF8;">
             <div style="background:#0A1628;color:#F3F0EA;font-family:'Jost',sans-serif;font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;padding:5px 6px;text-align:center;">${caption}</div>
-            <div style="position:relative;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;padding:10px;background:${bg || '#DAD7D0'};overflow:hidden;">${inner}</div>
+            <div style="position:relative;display:flex;align-items:center;justify-content:center;background:${bg || '#DAD7D0'};padding:${pad || '0'};">${inner}</div>
         </div>`;
     }
 
     // Zoomable render inside a visual box
     static visualImage(src) {
-        return `<img src="${src}" onclick="EstimateRenderer.zoomImage(this)" style="max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;display:block;" />
+        return `<img src="${src}" onclick="EstimateRenderer.zoomImage(this)" style="width:100%;height:auto;display:block;cursor:zoom-in;" />
             <span style="position:absolute;bottom:8px;right:8px;width:22px;height:22px;background:rgba(10,22,40,.78);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><line x1="15.5" y1="15.5" x2="21" y2="21"/><line x1="10" y1="7" x2="10" y2="13"/><line x1="7" y1="10" x2="13" y2="10"/></svg></span>`;
     }
 
@@ -570,19 +570,19 @@ class EstimateRenderer {
                     const _boxes = [];
                     if (screenshots?.interior) _boxes.push(R.visualBox(_lblIn, R.visualImage(screenshots.interior)));
                     if (screenshots?.exterior) _boxes.push(R.visualBox(_lblEx, R.visualImage(screenshots.exterior)));
-                    const _drawing = R.visualBox('Technical Drawing', svg, '#FAFAF8');
-                    const _rowStyle = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.1rem;';
+                    const _drawing = R.visualBox('Technical Drawing', svg, '#FAFAF8', '12px');
+                    const _rowStyle = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,300px));gap:.9rem;margin-bottom:1rem;justify-content:start;';
                     // 2 renders on top, drawing next to the spec below; with a single
                     // render the drawing moves up so no cell is left empty.
                     if (_boxes.length >= 2) {
                         return `<div style="${_rowStyle}">${_boxes[0]}${_boxes[1]}</div>`
-                             + `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.25rem;align-items:start;">${_drawing}`;
+                             + `<div style="display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:1.4rem;align-items:start;">${_drawing}`;
                     }
                     if (_boxes.length === 1) {
                         return `<div style="${_rowStyle}">${_boxes[0]}${_drawing}</div>`
                              + `<div style="display:grid;grid-template-columns:minmax(0,1fr);">`;
                     }
-                    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.25rem;align-items:start;">${_drawing}`;
+                    return `<div style="display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:1.4rem;align-items:start;">${_drawing}`;
                 })()}
                     <div style="min-width:0;">
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.3rem 1.3rem;">

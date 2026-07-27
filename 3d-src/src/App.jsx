@@ -485,7 +485,7 @@ function ScreenshotHelper({ config }) {
         const target = new THREE.Vector3(0, 0.18, 0);
         // Timber doors: exterior view + closer; windows: interior view
         const isDoor = config?.windowCategory === 'door';
-        const distMult = isDoor ? 0.62 : 0.75;
+        const distMult = isDoor ? 0.58 : 0.65;   // tighter framing — dimension guides are hidden in shots
         const distance = fitDistance(config?.width, config?.height, 45, 1) * distMult;
 
         // Save current camera state
