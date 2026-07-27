@@ -118,6 +118,23 @@ class EstimateRenderer {
             <span style="position:absolute;bottom:8px;right:8px;width:22px;height:22px;background:rgba(10,22,40,.78);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><line x1="15.5" y1="15.5" x2="21" y2="21"/><line x1="10" y1="7" x2="10" y2="13"/><line x1="7" y1="10" x2="13" y2="10"/></svg></span>`;
     }
 
+    // "View in 3D" button under the screenshot (Etap 2).
+    // Renders only when: (a) the item carries a saved viewer3d config (Etap 1) AND
+    // (b) the viewer modal script is present on this page (window.open3DViewer).
+    // online-estimate.html deliberately does NOT load the modal script — the live
+    // configurator owns window.update3D there, so no button appears on that page.
+    static viewer3dButton(item, p) {
+        const v3d = p.spec?.viewer3d;
+        if (!v3d || typeof window.open3DViewer !== 'function') return '';
+        window.__psw3dConfigs = window.__psw3dConfigs || {};
+        window.__psw3dConfigs[item.id] = {
+            config: v3d,
+            label: (p.windowType === 'door' ? 'Door ' : 'Window ') + (item.window_number || ''),
+            dims: (p.width && p.height) ? (p.width + ' \u00d7 ' + p.height + ' mm') : ''
+        };
+        return `<button type="button" data-psw3d="${item.id}" style="width:100%;margin-top:6px;background:transparent;border:1px solid #0A1628;border-radius:2px;padding:7px 0;font-family:'Jost',sans-serif;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:#0A1628;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>View in 3D</button>`;
+    }
+
     // Parse item data for rendering and export
     static parseItem(item) {
         const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
@@ -568,8 +585,9 @@ class EstimateRenderer {
                     const _lblIn = p.windowType === 'door' ? 'Exterior View' : 'Interior View';
                     const _lblEx = p.windowType === 'door' ? 'Interior View' : 'Exterior View';
                     const _boxes = [];
-                    if (screenshots?.interior) _boxes.push(R.visualBox(_lblIn, R.visualImage(screenshots.interior)));
-                    if (screenshots?.exterior) _boxes.push(R.visualBox(_lblEx, R.visualImage(screenshots.exterior)));
+                    const _v3dBtn = R.viewer3dButton(item, p);
+                    if (screenshots?.interior) _boxes.push(`<div style="min-width:0;">${R.visualBox(_lblIn, R.visualImage(screenshots.interior))}${_v3dBtn}</div>`);
+                    if (screenshots?.exterior) _boxes.push(`<div style="min-width:0;">${R.visualBox(_lblEx, R.visualImage(screenshots.exterior))}${screenshots?.interior ? '' : _v3dBtn}</div>`);
                     const _drawing = R.visualBox('Technical Drawing', svg, '#FAFAF8', '12px');
                     const _rowStyle = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,300px));gap:.9rem;margin-bottom:1rem;justify-content:start;';
                     // 2 renders on top, drawing next to the spec below; with a single

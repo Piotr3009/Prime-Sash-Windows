@@ -1177,6 +1177,9 @@ export default function App() {
       if (cfg.transomType !== undefined) setTransomType(cfg.transomType);
       if (cfg.transomHeight !== undefined) setTransomHeight(cfg.transomHeight);
       if (cfg.transomBars !== undefined) setTransomBars(cfg.transomBars);
+      // Viewer-only display settings (Etap 2: 3D preview on estimates)
+      if (cfg.showGuides !== undefined) setShowGuides(cfg.showGuides);
+      if (cfg.autoRotate !== undefined) setAutoRotate(cfg.autoRotate);
     };
     return () => { delete window.update3D; };
   }, []);
