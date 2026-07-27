@@ -476,6 +476,28 @@ function MicrocementFloor() {
 
 
 
+// Backdrop chosen against the joinery colour (product-photography rule):
+// light joinery on mid grey, mid/dark joinery on cream — so both read clearly.
+// Luminance is perceptual (sRGB -> linear -> Rec.709), not a flat RGB average.
+function pickBackdrop(hex) {
+  const CREAM = 0xf3f0ea;      // dark joinery  -> brand cream
+  const CREAM_WARM = 0xedeae3; // mid joinery   -> light warm cream
+  const MID_GREY = 0xa9a69b;   // light joinery -> mid grey
+  if (typeof hex !== 'string') return MID_GREY;
+  const m = hex.trim().replace('#', '');
+  if (m.length !== 6) return MID_GREY;
+  const ch = (i) => {
+    const v = parseInt(m.substr(i, 2), 16) / 255;
+    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  };
+  const Y = 0.2126 * ch(0) + 0.7152 * ch(2) + 0.0722 * ch(4);
+  // CIE L* — perceptual lightness (0 = black, 100 = white)
+  const L = 116 * (Y > 0.008856 ? Math.cbrt(Y) : (903.3 * Y + 16) / 116) - 16;
+  if (L > 82) return MID_GREY;    // whites, creams, very light greys
+  if (L > 45) return CREAM_WARM;  // mid tones: sage, light grey, blues
+  return CREAM;                   // anthracite, off-black, navy
+}
+
 function ScreenshotHelper({ config }) {
   const { gl, scene, camera } = useThree();
 
@@ -507,10 +529,10 @@ function ScreenshotHelper({ config }) {
           });
         };
 
-        const capture = (pos) => {
-          // Set grey background for clean screenshot
+        const capture = (pos, bgHex) => {
+          // Backdrop matched to this side's joinery colour
           const oldBg = scene.background;
-          scene.background = new THREE.Color(0xa9a69b);
+          scene.background = new THREE.Color(bgHex);
           
           // Hide wall, floor, shadows, and dimension guides
           const hidden = [];
@@ -557,12 +579,18 @@ function ScreenshotHelper({ config }) {
         const zSign = isDoor ? 1 : -1;
         const xSign = isDoor ? 1 : -1;
         const backPos = new THREE.Vector3(xSign * Math.sin(angleRad) * distance, 0.22, zSign * Math.cos(angleRad) * distance);
-        const backRaw = capture(backPos);
+        // backPos: windows -> interior side, doors -> exterior side (see zSign above)
+        const sameCol = config?.sameColor !== false;
+        const colExt = sameCol ? (config?.woodColor || '#F6F6F6') : (config?.woodColorExt || config?.woodColor || '#F6F6F6');
+        const colInt = sameCol ? (config?.woodColor || '#F6F6F6') : (config?.woodColorInt || config?.woodColor || '#F6F6F6');
+        const bgBack = pickBackdrop(isDoor ? colExt : colInt);
+        const bgFront = pickBackdrop(isDoor ? colInt : colExt);
+        const backRaw = capture(backPos, bgBack);
 
         // Capture BOTH sides for EVERY window (single colour included): the exterior
         // view shows the sill, weather bar and outside hardware the interior can't.
         const frontPos = new THREE.Vector3(-xSign * Math.sin(angleRad) * distance, 0.22, -zSign * Math.cos(angleRad) * distance);
-        const frontRaw = capture(frontPos);
+        const frontRaw = capture(frontPos, bgFront);
 
         // Restore camera
         camera.position.copy(savedPos);
@@ -584,7 +612,7 @@ function ScreenshotHelper({ config }) {
     };
 
     return () => { delete window.captureWindowScreenshots; };
-  }, [gl, scene, camera, config?.width, config?.height, config?.windowCategory, config?.sameColor]);
+  }, [gl, scene, camera, config?.width, config?.height, config?.windowCategory, config?.sameColor, config?.woodColor, config?.woodColorExt, config?.woodColorInt]);
 
   return null;
 }
