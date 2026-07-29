@@ -68,8 +68,8 @@
       const today = new Date().toISOString().slice(0, 10);
 
       const rows = units.map(u =>
-        `<tr><td style="padding:4px 10px 4px 0;font-family:'JetBrains Mono',monospace;font-size:11px;">${this.esc(passportNo + '-' + u.suffix)}</td>` +
-        `<td style="color:#555;">${this.esc(u.label)}</td></tr>`).join('');
+        `<tr><td style="padding:7px 12px 7px 0;font-family:'JetBrains Mono',monospace;font-size:14px;color:#0A1628;">${this.esc(passportNo + '-' + u.suffix)}</td>` +
+        `<td style="color:#3F3F3A;font-size:14px;">${this.esc(u.label)}</td></tr>`).join('');
 
       this.modal('Create passport — ' + this.esc(passportNo), `
         <div style="margin-bottom:12px;">
@@ -92,7 +92,7 @@
         </div>
         <div class="pc-lbl">Windows to be created (${units.length})</div>
         <div style="max-height:300px;overflow:auto;background:#F3F0EA;border-radius:3px;padding:9px 11px;">
-          <table style="width:100%;font-size:12px;">${rows}</table>
+          <table style="width:100%;font-size:14px;">${rows}</table>
         </div>
         <div class="pc-note">Specifications, photos and 3D are copied now and frozen — later edits to the estimate will not change this passport. QR plates, warranty and documents are added afterwards in Admin Panel → Project Passports.</div>
         <div id="pc-err" class="pc-err"></div>
@@ -272,16 +272,16 @@
           '#pc-head{display:flex;justify-content:space-between;align-items:center;gap:12px;}' +
           '#pc-close{background:none;border:none;font-size:1.6rem;line-height:1;color:#9E9E90;cursor:pointer;padding:0 4px;}' +
           '#pc-close:hover{color:#0A1628;}' +
-          '#pc-head{padding:16px 22px;border-bottom:1px solid #E5E2DA;font-family:"Cormorant Garamond",serif;font-size:1.4rem;color:#0A1628;}' +
-          '#pc-body{padding:20px 22px;font-family:"Jost",sans-serif;font-size:.92rem;color:#0A1628;}' +
-          '.pc-lbl{font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:#9E9E90;margin-bottom:4px;}' +
-          '.pc-in{width:100%;border:1px solid #C9C6BC;border-radius:3px;padding:11px 13px;font-family:"Jost",sans-serif;font-size:.95rem;color:#0A1628;background:#fff;}' +
+          '#pc-head{padding:18px 24px;border-bottom:1px solid #E5E2DA;font-family:"Cormorant Garamond",serif;font-size:1.6rem;color:#0A1628;}' +
+          '#pc-body{padding:22px 24px;font-family:"Jost",sans-serif;font-size:1.02rem;line-height:1.55;color:#0A1628;}' +
+          '.pc-lbl{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#5F5E5A;margin-bottom:6px;font-weight:500;}' +
+          '.pc-in{width:100%;border:1px solid #A8A59B;border-radius:3px;padding:13px 15px;font-family:"Jost",sans-serif;font-size:1.05rem;color:#0A1628;background:#fff;}' +
           '.pc-in:focus{outline:none;border-color:#0A1628;}' +
-          '.pc-ro{font-family:"JetBrains Mono",monospace;font-size:1rem;background:#F3F0EA;padding:11px 13px;border-radius:3px;}' +
-          '.pc-note{background:#F3F0EA;border-radius:3px;padding:9px 11px;color:#5F5E5A;font-size:.72rem;line-height:1.5;margin-top:10px;}' +
-          '.pc-err{display:none;background:#F9E9E9;color:#A32D2D;border-radius:3px;padding:9px 11px;font-size:.72rem;margin-top:10px;}' +
-          '.pc-btn{border:1px solid #0A1628;background:transparent;color:#0A1628;border-radius:3px;padding:10px 16px;cursor:pointer;' +
-          'font-family:"Jost",sans-serif;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;}' +
+          '.pc-ro{font-family:"JetBrains Mono",monospace;font-size:1.1rem;background:#F3F0EA;padding:13px 15px;border-radius:3px;color:#0A1628;}' +
+          '.pc-note{background:#F3F0EA;border-radius:3px;padding:12px 14px;color:#44443F;font-size:.88rem;line-height:1.55;margin-top:12px;}' +
+          '.pc-err{display:none;background:#F9E9E9;color:#8F2020;border-radius:3px;padding:12px 14px;font-size:.92rem;margin-top:12px;}' +
+          '.pc-btn{border:1px solid #0A1628;background:transparent;color:#0A1628;border-radius:3px;padding:13px 20px;cursor:pointer;' +
+          'font-family:"Jost",sans-serif;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;font-weight:500;}' +
           '.pc-btn--solid{background:#0A1628;color:#FAFAF8;}' +
           '.pc-btn:disabled{opacity:.6;cursor:default;}';
         document.head.appendChild(st);

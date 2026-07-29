@@ -37,7 +37,16 @@
     .admin-section[data-tab="ironmongery"],
     .admin-section[data-tab="gallery"],
     .admin-section[data-tab="warranties"],
-    .admin-section[data-tab="casestudies"] { grid-column: 1 / -1; }
+    .admin-section[data-tab="casestudies"],
+    .admin-section[data-tab="passports"] { grid-column: 1 / -1; }
+    /* Project Passports: larger, higher-contrast text - these are reference
+       documents read at a glance, often on a workshop screen. */
+    #pp-table { font-size: 15px; }
+    #pp-table th { font-size: 12px; letter-spacing: .06em; color: #3F3F3A; padding: 12px 14px; }
+    #pp-table td { padding: 14px; color: #1a1f2e; vertical-align: middle; }
+    #pp-table .pp-sub { font-size: 13px; color: #5F5E5A; margin-top: 3px; }
+    #pp-table .pp-mono { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #0A1628; }
+    #pp-table .pp-count { font-size: 15px; font-weight: 500; }
     @media (max-width: 700px){ .admin-tabs { padding: 0 6px; } .admin-tab-btn { padding: 12px 12px; font-size: 11px; } }
     /* Ironmongery filter toolbar */
     .iron-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 16px; }
@@ -557,7 +566,7 @@
 <script src="js/supabase-config.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
 <script src="js/modal-drag.js?v=1"></script>
-<script src="js/passport-projects.js?v=2"></script>
+<script src="js/passport-projects.js?v=3"></script>
 <script src="js/ironmongery-data.js?v=2"></script>
 <script src="js/ironmongery-gallery.js?v=20250124"></script>
 <script src="js/admin-controller.js?v=2"></script>

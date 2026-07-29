@@ -62,11 +62,11 @@
         const c = counts[p.id] || { total: 0, linked: 0 };
         const done = c.total > 0 && c.linked === c.total;
         return `<tr>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${this.esc(p.passport_no)}</td>
-          <td>${this.esc(p.client_name || '—')}<div style="color:#888;font-size:11px;">${this.esc(p.project_address || '')}</div></td>
-          <td>${c.total}</td>
-          <td style="color:${done ? '#1D6E4E' : '#8A4B12'};">${c.linked} / ${c.total}</td>
-          <td>${p.warranty_no ? `<span style="font-family:'JetBrains Mono',monospace;font-size:11px;">${this.esc(p.warranty_no)}</span>` : '<span style="color:#888;">—</span>'}</td>
+          <td class="pp-mono">${this.esc(p.passport_no)}</td>
+          <td>${this.esc(p.client_name || '—')}<div class="pp-sub">${this.esc(p.project_address || '')}</div></td>
+          <td class="pp-count">${c.total}</td>
+          <td class="pp-count" style="color:${done ? '#1D6E4E' : '#8A4B12'};">${c.linked} / ${c.total}</td>
+          <td>${p.warranty_no ? `<span class="pp-mono">${this.esc(p.warranty_no)}</span>` : '<span style="color:#5F5E5A;">—</span>'}</td>
           <td><button class="btn-sm neutral" onclick="PassportProjects.open('${p.id}')">Open</button></td>
         </tr>`;
       }).join('');
@@ -98,14 +98,14 @@
       const p = this.current;
       const rows = this.windows.map(w => `
         <tr>
-          <td style="padding:8px 0;">${this.esc(w.window_number || '')}<div style="color:#888;font-size:11px;">${this.esc(w.window_type || '')}</div></td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${this.esc(w.serial_number)}</td>
+          <td style="padding:12px 0;">${this.esc(w.window_number || '')}<div style="color:#5F5E5A;font-size:13px;margin-top:2px;">${this.esc(w.window_type || '')}</div></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:13.5px;">${this.esc(w.serial_number)}</td>
           <td>${w.project_label
                 ? this.esc(w.project_label)
-                : `<a href="#" onclick="PassportProjects.setLocation('${w.id}');return false;" style="color:#888;">— add —</a>`}</td>
+                : `<a href="#" onclick="PassportProjects.setLocation('${w.id}');return false;" style="color:#5F5E5A;">— add —</a>`}</td>
           <td>${w.plate_code
-                ? `<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#1D6E4E;" title="${this.esc(w.plate_code)}">…${this.esc(String(w.plate_code).slice(-6))} &#10003;</span>`
-                : '<span style="color:#8A4B12;font-size:12px;">not linked</span>'}</td>
+                ? `<span style="font-family:'JetBrains Mono',monospace;font-size:13.5px;color:#1D6E4E;" title="${this.esc(w.plate_code)}">…${this.esc(String(w.plate_code).slice(-6))} &#10003;</span>`
+                : '<span style="color:#7A400F;font-size:14px;">not linked</span>'}</td>
           <td style="text-align:right;white-space:nowrap;">
             <button class="btn-sm ${w.plate_code ? 'neutral' : 'navy'}" onclick="PassportProjects.openScan('${w.id}')">${w.plate_code ? 'Re-scan' : 'Scan QR'}</button>
             <button class="btn-sm neutral" onclick="window.open('/p/${w.token}','_blank')">View</button>
@@ -116,17 +116,17 @@
 
       this.body(`
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;border-bottom:1px solid #E5E2DA;padding-bottom:11px;margin-bottom:11px;">
-          <div style="font-size:12px;color:#555;">
+          <div style="font-size:15px;color:#3F3F3A;">
             ${this.esc(p.project_address || 'No address')}<br>
-            <span style="color:#888;">Completed ${this.esc(p.completed_date || '')} · ${linked} of ${this.windows.length} plates linked</span>
+            <span style="color:#5F5E5A;">Completed ${this.esc(p.completed_date || '')} · ${linked} of ${this.windows.length} plates linked</span>
           </div>
           <div style="display:flex;gap:6px;">
             <button class="btn-sm neutral" onclick="PassportProjects.openWarranty()">${p.warranty_no ? 'Warranty: ' + this.esc(p.warranty_no) : 'Add warranty'}</button>
             <button class="btn-sm neutral" onclick="PassportProjects.openEdit()">Edit</button>
           </div>
         </div>
-        <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
-          <thead><tr style="color:#888;font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:left;">
+        <table style="width:100%;border-collapse:collapse;font-size:15px;">
+          <thead><tr style="color:#3F3F3A;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;text-align:left;">
             <th style="padding-bottom:6px;">Window</th><th>Serial</th><th>Location</th><th>QR plate</th><th></th>
           </tr></thead>
           <tbody>${rows || '<tr><td colspan="5" style="padding:12px;color:#888;">No windows.</td></tr>'}</tbody>
@@ -157,9 +157,17 @@
           <video id="pp-video" playsinline muted style="width:100%;display:block;max-height:280px;object-fit:cover;"></video>
         </div>
         <div id="pp-cam-msg" class="pp-note">Starting camera…</div>
-        <div style="margin-top:12px;">
-          <div class="pp-lbl">Or type the code from the plate</div>
-          <input id="pp-code" class="pp-in" placeholder="e.g. 123455666.44555" autocomplete="off">
+        <div style="margin-top:14px;">
+          <div class="pp-lbl">Type the code from the plate</div>
+          <div style="display:flex;align-items:stretch;border:1px solid #A8A59B;border-radius:3px;background:#fff;overflow:hidden;">
+            <span style="display:flex;align-items:center;padding:13px 4px 13px 15px;background:#F3F0EA;color:#5F5E5A;
+                         font-family:'JetBrains Mono',monospace;font-size:1rem;white-space:nowrap;border-right:1px solid #E5E2DA;">
+              primesashwindows.co.uk/q/</span>
+            <input id="pp-code" autocomplete="off" placeholder="123456"
+                   style="flex:1;min-width:0;border:none;outline:none;padding:13px 15px;background:#fff;
+                          font-family:'JetBrains Mono',monospace;font-size:1.05rem;color:#0A1628;">
+          </div>
+          <div class="pp-note" style="margin-top:8px;">Type only the number. Scanning or pasting the full address also works — the prefix is stripped automatically.</div>
         </div>
         <div id="pp-err" class="pp-err"></div>
         <div style="display:flex;gap:8px;margin-top:14px;">
@@ -167,6 +175,16 @@
           <button class="pp-btn" onclick="PassportProjects.backToDetail()">Cancel</button>
         </div>`);
       this.startCamera(windowId);
+
+      // Cursor lands in the field so the code can be typed straight away, and
+      // Enter saves - the same keystrokes a barcode scanner will send later.
+      const input = document.getElementById('pp-code');
+      if (input) {
+        setTimeout(() => input.focus(), 60);
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') { e.preventDefault(); this.saveCode(windowId); }
+        });
+      }
     },
 
     // Accepts whatever the supplier engraved: a full URL on our domain, or a
@@ -370,17 +388,17 @@
       list.innerHTML = rows.length ? rows.map(w => {
         const on = this.warrantyPick && this.warrantyPick.warranty_no === w.warranty_no;
         return `<div onclick="PassportProjects.pickWarranty('${this.esc(w.warranty_no)}')"
-             style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 13px;cursor:pointer;
+             style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;
                     border-top:1px solid #EFEDE7;${on ? 'background:#0A1628;color:#FAFAF8;' : ''}">
           <div style="min-width:0;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:.85rem;">${this.esc(w.warranty_no)}</div>
-            <div style="font-size:.75rem;color:${on ? 'rgba(255,255,255,.65)' : '#9E9E90'};margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;">${this.esc(w.warranty_no)}</div>
+            <div style="font-size:.9rem;color:${on ? 'rgba(255,255,255,.75)' : '#5F5E5A'};margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
               ${this.esc(w.client_name || '')}${w.property_address ? ' · ' + this.esc(w.property_address) : ''}</div>
           </div>
-          <div style="font-size:.72rem;color:${on ? 'rgba(255,255,255,.75)' : '#9E9E90'};white-space:nowrap;">
+          <div style="font-size:.88rem;color:${on ? 'rgba(255,255,255,.8)' : '#5F5E5A'};white-space:nowrap;">
             ${on ? '&#10003;' : this.esc(this.shortDate(w.manufacturing_date))}</div>
         </div>`;
-      }).join('') : '<div style="padding:14px;color:#9E9E90;font-size:.8rem;">No certificates match.</div>';
+      }).join('') : '<div style="padding:16px;color:#5F5E5A;font-size:.95rem;">No certificates match.</div>';
 
       this.renderWarrantySelected();
     },
@@ -429,12 +447,12 @@
       el.innerHTML = `<div style="display:flex;gap:12px;margin-top:14px;background:#F3F0EA;border-radius:3px;padding:12px 14px;">
           <div style="flex:1;">
             <div class="pp-lbl">Selected</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:.9rem;">${this.esc(this.warrantyPick.warranty_no)}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:1.05rem;">${this.esc(this.warrantyPick.warranty_no)}</div>
           </div>
           <div style="flex:1;">
             <div class="pp-lbl">Valid until</div>
-            <div style="font-size:.9rem;">${this.esc(this.longDate(exp.date))}
-              <span style="color:#9E9E90;font-size:.72rem;">· ${exp.source}</span></div>
+            <div style="font-size:1.05rem;">${this.esc(this.longDate(exp.date))}
+              <span style="color:#5F5E5A;font-size:.85rem;">· ${exp.source}</span></div>
           </div>
         </div>`;
     },
@@ -545,20 +563,20 @@
         st.id = 'pp-style';
         st.textContent =
           '#pp-overlay{position:fixed;inset:0;background:rgba(10,22,40,.82);z-index:99997;display:flex;align-items:center;justify-content:center;padding:20px;}' +
-          '#pp-panel{background:#FAFAF8;border-radius:6px;width:min(1040px,96vw);max-height:92vh;overflow:auto;}' +
+          '#pp-panel{background:#FAFAF8;border-radius:6px;width:min(1120px,96vw);max-height:92vh;overflow:auto;}' +
           '#pp-head{display:flex;justify-content:space-between;align-items:center;gap:12px;}' +
           '#pp-close{background:none;border:none;font-size:1.6rem;line-height:1;color:#9E9E90;cursor:pointer;padding:0 4px;}' +
           '#pp-close:hover{color:#0A1628;}' +
-          '#pp-head{padding:16px 22px;border-bottom:1px solid #E5E2DA;font-family:"Cormorant Garamond",serif;font-size:1.45rem;color:#0A1628;}' +
-          '#pp-body{padding:20px 22px;font-family:"Jost",sans-serif;font-size:.95rem;color:#0A1628;}' +
-          '.pp-lbl{font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:#9E9E90;margin-bottom:4px;}' +
-          '.pp-in{width:100%;border:1px solid #C9C6BC;border-radius:3px;padding:11px 13px;font-family:"Jost",sans-serif;font-size:.95rem;color:#0A1628;background:#fff;}' +
+          '#pp-head{padding:18px 24px;border-bottom:1px solid #E5E2DA;font-family:"Cormorant Garamond",serif;font-size:1.6rem;color:#0A1628;}' +
+          '#pp-body{padding:22px 24px;font-family:"Jost",sans-serif;font-size:1.02rem;line-height:1.55;color:#0A1628;}' +
+          '.pp-lbl{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#5F5E5A;margin-bottom:6px;font-weight:500;}' +
+          '.pp-in{width:100%;border:1px solid #A8A59B;border-radius:3px;padding:13px 15px;font-family:"Jost",sans-serif;font-size:1.05rem;color:#0A1628;background:#fff;}' +
           '.pp-in:focus{outline:none;border-color:#0A1628;}' +
-          '.pp-note{background:#F3F0EA;border-radius:3px;padding:9px 11px;color:#5F5E5A;font-size:.72rem;line-height:1.5;margin-top:12px;}' +
-          '.pp-warn{background:#F7EDE1;color:#8A4B12;border-radius:3px;padding:10px 12px;font-size:.74rem;line-height:1.5;margin-bottom:12px;}' +
-          '.pp-err{display:none;background:#F9E9E9;color:#A32D2D;border-radius:3px;padding:9px 11px;font-size:.72rem;margin-top:10px;}' +
-          '.pp-btn{border:1px solid #0A1628;background:transparent;color:#0A1628;border-radius:3px;padding:10px 16px;cursor:pointer;' +
-          'font-family:"Jost",sans-serif;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;}' +
+          '.pp-note{background:#F3F0EA;border-radius:3px;padding:12px 14px;color:#44443F;font-size:.88rem;line-height:1.55;margin-top:14px;}' +
+          '.pp-warn{background:#F7EDE1;color:#7A400F;border-radius:3px;padding:13px 15px;font-size:.92rem;line-height:1.55;margin-bottom:14px;}' +
+          '.pp-err{display:none;background:#F9E9E9;color:#8F2020;border-radius:3px;padding:12px 14px;font-size:.92rem;margin-top:12px;}' +
+          '.pp-btn{border:1px solid #0A1628;background:transparent;color:#0A1628;border-radius:3px;padding:13px 20px;cursor:pointer;' +
+          'font-family:"Jost",sans-serif;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;font-weight:500;}' +
           '.pp-btn--solid{background:#0A1628;color:#FAFAF8;}';
         document.head.appendChild(st);
       }
