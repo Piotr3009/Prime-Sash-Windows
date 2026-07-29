@@ -15,6 +15,10 @@
     {
       "source": "/e/:token",
       "destination": "/api/estimate-view?token=:token"
+    },
+    {
+      "source": "/p/:token",
+      "destination": "/api/passport?token=:token"
     }
   ]
 }
