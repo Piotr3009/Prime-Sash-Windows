@@ -23,13 +23,12 @@
 (function () {
   'use strict';
 
-  // Phones: 3D is blocked (same rule as the configurator UA check on online-estimate).
-  // Without open3DViewer defined, estimate-renderer simply renders no buttons.
-  var ua = navigator.userAgent || '';
-  var isPhone = /iPhone|iPod/i.test(ua) || (/Android/i.test(ua) && /Mobile/i.test(ua));
-  if (isPhone) return;
+  // Phones are supported: the viewer is read-only, and the heavy engine still
+  // lazy-loads only on the first click, so estimate pages stay light on mobile.
+  // (Phone block removed 2026-07-28 with explicit approval - it was inherited
+  // from the configurator, where it guards the full editing UI, not 3D itself.)
 
-  var BUNDLE_URL = '/3d/assets/window3d.js?v=65';
+  var BUNDLE_URL = '/3d/assets/window3d.js?v=66';
   var enginePromise = null;
   var modalBuilt = false;
 
@@ -54,7 +53,11 @@
       '#psw3d-stage .viewport{width:100%;height:100%;}' +
       '#psw3d-stage canvas{display:block;}' +
       '#psw3d-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Jost",sans-serif;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:#9E9E90;background:#F3F0EA;z-index:2;}' +
-      '#psw3d-hint{flex:0 0 auto;text-align:center;padding:8px;font-family:"Jost",sans-serif;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#9E9E90;border-top:1px solid #E5E2DA;}';
+      '#psw3d-hint{flex:0 0 auto;text-align:center;padding:8px;font-family:"Jost",sans-serif;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#9E9E90;border-top:1px solid #E5E2DA;}' +
+      '@media (max-width:480px){' +
+        '#psw3d-overlay{padding:10px;}' +
+        '#psw3d-stage .viewport-controls{max-width:128px !important;padding:4px !important;gap:4px !important;top:8px !important;left:8px !important;transform:scale(.9);transform-origin:top left;}' +
+      '}';
     document.head.appendChild(css);
 
     var overlay = document.createElement('div');
@@ -69,6 +72,10 @@
         '<div id="psw3d-hint">drag to rotate &middot; scroll to zoom</div>' +
       '</div>';
     document.body.appendChild(overlay);
+
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      document.getElementById('psw3d-hint').textContent = 'drag to rotate \u00b7 pinch to zoom';
+    }
 
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) closeViewer();

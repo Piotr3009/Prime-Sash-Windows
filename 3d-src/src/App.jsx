@@ -1303,7 +1303,7 @@ export default function App() {
     <div className="app-shell" style={{ gridTemplateColumns: '1fr' }}>
       <main className="viewport" style={{ position: 'relative' }}>
         {/* Floating controls - top left */}
-        <div style={{
+        <div className="viewport-controls" style={{
           position: 'absolute', top: '12px', left: '12px', zIndex: 10,
           display: 'flex', flexDirection: 'column', gap: '8px',
           background: 'transparent',
