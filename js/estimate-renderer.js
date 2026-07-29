@@ -135,6 +135,16 @@ class EstimateRenderer {
         return `<button type="button" data-psw3d="${item.id}" style="width:100%;margin-top:6px;background:transparent;border:1px solid #0A1628;border-radius:2px;padding:7px 0;font-family:'Jost',sans-serif;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:#0A1628;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>View in 3D</button>`;
     }
 
+    // Passport control in the admin item header (Etap 2).
+    // Delegates to js/passport-admin.js; renders nothing where that module is
+    // not loaded, so customer and public views are untouched.
+    static passportControl(item, estimate) {
+        try {
+            return (window.PassportAdmin && typeof window.PassportAdmin.control === 'function')
+                ? window.PassportAdmin.control(item, estimate) : '';
+        } catch (e) { return ''; }
+    }
+
     // Parse item data for rendering and export
     static parseItem(item) {
         const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
@@ -576,6 +586,7 @@ class EstimateRenderer {
                         <button onclick="EstimateRenderer.deleteItem('${item.id}','${estimate.id}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.7);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Delete</button>
                         <button onclick="EstimateRenderer.refreshEstimate()" style="background:transparent;border:1px solid rgba(100,180,255,.4);color:rgba(100,180,255,.8);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">🔄</button>
                         ` : ''}
+                        ${isAdmin ? R.passportControl(item, estimate) : ''}
                     </div>
                     <span style="font-family:'Jost',sans-serif;font-size:.72rem;color:rgba(255,255,255,.5);">Qty: ${p.quantity} · £${R.formatPrice(item.total_price)}</span>
                 </div>

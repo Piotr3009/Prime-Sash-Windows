@@ -1,0 +1,11 @@
+# Files kept in the repo for version history / reference,
+# but NOT uploaded to the server - so they are never publicly downloadable.
+
+# Database schema. Run these in Supabase SQL Editor; the website never reads them.
+db/
+
+# 3D source. The site only serves the built bundle at 3d/assets/window3d.js,
+# which is produced locally with `npm run build`. Vercel never builds this,
+# so shipping the sources only slows deploys and exposes them at /3d-src/...
+# Remove this line if a future setup builds the 3D app on Vercel.
+3d-src/

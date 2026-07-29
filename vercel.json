@@ -19,6 +19,10 @@
     {
       "source": "/p/:token",
       "destination": "/api/passport?token=:token"
+    },
+    {
+      "source": "/q/:code",
+      "destination": "/api/passport?plate=:code"
     }
   ]
 }

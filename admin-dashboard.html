@@ -683,8 +683,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="js/estimate-extras.js?v=2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
     <script src="js/viewer3d-modal.js?v=1"></script>
-    <script src="js/estimate-renderer.js?v=22"></script>
+    <script src="js/passport-admin.js?v=1"></script>
+    <script src="js/estimate-renderer.js?v=23"></script>
     <script>
         // ============================================
         // ADMIN DASHBOARD CONTROLLER
@@ -1098,6 +1100,12 @@
             }
 
             currentAdminEstimateId = id;
+
+            // Passports (Etap 2): load before render so each window shows its state
+            if (window.PassportAdmin) {
+                PassportAdmin.currentEstimate = est;
+                await PassportAdmin.load(id);
+            }
 
             document.getElementById('modal-body').innerHTML = EstimateRenderer.renderEstimateHTML(est, {
                 isAdmin: true,

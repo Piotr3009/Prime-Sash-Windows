@@ -116,27 +116,33 @@ function notFound(res, msg) {
 
 module.exports = async (req, res) => {
   const token = (req.query && req.query.token) ? String(req.query.token).trim() : '';
+  // Plate codes come pre-engraved from the supplier, so the format is theirs:
+  // digits, dots, dashes are all fair game. Only length and charset are bounded.
+  const plate = (req.query && req.query.plate) ? String(req.query.plate).trim() : '';
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const PLATE_RE = /^[A-Za-z0-9._-]{1,64}$/;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   // A passport changes only on a rare correction; short edge cache keeps the
   // page instant on poor site signal without serving stale data for long.
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
 
-  if (!UUID_RE.test(token)) {
+  const byPlate = plate !== '';
+  if (byPlate ? !PLATE_RE.test(plate) : !UUID_RE.test(token)) {
     return notFound(res, "This link doesn't match any window. Please check the QR code on the window, or contact us at info@primesashwindows.co.uk.");
   }
 
   let data = null;
   try {
-    const resp = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_window_passport', {
+    const rpc = byPlate ? 'get_window_passport_by_plate' : 'get_window_passport';
+    const resp = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + rpc, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ p_token: token })
+      body: JSON.stringify(byPlate ? { p_code: plate } : { p_token: token })
     });
     if (resp.ok) data = await resp.json();
   } catch (e) {
