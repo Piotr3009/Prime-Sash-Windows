@@ -687,7 +687,7 @@
     <script src="js/viewer3d-modal.js?v=1"></script>
     <script src="js/modal-drag.js?v=1"></script>
     <script src="js/passport-create.js?v=5"></script>
-    <script src="js/estimate-renderer.js?v=24"></script>
+    <script src="js/estimate-renderer.js?v=25"></script>
     <script>
         // ============================================
         // ADMIN DASHBOARD CONTROLLER
@@ -1105,9 +1105,14 @@
 
             currentAdminEstimateId = id;
 
+            // 'in_production' and 'completed' are editable ONLY so a window can be
+            // reopened and re-saved to capture its 3D config (windows added before
+            // 27 July have none). Deleting is blocked for those - see hideDelete.
+            const finished = ['in_production', 'completed'].includes(est.status);
             document.getElementById('modal-body').innerHTML = EstimateRenderer.renderEstimateHTML(est, {
                 isAdmin: true,
-                isEditable: ['draft', 'sent', 'quoted', 'survey'].includes(est.status)
+                isEditable: ['draft', 'sent', 'quoted', 'survey'].includes(est.status) || finished,
+                hideDelete: finished
             });
             
             document.getElementById('quote-modal').classList.add('active');

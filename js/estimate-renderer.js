@@ -520,6 +520,9 @@ class EstimateRenderer {
         if (estimate && estimate.estimate_items) estimate.estimate_items = R.sortWindowItems(estimate.estimate_items);
         const isEditable = options.isEditable ?? (estimate.status === 'sent');
         const isAdmin = options.isAdmin ?? false;
+        // Editing a finished order is allowed so 3D can be regenerated, but the
+        // window itself must not be removable - it has been made and delivered.
+        const hideDelete = options.hideDelete ?? false;
 
         // Customer info
         const customer = estimate.customers || {};
@@ -573,7 +576,7 @@ class EstimateRenderer {
                         ${!isAdmin ? `
                         <button onclick="dashboard.renameWindow('${item.id}','${(item.window_number || '').replace(/'/g, "\\'")}','${estimate.id}')" style="background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.6);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Rename</button>
                         ` : ''}
-                        <button onclick="EstimateRenderer.deleteItem('${item.id}','${estimate.id}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.7);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Delete</button>
+                        ${hideDelete ? '' : `<button onclick="EstimateRenderer.deleteItem('${item.id}','${estimate.id}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.7);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">Delete</button>`}
                         <button onclick="EstimateRenderer.refreshEstimate()" style="background:transparent;border:1px solid rgba(100,180,255,.4);color:rgba(100,180,255,.8);font-family:'Jost',sans-serif;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;cursor:pointer;border-radius:2px;">🔄</button>
                         ` : ''}
                     </div>
