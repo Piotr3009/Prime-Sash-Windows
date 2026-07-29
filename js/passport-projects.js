@@ -121,7 +121,8 @@
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;border-bottom:1px solid #E5E2DA;padding-bottom:11px;margin-bottom:11px;">
           <div style="font-size:15px;color:#3F3F3A;">
             ${this.esc(p.project_address || 'No address')}<br>
-            <span style="color:#5F5E5A;">Completed ${this.esc(p.completed_date || '')} · ${linked} of ${this.windows.length} plates linked</span>
+            <span style="color:#5F5E5A;">Completed ${this.esc(p.completed_date || '')} · ${linked} of ${this.windows.length} plates linked</span><br>
+            <span style="color:${p.timber ? '#5F5E5A' : '#8A4B12'};">Timber: ${p.timber ? this.esc(p.timber) : 'not set — add it in Edit'}</span>
           </div>
           <div style="display:flex;gap:6px;">
             <button class="btn-sm neutral" onclick="PassportProjects.openWarranty()">${p.warranty_no ? 'Warranty: ' + this.esc(p.warranty_no) : 'Add warranty'}</button>
@@ -504,9 +505,19 @@
           <div class="pp-lbl">Project address</div>
           <input id="pp-e-addr" class="pp-in" value="${this.esc(p.project_address || '')}">
         </div>
-        <div style="margin-bottom:12px;">
-          <div class="pp-lbl">Completed</div>
-          <input id="pp-e-date" type="date" class="pp-in" value="${this.esc(p.completed_date || '')}">
+        <div style="display:flex;gap:10px;margin-bottom:12px;">
+          <div style="flex:1;">
+            <div class="pp-lbl">Completed</div>
+            <input id="pp-e-date" type="date" class="pp-in" value="${this.esc(p.completed_date || '')}">
+          </div>
+          <div style="flex:1;">
+            <div class="pp-lbl">Timber</div>
+            <select id="pp-e-timber" class="pp-in">
+              <option value=""${!p.timber ? ' selected' : ''}>— select —</option>
+              <option value="Sapele"${p.timber === 'Sapele' ? ' selected' : ''}>Sapele</option>
+              <option value="Engineered hardwood"${p.timber === 'Engineered hardwood' ? ' selected' : ''}>Engineered hardwood</option>
+            </select>
+          </div>
         </div>
         <div id="pp-err" class="pp-err"></div>
         <div style="display:flex;gap:8px;margin-top:14px;">
@@ -519,7 +530,8 @@
       await this.patchProject({
         client_name: (document.getElementById('pp-e-client').value || '').trim() || null,
         project_address: (document.getElementById('pp-e-addr').value || '').trim() || null,
-        completed_date: document.getElementById('pp-e-date').value || this.current.completed_date
+        completed_date: document.getElementById('pp-e-date').value || this.current.completed_date,
+        timber: document.getElementById('pp-e-timber').value || null
       }, 'details');
     },
 

@@ -184,8 +184,23 @@ module.exports = async (req, res) => {
   const titleText = [data.window_number, data.window_type].filter(Boolean).join(' · ') || 'Window passport';
   const mfg = fmtDate(data.manufactured_date);
 
-  const specRows = rows
-    .filter(r => r && r.label && r.value !== undefined && r.value !== null && String(r.value).trim() !== '')
+  // Timber comes from the project (the configurator never captured species),
+  // so it is merged into the frozen rows at display time - placed after Frame
+  // to keep the material facts together.
+  const cleanRows = rows.filter(r =>
+    r && r.label && r.value !== undefined && r.value !== null && String(r.value).trim() !== '');
+  if (data.timber) {
+    const existing = cleanRows.findIndex(r => String(r.label).toLowerCase() === 'timber');
+    if (existing >= 0) {
+      // A frozen row already names the timber - the project value wins, so the
+      // passport never shows two different species for the same window.
+      cleanRows[existing] = { label: 'Timber', value: data.timber };
+    } else {
+      const at = cleanRows.findIndex(r => String(r.label).toLowerCase() === 'frame');
+      cleanRows.splice(at >= 0 ? at + 1 : 0, 0, { label: 'Timber', value: data.timber });
+    }
+  }
+  const specRows = cleanRows
     .map(r => `<tr><td>${escapeHtml(r.label)}</td><td>${escapeHtml(r.value)}</td></tr>`)
     .join('');
 
@@ -292,8 +307,7 @@ module.exports = async (req, res) => {
     serial: data.serial_number || '',
     title: titleText,
     location: data.project_label || '',
-    rows: rows.filter(r => r && r.label && String(r.value || '').trim())
-              .map(r => [String(r.label), String(r.value)]),
+    rows: cleanRows.map(r => [String(r.label), String(r.value)]),
     uValue: data.u_value ? String(data.u_value) + ' W/m\u00b2K' : '',
     manufactured: mfg,
     warrantyNo: data.warranty_no || '',
