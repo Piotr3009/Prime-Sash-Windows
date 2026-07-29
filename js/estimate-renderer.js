@@ -808,9 +808,18 @@ class EstimateRenderer {
         const extrasTotalAll = installationTotal + deliveryTotal + customExtras.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
 
         // Admin: "+ Add Extra" inline form (hidden by default)
+        // Installation and delivery are priced per window type, so they are added
+        // by the SAME EstimateExtras methods the customer flow uses - typing them
+        // by hand would mean maintaining a second set of prices.
+        const quickBtn = (label, fn, already) => already
+            ? `<button disabled style="background:transparent;border:1px solid ${BORDER};color:var(--muted);padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;cursor:default;">${label} — added</button>`
+            : `<button onclick="${fn}" style="background:transparent;border:1px solid var(--navy);color:var(--navy);padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;">+ ${label}</button>`;
+
         const adminExtrasControlsHTML = isAdmin ? `
-            <div style="margin-top:1rem;">
+            <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap;">
                 <button onclick="adminToggleExtraForm(true)" id="admin-add-extra-btn" style="background:var(--navy);color:#fff;border:none;padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;">+ Add Extra</button>
+                ${quickBtn('Installation', 'adminAddInstallation()', hasInstallation)}
+                ${quickBtn('Delivery', 'adminAddDelivery()', hasDelivery)}
             </div>
             <div id="admin-extra-form" style="display:none;margin-top:1rem;padding:1.2rem 1.4rem;background:${CREAM_LIGHT};border:1px solid ${BORDER};">
                 <h4 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1rem;margin:0 0 .8rem;">Add Custom Extra</h4>

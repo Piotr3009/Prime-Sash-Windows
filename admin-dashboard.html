@@ -687,7 +687,7 @@
     <script src="js/viewer3d-modal.js?v=2"></script>
     <script src="js/modal-drag.js?v=1"></script>
     <script src="js/passport-create.js?v=5"></script>
-    <script src="js/estimate-renderer.js?v=26"></script>
+    <script src="js/estimate-renderer.js?v=27"></script>
     <script>
         // ============================================
         // ADMIN DASHBOARD CONTROLLER
@@ -1118,6 +1118,84 @@
             document.getElementById('quote-modal').classList.add('active');
             EstimateRenderer.attachExportButtons(est);
         }
+
+        // ─── Admin: quick-add installation / delivery ───
+        // Uses the SAME EstimateExtras methods as the customer flow, so prices
+        // can never drift apart: sash £400, casement £250, fix £200, door £450;
+        // delivery £300 + £30 per window above ten.
+
+        function adminCurrentEstimate() {
+            return (window.allEstimates || []).find(e => e.id === currentAdminEstimateId) || null;
+        }
+
+        function adminInstallationBreakdown(items) {
+            const label = { sash: 'sash', casement: 'casement', door: 'door' };
+            const counts = {};
+            let total = 0;
+            items.forEach(item => {
+                const qty = parseInt(item.quantity) || 1;
+                const raw = String(item.window_type || '').toLowerCase();
+                const kind = label[raw] || (raw.includes('door') ? 'door' : (raw.includes('fix') ? 'fix' : raw || 'window'));
+                const price = kind === 'sash' ? EstimateExtras.INSTALL_PRICE_SASH
+                            : kind === 'casement' ? EstimateExtras.INSTALL_PRICE_CASEMENT
+                            : kind === 'door' ? EstimateExtras.INSTALL_PRICE_DOOR
+                            : EstimateExtras.INSTALL_PRICE_FIX;
+                counts[kind] = (counts[kind] || 0) + qty;
+                total += price * qty;
+            });
+            const parts = Object.keys(counts).map(k => counts[k] + ' \u00d7 ' + k);
+            return { text: parts.join(', '), total: total };
+        }
+
+        async function adminAddInstallation() {
+            const est = adminCurrentEstimate();
+            if (!est) return alert('No estimate selected — please reopen it.');
+            const items = est.estimate_items || [];
+            if (!items.length) return alert('This estimate has no windows.');
+
+            const b = adminInstallationBreakdown(items);
+            if (!confirm('Add installation?\n\n' + b.text + '\nTotal: \u00a3' + b.total.toLocaleString('en-GB'))) return;
+
+            try {
+                await EstimateExtras.addInstallation(est.id, items);
+                await viewEstimate(est.id);
+                await loadAllData();
+            } catch (err) {
+                console.error('Add installation failed:', err);
+                alert(String(err && err.message || '').includes('already')
+                    ? 'Installation is already on this estimate.'
+                    : 'Could not add installation. Please try again.');
+            }
+        }
+
+        async function adminAddDelivery() {
+            const est = adminCurrentEstimate();
+            if (!est) return alert('No estimate selected — please reopen it.');
+            const items = est.estimate_items || [];
+            const totalQty = items.reduce((s, i) => s + (parseInt(i.quantity) || 1), 0);
+            if (totalQty < 1) return alert('This estimate has no windows.');
+
+            const extra = Math.max(0, totalQty - EstimateExtras.DELIVERY_SURCHARGE_THRESHOLD)
+                          * EstimateExtras.DELIVERY_SURCHARGE_PER_WINDOW;
+            const total = EstimateExtras.DELIVERY_BASE_PRICE + extra;
+            const detail = totalQty + ' window' + (totalQty === 1 ? '' : 's')
+                         + (extra ? ' (\u00a3300 base + \u00a3' + extra + ' surcharge)' : '');
+            if (!confirm('Add delivery?\n\n' + detail + '\nTotal: \u00a3' + total.toLocaleString('en-GB'))) return;
+
+            try {
+                await EstimateExtras.addDelivery(est.id, totalQty);
+                await viewEstimate(est.id);
+                await loadAllData();
+            } catch (err) {
+                console.error('Add delivery failed:', err);
+                alert(String(err && err.message || '').includes('already')
+                    ? 'Delivery is already on this estimate.'
+                    : 'Could not add delivery. Please try again.');
+            }
+        }
+
+        window.adminAddInstallation = adminAddInstallation;
+        window.adminAddDelivery = adminAddDelivery;
 
         // ─── Admin: Additional Services CRUD ───
         function adminToggleExtraForm(show) {
