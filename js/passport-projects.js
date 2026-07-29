@@ -125,7 +125,7 @@
             <button class="btn-sm neutral" onclick="PassportProjects.openEdit()">Edit</button>
           </div>
         </div>
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+        <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
           <thead><tr style="color:#888;font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:left;">
             <th style="padding-bottom:6px;">Window</th><th>Serial</th><th>Location</th><th>QR plate</th><th></th>
           </tr></thead>
@@ -405,11 +405,14 @@
         st.id = 'pp-style';
         st.textContent =
           '#pp-overlay{position:fixed;inset:0;background:rgba(10,22,40,.82);z-index:99997;display:flex;align-items:center;justify-content:center;padding:20px;}' +
-          '#pp-panel{background:#FAFAF8;border-radius:6px;width:min(720px,96vw);max-height:92vh;overflow:auto;}' +
-          '#pp-head{padding:13px 18px;border-bottom:1px solid #E5E2DA;font-family:"Cormorant Garamond",serif;font-size:1.15rem;color:#0A1628;}' +
-          '#pp-body{padding:16px 18px;font-family:"Jost",sans-serif;font-size:.82rem;color:#0A1628;}' +
+          '#pp-panel{background:#FAFAF8;border-radius:6px;width:min(1040px,96vw);max-height:92vh;overflow:auto;}' +
+          '#pp-head{display:flex;justify-content:space-between;align-items:center;gap:12px;}' +
+          '#pp-close{background:none;border:none;font-size:1.6rem;line-height:1;color:#9E9E90;cursor:pointer;padding:0 4px;}' +
+          '#pp-close:hover{color:#0A1628;}' +
+          '#pp-head{padding:16px 22px;border-bottom:1px solid #E5E2DA;font-family:"Cormorant Garamond",serif;font-size:1.45rem;color:#0A1628;}' +
+          '#pp-body{padding:20px 22px;font-family:"Jost",sans-serif;font-size:.95rem;color:#0A1628;}' +
           '.pp-lbl{font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:#9E9E90;margin-bottom:4px;}' +
-          '.pp-in{width:100%;border:1px solid #C9C6BC;border-radius:3px;padding:9px 11px;font-family:"Jost",sans-serif;font-size:.82rem;color:#0A1628;background:#fff;}' +
+          '.pp-in{width:100%;border:1px solid #C9C6BC;border-radius:3px;padding:11px 13px;font-family:"Jost",sans-serif;font-size:.95rem;color:#0A1628;background:#fff;}' +
           '.pp-in:focus{outline:none;border-color:#0A1628;}' +
           '.pp-note{background:#F3F0EA;border-radius:3px;padding:9px 11px;color:#5F5E5A;font-size:.72rem;line-height:1.5;margin-top:12px;}' +
           '.pp-warn{background:#F7EDE1;color:#8A4B12;border-radius:3px;padding:10px 12px;font-size:.74rem;line-height:1.5;margin-bottom:12px;}' +
@@ -421,8 +424,11 @@
       }
       const ov = document.createElement('div');
       ov.id = 'pp-overlay';
-      ov.innerHTML = `<div id="pp-panel"><div id="pp-head">${title}</div><div id="pp-body">${inner}</div></div>`;
-      ov.addEventListener('click', e => { if (e.target === ov) this.close(); });
+      // Closes only via the X or after saving - a stray click on the backdrop
+      // must not discard work in progress.
+      ov.innerHTML = `<div id="pp-panel"><div id="pp-head"><span>${title}</span>` +
+        `<button id="pp-close" type="button" aria-label="Close" onclick="PassportProjects.close()">&times;</button></div>` +
+        `<div id="pp-body">${inner}</div></div>`;
       document.body.appendChild(ov);
     },
 

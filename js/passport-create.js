@@ -91,7 +91,7 @@
           <input id="pc-addr" class="pc-in" value="${this.esc(est.project_name || '')}" placeholder="e.g. 12 Elm Street, London">
         </div>
         <div class="pc-lbl">Windows to be created (${units.length})</div>
-        <div style="max-height:170px;overflow:auto;background:#F3F0EA;border-radius:3px;padding:9px 11px;">
+        <div style="max-height:300px;overflow:auto;background:#F3F0EA;border-radius:3px;padding:9px 11px;">
           <table style="width:100%;font-size:12px;">${rows}</table>
         </div>
         <div class="pc-note">Specifications, photos and 3D are copied now and frozen — later edits to the estimate will not change this passport. QR plates, warranty and documents are added afterwards in Admin Panel → Project Passports.</div>
@@ -263,13 +263,16 @@
         st.id = 'pc-style';
         st.textContent =
           '#pc-overlay{position:fixed;inset:0;background:rgba(10,22,40,.82);z-index:99996;display:flex;align-items:center;justify-content:center;padding:20px;}' +
-          '#pc-panel{background:#FAFAF8;border-radius:6px;width:min(470px,96vw);max-height:92vh;overflow:auto;}' +
-          '#pc-head{padding:13px 18px;border-bottom:1px solid #E5E2DA;font-family:"Cormorant Garamond",serif;font-size:1.1rem;color:#0A1628;}' +
-          '#pc-body{padding:16px 18px;font-family:"Jost",sans-serif;font-size:.8rem;color:#0A1628;}' +
+          '#pc-panel{background:#FAFAF8;border-radius:6px;width:min(900px,96vw);max-height:92vh;overflow:auto;}' +
+          '#pc-head{display:flex;justify-content:space-between;align-items:center;gap:12px;}' +
+          '#pc-close{background:none;border:none;font-size:1.6rem;line-height:1;color:#9E9E90;cursor:pointer;padding:0 4px;}' +
+          '#pc-close:hover{color:#0A1628;}' +
+          '#pc-head{padding:16px 22px;border-bottom:1px solid #E5E2DA;font-family:"Cormorant Garamond",serif;font-size:1.4rem;color:#0A1628;}' +
+          '#pc-body{padding:20px 22px;font-family:"Jost",sans-serif;font-size:.92rem;color:#0A1628;}' +
           '.pc-lbl{font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:#9E9E90;margin-bottom:4px;}' +
-          '.pc-in{width:100%;border:1px solid #C9C6BC;border-radius:3px;padding:9px 11px;font-family:"Jost",sans-serif;font-size:.82rem;color:#0A1628;background:#fff;}' +
+          '.pc-in{width:100%;border:1px solid #C9C6BC;border-radius:3px;padding:11px 13px;font-family:"Jost",sans-serif;font-size:.95rem;color:#0A1628;background:#fff;}' +
           '.pc-in:focus{outline:none;border-color:#0A1628;}' +
-          '.pc-ro{font-family:"JetBrains Mono",monospace;font-size:.85rem;background:#F3F0EA;padding:9px 11px;border-radius:3px;}' +
+          '.pc-ro{font-family:"JetBrains Mono",monospace;font-size:1rem;background:#F3F0EA;padding:11px 13px;border-radius:3px;}' +
           '.pc-note{background:#F3F0EA;border-radius:3px;padding:9px 11px;color:#5F5E5A;font-size:.72rem;line-height:1.5;margin-top:10px;}' +
           '.pc-err{display:none;background:#F9E9E9;color:#A32D2D;border-radius:3px;padding:9px 11px;font-size:.72rem;margin-top:10px;}' +
           '.pc-btn{border:1px solid #0A1628;background:transparent;color:#0A1628;border-radius:3px;padding:10px 16px;cursor:pointer;' +
@@ -280,8 +283,11 @@
       }
       const ov = document.createElement('div');
       ov.id = 'pc-overlay';
-      ov.innerHTML = `<div id="pc-panel"><div id="pc-head">${title}</div><div id="pc-body">${inner}</div></div>`;
-      ov.addEventListener('click', e => { if (e.target === ov) this.close(); });
+      // Closes only via the X or after saving - a stray click on the backdrop
+      // must not discard a half-filled form.
+      ov.innerHTML = `<div id="pc-panel"><div id="pc-head"><span>${title}</span>` +
+        `<button id="pc-close" type="button" aria-label="Close" onclick="PassportCreate.close()">&times;</button></div>` +
+        `<div id="pc-body">${inner}</div></div>`;
       document.body.appendChild(ov);
     },
 
