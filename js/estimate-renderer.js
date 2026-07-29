@@ -132,7 +132,9 @@ class EstimateRenderer {
             label: (p.windowType === 'door' ? 'Door ' : 'Window ') + (item.window_number || ''),
             dims: (p.width && p.height) ? (p.width + ' \u00d7 ' + p.height + ' mm') : ''
         };
-        return `<button type="button" data-psw3d="${item.id}" style="width:100%;margin-top:6px;background:transparent;border:1px solid #0A1628;border-radius:2px;padding:7px 0;font-family:'Jost',sans-serif;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:#0A1628;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>View in 3D</button>`;
+        // Styling lives in js/viewer3d-modal.js so the animated sweep can use
+        // keyframes, which inline styles cannot express.
+        return `<button type="button" class="psw3d-btn" data-psw3d="${item.id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>Rotate in 3D</button>`;
     }
 
     // Parse item data for rendering and export

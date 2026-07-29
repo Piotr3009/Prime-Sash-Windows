@@ -327,7 +327,7 @@ ${drawing ? `<div id="pp-draw-overlay"><div><div id="pp-draw-box">${drawing}</di
     dims: ${jsonForScript(data.serial_number || '')}
   } };` : ''}
 </script>
-${viewer3d ? '<script src="/js/viewer3d-modal.js?v=1"></script>' : ''}
+${viewer3d ? '<script src="/js/viewer3d-modal.js?v=2"></script>' : ''}
 <script src="/js/passport-page.js?v=1"></script>`;
 
   res.status(200).send(pageShell(data.serial_number || 'Window passport', body, tail));

@@ -29,6 +29,29 @@
   // from the configurator, where it guards the full editing UI, not 3D itself.)
 
   var BUNDLE_URL = '/3d/assets/window3d.js?v=66';
+
+  // Button styles are injected as soon as this module loads (not when the modal
+  // is first built), because estimate-renderer draws the button immediately.
+  // The silver sweep borrows the brand's gradient separator so the control
+  // reads as interactive without shouting.
+  (function injectButtonStyle() {
+    if (document.getElementById('psw3d-btn-style')) return;
+    var st = document.createElement('style');
+    st.id = 'psw3d-btn-style';
+    st.textContent =
+      '.psw3d-btn{position:relative;overflow:hidden;width:100%;margin-top:8px;background:#0A1628;' +
+      'border:1px solid #0A1628;border-radius:2px;padding:11px 0;cursor:pointer;color:#FAFAF8;' +
+      "font-family:'Jost',sans-serif;font-size:.68rem;font-weight:500;letter-spacing:.16em;" +
+      'text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px;' +
+      'transition:background .15s;}' +
+      '.psw3d-btn:hover{background:#132441;}' +
+      '.psw3d-btn::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;' +
+      'background:linear-gradient(100deg,transparent,rgba(200,200,190,.42),transparent);' +
+      'animation:psw3dShine 4.5s ease-in-out infinite;pointer-events:none;}' +
+      '@keyframes psw3dShine{0%{left:-60%;}45%{left:115%;}100%{left:115%;}}' +
+      '@media (prefers-reduced-motion:reduce){.psw3d-btn::after{animation:none;opacity:0;}}';
+    document.head.appendChild(st);
+  })();
   var enginePromise = null;
   var modalBuilt = false;
 
