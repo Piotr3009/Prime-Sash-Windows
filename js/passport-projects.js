@@ -272,46 +272,186 @@
 
     // ---------- warranty ----------
 
-    openWarranty() {
+    // Warranty numbers are picked from the certificates that already exist -
+    // typing them by hand invites a typo on a document that lasts ten years.
+    // The expiry comes from the certificate itself, never re-calculated here
+    // unless the certificate has none.
+    warranties: [],
+    warrantyPick: null,
+
+    async openWarranty() {
       const p = this.current;
-      this.modal('Warranty — ' + this.esc(p.passport_no), `
-        <div style="margin-bottom:12px;">
-          <div class="pp-lbl">Warranty number</div>
-          <input id="pp-war-no" class="pp-in" value="${this.esc(p.warranty_no || '')}" placeholder="PSW-2026-00123">
-        </div>
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <div class="pp-lbl">Years</div>
-            <input id="pp-war-years" type="number" min="1" max="50" class="pp-in" value="${p.warranty_years || 10}">
+      this.warrantyPick = p.warranty_no
+        ? { warranty_no: p.warranty_no, warranty_expiry: p.warranty_expiry }
+        : null;
+
+      this.modal('Warranty — ' + this.esc(p.passport_no), '<div style="color:#888;">Loading certificates…</div>');
+
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('warranty_certificates')
+          .select('warranty_no, client_name, property_address, manufacturing_date, warranty_expiry, order_reference')
+          .order('warranty_no', { ascending: false });
+        if (error) throw error;
+        this.warranties = data || [];
+      } catch (err) {
+        console.error('Certificates failed to load:', err);
+        this.body('<div style="color:#a33;">Could not load warranty certificates.</div>' +
+          '<div style="margin-top:14px;text-align:right;"><button class="pp-btn" onclick="PassportProjects.backToDetail()">Back</button></div>');
+        return;
+      }
+
+      if (!this.warranties.length) {
+        this.body('<div class="pp-note">No warranty certificates exist yet. Issue one first in the Warranties tab, then link it here.</div>' +
+          '<div style="margin-top:14px;text-align:right;"><button class="pp-btn" onclick="PassportProjects.backToDetail()">Back</button></div>');
+        return;
+      }
+
+      const years = this.warrantyYears();
+      const current = String(new Date().getFullYear());
+      const startYear = years.indexOf(current) >= 0 ? current : years[0];
+
+      this.body(`
+        <div style="display:flex;gap:10px;margin-bottom:12px;">
+          <div style="width:120px;">
+            <div class="pp-lbl">Year</div>
+            <select id="pp-war-year" class="pp-in" onchange="PassportProjects.renderWarrantyList()">
+              ${years.map(y => `<option value="${y}"${y === startYear ? ' selected' : ''}>${y}</option>`).join('')}
+              <option value="all">All years</option>
+            </select>
           </div>
           <div style="flex:1;">
-            <div class="pp-lbl">Expiry</div>
-            <input id="pp-war-exp" type="date" class="pp-in" value="${this.esc(p.warranty_expiry || '')}">
+            <div class="pp-lbl">Search</div>
+            <input id="pp-war-q" class="pp-in" placeholder="number or client" autocomplete="off"
+                   oninput="PassportProjects.renderWarrantyList()">
           </div>
         </div>
-        <div class="pp-note">The warranty applies to the whole project and appears on every window's passport page. Leave the expiry blank to calculate it from the completion date.</div>
+        <div id="pp-war-list" style="border:1px solid #E5E2DA;border-radius:3px;max-height:210px;overflow:auto;background:#fff;"></div>
+        <div id="pp-war-sel"></div>
         <div id="pp-err" class="pp-err"></div>
-        <div style="display:flex;gap:8px;margin-top:14px;">
+        <div style="display:flex;gap:8px;margin-top:16px;">
           <button class="pp-btn pp-btn--solid" style="flex:1;" onclick="PassportProjects.saveWarranty()">Save warranty</button>
+          ${p.warranty_no ? '<button class="pp-btn" onclick="PassportProjects.clearWarranty()">Remove</button>' : ''}
           <button class="pp-btn" onclick="PassportProjects.backToDetail()">Cancel</button>
         </div>`);
+
+      this.renderWarrantyList();
+    },
+
+    // Year taken from the number (PSW-2026-00123), falling back to the
+    // manufacturing date, so odd numbering never hides a certificate.
+    certYear(w) {
+      const m = String(w.warranty_no || '').match(/(20\d{2})/);
+      if (m) return m[1];
+      return String(w.manufacturing_date || '').slice(0, 4) || '—';
+    },
+
+    warrantyYears() {
+      const set = {};
+      this.warranties.forEach(w => { set[this.certYear(w)] = true; });
+      return Object.keys(set).sort().reverse();
+    },
+
+    renderWarrantyList() {
+      const yearEl = document.getElementById('pp-war-year');
+      const qEl = document.getElementById('pp-war-q');
+      const list = document.getElementById('pp-war-list');
+      if (!list) return;
+      const year = yearEl ? yearEl.value : 'all';
+      const q = (qEl ? qEl.value : '').trim().toLowerCase();
+
+      const rows = this.warranties.filter(w => {
+        if (year !== 'all' && this.certYear(w) !== year) return false;
+        if (!q) return true;
+        return [w.warranty_no, w.client_name, w.property_address, w.order_reference]
+          .some(v => String(v || '').toLowerCase().includes(q));
+      });
+
+      list.innerHTML = rows.length ? rows.map(w => {
+        const on = this.warrantyPick && this.warrantyPick.warranty_no === w.warranty_no;
+        return `<div onclick="PassportProjects.pickWarranty('${this.esc(w.warranty_no)}')"
+             style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 13px;cursor:pointer;
+                    border-top:1px solid #EFEDE7;${on ? 'background:#0A1628;color:#FAFAF8;' : ''}">
+          <div style="min-width:0;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.85rem;">${this.esc(w.warranty_no)}</div>
+            <div style="font-size:.75rem;color:${on ? 'rgba(255,255,255,.65)' : '#9E9E90'};margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              ${this.esc(w.client_name || '')}${w.property_address ? ' · ' + this.esc(w.property_address) : ''}</div>
+          </div>
+          <div style="font-size:.72rem;color:${on ? 'rgba(255,255,255,.75)' : '#9E9E90'};white-space:nowrap;">
+            ${on ? '&#10003;' : this.esc(this.shortDate(w.manufacturing_date))}</div>
+        </div>`;
+      }).join('') : '<div style="padding:14px;color:#9E9E90;font-size:.8rem;">No certificates match.</div>';
+
+      this.renderWarrantySelected();
+    },
+
+    shortDate(d) {
+      if (!d) return '';
+      const dt = new Date(String(d) + 'T00:00:00');
+      return isNaN(dt) ? '' : dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    },
+
+    longDate(d) {
+      if (!d) return '';
+      const dt = new Date(String(d) + 'T00:00:00');
+      return isNaN(dt) ? '' : dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    },
+
+    pickWarranty(no) {
+      const w = this.warranties.find(x => x.warranty_no === no);
+      if (!w) return;
+      this.warrantyPick = { warranty_no: w.warranty_no, warranty_expiry: w.warranty_expiry || null };
+      this.renderWarrantyList();
+    },
+
+    // Expiry: from the certificate when it has one, otherwise derived from the
+    // project completion date so the client is never shown a blank.
+    resolvedExpiry() {
+      if (!this.warrantyPick) return null;
+      if (this.warrantyPick.warranty_expiry) {
+        return { date: this.warrantyPick.warranty_expiry, source: 'from certificate' };
+      }
+      const p = this.current;
+      const base = p.completed_date || new Date().toISOString().slice(0, 10);
+      const d = new Date(base + 'T00:00:00');
+      d.setFullYear(d.getFullYear() + (p.warranty_years || 10));
+      return { date: d.toISOString().slice(0, 10), source: 'calculated from completion date' };
+    },
+
+    renderWarrantySelected() {
+      const el = document.getElementById('pp-war-sel');
+      if (!el) return;
+      if (!this.warrantyPick) {
+        el.innerHTML = '<div class="pp-note">Select a certificate from the list. Its expiry date is taken automatically.</div>';
+        return;
+      }
+      const exp = this.resolvedExpiry();
+      el.innerHTML = `<div style="display:flex;gap:12px;margin-top:14px;background:#F3F0EA;border-radius:3px;padding:12px 14px;">
+          <div style="flex:1;">
+            <div class="pp-lbl">Selected</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.9rem;">${this.esc(this.warrantyPick.warranty_no)}</div>
+          </div>
+          <div style="flex:1;">
+            <div class="pp-lbl">Valid until</div>
+            <div style="font-size:.9rem;">${this.esc(this.longDate(exp.date))}
+              <span style="color:#9E9E90;font-size:.72rem;">· ${exp.source}</span></div>
+          </div>
+        </div>`;
     },
 
     async saveWarranty() {
-      const p = this.current;
-      const no = (document.getElementById('pp-war-no').value || '').trim();
-      const years = Math.max(1, parseInt(document.getElementById('pp-war-years').value, 10) || 10);
-      let exp = document.getElementById('pp-war-exp').value || '';
-      if (no && !exp) {
-        const d = new Date((p.completed_date || new Date().toISOString().slice(0, 10)) + 'T00:00:00');
-        d.setFullYear(d.getFullYear() + years);
-        exp = d.toISOString().slice(0, 10);
-      }
+      if (!this.warrantyPick) return this.err('Select a certificate first.');
+      const exp = this.resolvedExpiry();
       await this.patchProject({
-        warranty_no: no || null,
-        warranty_years: years,
-        warranty_expiry: no ? (exp || null) : null
+        warranty_no: this.warrantyPick.warranty_no,
+        warranty_expiry: exp ? exp.date : null
       }, 'warranty');
+    },
+
+    async clearWarranty() {
+      if (!confirm('Remove the warranty from this passport?')) return;
+      this.warrantyPick = null;
+      await this.patchProject({ warranty_no: null, warranty_expiry: null }, 'warranty removed');
     },
 
     // ---------- edit with warning ----------
@@ -430,6 +570,9 @@
         `<button id="pp-close" type="button" aria-label="Close" onclick="PassportProjects.close()">&times;</button></div>` +
         `<div id="pp-body">${inner}</div></div>`;
       document.body.appendChild(ov);
+      if (typeof window.makeDraggable === 'function') {
+        window.makeDraggable(document.getElementById('pp-panel'), document.getElementById('pp-head'));
+      }
     },
 
     close() {

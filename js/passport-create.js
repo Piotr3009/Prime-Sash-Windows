@@ -125,10 +125,15 @@
       return units;
     },
 
+    // Estimate numbers use slashes (00019/04/2026). Serial numbers must not:
+    // they are printed on plates and used in file names, where "/" reads as a
+    // folder separator. Everything outside letters, digits and dashes becomes
+    // a dash: PSW-00019-04-2026.
     buildProjectNo(est) {
       const raw = String(est.estimate_number || '').trim();
-      const num = raw.replace(/^[A-Za-z]+[-_ ]*/, '') || String(est.id || '').slice(0, 8);
-      return ('PSW-' + num).replace(/-+$/, '');
+      const num = (raw.replace(/^[A-Za-z]+[-_ ]*/, '') || String(est.id || '').slice(0, 8))
+        .replace(/[^A-Za-z0-9]+/g, '-');
+      return ('PSW-' + num).replace(/-+/g, '-').replace(/-+$/, '');
     },
 
     typeLabel(item) {
@@ -289,6 +294,9 @@
         `<button id="pc-close" type="button" aria-label="Close" onclick="PassportCreate.close()">&times;</button></div>` +
         `<div id="pc-body">${inner}</div></div>`;
       document.body.appendChild(ov);
+      if (typeof window.makeDraggable === 'function') {
+        window.makeDraggable(document.getElementById('pc-panel'), document.getElementById('pc-head'));
+      }
     },
 
     close() {
