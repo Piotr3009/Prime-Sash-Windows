@@ -215,9 +215,22 @@
         const specCache = {};
         const payload = units.map(u => {
           if (!specCache[u.item.id]) {
+            // Technical drawing is generated, never uploaded: the renderer
+            // already draws a dimensioned elevation, and freezing it here keeps
+            // it in step with the frozen specification for good.
+            let drawing = null;
+            try {
+              if (window.EstimateRenderer && typeof EstimateRenderer.generateWindowSVG === 'function') {
+                const svg = EstimateRenderer.generateWindowSVG(u.item);
+                if (typeof svg === 'string' && svg.indexOf('<svg') !== -1) drawing = svg;
+              }
+            } catch (e) {
+              console.warn('Drawing could not be generated:', e);
+            }
             specCache[u.item.id] = {
               rows: this.collectSpecRows(est, u.item),
-              spec: this.itemSpec(u.item)
+              spec: this.itemSpec(u.item),
+              drawing: drawing
             };
           }
           const c = specCache[u.item.id];
@@ -232,7 +245,8 @@
             specification: {
               rows: c.rows,
               screenshots: c.spec.screenshots || null,
-              viewer3d: c.spec.viewer3d || null
+              viewer3d: c.spec.viewer3d || null,
+              drawing: c.drawing || null
             },
             created_by: user ? user.id : null
           };

@@ -103,6 +103,9 @@
           <td>${w.project_label
                 ? this.esc(w.project_label)
                 : `<a href="#" onclick="PassportProjects.setLocation('${w.id}');return false;" style="color:#5F5E5A;">— add —</a>`}</td>
+          <td>${w.u_value
+                ? `<a href="#" onclick="PassportProjects.setUValue('${w.id}');return false;" style="color:#0A1628;">${this.esc(w.u_value)}</a>`
+                : `<a href="#" onclick="PassportProjects.setUValue('${w.id}');return false;" style="color:#5F5E5A;">— add —</a>`}</td>
           <td>${w.plate_code
                 ? `<span style="font-family:'JetBrains Mono',monospace;font-size:13.5px;color:#1D6E4E;" title="${this.esc(w.plate_code)}">…${this.esc(String(w.plate_code).slice(-6))} &#10003;</span>`
                 : '<span style="color:#7A400F;font-size:14px;">not linked</span>'}</td>
@@ -127,9 +130,9 @@
         </div>
         <table style="width:100%;border-collapse:collapse;font-size:15px;">
           <thead><tr style="color:#3F3F3A;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;text-align:left;">
-            <th style="padding-bottom:6px;">Window</th><th>Serial</th><th>Location</th><th>QR plate</th><th></th>
+            <th style="padding-bottom:6px;">Window</th><th>Serial</th><th>Location</th><th>U-value</th><th>QR plate</th><th></th>
           </tr></thead>
-          <tbody>${rows || '<tr><td colspan="5" style="padding:12px;color:#888;">No windows.</td></tr>'}</tbody>
+          <tbody>${rows || '<tr><td colspan="6" style="padding:12px;color:#888;">No windows.</td></tr>'}</tbody>
         </table>
         <div class="pp-note">Specifications, photos and 3D were frozen when this passport was created. Corrections are possible and are logged; the QR link never changes.</div>
         <div id="pp-err" class="pp-err"></div>
@@ -137,6 +140,21 @@
     },
 
     // ---------- location ----------
+
+    // Typed in by hand, per window: a whole-window Uw depends on the
+    // frame-to-glass ratio, so it differs between windows in the same job and
+    // cannot be derived from the glazing type alone.
+    async setUValue(windowId) {
+      const w = this.windows.find(x => x.id === windowId);
+      if (!w) return;
+      const val = prompt('U-value for ' + w.serial_number + '  (W/m\u00b2K, whole window):', w.u_value || '');
+      if (val === null) return;
+      const clean = String(val).trim();
+      if (clean && !/^[0-9]+([.,][0-9]+)?$/.test(clean)) {
+        return alert('Enter a number, for example 1.2');
+      }
+      await this.patchWindow(windowId, { u_value: clean ? clean.replace(',', '.') : null });
+    },
 
     async setLocation(windowId) {
       const w = this.windows.find(x => x.id === windowId);

@@ -27,6 +27,18 @@ function safeImageSrc(src) {
   return /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=\s]+$/.test(s) ? s : '';
 }
 
+// JSON.stringify does NOT escape "</script>", so any value containing it would
+// close the inline script block early - a real XSS vector on a public page.
+// Escaping the three characters that can break out keeps the payload valid JS.
+function jsonForScript(value) {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 function fmtDate(d) {
   if (!d) return '';
   const dt = new Date(String(d) + (String(d).length === 10 ? 'T00:00:00' : ''));
@@ -74,6 +86,15 @@ const STYLES = `
   .pp-doc { display:flex; justify-content:space-between; align-items:center; gap:10px;
             background:var(--cream2); border-radius:3px; padding:10px 12px; margin-bottom:6px;
             font-size:.8rem; color:var(--navy); text-decoration:none; }
+  .pp-doc { width:100%; border:0; font-family:'Jost',sans-serif; font-size:.8rem; cursor:pointer; }
+  #pp-draw-overlay { position:fixed; inset:0; background:rgba(10,22,40,.9); z-index:9999; display:none;
+                     align-items:center; justify-content:center; padding:16px; }
+  #pp-draw-overlay.open { display:flex; }
+  #pp-draw-box { background:#fff; border-radius:6px; padding:14px; max-width:96vw; max-height:92vh; overflow:auto; }
+  #pp-draw-box svg { max-width:100%; height:auto; display:block; }
+  #pp-draw-close { display:block; margin:12px auto 0; border:1px solid var(--navy); background:transparent;
+                   color:var(--navy); border-radius:3px; padding:9px 20px; cursor:pointer;
+                   font-family:'Jost',sans-serif; font-size:.6rem; letter-spacing:.2em; text-transform:uppercase; }
   .pp-foot { background:var(--cream2); border-top:1px solid var(--line); padding:18px 16px; text-align:center; margin-top:22px; }
   .pp-foot-h { font-family:'Cormorant Garamond',serif; font-size:1rem; }
   .pp-foot-p { font-size:.7rem; color:var(--silver); margin:4px 0 11px; }
@@ -168,6 +189,10 @@ module.exports = async (req, res) => {
     .map(r => `<tr><td>${escapeHtml(r.label)}</td><td>${escapeHtml(r.value)}</td></tr>`)
     .join('');
 
+  // Whole-window U-value, entered by hand per window (never derived from the
+  // glazing type - see db/passport-uvalue.sql).
+  const uRow = data.u_value
+    ? `<tr><td>U-value</td><td>${escapeHtml(data.u_value)} W/m&sup2;K</td></tr>` : '';
   const mfgRow = mfg ? `<tr><td>Manufactured</td><td>${escapeHtml(mfg)}</td></tr>` : '';
 
   // Warranty. Expiry drives the badge, so nobody has to maintain it by hand.
@@ -204,9 +229,20 @@ module.exports = async (req, res) => {
     .filter(Boolean)
     .join('');
 
-  const docsSection = docsHtml
-    ? `<div class="pp-sec">Documents</div>${docsHtml}`
-    : '';
+  // Technical drawing is generated and frozen at creation, so it always matches
+  // the frozen specification and needs no uploaded file.
+  const drawing = (typeof spec.drawing === 'string' && spec.drawing.indexOf('<svg') !== -1)
+    ? spec.drawing : '';
+  const drawingRow = drawing
+    ? `<button type="button" class="pp-doc" id="pp-drawing-btn">
+         <span>Technical drawing</span><span aria-hidden="true">&#9707;</span></button>` : '';
+
+  // Care and maintenance is a LIVE link, not a frozen copy: if the guide is
+  // improved in 2030, every passport should show the current version.
+  const careRow = `<a class="pp-doc" href="/timber-window-maintenance-guide.html" target="_blank" rel="noopener">
+      <span>Care and maintenance</span><span aria-hidden="true">&#8599;</span></a>`;
+
+  const docsSection = `<div class="pp-sec">Documents</div>${docsHtml}${drawingRow}${careRow}`;
 
   // Warranty certificate uses the existing generator page, filled from params.
   const warrantyLink = data.warranty_no
@@ -232,13 +268,14 @@ module.exports = async (req, res) => {
       ${shot ? `<div class="pp-shot"><img src="${shot}" alt="${escapeHtml(titleText)}"></div>` : ''}
       ${viewer3d ? `<button type="button" class="pp-btn pp-btn--sm" data-psw3d="passport">View in 3D</button>` : ''}
 
-      ${specRows || mfgRow ? `<div class="pp-sec">Specification</div>
-      <table class="pp-tab"><tbody>${specRows}${mfgRow}</tbody></table>` : ''}
+      ${specRows || uRow || mfgRow ? `<div class="pp-sec">Specification</div>
+      <table class="pp-tab"><tbody>${specRows}${uRow}${mfgRow}</tbody></table>` : ''}
 
       ${warrantyHtml}
       ${docsSection}
 
       ${warrantyLink ? `<a class="pp-btn pp-btn--solid" href="${escapeHtml(warrantyLink)}">Download warranty</a>` : ''}
+      <button type="button" class="pp-btn" id="pp-pdf-btn">Download passport</button>
     </div>
 
     <div class="pp-foot">
@@ -251,15 +288,32 @@ module.exports = async (req, res) => {
     </div>
   </div>`;
 
-  const tail = viewer3d ? `
+  const pdfPayload = {
+    serial: data.serial_number || '',
+    title: titleText,
+    location: data.project_label || '',
+    rows: rows.filter(r => r && r.label && String(r.value || '').trim())
+              .map(r => [String(r.label), String(r.value)]),
+    uValue: data.u_value ? String(data.u_value) + ' W/m\u00b2K' : '',
+    manufactured: mfg,
+    warrantyNo: data.warranty_no || '',
+    warrantyMeta: data.warranty_expiry ? 'Valid until ' + fmtDate(data.warranty_expiry) : '',
+    image: shot || ''
+  };
+
+  const tail = `
+${drawing ? `<div id="pp-draw-overlay"><div><div id="pp-draw-box">${drawing}</div>
+  <button type="button" id="pp-draw-close">Close</button></div></div>` : ''}
 <script>
-  window.__psw3dConfigs = { passport: {
-    config: ${JSON.stringify(viewer3d)},
-    label: ${JSON.stringify(titleText)},
-    dims: ${JSON.stringify(data.serial_number || '')}
-  } };
+  window.__PSW_PASSPORT__ = ${jsonForScript(pdfPayload)};
+  ${viewer3d ? `window.__psw3dConfigs = { passport: {
+    config: ${jsonForScript(viewer3d)},
+    label: ${jsonForScript(titleText)},
+    dims: ${jsonForScript(data.serial_number || '')}
+  } };` : ''}
 </script>
-<script src="/js/viewer3d-modal.js?v=1"></script>` : '';
+${viewer3d ? '<script src="/js/viewer3d-modal.js?v=1"></script>' : ''}
+<script src="/js/passport-page.js?v=1"></script>`;
 
   res.status(200).send(pageShell(data.serial_number || 'Window passport', body, tail));
 };
