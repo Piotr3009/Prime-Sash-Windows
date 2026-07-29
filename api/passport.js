@@ -261,10 +261,18 @@ module.exports = async (req, res) => {
   const docsSection = `<div class="pp-sec">Documents</div>${docsHtml}${drawingRow}${careRow}`;
 
   // Warranty certificate uses the existing generator page, filled from params.
+  // clientName / address / orderRef come from the real certificate row
+  // (warranty_certificates, joined in the RPC — db/passport-warranty-details.sql);
+  // without them the client downloaded a certificate with a blank name/address.
+  // mfgDate prefers the certificate's own manufacturing date, exactly as the
+  // admin panel's "view certificate" link does.
   const warrantyLink = data.warranty_no
     ? '/warranty-certificate.html?warrantyNo=' + encodeURIComponent(data.warranty_no)
+      + '&clientName=' + encodeURIComponent(data.cert_client_name || '')
+      + '&address=' + encodeURIComponent(data.cert_address || '')
+      + '&orderRef=' + encodeURIComponent(data.cert_order_ref || '')
       + '&product=' + encodeURIComponent([data.window_number, data.window_type].filter(Boolean).join(' — '))
-      + '&mfgDate=' + encodeURIComponent(data.manufactured_date || '')
+      + '&mfgDate=' + encodeURIComponent(data.cert_mfg_date || data.manufactured_date || '')
       + '&expiry=' + encodeURIComponent(data.warranty_expiry || '')
     : '';
 
@@ -327,7 +335,7 @@ ${drawing ? `<div id="pp-draw-overlay"><div><div id="pp-draw-box">${drawing}</di
     dims: ${jsonForScript(data.serial_number || '')}
   } };` : ''}
 </script>
-${viewer3d ? '<script src="/js/viewer3d-modal.js?v=2"></script>' : ''}
+${viewer3d ? '<script src="/js/viewer3d-modal.js?v=3"></script>' : ''}
 <script src="/js/passport-page.js?v=1"></script>`;
 
   res.status(200).send(pageShell(data.serial_number || 'Window passport', body, tail));

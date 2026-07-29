@@ -64,7 +64,13 @@
     css.textContent =
       '#psw3d-overlay{position:fixed;inset:0;background:rgba(10,22,40,.82);z-index:99990;display:none;align-items:center;justify-content:center;padding:24px;}' +
       '#psw3d-overlay.open{display:flex;}' +
-      '#psw3d-panel{background:#FAFAF8;border-radius:6px;width:min(1100px,96vw);height:min(760px,92vh);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.35);}' +
+      // iOS Safari: vh is measured with the browser bars HIDDEN, so 92vh can be
+      // taller than the visible screen; the vertically-centred panel then clips
+      // equally top and bottom - and the top is the header with the close button.
+      // dvh (iOS 15.4+) tracks the real visible height; the vh line stays as a
+      // fallback for old browsers, and max-height:100% is the belt-and-braces
+      // clamp to the overlay (position:fixed = always the visible viewport).
+      '#psw3d-panel{background:#FAFAF8;border-radius:6px;width:min(1100px,96vw);height:min(760px,92vh);height:min(760px,92dvh);max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.35);}' +
       '#psw3d-head{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid #E5E2DA;flex:0 0 auto;}' +
       '#psw3d-title{font-family:"Cormorant Garamond",Georgia,serif;font-size:1.25rem;color:#0A1628;}' +
       '#psw3d-dims{font-family:"Jost",sans-serif;font-size:.7rem;letter-spacing:.08em;color:#9E9E90;margin-left:12px;}' +
@@ -79,6 +85,10 @@
       '#psw3d-hint{flex:0 0 auto;text-align:center;padding:8px;font-family:"Jost",sans-serif;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#9E9E90;border-top:1px solid #E5E2DA;}' +
       '@media (max-width:480px){' +
         '#psw3d-overlay{padding:10px;}' +
+        // Apple's minimum touch target is 44x44px; the desktop close is 30x28
+        // and silver, easy to miss on a phone. Bigger and navy on mobile.
+        '#psw3d-close{font-size:1.9rem;color:#0A1628;min-width:44px;min-height:44px;padding:0;}' +
+        '#psw3d-head{padding:6px 8px 6px 16px;}' +
         '#psw3d-stage .viewport-controls{max-width:128px !important;padding:4px !important;gap:4px !important;top:8px !important;left:8px !important;transform:scale(.9);transform-origin:top left;}' +
       '}';
     document.head.appendChild(css);
