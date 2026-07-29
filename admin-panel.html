@@ -78,6 +78,7 @@
   <button class="admin-tab-btn" data-tab="gallery" onclick="adminTab('gallery', this)">Gallery</button>
   <button class="admin-tab-btn" data-tab="warranties" onclick="adminTab('warranties', this)">Warranties</button>
   <button class="admin-tab-btn" data-tab="casestudies" onclick="adminTab('casestudies', this)">Case Studies</button>
+  <button class="admin-tab-btn" data-tab="passports" onclick="adminTab('passports', this)">Project Passports</button>
   </nav>
 
 <main class="admin-container">
@@ -252,6 +253,30 @@
   </section>
 
   <!-- SECTION: WARRANTY CERTIFICATES -->
+  <section class="admin-section" data-tab="passports">
+    <div class="section-header">
+      <h2>Project Passports</h2>
+      <span style="font-size:12px;color:#888;">Created from Admin Dashboard → Production / Completed</span>
+    </div>
+    <div class="section-content">
+      <table class="products-table" id="pp-table">
+        <thead>
+          <tr>
+            <th>Passport</th>
+            <th>Client · address</th>
+            <th>Windows</th>
+            <th>QR linked</th>
+            <th>Warranty</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="pp-tbody">
+          <tr><td colspan="6" style="padding:14px;color:#888;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="admin-section" data-tab="warranties">
     <div class="section-header">
       <h2>Warranty Certificates</h2>
@@ -530,6 +555,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js?v=2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
+<script src="js/passport-projects.js?v=1"></script>
 <script src="js/ironmongery-data.js?v=2"></script>
 <script src="js/ironmongery-gallery.js?v=20250124"></script>
 <script src="js/admin-controller.js?v=2"></script>
@@ -545,8 +572,12 @@ function adminTab(tab, btn) {
   document.querySelectorAll('.admin-section[data-tab]').forEach(function(sec){
     sec.style.display = (sec.getAttribute('data-tab') === tab) ? 'block' : 'none';
   });
+  if (tab === 'passports' && window.PassportProjects) PassportProjects.load();
 }
-document.addEventListener('DOMContentLoaded', function(){ adminTab('pricing'); });
+document.addEventListener('DOMContentLoaded', function(){
+  var start = (location.hash === '#passports') ? 'passports' : 'pricing';
+  adminTab(start);
+});
 
 // Ironmongery table filter — category pills + name search (rows load async, so observe tbody)
 const IronFilter = {

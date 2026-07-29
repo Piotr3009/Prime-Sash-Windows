@@ -685,8 +685,8 @@
     <script src="js/estimate-extras.js?v=2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
     <script src="js/viewer3d-modal.js?v=1"></script>
-    <script src="js/passport-admin.js?v=1"></script>
-    <script src="js/estimate-renderer.js?v=23"></script>
+    <script src="js/passport-create.js?v=1"></script>
+    <script src="js/estimate-renderer.js?v=24"></script>
     <script>
         // ============================================
         // ADMIN DASHBOARD CONTROLLER
@@ -801,6 +801,8 @@
         }
         
         // Load All Data
+        window.loadAllData = () => loadAllData();
+
         async function loadAllData() {
             try {
                 // Load estimates with items and customer data
@@ -815,6 +817,8 @@
                 
                 if (estError) throw estError;
                 allEstimates = estimates || [];
+                window.allEstimates = allEstimates;          // read by js/passport-create.js
+                if (window.PassportCreate) await PassportCreate.load();
                 
                 // Load customers
                 const { data: customers, error: custError } = await supabaseClient
@@ -1073,6 +1077,7 @@
                                         ${showQuoteAction ? `<button class="btn-sm" onclick="sendQuote('${est.id}')">Send quote</button>` : ''}
                                         ${productionActions && (est.status === 'survey' || est.status === 'confirmed') ? `<button class="btn-sm" onclick="startProduction('${est.id}')">Start production</button>` : ''}
                                         ${productionActions && est.status === 'in_production' ? `<button class="btn-sm" onclick="completeOrder('${est.id}')">Mark completed</button>` : ''}
+                                        ${(est.status === 'in_production' || est.status === 'completed') && window.PassportCreate ? PassportCreate.rowAction(est.id) : ''}
                                         ${!notOrderedView && (est.status === 'sent' || est.status === 'quoted') ? `<button class="btn-sm navy" onclick="openFollowupModal('${est.id}')">Follow up${Array.isArray(est.followups) && est.followups.length ? ` · ${est.followups.length}` : ''}</button>` : ''}
                                         ${!notOrderedView && (est.status === 'sent' || est.status === 'quoted') ? `<button class="btn-sm danger" onclick="markNotOrdered('${est.id}')">Not ordered</button>` : ''}
                                     </td>
@@ -1100,12 +1105,6 @@
             }
 
             currentAdminEstimateId = id;
-
-            // Passports (Etap 2): load before render so each window shows its state
-            if (window.PassportAdmin) {
-                PassportAdmin.currentEstimate = est;
-                await PassportAdmin.load(id);
-            }
 
             document.getElementById('modal-body').innerHTML = EstimateRenderer.renderEstimateHTML(est, {
                 isAdmin: true,
