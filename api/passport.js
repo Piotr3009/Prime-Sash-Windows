@@ -74,7 +74,8 @@ const STYLES = `
   .pp-tab { width:100%; border-collapse:collapse; font-size:.8rem; }
   .pp-tab td { padding:6px 0; vertical-align:top; }
   .pp-tab tr + tr td { border-top:1px solid #EFEDE7; }
-  .pp-tab td:first-child { color:var(--silver); padding-right:12px; }
+  .pp-tab td:first-child { color:#55554F; padding-right:12px; }
+  .pp-tab td:last-child { color:#141414; }
   .pp-tab td:last-child { text-align:right; }
   .pp-war { border:1px solid var(--navy); border-radius:4px; padding:11px 13px; margin-top:16px; }
   .pp-war-top { display:flex; justify-content:space-between; align-items:center; gap:10px; }
