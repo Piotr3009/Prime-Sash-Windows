@@ -167,7 +167,21 @@
       } finally {
         EstimateRenderer.specRow = original;
       }
-      return rows;
+
+      // Strip U-values from the copied rows. The numbers in the estimate are
+      // per glazing type, so they can only ever describe the GLASS - a real
+      // whole-window Uw depends on the frame-to-glass ratio and therefore on
+      // this window's size and bars. Publishing a glass figure as if it were
+      // the window's would be wrong on a document that lasts ten years, so the
+      // passport shows the glass type only until a proper Uw is entered.
+      return rows.map(r => ({
+        label: r.label,
+        value: String(r.value)
+          .replace(/[,;]?\s*U\s*:\s*[\d.]+/gi, '')
+          .replace(/\(\s*\)/g, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim()
+      })).filter(r => r.value);
     },
 
     async confirm(estimateId) {
