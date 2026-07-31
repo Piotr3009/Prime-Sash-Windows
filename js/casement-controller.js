@@ -147,9 +147,10 @@
     // Set default fanlight height (30% of inner height)
     if (hasFanlight) {
       var innerH = def.h - 57 - 68;
-      var defaultFH = Math.round(innerH * 0.3 / 10) * 10;
-      var dMin = Math.ceil(innerH * 0.15 / 10) * 10;
-      var dMax = Math.min(800, Math.floor(innerH * 0.5 / 10) * 10);
+      // Transom AXIS convention: input = frame top -> transom centre (91 = 57 head + 34 half transom)
+      var defaultFH = Math.round((innerH * 0.3 + 91) / 10) * 10;
+      var dMin = Math.ceil((innerH * 0.15 + 91) / 10) * 10;
+      var dMax = Math.floor((Math.min(800, innerH * 0.5) + 91) / 10) * 10;
       defaultFH = Math.max(dMin, Math.min(dMax, defaultFH));
       var fInput = $('c-fanlight-height');
       if (fInput) { fInput.min = dMin; fInput.max = dMax; fInput.value = defaultFH; }
@@ -406,15 +407,17 @@
     var layout = checked('casement-layout') || '040L';
     var w = parseInt(val('c-width')) || 800;
     var h = parseInt(val('c-height')) || 1200;
-    var fanlightMm = parseInt(val('c-fanlight-height')) || 350;
+    // Transom AXIS convention: input = frame top -> transom centre.
+    // Fanlight zone (panel opening) = axis - 91 (57 head + 34 half transom).
+    var fanlightMm = parseInt(val('c-fanlight-height')) || 440;
     var innerH = h - 57 - 68; // height minus top rail minus bottom rail
-    var fanlightRatio = Math.max(0.15, Math.min(0.5, fanlightMm / innerH));
+    var fanlightRatio = Math.max(0.15, Math.min(0.5, (fanlightMm - 91) / innerH));
 
-    // Update min/max display
+    // Update min/max display (axis space)
     var fMinEl = $('c-fanlight-min');
     var fMaxEl = $('c-fanlight-max');
-    var fMin = Math.ceil(innerH * 0.15 / 10) * 10;
-    var fMax = Math.min(800, Math.floor(innerH * 0.5 / 10) * 10);
+    var fMin = Math.ceil((innerH * 0.15 + 91) / 10) * 10;
+    var fMax = Math.floor((Math.min(800, innerH * 0.5) + 91) / 10) * 10;
     if (fMinEl) fMinEl.textContent = fMin;
     if (fMaxEl) fMaxEl.textContent = fMax;
     // Round to 10 mm + clamp; write back so 3D, spec and saved estimate always match
@@ -423,22 +426,28 @@
       fEl.min = fMin; fEl.max = fMax;
       var fClamped = Math.max(fMin, Math.min(fMax, Math.round(fanlightMm / 10) * 10));
       if (fClamped !== fanlightMm) { fanlightMm = fClamped; fEl.value = fClamped; }
-      fanlightRatio = Math.max(0.15, Math.min(0.5, fanlightMm / innerH));
+      fanlightRatio = Math.max(0.15, Math.min(0.5, (fanlightMm - 91) / innerH));
     }
 
     // Fanlight 2 (bottom tier) — same rules + shared 70% guard (middle keeps ≥30%)
     var fan2Ratio = 0.3;
     var layoutNow = checked('casement-layout') || '040L';
     if (FAN2_LAYOUTS.includes(layoutNow)) {
+      // Transom 2 AXIS convention: input = frame top -> lower transom centre.
+      // Bottom zone (panel opening) = h - axis - 102 (68 bottom rail + 34 half transom).
       var f2El = $('c-fan2-height');
-      var fan2Mm = parseInt(f2El && f2El.value) || Math.round(innerH * 0.33 / 10) * 10;
-      var f2Min = Math.ceil(innerH * 0.15 / 10) * 10;
-      var f2Max = Math.min(800, Math.floor(innerH * 0.5 / 10) * 10);
-      var guardMax = Math.floor((innerH * 0.7 - fanlightMm) / 10) * 10;
-      f2Max = Math.min(f2Max, Math.max(f2Min, guardMax));
+      var fanZoneNow = fanlightMm - 91;
+      var fan2Mm = parseInt(f2El && f2El.value) || Math.round((h - 102 - innerH * 0.33) / 10) * 10;
+      var zMin = innerH * 0.15;
+      var zMax = Math.min(800, innerH * 0.5);
+      var zGuardMax = innerH * 0.7 - fanZoneNow;             // top + bottom zones <= 70% of innerH
+      zMax = Math.min(zMax, Math.max(zMin, zGuardMax));
+      // zone limits -> axis limits (bigger axis = smaller bottom zone)
+      var f2Min = Math.ceil((h - 102 - zMax) / 10) * 10;
+      var f2Max = Math.floor((h - 102 - zMin) / 10) * 10;
       var f2Clamped = Math.max(f2Min, Math.min(f2Max, Math.round(fan2Mm / 10) * 10));
       if (f2El) { f2El.min = f2Min; f2El.max = f2Max; if (f2Clamped !== fan2Mm) f2El.value = f2Clamped; }
-      fan2Ratio = Math.max(0.15, Math.min(0.5, f2Clamped / innerH));
+      fan2Ratio = Math.max(0.15, Math.min(0.5, (h - f2Clamped - 102) / innerH));
     }
 
     var middleSec = getTripleMiddle(w);
@@ -939,7 +948,7 @@
       casementHinges: (window.currentConfig && Array.isArray(window.currentConfig.casementHinges)) ? window.currentConfig.casementHinges.slice() : null,
       width: parseInt(val('c-width')) || 800,
       height: parseInt(val('c-height')) || 1200,
-      fanlightHeight: FANLIGHT_LAYOUTS.includes(checked('casement-layout') || '') ? (parseInt(val('c-fanlight-height')) || 350) : 0,
+      fanlightHeight: FANLIGHT_LAYOUTS.includes(checked('casement-layout') || '') ? (parseInt(val('c-fanlight-height')) || 440) : 0,
       casementFan2Height: FAN2_LAYOUTS.includes(checked('casement-layout') || '') ? (parseInt(val('c-fan2-height')) || 0) : 0,
       casementHBars: isArched ? (parseInt(checked('f-hbars')) || 0) : (parseInt(checked('c-hbars')) || 0),
       casementVBars: isArched ? (parseInt(checked('f-vbars')) || 0) : (parseInt(checked('c-vbars')) || 0),

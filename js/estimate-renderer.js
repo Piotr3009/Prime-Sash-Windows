@@ -612,9 +612,9 @@ class EstimateRenderer {
                             ${p.windowType === 'casement' ? `
                             ${R.specRow('Type', p.casementTypeText)}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
-                            ${p.fanlightHeight > 0 ? R.specRow('Fanlight Height', p.fanlightHeight + 'mm') : ''}
+                            ${p.fanlightHeight > 0 ? R.specRow('Transom Axis (from frame top)', p.fanlightHeight + 'mm') : ''}
                             ${p.casementSectionsText ? R.specRow('Light Sections', p.casementSectionsText) : ''}
-                            ${p.casementFan2Height > 0 ? R.specRow('Fanlight 2 (Bottom) Height', p.casementFan2Height + 'mm') : ''}
+                            ${p.casementFan2Height > 0 ? R.specRow('Transom 2 Axis (from frame top)', p.casementFan2Height + 'mm') : ''}
                             ${(p.casementFan2HBars > 0 || p.casementFan2VBars > 0) ? R.specRow('Fanlight 2 Bars', p.casementFan2HBars + ' horizontal, ' + p.casementFan2VBars + ' vertical (per pane)') : ''}
                             ${(p.casementFanHBars > 0 || p.casementFanVBars > 0) ? R.specRow('Fanlight Bars', p.casementFanHBars + ' horizontal, ' + p.casementFanVBars + ' vertical (per fan pane)') : ''}
                             ${R.specRow('Glass', p.glassText)}
@@ -1840,10 +1840,13 @@ class EstimateRenderer {
         const code = fc.casementLayout || fc.layout || item.casement_layout || '040L';
         const innerW = fw - 2 * FRAME_FACE;
         const innerH = fh - FRAME_FACE - BOTTOM_FACE;
-        const fanMm = parseFloat(fc.fanlightHeight) || 0;
-        const FR = Math.max(0.15, Math.min(0.5, (fanMm || innerH * 0.3) / innerH));
-        const fan2Mm = parseFloat(fc.casementFan2Height) || 0;
-        const FR2 = Math.max(0.15, Math.min(0.5, (fan2Mm || innerH * 0.3) / innerH));
+        // Transom AXIS convention: stored value = frame top -> transom centre.
+        const fanMm = parseFloat(fc.fanlightHeight) || 0;                                   // axis
+        const fanZone = fanMm > 0 ? (fanMm - FRAME_FACE - MULLION_W / 2) : 0;               // panel zone
+        const FR = Math.max(0.15, Math.min(0.5, (fanZone || innerH * 0.3) / innerH));
+        const fan2Mm = parseFloat(fc.casementFan2Height) || 0;                              // axis (lower transom)
+        const fan2Zone = fan2Mm > 0 ? (fh - fan2Mm - BOTTOM_FACE - MULLION_W / 2) : 0;      // bottom panel zone
+        const FR2 = Math.max(0.15, Math.min(0.5, (fan2Zone || innerH * 0.3) / innerH));
         const hN = parseInt(fc.hBars || fc.casementHBars) || 0;
         const vN = parseInt(fc.vBars || fc.casementVBars) || 0;
         const fanHN = Math.min(2, parseInt(fc.casementFanHBars) || 0);
@@ -1910,10 +1913,10 @@ class EstimateRenderer {
         });
 
         // ── Transoms (number = full-width y; object = {y,width,offsetX} partial) ──
-        let transomTopRealY = null;   // for fanlight dimension
+        let transomAxisRealY = null;   // for fanlight dimension (transom centre = axis)
         (def.transoms || []).forEach(tr => {
             const y = (typeof tr === 'number') ? tr : tr.y;
-            transomTopRealY = Math.max(transomTopRealY || 0, y + MULLION_W / 2);
+            transomAxisRealY = Math.max(transomAxisRealY || 0, y);
             if (typeof tr === 'number' || tr.width === undefined) {
                 svg += `<rect x="${ox + FRAME_FACE}" y="${SY(y + MULLION_W / 2)}" width="${innerW}" height="${MULLION_W}" ${frameStyle}/>`;
             } else {
@@ -1976,10 +1979,10 @@ class EstimateRenderer {
         // ── RED DIMENSIONS ──
         svg += EstimateRenderer.sashDimH(oy + fh + DM * 0.75, ox, ox + fw, oy + fh, `${Math.round(fw)}`, fs);
         svg += EstimateRenderer.sashDimV(ox + fw + DM * 0.75, oy, oy + fh, ox + fw, `${Math.round(fh)}`, fs);
-        // Fanlight height (left side): frame top → transom top
-        if (hasFan && transomTopRealY !== null) {
-            const fanLabel = Math.round(fanMm || innerH * FR);
-            svg += EstimateRenderer.sashDimVLeft(ox - DM * 0.55, oy, SY(transomTopRealY), ox, `${fanLabel}`, fs * 0.9);
+        // Transom axis (left side): frame top → transom centre
+        if (hasFan && transomAxisRealY !== null) {
+            const fanLabel = Math.round(fanMm || (innerH * FR + FRAME_FACE + MULLION_W / 2));
+            svg += EstimateRenderer.sashDimVLeft(ox - DM * 0.55, oy, SY(transomAxisRealY), ox, `${fanLabel}`, fs * 0.9);
         }
 
         // Section-width caption for triple layouts (matches 3D guides / Light Sections row)
@@ -2448,7 +2451,9 @@ class EstimateRenderer {
         const fan2H = Math.min(2, fc.casementFan2HBars || 0);
         const fan2V = Math.min(2, fc.casementFan2VBars || 0);
         const fanlightHeight = (['021','031','032','052L','052R','022','131','132','133','013','023'].includes(fc.casementLayout || fc.layout || '')) ? (fc.fanlightHeight || 0) : 0; // layout gate: never show fan fields for fan-less layouts (legacy records)
-        const FR = fanlightHeight > 0 ? fanlightHeight / h : 0.25;
+        // Transom AXIS convention: stored value = frame top -> transom centre; zone = axis - 91
+        const fanZoneB = fanlightHeight > 0 ? Math.max(fanlightHeight - 91, 0) : 0;
+        const FR = fanZoneB > 0 ? fanZoneB / h : 0.25;
 
         const stroke = 'rgba(10,22,40,.7)';
         const light = 'rgba(10,22,40,.25)';
@@ -2479,7 +2484,7 @@ class EstimateRenderer {
         svg += `<rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" fill="none" stroke="${stroke}" stroke-width="0.5"/>`;
 
         // Get panels for this layout
-        const FR2 = Math.max(0.15, Math.min(0.5, ((parseFloat(fc.casementFan2Height) || 0) || ih * 0.3) / ih));
+        const FR2 = Math.max(0.15, Math.min(0.5, ((parseFloat(fc.casementFan2Height) > 0 ? (h - parseFloat(fc.casementFan2Height) - 102) : 0) || ih * 0.3) / ih));
         const panels = EstimateRenderer._casementPanels(layout, iw, ih, mW, FR, FR2);
         // Clickable openers overlay — switch2 panel order can differ from the canonical
         // def (e.g. 132), so match panels GEOMETRICALLY, not by index.
@@ -2645,8 +2650,9 @@ class EstimateRenderer {
         // === HEIGHT BREAKDOWN (right side) ===
         let hSegs = [];
         if (hasTransom && fanlightHeight > 0) {
-            const mainH = h - extFrame - extBottom - extTransom - fanlightHeight;
-            hSegs = [extFrame, fanlightHeight, extTransom, Math.max(mainH, 0), extBottom];
+            const fanSeg = Math.max(fanlightHeight - extFrame - extTransom / 2, 0);  // ext head face -> ext transom face (axis-based)
+            const mainH = h - extFrame - extBottom - extTransom - fanSeg;
+            hSegs = [extFrame, fanSeg, extTransom, Math.max(mainH, 0), extBottom];
         } else {
             hSegs = [extFrame, h - extFrame - extBottom, extBottom];
         }
@@ -2676,11 +2682,11 @@ class EstimateRenderer {
         // Fanlight height annotation (left side, if applicable)
         if (fanlightHeight > 0 && hasTransom) {
             const fhDimX = ox - 12;
-            const fhScaled = fanlightHeight * scale;
-            svg += `<line x1="${fhDimX}" y1="${iy}" x2="${fhDimX}" y2="${iy + fhScaled}" stroke="${dimColor}" stroke-width="0.4"/>`;
-            svg += `<line x1="${fhDimX - tickH}" y1="${iy}" x2="${fhDimX + tickH}" y2="${iy}" stroke="${dimColor}" stroke-width="0.4"/>`;
-            svg += `<line x1="${fhDimX - tickH}" y1="${iy + fhScaled}" x2="${fhDimX + tickH}" y2="${iy + fhScaled}" stroke="${dimColor}" stroke-width="0.4"/>`;
-            svg += `<text x="${fhDimX - 2}" y="${iy + fhScaled/2 + 2}" ${dimFont} transform="rotate(-90,${fhDimX - 2},${iy + fhScaled/2})" font-size="5.5">${fanlightHeight}</text>`;
+            const fhScaled = fanlightHeight * scale;   // frame top -> transom axis
+            svg += `<line x1="${fhDimX}" y1="${oy}" x2="${fhDimX}" y2="${oy + fhScaled}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            svg += `<line x1="${fhDimX - tickH}" y1="${oy}" x2="${fhDimX + tickH}" y2="${oy}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            svg += `<line x1="${fhDimX - tickH}" y1="${oy + fhScaled}" x2="${fhDimX + tickH}" y2="${oy + fhScaled}" stroke="${dimColor}" stroke-width="0.4"/>`;
+            svg += `<text x="${fhDimX - 2}" y="${oy + fhScaled/2 + 2}" ${dimFont} transform="rotate(-90,${fhDimX - 2},${oy + fhScaled/2})" font-size="5.5">${fanlightHeight}</text>`;
         }
 
         const totalH = dimY + (wSegs.length > 1 ? 32 : 18);
@@ -3989,7 +3995,7 @@ class EstimateRenderer {
                 if (p.windowType === 'casement') {
                     specs.push(['Type', p.casementTypeText]);
                     specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
-                    if (p.fanlightHeight > 0) specs.push(['Fanlight Height', p.fanlightHeight + 'mm']);
+                    if (p.fanlightHeight > 0) specs.push(['Transom Axis (from frame top)', p.fanlightHeight + 'mm']);
                     specs.push(['Glass', p.glassText]);
                     specs.push(['Glass Finish', p.glassFinishText]);
                     specs.push(['Spacer Bar', p.spacerText]);
@@ -4565,7 +4571,7 @@ class EstimateRenderer {
             if (p.windowType === 'casement') {
                 specs.push(['Type', p.casementTypeText]);
                 specs.push(['Dimensions', `${p.width}mm × ${p.height}mm`]);
-                if (p.fanlightHeight > 0) specs.push(['Fanlight Height', p.fanlightHeight + 'mm']);
+                if (p.fanlightHeight > 0) specs.push(['Transom Axis (from frame top)', p.fanlightHeight + 'mm']);
                 specs.push(['Glass', p.glassText]);
                 specs.push(['Glass Spec', p.glassSpecCasementText]);
                 specs.push(['Glass Finish', p.glassFinishText]);

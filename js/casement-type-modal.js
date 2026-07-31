@@ -318,10 +318,13 @@
     var w = useInputs ? (parseInt((document.getElementById('c-width') || {}).value) || (dflt ? dflt.w : 1200)) : (dflt ? dflt.w : 1200);
     var h = useInputs ? (parseInt((document.getElementById('c-height') || {}).value) || (dflt ? dflt.h : 1500)) : (dflt ? dflt.h : 1500);
     var innerW = w - 114, innerH = h - 125;
-    var fanMm = parseInt((document.getElementById('c-fanlight-height') || {}).value) || Math.round(innerH * 0.3);
-    var FR = Math.max(0.15, Math.min(0.5, fanMm / innerH));
-    var f2Mm = parseInt((document.getElementById('c-fan2-height') || {}).value) || Math.round(innerH * 0.33);
-    var FR2 = Math.max(0.15, Math.min(0.5, f2Mm / innerH));
+    // Transom AXIS convention: inputs = frame top -> transom centre
+    var fanMm = parseInt((document.getElementById('c-fanlight-height') || {}).value) || 0;
+    var fanZone = fanMm > 0 ? (fanMm - 91) : Math.round(innerH * 0.3);
+    var FR = Math.max(0.15, Math.min(0.5, fanZone / innerH));
+    var f2Mm = parseInt((document.getElementById('c-fan2-height') || {}).value) || 0;
+    var f2Zone = f2Mm > 0 ? (h - f2Mm - 102) : Math.round(innerH * 0.33);
+    var FR2 = Math.max(0.15, Math.min(0.5, f2Zone / innerH));
     var def = EstimateRenderer.casementLayoutDef(code, innerW, innerH, h, FR, FR2);
     if (!def || !def.panels) return null;
     return { def: def, innerW: innerW, innerH: innerH };
