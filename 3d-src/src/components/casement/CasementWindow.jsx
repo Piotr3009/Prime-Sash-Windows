@@ -718,6 +718,35 @@ export default function CasementWindow({
             label={`${height}mm`}
             offset={[0.07, 0, 0]}
           />
+          {/* Transom axis — right side (inner of height guide): frame top -> transom centre */}
+          {(() => {
+            const trs = (layoutDef && layoutDef.transoms) || [];
+            if (!trs.length) return null;
+            const ys = trs.map(t => (typeof t === 'number' ? t : t.y));
+            const topY = Math.max(...ys);
+            const axisTop = Math.round(height - topY);
+            const gx = W / 2 + mm(60);
+            const botY = Math.min(...ys);
+            const showFan2 = ['013', '023'].includes(layout) && botY < topY;
+            return (
+              <group>
+                <DimensionGuide
+                  from={[gx, H / 2, 0]}
+                  to={[gx, H / 2 - mm(axisTop), 0]}
+                  label={`${axisTop}`}
+                  offset={[0.05, 0, 0]}
+                />
+                {showFan2 && (
+                  <DimensionGuide
+                    from={[gx + mm(45), H / 2, 0]}
+                    to={[gx + mm(45), H / 2 - mm(Math.round(height - botY)), 0]}
+                    label={`${Math.round(height - botY)}`}
+                    offset={[0.05, 0, 0]}
+                  />
+                )}
+              </group>
+            );
+          })()}
           {/* Depth — left side */}
           <DimensionGuide
             from={[-W/2 - mm(130), 0, -halfD]}
