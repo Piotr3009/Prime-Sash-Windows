@@ -507,8 +507,42 @@ function ScreenshotHelper({ config }) {
         const target = new THREE.Vector3(0, 0.18, 0);
         // Timber doors: exterior view + closer; windows: interior view
         const isDoor = config?.windowCategory === 'door';
-        const distMult = isDoor ? 0.58 : 0.65;   // tighter framing — dimension guides are hidden in shots
-        const distance = fitDistance(config?.width, config?.height, 45, 1) * distMult;
+
+        // Frame distance from the REAL model bounding box (not nominal mm): this
+        // captures the sill, transom, open sash and every corner, so nothing is
+        // clipped regardless of product size. MARGIN keeps the product off the
+        // edges so shots read as professional (8% breathing room).
+        const MARGIN = 1.08;
+        const fovRad = 45 * Math.PI / 180;
+        const aspect = (gl.domElement && gl.domElement.width && gl.domElement.height)
+          ? (gl.domElement.width / gl.domElement.height) : 1;
+
+        // Measure the product group only (skip wall/floor/shadows/dim guides).
+        const box = new THREE.Box3();
+        scene.traverse((obj) => {
+          if (!obj.isMesh || !obj.geometry) return;
+          if (obj.name === 'dim-guide') return;
+          const params = obj.geometry.parameters;
+          if (params && (params.width > 5 || params.height > 5)) return; // wall/floor
+          if (obj.type === 'Line2' || obj.type === 'Line') return;
+          box.expandByObject(obj);
+        });
+
+        let distance;
+        if (box.isEmpty()) {
+          const distMult = isDoor ? 0.58 : 0.65;
+          distance = fitDistance(config?.width, config?.height, 45, 1) * distMult;
+        } else {
+          const size = box.getSize(new THREE.Vector3());
+          const bH = size.y;
+          const bW = size.x;
+          const distForH = (bH / 2) / Math.tan(fovRad / 2);
+          const distForW = (bW / 2) / (Math.tan(fovRad / 2) * aspect);
+          distance = Math.max(distForH, distForW) * MARGIN;
+          // Recentre vertically on the actual model so top/bottom margins match.
+          const c = box.getCenter(new THREE.Vector3());
+          target.set(0, c.y, 0);
+        }
 
         // Save current camera state
         const savedPos = camera.position.clone();
@@ -578,7 +612,8 @@ function ScreenshotHelper({ config }) {
         const angleRad = 8 * Math.PI / 180;
         const zSign = isDoor ? 1 : -1;
         const xSign = isDoor ? 1 : -1;
-        const backPos = new THREE.Vector3(xSign * Math.sin(angleRad) * distance, 0.22, zSign * Math.cos(angleRad) * distance);
+        const camY = target.y; // keep the shot level: camera height tracks the model centre
+        const backPos = new THREE.Vector3(xSign * Math.sin(angleRad) * distance, camY, zSign * Math.cos(angleRad) * distance);
         // backPos: windows -> interior side, doors -> exterior side (see zSign above)
         const sameCol = config?.sameColor !== false;
         const colExt = sameCol ? (config?.woodColor || '#F6F6F6') : (config?.woodColorExt || config?.woodColor || '#F6F6F6');
@@ -589,7 +624,7 @@ function ScreenshotHelper({ config }) {
 
         // Capture BOTH sides for EVERY window (single colour included): the exterior
         // view shows the sill, weather bar and outside hardware the interior can't.
-        const frontPos = new THREE.Vector3(-xSign * Math.sin(angleRad) * distance, 0.22, -zSign * Math.cos(angleRad) * distance);
+        const frontPos = new THREE.Vector3(-xSign * Math.sin(angleRad) * distance, camY, -zSign * Math.cos(angleRad) * distance);
         const frontRaw = capture(frontPos, bgFront);
 
         // Restore camera
