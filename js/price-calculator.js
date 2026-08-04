@@ -485,9 +485,12 @@ class PriceCalculator {
 
   // ═══ DOOR PRICING ═══
   calculateDoor(configuration, frameWidth, frameHeight) {
-    const DOOR_BASE_PER_SQM = 680;
-    const FRENCH_SURCHARGE_PER_SQM = 50;
-    const PANEL_BASE_PER_SQM = 500; // side panels
+    const DOOR_BASE_PER_SQM = 980;
+    // French doors: same rate as single. Double = 2x the area, so the extra work
+    // is already paid for by the larger m2 — no per-sqm surcharge on top.
+    const FRENCH_SURCHARGE_PER_SQM = 0;
+    const PANEL_BASE_PER_SQM = 550; // side panels
+    const TRANSOM_PER_SQM = 500;    // french transom / fanlight (own rate)
     const SILL_EXTENSION_PRICE = 80;
     const BEADING_DOOR = 80;
     const BEADING_PANEL = 40;
@@ -566,7 +569,7 @@ class PriceCalculator {
         + (hasLeft ? (configuration.sideLeftWidth || 500) / 1000 : 0)
         + (hasRight ? (configuration.sideRightWidth || 500) / 1000 : 0);
       transomSqm = totalWm * tH;
-      transomPrice = PANEL_BASE_PER_SQM * transomSqm;
+      transomPrice = TRANSOM_PER_SQM * transomSqm;
       if (transomType === 'opening') {
         const TRANSOM_OPENING_SURCHARGE = 100;
         transomPrice += TRANSOM_OPENING_SURCHARGE;
