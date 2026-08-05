@@ -562,8 +562,29 @@
         // Single external + Front Door (both use door- prefix)
         if (doorType === 'single-external' || doorType === 'front-door') {
           if (doorType === 'front-door') {
+            // Panel grid: count + top row glazing (restore BEFORE fanlight so
+            // side-panel locking sees the final state last)
+            const pg = fc.panelGrid || {};
+            const pc = pg.panelCount || ((pg.rows || 2) * (pg.cols || 2));
+            setRadio('fdr-panels', String(pc));
+            setRadio('fdr-top', pg.topGlazed ? 'glass' : 'panel');
+            // Side panels (own control set for front doors)
+            setRadio('fdr-side-panels', fc.sidePanels || 'none');
+            // Fanlight: shape, height, bar pattern
             setRadio('fdr-fanlight', fc.transomType || 'none');
             if (fc.transomHeight) setInput('fd-transom-height', fc.transomHeight, 'input');
+            setRadio('fdr-fanbars', fc.fanBarPattern || 'none');
+            // Door furniture checkboxes + house number text
+            const fu = fc.furniture || {};
+            [['fdr-letterplate','letterplate'],['fdr-knocker','knocker'],
+             ['fdr-pullknob','pullKnob'],['fdr-housenumber','houseNumber']].forEach(function(pair) {
+              const el = document.getElementById(pair[0]);
+              if (el) {
+                el.checked = !!fu[pair[1]];
+                el.dispatchEvent(new Event('change', {bubbles: true}));
+              }
+            });
+            if (fu.numberText) setInput('fdr-number-text', fu.numberText, 'input');
           }
           setRadio('door-shape', fc.doorShape);
           setRadio('door-style', fc.doorStyle);
