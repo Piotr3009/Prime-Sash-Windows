@@ -447,6 +447,7 @@ function Transom({ transomWidth, intCuts, mat, matInt, debugColors }) {
 // ═══ Main DoorFrame — computes cuts for each member ═══
 export default function DoorFrame({
   width = 800, height = 1200, material, materialInt, sealColour = 'black',
+  gasketTopLimitY = null,   // when set (mm from frame bottom), no gasket above this — used by the fixed fanlight
   mullions = [], transoms = [], debugColors = false,
   thresholdType = 'standard', thresholdExtension = 0,
   openDirection = 'outward',
@@ -610,7 +611,9 @@ export default function DoorFrame({
         const openLeft = -W / 2 + mm(EXT_FACE);
         const openRight = W / 2 - mm(EXT_FACE);
         const openBottom = -H / 2 + mm(THRESHOLD_HEIGHT);
-        const openTop = H / 2 - mm(FRAME_FACE) + mm(REBATE_STEP);
+        const openTop = (gasketTopLimitY != null)
+          ? (-H / 2 + mm(gasketTopLimitY))
+          : (H / 2 - mm(FRAME_FACE) + mm(REBATE_STEP));
         const openW = openRight - openLeft;
         const openH = openTop - openBottom;
         const openCenterX = (openLeft + openRight) / 2;

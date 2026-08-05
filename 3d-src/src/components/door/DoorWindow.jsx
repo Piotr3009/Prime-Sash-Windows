@@ -630,6 +630,7 @@ export default function DoorWindow({
             thresholdType={thresholdType}
             thresholdExtension={thresholdExtension}
             openDirection={openDirection}
+            gasketTopLimitY={(panelGrid && transomActive) ? transomRailY - MULLION_W / 2 : null}
           />
           </group>
         </group>
@@ -658,8 +659,8 @@ export default function DoorWindow({
                 so the pane fills the opening (French keeps its sash). */}
             {panelGrid ? (
               <DoorGlazing
-                width={innerW - REBATE_STEP * 2}
-                height={transomCavityH - REBATE_STEP * 2}
+                width={innerW + REBATE_STEP * 2 - 8}
+                height={transomCavityH + REBATE_STEP * 2 - 8}
                 hBars={0}
                 vBars={paneVBars}
                 barMaterial={extMaterial}

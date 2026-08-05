@@ -278,17 +278,23 @@ export default function PanelGridLeaf({
   // would be see-through wherever a cell is a panel (the old single-panel /
   // glazing that used to fill this area is disabled when the grid is on).
   // Set BACK_INSET below the raised-field Z so panel geometry stays on top.
-  const BACK_INSET = mm(RECESS_DEPTH_MM);   // backing core sits inside the recess depth
+  // Sit the backing 2mm BEHIND the panel's deepest surface, otherwise the two
+  // are coplanar and z-fight (that was the flicker on dual-colour doors).
+  // Split at z=0 into EXT/INT halves so each face takes its own colour.
+  const backFace = halfD - mm(RECESS_DEPTH_MM) - mm(2);
   const backW = innerR - innerL;
   const backH = innerT - innerB;
   const backCx = (innerL + innerR) / 2;
   const backCy = (innerB + innerT) / 2;
-  const backDepth = D - BACK_INSET * 2;     // thinner than the leaf, recessed both faces
   const solidBacking = (
     <group>
-      <mesh position={[backCx, backCy, 0]} castShadow receiveShadow>
-        <boxGeometry args={[backW, backH, backDepth]} />
+      <mesh position={[backCx, backCy, backFace / 2]} castShadow receiveShadow>
+        <boxGeometry args={[backW, backH, backFace]} />
         <primitive object={mat} attach="material" />
+      </mesh>
+      <mesh position={[backCx, backCy, -backFace / 2]} castShadow receiveShadow>
+        <boxGeometry args={[backW, backH, backFace]} />
+        <primitive object={mi} attach="material" />
       </mesh>
     </group>
   );
