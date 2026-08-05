@@ -515,6 +515,11 @@ class PriceCalculator {
     } else if (isBifoldDoor) {
       const BIFOLD_PER_SQM = 1050;
       basePrice = BIFOLD_PER_SQM * doorSqm;
+    } else if ((configuration.doorType || '') === 'front-door') {
+      // Front doors: heavier construction, panel grid, entrance-grade spec —
+      // priced 60% above the patio-door base rate.
+      const FRONT_DOOR_PER_SQM = Math.round(DOOR_BASE_PER_SQM * 1.6);   // 1568
+      basePrice = FRONT_DOOR_PER_SQM * doorSqm;
     } else {
       basePrice = DOOR_BASE_PER_SQM * doorSqm;
       if (isFrenchDoor) {
@@ -571,6 +576,12 @@ class PriceCalculator {
         + (hasRight ? (configuration.sideRightWidth || 500) / 1000 : 0);
       transomSqm = totalWm * tH;
       transomPrice = TRANSOM_PER_SQM * transomSqm;
+      // Decorative fanlight bar patterns (hub & spoke, double, triple, daisy):
+      // flat charge for the joinery work, on top of the transom rate.
+      const FANLIGHT_PATTERN_PRICE = 400;
+      if (isFrontDoor && configuration.fanBarPattern && configuration.fanBarPattern !== 'none') {
+        transomPrice += FANLIGHT_PATTERN_PRICE;
+      }
       if (transomType === 'opening') {
         const TRANSOM_OPENING_SURCHARGE = 100;
         transomPrice += TRANSOM_OPENING_SURCHARGE;
