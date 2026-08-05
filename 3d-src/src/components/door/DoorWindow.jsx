@@ -456,6 +456,8 @@ export default function DoorWindow({
   centerMullion = false,
   paneling = 'flat',
   panelGrid = null,
+  furniture = null,
+  fanBarPattern = 'none',
   sidePanels = 'none',
   sideLeftWidth = 400,
   sideRightWidth = 400,
@@ -664,6 +666,7 @@ export default function DoorWindow({
             showGuides={false}
             fixShape={fdrFanShape}
             fixType="standard"
+            fixSemiBarPattern={fdrFanShape === 'semi-circle' ? fanBarPattern : 'none'}
           />
         </group>
       )}
@@ -919,6 +922,7 @@ export default function DoorWindow({
             centerMullion={centerMullion}
             paneling={paneling}
             panelGrid={isFanlight ? null : panelGrid}
+            furniture={isFanlight ? null : furniture}
             {...(!isFanlight && panelGrid ? { stileWidthMm: 94, topRailMm: 94, bottomRailMm: 180 } : {})}
             material={extMaterial}
             materialInt={intMaterial}

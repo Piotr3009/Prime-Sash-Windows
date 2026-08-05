@@ -148,6 +148,21 @@
       panelGrid = { rows: gRows, cols: gCols, cells: gCells, rowWeights: gWeights, panelCount: pCount, topGlazed: topGlass };
     }
 
+    // ── Front Door furniture (letterplate, knocker, pull knob, numerals) ──
+    var furniture = null;
+    if (isFrontDoor) {
+      var lpEl = $('fdr-letterplate'), knEl = $('fdr-knocker');
+      var pkEl = $('fdr-pullknob'), hnEl = $('fdr-housenumber');
+      var fanBarPattern = checked('fdr-fanbars') || 'none';
+      furniture = {
+        letterplate: !!(lpEl && lpEl.checked),
+        knocker: !!(knEl && knEl.checked),
+        pullKnob: !!(pkEl && pkEl.checked),
+        houseNumber: !!(hnEl && hnEl.checked),
+        numberText: (val('fdr-number-text') || '').trim(),
+      };
+    }
+
     // Transom/fanlight: French doors and Front Doors share the same fd-transom-* controls
     var transomCapable = isFrench || isFrontDoor;
     var transomType = isFrontDoor ? (checked('fdr-fanlight') || 'none')
@@ -181,6 +196,8 @@
       transomHeight: transomHeight,
       transomBars: transomBars,
       panelGrid: panelGrid,
+      furniture: furniture,
+      fanBarPattern: (typeof fanBarPattern !== 'undefined') ? fanBarPattern : 'none',
       glassType: checked('d-glass-type') || 'double',
       glassFinish: checked('d-glass-finish') || 'clear',
       spacerColor: checked('d-spacer-color') || 'white',
@@ -240,6 +257,8 @@
       doorStyle: config.doorStyle,
       paneling: config.doorPaneling,
       panelGrid: config.panelGrid || null,
+      furniture: config.furniture || null,
+      fanBarPattern: config.fanBarPattern || 'none',
       sidePanels: config.sidePanels,
       centerMullion: config.centerMullion,
       extWidth: config.width,
@@ -691,6 +710,8 @@
         if (hint) hint.textContent = '';
       }
       // Arched fanlight: side panels can't follow a semi-circle head — lock them off
+      var fanBarsGrp = $('fdr-fanbars-group');
+      if (fanBarsGrp) fanBarsGrp.style.display = (isFrontDr && tt !== 'none') ? '' : 'none';
       var sideGrp = $('fdr-side-panels-group');
       var sideHint = $('fdr-side-hint');
       var archedNow = isFrontDr && tt === 'arched';
@@ -727,6 +748,30 @@
       document.querySelectorAll('input[name="' + nm + '"]').forEach(function(radio) {
         radio.addEventListener('change', function() { updateDoor3D(); updateSpecPanel(); updateDoorPrice(); });
       });
+    });
+    function updateFurnitureUI() {
+      var isFrontDr = (checked('door-type') || '') === 'front-door';
+      var grp = $('fdr-furniture-group');
+      if (grp) grp.style.display = isFrontDr ? '' : 'none';
+      var hnEl = $('fdr-housenumber');
+      var numRow = $('fdr-number-row');
+      if (numRow) numRow.style.display = (isFrontDr && hnEl && hnEl.checked) ? '' : 'none';
+    }
+    window.updateFurnitureUI = updateFurnitureUI;
+    ['fdr-letterplate', 'fdr-knocker', 'fdr-pullknob', 'fdr-housenumber'].forEach(function(id) {
+      var el = $(id);
+      if (el) el.addEventListener('change', function() {
+        updateFurnitureUI(); updateDoor3D(); updateSpecPanel(); updateDoorPrice();
+      });
+    });
+    var numTxt = $('fdr-number-text');
+    if (numTxt) numTxt.addEventListener('input', debounce(function() { updateDoor3D(); updateSpecPanel(); }, 400));
+    document.querySelectorAll('input[name="door-type"]').forEach(function(r) {
+      r.addEventListener('change', updateFurnitureUI);
+    });
+    updateFurnitureUI();
+    document.querySelectorAll('input[name="fdr-fanbars"]').forEach(function(radio) {
+      radio.addEventListener('change', function() { updateDoor3D(); updateSpecPanel(); updateDoorPrice(); });
     });
     ['d-hbars', 'd-vbars'].forEach(function(nm) {
       document.querySelectorAll('input[name="' + nm + '"]').forEach(function(radio) {

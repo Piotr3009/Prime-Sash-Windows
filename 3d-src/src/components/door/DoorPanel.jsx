@@ -14,6 +14,7 @@ import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import DoorGlazing from './DoorGlazing';
 import PanelGridLeaf from './PanelGridLeaf';
+import DoorFurniture from './DoorFurniture';
 import WindowDoorHandle from './WindowDoorHandle';
 import DoorHandleChrome from './DoorHandleChrome';
 
@@ -908,6 +909,7 @@ export default function DoorPanel({
   bottomRailMm,
   showWeatherBar = true,
   panelGrid = null,
+  furniture = null,      // front door: letterplate / knocker / pull knob / numerals
 }) {
   const mat = material;
   const W = mm(width);
@@ -982,6 +984,36 @@ export default function DoorPanel({
   const content = (
     <group>
       <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} stileWidthMm={stileWidthMm} topRailMm={topRailMm} bottomRailOverrideMm={bottomRailMm != null ? bottomRailMm : null} panelGrid={panelGrid} />
+      {furniture && panelGrid && (() => {
+        // Mid rail sits between the panel rows; numerals go on the top rail.
+        const rows = panelGrid.rows || 2;
+        const weights = panelGrid.rowWeights || (rows === 3 ? [40, 32, 28] : [60, 40]);
+        const topMm = topRailMm || 94;
+        const botMm = bottomRailMm || 180;
+        const innerHmm = height - topMm - botMm;
+        const divMm = 94;
+        const usable = innerHmm - divMm * (rows - 1);
+        const wSum = weights.reduce((a, b) => a + b, 0) || 1;
+        const firstRowH = usable * (weights[0] / wSum);
+        // Y of the first divider centre, leaf-local (0 = leaf centre)
+        const innerTop = H / 2 - mm(topMm);
+        const midY = innerTop - mm(firstRowH) - mm(divMm) / 2;
+        const topY = H / 2 - mm(topMm) / 2;
+        return (
+          <DoorFurniture
+            leafW={width} leafH={height}
+            faceZ={halfD}
+            finish={typeof ironmongery === 'string' ? ironmongery : 'brass'}
+            letterplate={!!furniture.letterplate}
+            knocker={!!furniture.knocker}
+            pullKnob={!!furniture.pullKnob}
+            houseNumber={!!furniture.houseNumber}
+            numberText={furniture.numberText}
+            midRailY={midY}
+            topRailY={topY}
+          />
+        );
+      })()}
       {handleX !== null && (isSliding ? showHandle : hingeType !== 'fixed') && (
         <>
           {/* EXT handle — opposite side (was wrong in v1, flip side to fix) */}
