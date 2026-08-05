@@ -34,14 +34,11 @@ const BEVEL2_W_MM = 30;
 const RECESS_DEPTH_MM = 8;
 const RAISED_DROP_MM = 3;
 
-// Bolection moulding — the proud profile that sits astride the joint between
-// the leaf frame and the panel, exactly as in period London front doors.
-// 30mm wide total: 15mm laps onto the frame, 15mm onto the panel, so the
-// panel's bevel stays visible below it. 8mm proud of the door face.
-const BOLECTION_W_MM = 30;         // total face width
-const BOLECTION_LAP_MM = 15;       // how far it laps onto the frame side
-const BOLECTION_PROUD_MM = 8;      // how far it projects in front of the face
-const BOLECTION_N = 12;            // arc segments on the ogee curve
+// Beading around each panel — the SAME ogee moulding already used on the
+// existing doors (DoorPanel), just applied per grid cell instead of once
+// per leaf. Proven profile: bullnose apex + cove sweeping back to the base.
+const BEADING_W_MM = 20;   // moulding width (lying flat on the panel field)
+const BEADING_H_MM = 15;   // moulding height (protruding above the face)
 
 // Build a slanted ring (4 strips) for a bevel between two rectangles at
 // different Z. Returns a BufferGeometry with the 4 slanted quads.
@@ -65,74 +62,74 @@ function bevelRing(outerL, outerR, outerB, outerT, innerL, innerR, innerB, inner
   return g;
 }
 
-// Bolection cross-section: ogee — quarter-round rising from the frame face,
-// then a hollow sweeping back down to the panel side. X = across the face
-// (0 = frame edge, W = panel edge), Y = height above the door face.
-function bolectionProfile() {
-  const W = mm(BOLECTION_W_MM);
-  const P = mm(BOLECTION_PROUD_MM);
-  const s = new THREE.Shape();
-  s.moveTo(0, 0);
-  // rise: quarter-round from frame face up to full height
-  for (let i = 0; i <= BOLECTION_N; i++) {
-    const t = i / BOLECTION_N;
-    const x = W * 0.45 * t;
-    const y = P * Math.sin(t * Math.PI / 2);
-    s.lineTo(x, y);
-  }
-  // hollow: sweep back down towards the panel
-  for (let i = 0; i <= BOLECTION_N; i++) {
-    const t = i / BOLECTION_N;
-    const x = W * 0.45 + W * 0.55 * t;
-    const y = P * (1 - Math.sin(t * Math.PI / 2)) * 0.75 + P * 0.05;
-    s.lineTo(x, y);
-  }
-  s.lineTo(W, 0);
-  s.closePath();
-  return s;
+// Ogee beading profile — ported 1:1 from DoorPanel (proven geometry).
+// profile X = width apex→cove, profile Y = height base→apex.
+function makeOgeeProfile() {
+  const BW = mm(BEADING_W_MM);
+  const BH = mm(BEADING_H_MM);
+  const R = mm(5);        // apex bullnose radius
+  const stepX = mm(8);    // cove starts just past apex
+  const stepY = mm(10);   // cove top Y
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0);
+  shape.lineTo(0, BH - R);
+  shape.quadraticCurveTo(0, BH, R, BH);
+  shape.lineTo(stepX, BH);
+  shape.lineTo(stepX, stepY);
+  shape.bezierCurveTo(mm(14), stepY, BW, mm(4), BW, 0);
+  shape.lineTo(0, 0);
+  return shape;
 }
 
-// Bolection frame around one cell: 4 mitred lengths, EXT + INT mirrored.
-// L/R/B/T are the cell bounds; the moulding straddles them by LAP outward.
-function BolectionFrame({ L, R, B, T, mat, mi }) {
-  const geo = useMemo(() => {
-    const lap = mm(BOLECTION_LAP_MM);
-    // Outer edge of the moulding = cell bounds pushed out by the lap
-    const oL = L - lap, oR = R + lap, oB = B - lap, oT = T + lap;
-    const spanH = oR - oL;
-    const spanV = oT - oB;
-    if (spanH <= 0 || spanV <= 0) return null;
-    const shape = bolectionProfile();
-    const horiz = new THREE.ExtrudeGeometry(shape, { depth: spanH, bevelEnabled: false });
-    const vert = new THREE.ExtrudeGeometry(shape, { depth: spanV, bevelEnabled: false });
-    return { horiz, vert, oL, oR, oB, oT, spanH, spanV };
+// Extrude one bar along a right-handed basis — same helper as DoorPanel.
+function makeOgeeBar(profile, length, xAxis, yAxis, zAxis, pos) {
+  const geo = new THREE.ExtrudeGeometry(profile, { depth: length, bevelEnabled: false });
+  const m = new THREE.Matrix4();
+  m.makeBasis(xAxis, yAxis, zAxis);
+  geo.applyMatrix4(m);
+  geo.translate(pos.x, pos.y, pos.z);
+  return geo;
+}
+
+// Beading frame around one cell: 4 bars EXT + 4 INT, apex on the outer edge.
+// Axis/handedness conventions copied verbatim from DoorPanel.
+function BeadingFrame({ L, R, B, T, mat, mi }) {
+  const bars = useMemo(() => {
+    const bdL = L, bdR = R, bdB = B, bdT = T;
+    const w = bdR - bdL, h = bdT - bdB;
+    const BW = mm(BEADING_W_MM);
+    if (w <= 2 * BW || h <= 2 * BW) return null;
+    const prof = makeOgeeProfile();
+    const vX = new THREE.Vector3(1, 0, 0);
+    const vY = new THREE.Vector3(0, 1, 0);
+    const vZ = new THREE.Vector3(0, 0, 1);
+    const nvX = new THREE.Vector3(-1, 0, 0);
+    const nvY = new THREE.Vector3(0, -1, 0);
+    const nvZ = new THREE.Vector3(0, 0, -1);
+    const zINT = -halfD;
+    return {
+      topExt: makeOgeeBar(prof, w, nvY.clone(), vZ.clone(), nvX.clone(), new THREE.Vector3(bdR, bdT, halfD)),
+      botExt: makeOgeeBar(prof, w, vY.clone(), vZ.clone(), vX.clone(), new THREE.Vector3(bdL, bdB, halfD)),
+      leftExt: makeOgeeBar(prof, h, vX.clone(), vZ.clone(), nvY.clone(), new THREE.Vector3(bdL, bdT, halfD)),
+      rightExt: makeOgeeBar(prof, h, nvX.clone(), vZ.clone(), vY.clone(), new THREE.Vector3(bdR, bdB, halfD)),
+      topInt: makeOgeeBar(prof, w, nvY.clone(), nvZ.clone(), vX.clone(), new THREE.Vector3(bdL, bdT, zINT)),
+      botInt: makeOgeeBar(prof, w, vY.clone(), nvZ.clone(), nvX.clone(), new THREE.Vector3(bdR, bdB, zINT)),
+      leftInt: makeOgeeBar(prof, h, vX.clone(), nvZ.clone(), vY.clone(), new THREE.Vector3(bdL, bdB, zINT)),
+      rightInt: makeOgeeBar(prof, h, nvX.clone(), nvZ.clone(), nvY.clone(), new THREE.Vector3(bdR, bdT, zINT)),
+    };
   }, [L, R, B, T]);
 
-  if (!geo) return null;
-  const { horiz, vert, oL, oR, oB, oT } = geo;
-  const z = halfD; // sits on the door face, profile height grows outward (+Z)
-
-  // Each length is rotated so the profile's X runs inward and Y runs +Z (proud).
-  const side = (key, g, pos, rot, material) => (
-    <mesh key={key} geometry={g} position={pos} rotation={rot} castShadow receiveShadow>
-      <primitive object={material} attach="material" />
-    </mesh>
-  );
-
+  if (!bars) return null;
   return (
     <group>
-      {/* ═══ EXT face ═══ */}
-      {side('b-ext', horiz, [oL, oB, z], [-Math.PI / 2, 0, 0], mat)}
-      {side('t-ext', horiz, [oL, oT, z], [Math.PI / 2, 0, 0], mat)}
-      {side('l-ext', vert, [oL, oB, z], [-Math.PI / 2, 0, -Math.PI / 2], mat)}
-      {side('r-ext', vert, [oR, oB, z], [-Math.PI / 2, 0, Math.PI / 2], mat)}
-      {/* ═══ INT face (mirrored through Z) ═══ */}
-      <group scale={[1, 1, -1]}>
-        {side('b-int', horiz, [oL, oB, z], [-Math.PI / 2, 0, 0], mi)}
-        {side('t-int', horiz, [oL, oT, z], [Math.PI / 2, 0, 0], mi)}
-        {side('l-int', vert, [oL, oB, z], [-Math.PI / 2, 0, -Math.PI / 2], mi)}
-        {side('r-int', vert, [oR, oB, z], [-Math.PI / 2, 0, Math.PI / 2], mi)}
-      </group>
+      <mesh geometry={bars.topExt} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+      <mesh geometry={bars.botExt} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+      <mesh geometry={bars.leftExt} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+      <mesh geometry={bars.rightExt} castShadow receiveShadow><primitive object={mat} attach="material" /></mesh>
+      <mesh geometry={bars.topInt} castShadow receiveShadow><primitive object={mi} attach="material" /></mesh>
+      <mesh geometry={bars.botInt} castShadow receiveShadow><primitive object={mi} attach="material" /></mesh>
+      <mesh geometry={bars.leftInt} castShadow receiveShadow><primitive object={mi} attach="material" /></mesh>
+      <mesh geometry={bars.rightInt} castShadow receiveShadow><primitive object={mi} attach="material" /></mesh>
     </group>
   );
 }
@@ -142,9 +139,8 @@ function PanelCell({ L, R, B, T, matPanel, miPanel }) {
   const geo = useMemo(() => {
     const B1 = mm(BEVEL1_W_MM), FS = mm(FLAT_STEP_W_MM), B2 = mm(BEVEL2_W_MM);
     const REC = mm(RECESS_DEPTH_MM), RD = mm(RAISED_DROP_MM);
-    // The bolection laps BOLECTION_W - BOLECTION_LAP onto the panel, so the
-    // bevel must start inside that, otherwise the moulding hides the whole slope.
-    const cover = mm(BOLECTION_W_MM - BOLECTION_LAP_MM);
+    // The beading sits on the panel edge, so the bevel starts inside it.
+    const cover = mm(BEADING_W_MM);
     const pL = L + cover, pR = R - cover, pB = B + cover, pT = T - cover;
     const iL = pL + B1, iR = pR - B1, iB = pB + B1, iT = pT - B1;           // after bevel1
     const sL = iL + FS, sR = iR - FS, sB = iB + FS, sT = iT - FS;           // after flat step
@@ -298,7 +294,7 @@ export default function PanelGridLeaf({
         gridItems.push(
           <group key={`cell-${idx}`}>
             <PanelCell L={L} R={R} B={B} T={T} matPanel={matPanel} miPanel={miPanel} />
-            <BolectionFrame L={L} R={R} B={B} T={T} mat={mat} mi={mi} />
+            <BeadingFrame L={L} R={R} B={B} T={T} mat={mat} mi={mi} />
           </group>
         );
       }
