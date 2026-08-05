@@ -34,6 +34,7 @@ import DoorSidePanel from './DoorSidePanel';
 import TransomPanel from './TransomPanel';
 import DoorGlazing from './DoorGlazing';
 import FixFrameWindow from '../fix-frame/FixFrameWindow';
+import RectFanBars from './RectFanBars';
 
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
@@ -668,6 +669,28 @@ export default function DoorWindow({
             fixType="standard"
             fixSemiBarPattern={fdrFanShape === 'semi-circle' ? fanBarPattern : 'none'}
           />
+          {/* Rectangular fanlight: sunburst bars overlay (Type 05) — the hub
+              sits on the bottom edge, spokes run out to the frame edges. */}
+          {fdrFanShape === 'rectangle' && fanBarPattern !== 'none' && (() => {
+            const FIX_FRAME_FACE = 64;   // FixFrameWindow frame face width
+            const gW = width - FIX_FRAME_FACE * 2;
+            const gH = fdrFanH - FIX_FRAME_FACE * 2;
+            if (gW <= 100 || gH <= 100) return null;
+            const fanSpacerMat = new THREE.MeshStandardMaterial({
+              color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
+              metalness: 0.6, roughness: 0.4,
+            });
+            return (
+              <RectFanBars
+                innerW={gW}
+                innerH={gH}
+                pattern={fanBarPattern}
+                mat={extMaterial}
+                mi={intMaterial}
+                spacerMat={fanSpacerMat}
+              />
+            );
+          })()}
         </group>
       )}
 
