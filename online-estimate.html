@@ -934,6 +934,20 @@
           </div>
           <p style="font-size:0.65rem;color:#999;margin-top:2px;">Side panels: 200–800mm</p>
         </div>
+        <!-- Fanlight / transom on-off (front door) -->
+        <div class="input-group" id="fdr-fanlight-group" style="display:none;margin-top:12px;">
+          <label>Fanlight (above door):</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fdr-fanlight-none" name="fdr-fanlight" value="none" checked>
+              <label for="fdr-fanlight-none" class="radio-label">None</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-fanlight-fixed" name="fdr-fanlight" value="fixed">
+              <label for="fdr-fanlight-fixed" class="radio-label">Fixed</label>
+            </div>
+          </div>
+        </div>
         <!-- Transom height (french only, shown when transom active) -->
         <div class="input-group" id="fd-transom-height-group" style="display:none;margin-top:12px;">
           <label for="fd-transom-height">Transom Height (mm):</label>
@@ -4452,7 +4466,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=75";
+      psw3dScript.src = "3d/assets/window3d.js?v=76";
       document.head.appendChild(psw3dScript);
     }
   </script>

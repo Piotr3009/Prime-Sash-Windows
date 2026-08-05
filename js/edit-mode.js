@@ -561,6 +561,10 @@
 
         // Single external + Front Door (both use door- prefix)
         if (doorType === 'single-external' || doorType === 'front-door') {
+          if (doorType === 'front-door') {
+            setRadio('fdr-fanlight', fc.transomType || 'none');
+            if (fc.transomHeight) setInput('fd-transom-height', fc.transomHeight, 'input');
+          }
           setRadio('door-shape', fc.doorShape);
           setRadio('door-style', fc.doorStyle);
           setRadio('door-paneling', fc.doorPaneling);

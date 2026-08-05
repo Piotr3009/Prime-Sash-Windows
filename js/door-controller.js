@@ -115,9 +115,12 @@
     }
 
     // Transom / fanlight (Stage 2 — french only)
-    var transomType = isFrench ? (checked('fd-transom-type') || 'none') : 'none';
-    var transomHeight = isFrench ? (numVal('fd-transom-height') || 450) : 0;
-    var transomBars = isFrench ? (checked('fd-transom-bars') || 'none') : 'none';
+    // Transom/fanlight: French doors and Front Doors share the same fd-transom-* controls
+    var transomCapable = isFrench || isFrontDoor;
+    var transomType = isFrontDoor ? (checked('fdr-fanlight') || 'none')
+                    : (transomCapable ? (checked('fd-transom-type') || 'none') : 'none');
+    var transomHeight = transomCapable ? (numVal('fd-transom-height') || 450) : 0;
+    var transomBars = transomCapable ? (checked('fd-transom-bars') || 'none') : 'none';
 
     return {
       productType: 'door',
@@ -355,7 +358,7 @@
     var transomItem = $('spec-d-transom-item');
     var transomVal = $('spec-d-transom');
     if (transomItem && transomVal) {
-      if (config.doorType === 'french' && config.transomType && config.transomType !== 'none') {
+      if ((config.doorType === 'french' || config.doorType === 'front-door') && config.transomType && config.transomType !== 'none') {
         transomItem.style.display = '';
         var tLabel = (config.transomType === 'opening' ? 'Opening (Top-Hung)' : 'Fixed') + ' \u00b7 ' + config.transomHeight + 'mm';
         if (config.transomBars === 'match') tLabel += ' \u00b7 Bars: match door';
@@ -632,14 +635,22 @@
 
     // Transom type -> show/hide height+bars options
     function updateTransomUI() {
-      var tt = checked('fd-transom-type') || 'none';
-      var isFr = (checked('door-type') || '') === 'french';
+      var dt = checked('door-type') || '';
+      var isFrontDr = dt === 'front-door';
+      var tt = isFrontDr ? (checked('fdr-fanlight') || 'none') : (checked('fd-transom-type') || 'none');
+      var isFr = dt === 'french' || isFrontDr;
       var show = isFr && tt !== 'none';
+      // Front-door fanlight picker: visible only for front doors
+      var fdrGroup = $('fdr-fanlight-group');
+      if (fdrGroup) fdrGroup.style.display = isFrontDr ? '' : 'none';
       var row = $('fd-transom-options');
-      if (row) row.style.display = show ? '' : 'none';
+      if (row) row.style.display = (show && !isFrontDr) ? '' : 'none';
       var hGroup = $('fd-transom-height-group');
       if (hGroup) hGroup.style.display = show ? '' : 'none';
     }
+    document.querySelectorAll('input[name="fdr-fanlight"]').forEach(function(radio) {
+      radio.addEventListener('change', function() { updateTransomUI(); updateDoor3D(); updateSpecPanel(); updateDoorPrice(); });
+    });
     document.querySelectorAll('input[name="door-type"]').forEach(function(radio) {
       radio.addEventListener('change', updateTransomUI);
     });

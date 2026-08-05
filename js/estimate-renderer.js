@@ -440,7 +440,7 @@ class EstimateRenderer {
         const doorTransomHeight = fc.transomHeight || 450;
         const doorTransomBars = fc.transomBars || 'none';
         let doorTransomText = '';
-        if (doorType === 'french' && doorTransomType !== 'none') {
+        if ((doorType === 'french' || doorType === 'front-door') && doorTransomType !== 'none') {
             doorTransomText = (doorTransomType === 'opening' ? 'Opening (Top-Hung)' : 'Fixed') + ' \u00b7 ' + doorTransomHeight + 'mm'
                 + (doorTransomBars === 'match' ? ' \u00b7 Bars: match door' : '');
         }
@@ -3336,7 +3336,7 @@ class EstimateRenderer {
         const transomType = fc.transomType || 'none';
         const transomH = parseInt(fc.transomHeight) || 0;
         const transomBars = fc.transomBars || 'none';
-        const hasTransom = (fc.doorType === 'french') && transomType !== 'none' && transomH > 0;
+        const hasTransom = (fc.doorType === 'french' || fc.doorType === 'front-door') && transomType !== 'none' && transomH > 0;
         const unitH = h + (hasTransom ? transomH : 0);
 
         // Bottom rail ratio based on door style

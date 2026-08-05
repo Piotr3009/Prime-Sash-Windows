@@ -506,7 +506,9 @@ export default function DoorWindow({
   // ─── Coupled transom (stage 2, french only): ONE taller frame, internal 68mm rail,
   //     single fixed 64mm-stile pane above the doors. Door top frame member IS the
   //     transom bottom (shared internal rail) — ref. corrected spec.
-  const transomActive = transomType !== 'none' && transomHeight > 0 && layout === '040F' && !isSlidingOrBifold;
+  // Transom/fanlight: French (040F) plus Front Door (040L/040R with a panel grid)
+  const transomLayoutOK = layout === '040F' || (!!panelGrid && (layout === '040L' || layout === '040R'));
+  const transomActive = transomType !== 'none' && transomHeight > 0 && transomLayoutOK && !isSlidingOrBifold;
   const frTransomH = transomActive ? transomHeight : 0;
   const TRANSOM_SASH_STILE = 64;
   // Internal rail: bottom edge flush with the door opening top (height - FRAME_FACE)
@@ -1127,7 +1129,7 @@ export default function DoorWindow({
         const totalLeftX = hasLeft ? -W / 2 - mm(sideLeftWidth) : -W / 2;
         const totalRightX = hasRight ? W / 2 + mm(sideRightWidth) : W / 2;
         const totalWidthMm = width + (hasLeft ? sideLeftWidth : 0) + (hasRight ? sideRightWidth : 0);
-        const dimTopBase = (transomType !== 'none' && transomHeight > 0 && layout === '040F') ? H / 2 + mm(transomHeight) : H / 2;
+        const dimTopBase = (transomType !== 'none' && transomHeight > 0 && transomLayoutOK) ? H / 2 + mm(transomHeight) : H / 2;
 
         return (
           <group>
@@ -1169,7 +1171,7 @@ export default function DoorWindow({
 
             {/* Height — right side */}
             {(() => {
-              const hasTransom = transomType !== 'none' && transomHeight > 0 && layout === '040F';
+              const hasTransom = transomType !== 'none' && transomHeight > 0 && transomLayoutOK;
               const topY = hasTransom ? H / 2 + mm(transomHeight) : H / 2;
               const totalHeightMm = hasTransom ? height + transomHeight : height;
               return (

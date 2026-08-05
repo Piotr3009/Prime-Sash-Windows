@@ -563,7 +563,8 @@ class PriceCalculator {
     let transomPrice = 0;
     let transomSqm = 0;
     const transomType = configuration.transomType || 'none';
-    if (isFrenchDoor && transomType !== 'none') {
+    const isFrontDoor = (configuration.doorType || 'single-external') === 'front-door';
+    if ((isFrenchDoor || isFrontDoor) && transomType !== 'none') {
       const tH = (configuration.transomHeight || 450) / 1000;
       const totalWm = (doorW / 1000)
         + (hasLeft ? (configuration.sideLeftWidth || 500) / 1000 : 0)
