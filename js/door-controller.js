@@ -123,7 +123,7 @@
     // Arched fanlight: a semi-circle's rise IS half the width — the height input
     // does not apply, so it is computed here and the field is disabled in the UI.
     if (isFrontDoor && transomType === 'arched') {
-      transomHeight = Math.round((numVal('d-width') || 900) / 2);
+      transomHeight = Math.round((numVal('d-width') || 900) / 2) + 50;  // + 50mm straight springing
     }
     var transomBars = transomCapable ? (checked('fd-transom-bars') || 'none') : 'none';
 
@@ -656,9 +656,9 @@
       var hInput = $('fd-transom-height');
       var hint = $('fdr-fanlight-hint');
       if (isFrontDr && tt === 'arched') {
-        var autoH = Math.round((parseInt((document.getElementById('d-width') || {}).value) || 900) / 2);
+        var autoH = Math.round((parseInt((document.getElementById('d-width') || {}).value) || 900) / 2) + 50;
         if (hInput) { hInput.value = autoH; hInput.disabled = true; hInput.style.opacity = '0.5'; }
-        if (hint) hint.textContent = 'Semi-circle rise is half the door width — height is set automatically (' + autoH + 'mm).';
+        if (hint) hint.textContent = 'Semi-circle: half the door width plus a 50mm straight springing — height set automatically (' + autoH + 'mm).';
       } else {
         if (hInput) { hInput.disabled = false; hInput.style.opacity = ''; }
         if (hint) hint.textContent = '';

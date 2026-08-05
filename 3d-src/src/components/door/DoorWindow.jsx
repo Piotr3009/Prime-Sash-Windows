@@ -516,7 +516,10 @@ export default function DoorWindow({
   const fdrFanlight = !!panelGrid && transomActive;
   const fdrFanShape = transomType === 'arched' ? 'semi-circle' : 'rectangle';
   // Semi-circle rise is fixed by the width — height input is ignored there.
-  const fdrFanH = fdrFanShape === 'semi-circle' ? Math.round(width / 2) : transomHeight;
+  // Semi-circle: rise (= half the width) PLUS a 50mm straight springing course
+  // below it. FixFrameWindow enforces that 50mm internally, so the height we
+  // quote, draw and price must include it — otherwise the unit sits 25mm out.
+  const fdrFanH = fdrFanShape === 'semi-circle' ? Math.round(width / 2) + 50 : transomHeight;
   const frTransomH = (transomActive && !(!!panelGrid)) ? transomHeight : 0;
   const TRANSOM_SASH_STILE = 64;
   // Internal rail: bottom edge flush with the door opening top (height - FRAME_FACE)
