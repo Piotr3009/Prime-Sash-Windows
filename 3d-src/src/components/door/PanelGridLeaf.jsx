@@ -244,17 +244,35 @@ export default function PanelGridLeaf({
   const div = mm(DIVIDER_MM);
   // Cell size = (area - dividers) / count
   const cellW = (areaW - div * (cols - 1)) / cols;
-  const cellH = (areaH - div * (rows - 1)) / rows;
+
+  // Row heights are proportional, not equal. Classic London front doors put
+  // the taller panels on top: 60/40 for a two-row leaf. panelGrid.rowWeights
+  // can override; anything else falls back to equal rows.
+  const defaultWeights = rows === 2 ? [60, 40] : Array(rows).fill(1);
+  const weights = (panelGrid?.rowWeights && panelGrid.rowWeights.length === rows)
+    ? panelGrid.rowWeights
+    : defaultWeights;
+  const weightSum = weights.reduce((a, b) => a + b, 0) || 1;
+  const usableH = areaH - div * (rows - 1);          // height left for panels only
+  const rowH = weights.map(w => usableH * (w / weightSum));
+
+  // Top edge of each row (cumulative from the top of the panel area)
+  const rowTop = [];
+  let runY = areaT;
+  for (let r = 0; r < rows; r++) {
+    rowTop.push(runY);
+    runY -= rowH[r] + div;
+  }
 
   const cellBounds = (r, c) => {
     const L = areaL + c * (cellW + div);
     const R = L + cellW;
-    const T = areaT - r * (cellH + div);
-    const B = T - cellH;
+    const T = rowTop[r];
+    const B = T - rowH[r];
     return { L, R, B, T };
   };
 
-  if (cellW <= 0 || cellH <= 0) return null; // too small — safety
+  if (cellW <= 0 || usableH <= 0 || rowH.some(h => h <= 0)) return null; // too small — safety
 
   // Solid timber backing across the whole leaf light. Without this the leaf
   // would be see-through wherever a cell is a panel (the old single-panel /
@@ -310,7 +328,7 @@ export default function PanelGridLeaf({
   // Horizontal dividers (between rows), full area width
   const hDividers = [];
   for (let r = 1; r < rows; r++) {
-    const cy = areaT - r * (cellH + div) + div / 2;
+    const cy = rowTop[r] + div / 2;
     hDividers.push(<Divider key={`hd-${r}`} cx={(areaL + areaR) / 2} cy={cy} w={areaW} h={div} mat={mat} mi={mi} />);
   }
 
