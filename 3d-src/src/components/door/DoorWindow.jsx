@@ -453,6 +453,7 @@ export default function DoorWindow({
   doorStyle = 'full-glass',
   centerMullion = false,
   paneling = 'flat',
+  panelGrid = null,
   sidePanels = 'none',
   sideLeftWidth = 400,
   sideRightWidth = 400,
@@ -863,6 +864,7 @@ export default function DoorWindow({
             doorStyle={doorStyle}
             centerMullion={centerMullion}
             paneling={paneling}
+            panelGrid={isFanlight ? null : panelGrid}
             material={extMaterial}
             materialInt={intMaterial}
             spacerColor={spacerColor}

@@ -197,6 +197,14 @@
       doorShape: config.doorShape,
       doorStyle: config.doorStyle,
       paneling: config.doorPaneling,
+      // Front Door panel grid (layer 2). Until the grid UI (commit 2c) exists,
+      // front-door defaults to a 2×2 all-panel leaf so the geometry is visible.
+      panelGrid: config.doorType === 'front-door'
+        ? { rows: 2, cols: 2, cells: [
+            { type: 'panel' }, { type: 'panel' },
+            { type: 'panel' }, { type: 'panel' }
+          ] }
+        : null,
       sidePanels: config.sidePanels,
       centerMullion: config.centerMullion,
       extWidth: config.width,

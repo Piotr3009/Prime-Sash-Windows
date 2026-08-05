@@ -13,6 +13,7 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import DoorGlazing from './DoorGlazing';
+import PanelGridLeaf from './PanelGridLeaf';
 import WindowDoorHandle from './WindowDoorHandle';
 import DoorHandleChrome from './DoorHandleChrome';
 
@@ -162,7 +163,7 @@ function buildCenterMullionInt(F, halfDepth) {
 }
 
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, doorStyle = 'full-glass', centerMullion = false, paneling = 'flat', stileWidthMm = LEAF_STILE, topRailMm = LEAF_TOP_RAIL, bottomRailOverrideMm = null }) {
+function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, doorStyle = 'full-glass', centerMullion = false, paneling = 'flat', stileWidthMm = LEAF_STILE, topRailMm = LEAF_TOP_RAIL, bottomRailOverrideMm = null, panelGrid = null }) {
   const W = mm(width);
   const H = mm(height);
   const fS = mm(stileWidthMm);  // stile face width (default 93mm door, 57mm for side panels)
@@ -273,7 +274,8 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
   //   Raised field: horizontal centre at Z=+halfD - RAISED_DROP
   // Panel renders only when door has non-full-glass style AND paneling is 'panel'
   // 'flat' / 'beading' / 'bespoke' → render solid bottom rail (no recessed panel)
-  const hasPanel = doorStyle !== 'full-glass' && paneling === 'panel';
+  const useGrid = !!(panelGrid && panelGrid.rows && panelGrid.cols);
+  const hasPanel = !useGrid && doorStyle !== 'full-glass' && paneling === 'panel';
 
   // Panel params (mm → meters)
   const PANEL_MARGIN_X_MM = 0;          // from stiles (panel touches stiles directly)
@@ -849,11 +851,20 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
         </>
       )}
 
+      {/* ─── Panel grid (front-door multi-cell leaf) ─── */}
+      {useGrid && (
+        <PanelGridLeaf
+          width={width} height={height} panelGrid={panelGrid}
+          mat={mat} mi={mi} matPanel={matPanel} miPanel={miPanel}
+          spacerColor={spacerColor} glassFinish={glassFinish}
+        />
+      )}
+
       {/* ─── Glazing (single when no mullion, split into 2 panels when centerMullion=true) ─── */}
-      {glassW > 0 && glassH > 0 && !centerMullion && (
+      {!useGrid && glassW > 0 && glassH > 0 && !centerMullion && (
         <DoorGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[0, mm((bottomRailMm - topRailMm) / 2), 0]} />
       )}
-      {glassW > 0 && glassH > 0 && centerMullion && (() => {
+      {!useGrid && glassW > 0 && glassH > 0 && centerMullion && (() => {
         // Split glass into 2 panels with stileWidthMm-wide mullion between them
         const halfGlassW = (glassW - stileWidthMm) / 2;
         if (halfGlassW <= 0) return null;
@@ -895,6 +906,7 @@ export default function DoorPanel({
   topRailMm,
   bottomRailMm,
   showWeatherBar = true,
+  panelGrid = null,
 }) {
   const mat = material;
   const W = mm(width);
@@ -968,7 +980,7 @@ export default function DoorPanel({
 
   const content = (
     <group>
-      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} stileWidthMm={stileWidthMm} topRailMm={topRailMm} bottomRailOverrideMm={bottomRailMm != null ? bottomRailMm : null} />
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} doorStyle={doorStyle} centerMullion={centerMullion} paneling={paneling} stileWidthMm={stileWidthMm} topRailMm={topRailMm} bottomRailOverrideMm={bottomRailMm != null ? bottomRailMm : null} panelGrid={panelGrid} />
       {handleX !== null && (isSliding ? showHandle : hingeType !== 'fixed') && (
         <>
           {/* EXT handle — opposite side (was wrong in v1, flip side to fix) */}
