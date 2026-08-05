@@ -559,8 +559,8 @@
           setRadio('fd-transom-bars', fc.transomBars || 'none');
         }
 
-        // Single external (uses door- prefix)
-        if (doorType === 'single-external') {
+        // Single external + Front Door (both use door- prefix)
+        if (doorType === 'single-external' || doorType === 'front-door') {
           setRadio('door-shape', fc.doorShape);
           setRadio('door-style', fc.doorStyle);
           setRadio('door-paneling', fc.doorPaneling);
@@ -570,7 +570,7 @@
         }
 
         // Shared: lock, threshold, hinge, open direction, side panel dims
-        if (doorType === 'french' || doorType === 'single-external') {
+        if (doorType === 'french' || doorType === 'single-external' || doorType === 'front-door') {
           setRadio('d-lock-type', fc.lockType);
           setRadio('d-threshold', fc.threshold);
           if (fc.thresholdExtension) setInput('d-threshold-extension', fc.thresholdExtension, 'input');

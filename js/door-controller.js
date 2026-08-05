@@ -34,6 +34,7 @@
   // ─── Dimension constraints per door type ───
   var DOOR_DIMS = {
     'single-external': { wMin: 600, wMax: 1100, hMin: 1900, hMax: 3000, defaultW: 900, defaultH: 2100 },
+    'front-door':      { wMin: 700, wMax: 1200, hMin: 1900, hMax: 3000, defaultW: 900, defaultH: 2100 },
     'french':          { wMin: 1000, wMax: 2000, hMin: 1900, hMax: 3000, defaultW: 1400, defaultH: 2100 },
     'sliding':         { wMin: 1500, wMax: 8000, hMin: 1900, hMax: 2500, defaultW: 2400, defaultH: 2100 },
     'bifold':          { wMin: 1500, wMax: 7500, hMin: 1900, hMax: 2500, defaultW: 3000, defaultH: 2100 }
@@ -45,6 +46,7 @@
     var isFrench = doorType === 'french';
     var isSliding = doorType === 'sliding';
     var isBifold = doorType === 'bifold';
+    var isFrontDoor = doorType === 'front-door';   // Layer 1: behaves as single; panels/arch/sunburst come in later layers
     var prefix = isFrench ? 'fd-door-' : 'door-';
 
     // Sliding: fixed defaults (no shape/style/paneling/sidePanels)
@@ -264,7 +266,7 @@
 
     // Door Type name
     var specDoorType = $('spec-d-door-type');
-    var doorTypeLabels = { 'single-external': 'Single Patio Door', 'french': 'French Doors', 'sliding': 'Sliding Door', 'bifold': 'Bi-Fold Door' };
+    var doorTypeLabels = { 'single-external': 'Single Patio Door', 'front-door': 'Front Door', 'french': 'French Doors', 'sliding': 'Sliding Door', 'bifold': 'Bi-Fold Door' };
     if (specDoorType) specDoorType.textContent = doorTypeLabels[config.doorType] || 'Single Patio Door';
 
     // Shape / Style / Paneling / Mullion — hide for sliding/bifold

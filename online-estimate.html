@@ -875,6 +875,10 @@
               <label for="type-single-ext" class="radio-label">Single Patio Door</label>
             </div>
             <div class="radio-option">
+              <input type="radio" id="type-front-door" name="door-type" value="front-door">
+              <label for="type-front-door" class="radio-label">Front Door</label>
+            </div>
+            <div class="radio-option">
               <input type="radio" id="type-french" name="door-type" value="french">
               <label for="type-french" class="radio-label">French Doors</label>
             </div>
@@ -4269,7 +4273,7 @@
       var dfo = document.getElementById('door-french-options');
       var dslo = document.getElementById('sl-dimensions-step2');
       var dbfo = document.getElementById('bf-dimensions-step2');
-      if (dso) dso.style.display = (doorType === 'single-external') ? 'block' : 'none';
+      if (dso) dso.style.display = (doorType === 'single-external' || doorType === 'front-door') ? 'block' : 'none';
       if (dfo) dfo.style.display = (doorType === 'french') ? 'block' : 'none';
       if (dslo) dslo.style.display = (doorType === 'sliding') ? 'block' : 'none';
       if (dbfo) dbfo.style.display = (doorType === 'bifold') ? 'block' : 'none';
@@ -4448,7 +4452,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=68";
+      psw3dScript.src = "3d/assets/window3d.js?v=69";
       document.head.appendChild(psw3dScript);
     }
   </script>
@@ -4670,7 +4674,7 @@
         fixTypeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         fixShapeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         doorTypeSection.style.display = isWindows ? 'none' : 'block';
-        if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
+        if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && (doorType === 'single-external' || doorType === 'front-door')) ? 'block' : 'none';
         var doorFrenchOptions = document.getElementById('door-french-options');
         if (doorFrenchOptions) doorFrenchOptions.style.display = (!isWindows && doorType === 'french') ? 'block' : 'none';
         var doorSlidingOptions = document.getElementById('sl-dimensions-step2');
@@ -4719,6 +4723,7 @@
         if (widthHint) {
           var hintTexts = {
             'single-external': 'Single door: 600–1100mm',
+            'front-door': 'Front door: 700–1200mm',
             'french': 'French doors: 1000–2000mm',
             'sliding': 'Sliding doors: 1500–8000mm (total width)',
             'bifold': 'Bi-fold doors: 1500–7500mm'
@@ -4755,7 +4760,7 @@
         var hintEl = document.getElementById('hint-product-range');
         if (hintEl) {
           if (!isWindows) {
-            var doorLabels = {'single-external':'Single Patio Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+            var doorLabels = {'single-external':'Single Patio Door','front-door':'Front Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
             hintEl.textContent = doorLabels[doorType] || 'Timber Door';
           } else {
             var winLabels = {'sash':'Sash Window','casement':'Casement Window','fix-only':'Fix Frame'};
@@ -5067,7 +5072,7 @@
           var dbfo = document.getElementById('bf-dimensions-step2');
           // Only show design sections if currently in door-dimensions tab (prevent flash in product-range)
           var inDimTab = document.querySelector('.cat-btn.active[data-target="door-dimensions"]');
-          if (dso) dso.style.display = (inDimTab && r.value === 'single-external') ? 'block' : 'none';
+          if (dso) dso.style.display = (inDimTab && (r.value === 'single-external' || r.value === 'front-door')) ? 'block' : 'none';
           if (dfo) dfo.style.display = (inDimTab && r.value === 'french') ? 'block' : 'none';
           if (dslo) dslo.style.display = (inDimTab && r.value === 'sliding') ? 'block' : 'none';
           if (dbfo) dbfo.style.display = (inDimTab && r.value === 'bifold') ? 'block' : 'none';
@@ -5104,6 +5109,8 @@
           if (widthHint) {
             var hintTexts = {
               'single-external': 'Single door: 600–1100mm',
+              'front-door': 'Front door: 700–1200mm',
+            'front-door': 'Front door: 700–1200mm',
               'french': 'French doors: 1000–2000mm',
               'sliding': 'Sliding doors: 1500–8000mm (total width)',
               'bifold': 'Bi-fold doors: 1500–7500mm'
@@ -5114,7 +5121,7 @@
           // Update hint
           var hintEl = document.getElementById('hint-product-range');
           if (hintEl) {
-            var doorLabels = {'single-external':'Single Patio Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
+            var doorLabels = {'single-external':'Single Patio Door','front-door':'Front Door','french':'French Doors','sliding':'Sliding Door','bifold':'Bi-Fold Door'};
             hintEl.textContent = doorLabels[r.value] || 'Timber Door';
           }
 

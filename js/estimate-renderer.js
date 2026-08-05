@@ -638,7 +638,7 @@ class EstimateRenderer {
                             ${R.specRow('Colour', p.colorDisplay)}
                             ${R.specRow('Bars', p.fixBarsFull)}
                             ` : p.windowType === 'door' ? `
-                            ${R.specRow('Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door')))}
+                            ${R.specRow('Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? 'Front Door' : 'Single Patio Door'))))}
                             ${p.isSlidingOrBifold ? '' : R.specRow('Shape', p.doorShapeText)}
                             ${p.isSliding ? '' : R.specRow('Style', p.doorStyleText)}
                             ${p.doorStyle !== 'full-glass' ? R.specRow('Paneling', p.doorPanelingText) : ''}
@@ -4012,7 +4012,7 @@ class EstimateRenderer {
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.fixBarsFull]);
                 } else if (p.windowType === 'door') {
-                    specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Door'))]);
+                    specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? 'Front Door' : 'Single Door')))]);
                     if (!p.isSlidingOrBifold) specs.push(['Shape', p.doorShapeText]);
                     if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
                     if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
@@ -4072,7 +4072,7 @@ class EstimateRenderer {
                     `).join('')
                     : `<div style="font-family:'Jost',sans-serif;font-size:11px;color:#888;font-style:italic;">No ironmongery specified for this item.</div>`;
 
-                const typeLabel = p.windowType === 'door' ? (p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Door')))
+                const typeLabel = p.windowType === 'door' ? (p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? 'Front Door' : 'Single Door'))))
                     : p.windowType === 'casement' ? 'Casement Window'
                     : p.windowType === 'fix-only' ? 'Fix Frame'
                     : p.sashType === 'triple' ? 'Triple Sash Window'
@@ -4594,7 +4594,7 @@ class EstimateRenderer {
                 specs.push(['Colour', p.colorDisplay]);
                 specs.push(['Bars', p.fixBarsFull]);
             } else if (p.windowType === 'door') {
-                specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : 'Single Patio Door'))]);
+                specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? 'Front Door' : 'Single Patio Door')))]);
                 if (!p.isSlidingOrBifold) specs.push(['Shape', p.doorShapeText]);
                 if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
                 if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
