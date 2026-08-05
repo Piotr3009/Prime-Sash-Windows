@@ -120,6 +120,11 @@
     var transomType = isFrontDoor ? (checked('fdr-fanlight') || 'none')
                     : (transomCapable ? (checked('fd-transom-type') || 'none') : 'none');
     var transomHeight = transomCapable ? (numVal('fd-transom-height') || 450) : 0;
+    // Arched fanlight: a semi-circle's rise IS half the width — the height input
+    // does not apply, so it is computed here and the field is disabled in the UI.
+    if (isFrontDoor && transomType === 'arched') {
+      transomHeight = Math.round((numVal('d-width') || 900) / 2);
+    }
     var transomBars = transomCapable ? (checked('fd-transom-bars') || 'none') : 'none';
 
     return {
@@ -647,7 +652,20 @@
       if (row) row.style.display = (show && !isFrontDr) ? '' : 'none';
       var hGroup = $('fd-transom-height-group');
       if (hGroup) hGroup.style.display = show ? '' : 'none';
+      // Arched fanlight: height is fixed by geometry — lock the field
+      var hInput = $('fd-transom-height');
+      var hint = $('fdr-fanlight-hint');
+      if (isFrontDr && tt === 'arched') {
+        var autoH = Math.round((parseInt((document.getElementById('d-width') || {}).value) || 900) / 2);
+        if (hInput) { hInput.value = autoH; hInput.disabled = true; hInput.style.opacity = '0.5'; }
+        if (hint) hint.textContent = 'Semi-circle rise is half the door width — height is set automatically (' + autoH + 'mm).';
+      } else {
+        if (hInput) { hInput.disabled = false; hInput.style.opacity = ''; }
+        if (hint) hint.textContent = '';
+      }
     }
+    var dWidthEl = $('d-width');
+    if (dWidthEl) dWidthEl.addEventListener('input', function() { updateTransomUI(); });
     document.querySelectorAll('input[name="fdr-fanlight"]').forEach(function(radio) {
       radio.addEventListener('change', function() { updateTransomUI(); updateDoor3D(); updateSpecPanel(); updateDoorPrice(); });
     });

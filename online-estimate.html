@@ -944,9 +944,14 @@
             </div>
             <div class="radio-option">
               <input type="radio" id="fdr-fanlight-fixed" name="fdr-fanlight" value="fixed">
-              <label for="fdr-fanlight-fixed" class="radio-label">Fixed</label>
+              <label for="fdr-fanlight-fixed" class="radio-label">Rectangular</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-fanlight-arched" name="fdr-fanlight" value="arched">
+              <label for="fdr-fanlight-arched" class="radio-label">Arched (semi-circle)</label>
             </div>
           </div>
+          <p style="font-size:0.65rem;color:#999;margin-top:4px;" id="fdr-fanlight-hint"></p>
         </div>
         <!-- Transom height (french only, shown when transom active) -->
         <div class="input-group" id="fd-transom-height-group" style="display:none;margin-top:12px;">
@@ -4466,7 +4471,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=79";
+      psw3dScript.src = "3d/assets/window3d.js?v=80";
       document.head.appendChild(psw3dScript);
     }
   </script>

@@ -33,6 +33,7 @@ import DoorPanel, { SASH_RAIL } from './DoorPanel';
 import DoorSidePanel from './DoorSidePanel';
 import TransomPanel from './TransomPanel';
 import DoorGlazing from './DoorGlazing';
+import FixFrameWindow from '../fix-frame/FixFrameWindow';
 
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
@@ -510,7 +511,13 @@ export default function DoorWindow({
   // Transom/fanlight: French (040F) plus Front Door (040L/040R with a panel grid)
   const transomLayoutOK = layout === '040F' || (!!panelGrid && (layout === '040L' || layout === '040R'));
   const transomActive = transomType !== 'none' && transomHeight > 0 && transomLayoutOK && !isSlidingOrBifold;
-  const frTransomH = transomActive ? transomHeight : 0;
+  // Front Door fanlight is a self-contained fix-frame unit stacked on the door
+  // frame (its own frame, glazing and shape — no leaf, no gasket, no rebate).
+  const fdrFanlight = !!panelGrid && transomActive;
+  const fdrFanShape = transomType === 'arched' ? 'semi-circle' : 'rectangle';
+  // Semi-circle rise is fixed by the width — height input is ignored there.
+  const fdrFanH = fdrFanShape === 'semi-circle' ? Math.round(width / 2) : transomHeight;
+  const frTransomH = (transomActive && !(!!panelGrid)) ? transomHeight : 0;
   const TRANSOM_SASH_STILE = 64;
   // Internal rail: bottom edge flush with the door opening top (height - FRAME_FACE)
   const transomRailY = height - FRAME_FACE + MULLION_W / 2;            // frame-local, from bottom
@@ -636,8 +643,29 @@ export default function DoorWindow({
         </group>
       )}
 
-      {/* ─── Transom fixed pane (single, 64mm sash stiles) + top-hung hardware ─── */}
-      {transomActive && transomCavityH > 100 && (() => {
+      {/* ─── Front Door fanlight: standalone fix-frame unit above the door ─── */}
+      {fdrFanlight && (
+        <group position={[0, H / 2 + mm(fdrFanH) / 2, 0]}>
+          <FixFrameWindow
+            width={width}
+            height={fdrFanH}
+            woodColor={woodColor}
+            woodColorExt={woodColorExt}
+            woodColorInt={woodColorInt}
+            sameColor={sameColor}
+            spacerColor={spacerColor}
+            glassFinish={glassFinish}
+            hBars={0}
+            vBars={transomBars === 'match' ? (vBars > 0 ? vBars * 2 + 1 : 0) : 0}
+            showGuides={false}
+            fixShape={fdrFanShape}
+            fixType="standard"
+          />
+        </group>
+      )}
+
+      {/* ─── Transom fixed pane (French only: sash leaf + top-hung hardware) ─── */}
+      {transomActive && !panelGrid && transomCavityH > 100 && (() => {
         const leafGap = 4;
         const paneW = innerW + REBATE_STEP * 2 - leafGap * 2;
         const paneH = transomCavityH + REBATE_STEP * 2 - leafGap * 2;
