@@ -34,6 +34,15 @@ const BEVEL2_W_MM = 30;
 const RECESS_DEPTH_MM = 8;
 const RAISED_DROP_MM = 3;
 
+// Bolection moulding — the proud profile that sits astride the joint between
+// the leaf frame and the panel, exactly as in period London front doors.
+// 30mm wide total: 15mm laps onto the frame, 15mm onto the panel, so the
+// panel's bevel stays visible below it. 8mm proud of the door face.
+const BOLECTION_W_MM = 30;         // total face width
+const BOLECTION_LAP_MM = 15;       // how far it laps onto the frame side
+const BOLECTION_PROUD_MM = 8;      // how far it projects in front of the face
+const BOLECTION_N = 12;            // arc segments on the ogee curve
+
 // Build a slanted ring (4 strips) for a bevel between two rectangles at
 // different Z. Returns a BufferGeometry with the 4 slanted quads.
 function bevelRing(outerL, outerR, outerB, outerT, innerL, innerR, innerB, innerT, zOuter, zInner) {
@@ -56,24 +65,100 @@ function bevelRing(outerL, outerR, outerB, outerT, innerL, innerR, innerB, inner
   return g;
 }
 
+// Bolection cross-section: ogee — quarter-round rising from the frame face,
+// then a hollow sweeping back down to the panel side. X = across the face
+// (0 = frame edge, W = panel edge), Y = height above the door face.
+function bolectionProfile() {
+  const W = mm(BOLECTION_W_MM);
+  const P = mm(BOLECTION_PROUD_MM);
+  const s = new THREE.Shape();
+  s.moveTo(0, 0);
+  // rise: quarter-round from frame face up to full height
+  for (let i = 0; i <= BOLECTION_N; i++) {
+    const t = i / BOLECTION_N;
+    const x = W * 0.45 * t;
+    const y = P * Math.sin(t * Math.PI / 2);
+    s.lineTo(x, y);
+  }
+  // hollow: sweep back down towards the panel
+  for (let i = 0; i <= BOLECTION_N; i++) {
+    const t = i / BOLECTION_N;
+    const x = W * 0.45 + W * 0.55 * t;
+    const y = P * (1 - Math.sin(t * Math.PI / 2)) * 0.75 + P * 0.05;
+    s.lineTo(x, y);
+  }
+  s.lineTo(W, 0);
+  s.closePath();
+  return s;
+}
+
+// Bolection frame around one cell: 4 mitred lengths, EXT + INT mirrored.
+// L/R/B/T are the cell bounds; the moulding straddles them by LAP outward.
+function BolectionFrame({ L, R, B, T, mat, mi }) {
+  const geo = useMemo(() => {
+    const lap = mm(BOLECTION_LAP_MM);
+    // Outer edge of the moulding = cell bounds pushed out by the lap
+    const oL = L - lap, oR = R + lap, oB = B - lap, oT = T + lap;
+    const spanH = oR - oL;
+    const spanV = oT - oB;
+    if (spanH <= 0 || spanV <= 0) return null;
+    const shape = bolectionProfile();
+    const horiz = new THREE.ExtrudeGeometry(shape, { depth: spanH, bevelEnabled: false });
+    const vert = new THREE.ExtrudeGeometry(shape, { depth: spanV, bevelEnabled: false });
+    return { horiz, vert, oL, oR, oB, oT, spanH, spanV };
+  }, [L, R, B, T]);
+
+  if (!geo) return null;
+  const { horiz, vert, oL, oR, oB, oT } = geo;
+  const z = halfD; // sits on the door face, profile height grows outward (+Z)
+
+  // Each length is rotated so the profile's X runs inward and Y runs +Z (proud).
+  const side = (key, g, pos, rot, material) => (
+    <mesh key={key} geometry={g} position={pos} rotation={rot} castShadow receiveShadow>
+      <primitive object={material} attach="material" />
+    </mesh>
+  );
+
+  return (
+    <group>
+      {/* ═══ EXT face ═══ */}
+      {side('b-ext', horiz, [oL, oB, z], [-Math.PI / 2, 0, 0], mat)}
+      {side('t-ext', horiz, [oL, oT, z], [Math.PI / 2, 0, 0], mat)}
+      {side('l-ext', vert, [oL, oB, z], [-Math.PI / 2, 0, -Math.PI / 2], mat)}
+      {side('r-ext', vert, [oR, oB, z], [-Math.PI / 2, 0, Math.PI / 2], mat)}
+      {/* ═══ INT face (mirrored through Z) ═══ */}
+      <group scale={[1, 1, -1]}>
+        {side('b-int', horiz, [oL, oB, z], [-Math.PI / 2, 0, 0], mi)}
+        {side('t-int', horiz, [oL, oT, z], [Math.PI / 2, 0, 0], mi)}
+        {side('l-int', vert, [oL, oB, z], [-Math.PI / 2, 0, -Math.PI / 2], mi)}
+        {side('r-int', vert, [oR, oB, z], [-Math.PI / 2, 0, Math.PI / 2], mi)}
+      </group>
+    </group>
+  );
+}
+
 // One panel cell: raised field with 2 bevels + flat step (EXT + INT mirrored)
 function PanelCell({ L, R, B, T, matPanel, miPanel }) {
   const geo = useMemo(() => {
     const B1 = mm(BEVEL1_W_MM), FS = mm(FLAT_STEP_W_MM), B2 = mm(BEVEL2_W_MM);
     const REC = mm(RECESS_DEPTH_MM), RD = mm(RAISED_DROP_MM);
-    const iL = L + B1, iR = R - B1, iB = B + B1, iT = T - B1;               // after bevel1
+    // The bolection laps BOLECTION_W - BOLECTION_LAP onto the panel, so the
+    // bevel must start inside that, otherwise the moulding hides the whole slope.
+    const cover = mm(BOLECTION_W_MM - BOLECTION_LAP_MM);
+    const pL = L + cover, pR = R - cover, pB = B + cover, pT = T - cover;
+    const iL = pL + B1, iR = pR - B1, iB = pB + B1, iT = pT - B1;           // after bevel1
     const sL = iL + FS, sR = iR - FS, sB = iB + FS, sT = iT - FS;           // after flat step
     const rL = sL + B2, rR = sR - B2, rB = sB + B2, rT = sT - B2;           // raised field
     if (rR <= rL || rT <= rB) return null;
     const zFace = halfD, zStep = halfD - REC, zRaise = halfD - RD;
     return {
       // EXT
-      b1: bevelRing(L, R, B, T, iL, iR, iB, iT, zFace, zStep),
+      b1: bevelRing(pL, pR, pB, pT, iL, iR, iB, iT, zFace, zStep),
       step: buildFlatStepRing(iL, iR, iB, iT, sL, sR, sB, sT, zStep),
       b2: bevelRing(sL, sR, sB, sT, rL, rR, rB, rT, zStep, zRaise),
       rL, rR, rB, rT, zRaise,
       // INT (mirror Z)
-      b1i: bevelRing(L, R, B, T, iL, iR, iB, iT, -zFace, -zStep),
+      b1i: bevelRing(pL, pR, pB, pT, iL, iR, iB, iT, -zFace, -zStep),
       stepi: buildFlatStepRing(iL, iR, iB, iT, sL, sR, sB, sT, -zStep),
       b2i: bevelRing(sL, sR, sB, sT, rL, rR, rB, rT, -zStep, -zRaise),
     };
@@ -211,7 +296,10 @@ export default function PanelGridLeaf({
         );
       } else {
         gridItems.push(
-          <PanelCell key={`cell-${idx}`} L={L} R={R} B={B} T={T} matPanel={matPanel} miPanel={miPanel} />
+          <group key={`cell-${idx}`}>
+            <PanelCell L={L} R={R} B={B} T={T} matPanel={matPanel} miPanel={miPanel} />
+            <BolectionFrame L={L} R={R} B={B} T={T} mat={mat} mi={mi} />
+          </group>
         );
       }
     }
