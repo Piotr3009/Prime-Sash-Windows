@@ -857,6 +857,7 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
           width={width} height={height} panelGrid={panelGrid}
           mat={mat} mi={mi} matPanel={matPanel} miPanel={miPanel}
           spacerColor={spacerColor} glassFinish={glassFinish}
+          stileMm={stileWidthMm} topRailMm={topRailMm} bottomRailMm={bottomRailMm}
         />
       )}
 

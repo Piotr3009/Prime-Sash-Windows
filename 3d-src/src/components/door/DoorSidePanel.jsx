@@ -30,6 +30,7 @@ export default function DoorSidePanel({
   sideStyle = 'full-glass',  // 'full-glass' | 'same'
   doorStyle = 'full-glass',  // used when sideStyle === 'same'
   paneling = 'flat',
+  panelGrid = null,   // front door: side panels follow the door, but narrow
   sealColour = 'black',
   thresholdType = 'standard',
   thresholdExtension = 0,
@@ -69,6 +70,18 @@ export default function DoorSidePanel({
   // Leaf dimensions — extends into rebate, same as DoorWindow (line 420-422)
   const leafGap = 4;
   const leafW = innerW + REBATE_STEP * 2 - leafGap * 2;
+  // Side panels are narrow: never split them into columns. Whatever the door
+  // does, a sidelight gets a single column of two panels (top + bottom), so
+  // the rhythm matches without squeezing two panels into 500mm.
+  const sideGrid = panelGrid ? {
+    rows: 2,
+    cols: 1,
+    rowWeights: [60, 40],
+    cells: [
+      panelGrid.topGlazed ? { type: 'glass', hBars: 0, vBars: 0 } : { type: 'panel' },
+      { type: 'panel' },
+    ],
+  } : null;
   const leafH = innerH + REBATE_STEP * 2 - leafGap * 2;
 
   // Leaf Z position — sits on gasket, flush with exterior (same as DoorWindow line 424)
@@ -104,6 +117,7 @@ export default function DoorSidePanel({
         doorStyle={effectiveStyle}
         centerMullion={false}
         paneling={sideStyle === 'same' ? paneling : 'flat'}
+        panelGrid={sideGrid}
         material={extMaterial}
         materialInt={intMaterial}
         spacerColor={spacerColor}

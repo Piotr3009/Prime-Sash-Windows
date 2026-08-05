@@ -219,9 +219,12 @@ function Divider({ cx, cy, w, h, mat, mi }) {
 export default function PanelGridLeaf({
   width, height, panelGrid, mat, mi, matPanel, miPanel,
   spacerColor = 'silver', glassFinish = 'clear',
+  // Leaf frame sizes come from the host leaf: a door uses 94/94/180, a narrow
+  // sidelight uses its own (57mm) stiles — the grid must follow, not assume.
+  stileMm = LEAF_STILE, topRailMm = LEAF_TOP_RAIL, bottomRailMm = LEAF_BOTTOM_RAIL,
 }) {
   const W = mm(width), H = mm(height);
-  const fS = mm(LEAF_STILE), fTop = mm(LEAF_TOP_RAIL), fBot = mm(LEAF_BOTTOM_RAIL);
+  const fS = mm(stileMm), fTop = mm(topRailMm), fBot = mm(bottomRailMm);
 
   const rows = Math.max(1, panelGrid?.rows || 1);
   const cols = Math.max(1, panelGrid?.cols || 1);

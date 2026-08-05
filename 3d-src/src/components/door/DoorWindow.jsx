@@ -1065,6 +1065,7 @@ export default function DoorWindow({
       {/* ─── Side panels (sidelights) — attached next to main door frame ─── */}
       {(sidePanels === 'left' || sidePanels === 'both') && sideLeftWidth > 0 && (
         <DoorSidePanel
+          panelGrid={panelGrid}
           width={sideLeftWidth}
           height={height}
           woodColor={woodColor}
@@ -1090,6 +1091,7 @@ export default function DoorWindow({
       )}
       {(sidePanels === 'right' || sidePanels === 'both') && sideRightWidth > 0 && (
         <DoorSidePanel
+          panelGrid={panelGrid}
           width={sideRightWidth}
           height={height}
           woodColor={woodColor}

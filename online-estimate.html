@@ -966,6 +966,67 @@
         </div>
       </div>
 
+      <!-- ═══ FRONT DOOR DESIGN (front-door only) ═══ -->
+      <div class="config-section" data-for="door" data-category="door-dimensions" id="fdr-design-options" style="display:none;">
+        <h3>Step 2: Door Design</h3>
+
+        <h3>Panels</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fdr-panels-2" name="fdr-panels" value="2">
+              <label for="fdr-panels-2" class="radio-label">2 Panels</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-panels-3" name="fdr-panels" value="3">
+              <label for="fdr-panels-3" class="radio-label">3 Panels</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-panels-4" name="fdr-panels" value="4" checked>
+              <label for="fdr-panels-4" class="radio-label">4 Panels</label>
+            </div>
+          </div>
+        </div>
+
+        <h3>Top Section</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fdr-top-panel" name="fdr-top" value="panel" checked>
+              <label for="fdr-top-panel" class="radio-label">Timber Panel</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-top-glass" name="fdr-top" value="glass">
+              <label for="fdr-top-glass" class="radio-label">Glazed</label>
+            </div>
+          </div>
+          <p style="font-size:0.65rem;color:#999;margin-top:2px;">Applies to the whole top row.</p>
+        </div>
+
+        <h3>Side Panels</h3>
+        <div class="input-group">
+          <div class="radio-group" id="fdr-side-panels-group">
+            <div class="radio-option">
+              <input type="radio" id="fdr-side-none" name="fdr-side-panels" value="none" checked>
+              <label for="fdr-side-none" class="radio-label">None</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-side-left" name="fdr-side-panels" value="left">
+              <label for="fdr-side-left" class="radio-label">Left</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-side-right" name="fdr-side-panels" value="right">
+              <label for="fdr-side-right" class="radio-label">Right</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-side-both" name="fdr-side-panels" value="both">
+              <label for="fdr-side-both" class="radio-label">Both</label>
+            </div>
+          </div>
+          <p style="font-size:0.65rem;color:#999;margin-top:2px;" id="fdr-side-hint">Side panels mirror the door layout exactly.</p>
+        </div>
+      </div>
+
       <div class="config-section" data-for="door" data-category="door-dimensions" id="door-single-options" style="display:none;">
         <h3>Step 2: Door Design</h3>
 
@@ -4292,7 +4353,9 @@
       var dfo = document.getElementById('door-french-options');
       var dslo = document.getElementById('sl-dimensions-step2');
       var dbfo = document.getElementById('bf-dimensions-step2');
-      if (dso) dso.style.display = (doorType === 'single-external' || doorType === 'front-door') ? 'block' : 'none';
+      if (dso) dso.style.display = (doorType === 'single-external') ? 'block' : 'none';
+      var fdro = document.getElementById('fdr-design-options');
+      if (fdro) fdro.style.display = (doorType === 'front-door') ? 'block' : 'none';
       if (dfo) dfo.style.display = (doorType === 'french') ? 'block' : 'none';
       if (dslo) dslo.style.display = (doorType === 'sliding') ? 'block' : 'none';
       if (dbfo) dbfo.style.display = (doorType === 'bifold') ? 'block' : 'none';
@@ -4471,7 +4534,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=82";
+      psw3dScript.src = "3d/assets/window3d.js?v=84";
       document.head.appendChild(psw3dScript);
     }
   </script>
@@ -4693,7 +4756,9 @@
         fixTypeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         fixShapeSection.style.display = (isWindows && windowType === 'fix-only') ? 'block' : 'none';
         doorTypeSection.style.display = isWindows ? 'none' : 'block';
-        if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && (doorType === 'single-external' || doorType === 'front-door')) ? 'block' : 'none';
+        if (doorSingleOptions) doorSingleOptions.style.display = (!isWindows && doorType === 'single-external') ? 'block' : 'none';
+        var fdrDesign = document.getElementById('fdr-design-options');
+        if (fdrDesign) fdrDesign.style.display = (!isWindows && doorType === 'front-door' && !!document.querySelector('.cat-btn.active[data-target="door-dimensions"]')) ? 'block' : 'none';
         var doorFrenchOptions = document.getElementById('door-french-options');
         if (doorFrenchOptions) doorFrenchOptions.style.display = (!isWindows && doorType === 'french') ? 'block' : 'none';
         var doorSlidingOptions = document.getElementById('sl-dimensions-step2');
@@ -5091,7 +5156,9 @@
           var dbfo = document.getElementById('bf-dimensions-step2');
           // Only show design sections if currently in door-dimensions tab (prevent flash in product-range)
           var inDimTab = document.querySelector('.cat-btn.active[data-target="door-dimensions"]');
-          if (dso) dso.style.display = (inDimTab && (r.value === 'single-external' || r.value === 'front-door')) ? 'block' : 'none';
+          if (dso) dso.style.display = (inDimTab && r.value === 'single-external') ? 'block' : 'none';
+          var fdro2 = document.getElementById('fdr-design-options');
+          if (fdro2) fdro2.style.display = (inDimTab && r.value === 'front-door') ? 'block' : 'none';
           if (dfo) dfo.style.display = (inDimTab && r.value === 'french') ? 'block' : 'none';
           if (dslo) dslo.style.display = (inDimTab && r.value === 'sliding') ? 'block' : 'none';
           if (dbfo) dbfo.style.display = (inDimTab && r.value === 'bifold') ? 'block' : 'none';

@@ -64,6 +64,15 @@
       doorPaneling = checked('door-paneling') || 'flat';
       sidePanels = 'none';
       centerMullion = false;
+    } else if (isFrontDoor) {
+      // Front door: fixed shape, no glazing styles, no centre mullion.
+      // Side panels are copies of the door and are not offered with an arch.
+      doorShape = 'standard';
+      doorStyle = 'full-glass';
+      doorPaneling = 'flat';
+      var fdrArched = (checked('fdr-fanlight') || 'none') === 'arched';
+      sidePanels = fdrArched ? 'none' : (checked('fdr-side-panels') || 'none');
+      centerMullion = false;
     } else {
       doorShape = checked(prefix + 'shape') || 'standard';
       doorStyle = checked(prefix + 'style') || 'full-glass';
@@ -115,6 +124,30 @@
     }
 
     // Transom / fanlight (Stage 2 — french only)
+    // ── Front Door panel grid ──
+    // 2 panels = 1 column x 2 rows, 3 panels = 1 x 3, 4 panels = 2 x 2.
+    // The top row can be glazed; every other cell is a timber panel.
+    var panelGrid = null;
+    if (isFrontDoor) {
+      var pCount = parseInt(checked('fdr-panels')) || 4;
+      var gCols = pCount === 4 ? 2 : 1;
+      var gRows = pCount === 4 ? 2 : pCount;
+      var topGlass = (checked('fdr-top') || 'panel') === 'glass';
+      // Georgian bars now belong to the glazed cells, not to the leaf
+      var gridHBars = parseInt(checked('d-hbars')) || 0;
+      var gridVBars = parseInt(checked('d-vbars')) || 0;
+      var gWeights = gRows === 3 ? [40, 32, 28] : [60, 40];
+      var gCells = [];
+      for (var r = 0; r < gRows; r++) {
+        for (var c = 0; c < gCols; c++) {
+          gCells.push((r === 0 && topGlass)
+            ? { type: 'glass', hBars: gridHBars, vBars: gridVBars }
+            : { type: 'panel' });
+        }
+      }
+      panelGrid = { rows: gRows, cols: gCols, cells: gCells, rowWeights: gWeights, panelCount: pCount, topGlazed: topGlass };
+    }
+
     // Transom/fanlight: French doors and Front Doors share the same fd-transom-* controls
     var transomCapable = isFrench || isFrontDoor;
     var transomType = isFrontDoor ? (checked('fdr-fanlight') || 'none')
@@ -147,6 +180,7 @@
       transomType: transomType,
       transomHeight: transomHeight,
       transomBars: transomBars,
+      panelGrid: panelGrid,
       glassType: checked('d-glass-type') || 'double',
       glassFinish: checked('d-glass-finish') || 'clear',
       spacerColor: checked('d-spacer-color') || 'white',
@@ -205,14 +239,7 @@
       doorShape: config.doorShape,
       doorStyle: config.doorStyle,
       paneling: config.doorPaneling,
-      // Front Door panel grid (layer 2). Until the grid UI (commit 2c) exists,
-      // front-door defaults to a 2×2 all-panel leaf so the geometry is visible.
-      panelGrid: config.doorType === 'front-door'
-        ? { rows: 2, cols: 2, cells: [
-            { type: 'panel' }, { type: 'panel' },
-            { type: 'panel' }, { type: 'panel' }
-          ] }
-        : null,
+      panelGrid: config.panelGrid || null,
       sidePanels: config.sidePanels,
       centerMullion: config.centerMullion,
       extWidth: config.width,
@@ -663,7 +690,49 @@
         if (hInput) { hInput.disabled = false; hInput.style.opacity = ''; }
         if (hint) hint.textContent = '';
       }
+      // Arched fanlight: side panels can't follow a semi-circle head — lock them off
+      var sideGrp = $('fdr-side-panels-group');
+      var sideHint = $('fdr-side-hint');
+      var archedNow = isFrontDr && tt === 'arched';
+      if (sideGrp) {
+        sideGrp.style.opacity = archedNow ? '0.4' : '';
+        sideGrp.style.pointerEvents = archedNow ? 'none' : '';
+      }
+      if (archedNow) {
+        var noneRadio = document.getElementById('fdr-side-none');
+        if (noneRadio && !noneRadio.checked) { noneRadio.checked = true; }
+      }
+      if (sideHint) sideHint.textContent = archedNow
+        ? 'Not available with an arched fanlight.'
+        : 'Side panels mirror the door layout exactly.';
     }
+    // Front Door opens in Olive Green by default — the classic London front-door colour
+    document.querySelectorAll('input[name="door-type"]').forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        if (radio.value === 'front-door' && radio.checked && !doorColourState.frontDoorInit) {
+          doorColourState.frontDoorInit = true;
+          var OLIVE = '#4A4F3B';
+          doorColourState.woodColor = OLIVE;
+          doorColourState.woodColorExt = OLIVE;
+          doorColourState.woodColorInt = OLIVE;
+          if (typeof window.setDoorColour === 'function') window.setDoorColour(OLIVE);
+          if (typeof window.update3D === 'function') {
+            window.update3D({ woodColor: OLIVE, woodColorExt: OLIVE, woodColorInt: OLIVE, sameColor: true });
+          }
+          updateSpecPanel();
+        }
+      });
+    });
+    ['fdr-panels', 'fdr-top', 'fdr-side-panels'].forEach(function(nm) {
+      document.querySelectorAll('input[name="' + nm + '"]').forEach(function(radio) {
+        radio.addEventListener('change', function() { updateDoor3D(); updateSpecPanel(); updateDoorPrice(); });
+      });
+    });
+    ['d-hbars', 'd-vbars'].forEach(function(nm) {
+      document.querySelectorAll('input[name="' + nm + '"]').forEach(function(radio) {
+        radio.addEventListener('change', function() { updateDoor3D(); updateSpecPanel(); updateDoorPrice(); });
+      });
+    });
     var dWidthEl = $('d-width');
     if (dWidthEl) dWidthEl.addEventListener('input', function() { updateTransomUI(); });
     document.querySelectorAll('input[name="fdr-fanlight"]').forEach(function(radio) {
