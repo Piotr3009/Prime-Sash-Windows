@@ -441,8 +441,31 @@ class EstimateRenderer {
         const doorTransomBars = fc.transomBars || 'none';
         let doorTransomText = '';
         if ((doorType === 'french' || doorType === 'front-door') && doorTransomType !== 'none') {
-            doorTransomText = (doorTransomType === 'opening' ? 'Opening (Top-Hung)' : 'Fixed') + ' \u00b7 ' + doorTransomHeight + 'mm'
+            const fanPatternLabels = { 'hub-spoke': 'Hub & Spoke', 'double-hub-spoke': 'Double Hub', 'triple-hub-spoke': 'Triple Hub', 'daisy': 'Daisy (petals)' };
+            const shapeTxt = doorType === 'front-door'
+                ? (doorTransomType === 'arched' ? 'Arched (semi-circle)' : 'Rectangular')
+                : (doorTransomType === 'opening' ? 'Opening (Top-Hung)' : 'Fixed');
+            doorTransomText = shapeTxt + ' \u00b7 ' + doorTransomHeight + 'mm'
                 + (doorTransomBars === 'match' ? ' \u00b7 Bars: match door' : '');
+            if (doorType === 'front-door' && fc.fanBarPattern && fc.fanBarPattern !== 'none') {
+                doorTransomText += ' \u00b7 ' + (fanPatternLabels[fc.fanBarPattern] || fc.fanBarPattern);
+            }
+        }
+        // Front Door: panel layout + furniture summary for the spec
+        let fdrPanelsSpecText = '';
+        let fdrFurnitureText = '';
+        if (doorType === 'front-door') {
+            const pg = fc.panelGrid || {};
+            const pc = pg.panelCount || ((pg.rows || 2) * (pg.cols || 2));
+            fdrPanelsSpecText = pc + ' panels' + (pg.cols === 2 ? ' (2\u00d72)' : ' (stacked)')
+                + (pg.topGlazed ? ' \u00b7 top row glazed' : '');
+            const fu = fc.furniture || {};
+            const items = [];
+            if (fu.letterplate) items.push('Letterplate');
+            if (fu.knocker) items.push('Knocker');
+            if (fu.pullKnob) items.push('Centre pull knob');
+            if (fu.houseNumber) items.push('House No. ' + (fu.numberText || ''));
+            fdrFurnitureText = items.join(', ');
         }
         const doorSideLeftWidth = fc.sideLeftWidth || 500;
         const doorSideRightWidth = fc.sideRightWidth || 500;
@@ -505,6 +528,7 @@ class EstimateRenderer {
             doorSidePanels, doorSideLeftWidth, doorSideRightWidth, doorPanelsText, doorTransomText,
             doorHBars, doorVBars, doorBarsText, doorSideHBars, doorSideVBars, doorSideBarsText,
             doorShape, doorShapeText, doorStyle, doorStyleText, doorSideStyle, doorSideStyleText,
+            fdrPanelsSpecText, fdrFurnitureText,
             doorPaneling, doorPanelingText, doorCenterMullion,
             isSliding, isBifold, isSlidingOrBifold,
             slidingPanelCount, slidingExtraWidth, slidingDirection, slidingDirText,
@@ -640,7 +664,9 @@ class EstimateRenderer {
                             ` : p.windowType === 'door' ? `
                             ${R.specRow('Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? 'Front Door' : 'Single Patio Door'))))}
                             ${p.isSlidingOrBifold ? '' : R.specRow('Shape', p.doorShapeText)}
-                            ${p.isSliding ? '' : R.specRow('Style', p.doorStyleText)}
+                            ${p.isSliding || p.fdrPanelsSpecText ? '' : R.specRow('Style', p.doorStyleText)}
+                            ${p.fdrPanelsSpecText ? R.specRow('Panels', p.fdrPanelsSpecText) : ''}
+                            ${p.fdrFurnitureText ? R.specRow('Furniture', p.fdrFurnitureText) : ''}
                             ${p.doorStyle !== 'full-glass' ? R.specRow('Paneling', p.doorPanelingText) : ''}
                             ${p.doorStyle !== 'full-glass' ? R.specRow('Center Mullion', p.doorCenterMullion ? 'Yes' : 'No') : ''}
                             ${R.specRow('Dimensions', p.width + 'mm × ' + p.height + 'mm')}
@@ -3367,8 +3393,14 @@ class EstimateRenderer {
 
         let svg = `<svg viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Jost',sans-serif;">`;
 
-        // Outer frame (full unit — doors + transom share one coupled frame)
-        svg += `<rect x="${ox}" y="${oyUnit}" width="${drawW}" height="${drawUnitH}" fill="none" stroke="${dark}" stroke-width="2.5" rx="1"/>`;
+        // Outer frame (full unit — doors + transom share one coupled frame).
+        // With an arched fanlight the head is drawn as a semicircle instead.
+        const fdrArchedOuter = fc.doorType === 'front-door' && (fc.transomType || 'none') === 'arched' && (parseInt(fc.transomHeight) || 0) > 0;
+        if (fdrArchedOuter) {
+            svg += `<rect x="${ox}" y="${oy}" width="${drawW}" height="${drawH}" fill="none" stroke="${dark}" stroke-width="2.5" rx="1"/>`;
+        } else {
+            svg += `<rect x="${ox}" y="${oyUnit}" width="${drawW}" height="${drawUnitH}" fill="none" stroke="${dark}" stroke-width="2.5" rx="1"/>`;
+        }
 
         let doorX = ox;
         if (hasLeft) doorX += sideLeftW * scale;
@@ -3376,6 +3408,19 @@ class EstimateRenderer {
 
         // Helper: draw side panel (full-glass or same-as-door)
         function drawSidePanel(px, py, pw, ph, shBars, svBars) {
+            // Front door: sidelights mirror the door — one column, two cells
+            // (glass on top when the door's top row is glazed, panel below).
+            if (fc.doorType === 'front-door' && fc.panelGrid) {
+                const sGrid = {
+                    rows: 2, cols: 1, rowWeights: [60, 40],
+                    cells: [
+                        fc.panelGrid.topGlazed ? { type: 'glass' } : { type: 'panel' },
+                        { type: 'panel' },
+                    ],
+                };
+                drawPanelGrid(px, py, pw, ph, sGrid, shBars, svBars);
+                return;
+            }
             if (sideStyle === 'same' && bottomRailRatio > 0) {
                 // Same as door: glass top + bottom rail
                 const brH = ph * bottomRailRatio;
@@ -3425,8 +3470,117 @@ class EstimateRenderer {
             svg += `<line x1="${mx}" y1="${oy}" x2="${mx}" y2="${oy + drawH}" stroke="${dark}" stroke-width="2"/>`;
         }
 
-        // ── Transom / fanlight band (french only) ──
-        if (hasTransom) {
+        // ── Front Door helpers ──
+        const isFrontDoorSVG = fc.doorType === 'front-door';
+        const fdrGrid = isFrontDoorSVG ? (fc.panelGrid || null) : null;
+        const fdrArched = isFrontDoorSVG && transomType === 'arched';
+        const fanPattern = fc.fanBarPattern || 'none';
+
+        // Draws the front-door panel grid inside a leaf/sidelight area.
+        // Panels are drawn as double rectangles (outline + bevel step), glass as
+        // a light pane with the Georgian bars from the config.
+        function drawPanelGrid(px, py, pw, ph, grid, gHBars, gVBars) {
+            const rows = grid.rows || 2, cols = grid.cols || 2;
+            const weights = grid.rowWeights || (rows === 3 ? [40, 32, 28] : [60, 40]);
+            const wSum = weights.reduce((a, b) => a + b, 0) || 1;
+            const divPx = Math.max(3, ph * 0.045);          // divider rail thickness
+            const usableH = ph - divPx * (rows - 1);
+            const cellW = (pw - divPx * (cols - 1)) / cols;
+            let cy = py;
+            for (let r = 0; r < rows; r++) {
+                const rh = usableH * ((weights[r] || weights[weights.length - 1]) / wSum);
+                for (let c = 0; c < cols; c++) {
+                    const cx = px + c * (cellW + divPx);
+                    const cell = (grid.cells || [])[r * cols + c] || { type: 'panel' };
+                    if (cell.type === 'glass') {
+                        svg += `<rect x="${cx}" y="${cy}" width="${cellW}" height="${rh}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
+                        for (let b = 1; b <= gHBars; b++) {
+                            const by = cy + rh * b / (gHBars + 1);
+                            svg += `<line x1="${cx}" y1="${by}" x2="${cx + cellW}" y2="${by}" stroke="${light}" stroke-width="1"/>`;
+                        }
+                        for (let b = 1; b <= gVBars; b++) {
+                            const bx = cx + cellW * b / (gVBars + 1);
+                            svg += `<line x1="${bx}" y1="${cy}" x2="${bx}" y2="${cy + rh}" stroke="${light}" stroke-width="1"/>`;
+                        }
+                    } else {
+                        // Raised & fielded panel: outline + inner bevel step
+                        svg += `<rect x="${cx}" y="${cy}" width="${cellW}" height="${rh}" fill="${panel}" stroke="${mid}" stroke-width="0.9" rx="1"/>`;
+                        const inset = Math.min(cellW, rh) * 0.16;
+                        svg += `<rect x="${cx + inset}" y="${cy + inset}" width="${cellW - inset * 2}" height="${rh - inset * 2}" fill="none" stroke="${mid}" stroke-width="0.7" rx="1"/>`;
+                    }
+                }
+                cy += rh + divPx;
+            }
+        }
+
+        // Schematic fanlight bar patterns (hub & spoke family + daisy) drawn
+        // inside the fanlight glass. cxr/cyr = hub centre; tipFn(angle) = max
+        // radius available at that angle (constant for the arch, ray-to-edge
+        // for the rectangle).
+        function drawFanPattern(cxr, cyr, tipFn, patt) {
+            if (!patt || patt === 'none') return;
+            const minTip = Math.min(tipFn(Math.PI / 2), tipFn(Math.PI * 0.25), tipFn(Math.PI * 0.75));
+            const hubR = Math.max(6, minTip * 0.28);
+            const P = (r, a) => [cxr + r * Math.cos(a), cyr - r * Math.sin(a)];
+            let d = '';
+            // hub half-circle
+            d += `M${P(hubR, 0).map(v => v.toFixed(1)).join(' ')}`;
+            for (let i = 1; i <= 20; i++) { const a = (i / 20) * Math.PI; d += ` L${P(hubR, a).map(v => v.toFixed(1)).join(' ')}`; }
+            if (patt === 'daisy') {
+                const petals = 9;
+                const tipR = Math.max(3, minTip * 0.12);
+                for (let k = 0; k < petals; k++) {
+                    const a = ((k + 0.5) / petals) * Math.PI;
+                    const rC = tipFn(a) - tipR - 1.5;
+                    if (rC - hubR < 6) continue;
+                    const C = P(rC, a);
+                    d += ` M${P(hubR, a).map(v => v.toFixed(1)).join(' ')}`;
+                    for (let i = 0; i <= 12; i++) {
+                        const ta = a + Math.PI / 2 - (i / 12) * Math.PI;
+                        d += ` L${(C[0] + tipR * Math.cos(ta)).toFixed(1)} ${(C[1] - tipR * Math.sin(ta)).toFixed(1)}`;
+                    }
+                    d += ` L${P(hubR, a).map(v => v.toFixed(1)).join(' ')}`;
+                }
+            } else {
+                const rings = [hubR];
+                if (patt === 'double-hub-spoke' || patt === 'triple-hub-spoke') rings.push(minTip * 0.6);
+                if (patt === 'triple-hub-spoke') rings.push(minTip * 0.8);
+                rings.slice(1).forEach(rr => {
+                    d += ` M${P(rr, 0).map(v => v.toFixed(1)).join(' ')}`;
+                    for (let i = 1; i <= 24; i++) { const a = (i / 24) * Math.PI; d += ` L${P(rr, a).map(v => v.toFixed(1)).join(' ')}`; }
+                });
+                const spokes = patt === 'triple-hub-spoke' ? 8 : patt === 'double-hub-spoke' ? 6 : 4;
+                for (let k = 0; k < spokes; k++) {
+                    const a = (k / (spokes - 1)) * Math.PI;
+                    const rOut = tipFn(a) - 1.5;
+                    if (rOut - hubR < 4) continue;
+                    d += ` M${P(hubR, a).map(v => v.toFixed(1)).join(' ')} L${P(rOut, a).map(v => v.toFixed(1)).join(' ')}`;
+                }
+            }
+            svg += `<path d="${d}" fill="none" stroke="${light}" stroke-width="1" stroke-linejoin="round"/>`;
+        }
+
+        // ── Arched fanlight (front door): 80mm straight springing + semicircle,
+        // exactly matching the 3D geometry (rise = width/2, plus the course). ──
+        if (hasTransom && fdrArched) {
+            const rOut = drawW / 2;
+            const arcCx = ox + drawW / 2;
+            const springY2 = oyUnit + Math.max(0, transomDrawH - rOut);  // top of the straight course
+            // outer: two short jambs + semicircular head
+            svg += `<path d="M${ox} ${oy} L${ox} ${springY2} A${rOut} ${rOut} 0 0 1 ${ox + drawW} ${springY2} L${ox + drawW} ${oy}" fill="none" stroke="${dark}" stroke-width="2.5"/>`;
+            // glass: straight strip + semicircle, one shape
+            const ti2 = Math.min(frameT, Math.max(2, transomDrawH * 0.18));
+            const rIn = rOut - ti2 * 1.6;
+            const gBottom = oy - 0;
+            svg += `<path d="M${arcCx - rIn} ${gBottom - ti2} L${arcCx - rIn} ${springY2} A${rIn} ${rIn} 0 0 1 ${arcCx + rIn} ${springY2} L${arcCx + rIn} ${gBottom - ti2} Z" fill="${glass}" stroke="${mid}" stroke-width="0.8"/>`;
+            // internal rail: door head = fanlight cill
+            svg += `<line x1="${ox}" y1="${oy}" x2="${ox + drawW}" y2="${oy}" stroke="${dark}" stroke-width="2.5"/>`;
+            // schematic bar pattern, hub on the springing line (as in 3D)
+            drawFanPattern(arcCx, springY2, () => rIn - 1.5, fanPattern);
+        }
+
+        // ── Transom / fanlight band (french + front-door rectangular) ──
+        if (hasTransom && !fdrArched) {
             const ti = Math.min(frameT, Math.max(2, transomDrawH * 0.22));   // inset inside the band
             // Internal rail: door head = transom cill (one coupled frame)
             svg += `<line x1="${ox}" y1="${oy}" x2="${ox + drawW}" y2="${oy}" stroke="${dark}" stroke-width="2.5"/>`;
@@ -3445,6 +3599,17 @@ class EstimateRenderer {
                 for (let bi = 1; bi <= pn.bars; bi++) {
                     const bx = gx + gw * bi / (pn.bars + 1);
                     svg += `<line x1="${bx}" y1="${gy}" x2="${bx}" y2="${gy + gh}" stroke="${light}" stroke-width="1"/>`;
+                }
+                if (pn.main && isFrontDoorSVG && fanPattern !== 'none') {
+                    // schematic sunburst: hub on the bottom edge of the pane
+                    const hcx = gx + gw / 2, hcy = gy + gh;
+                    drawFanPattern(hcx, hcy, (a) => {
+                        const cA = Math.cos(a), sA = Math.sin(a);
+                        let dd = Infinity;
+                        if (Math.abs(cA) > 1e-6) dd = Math.min(dd, (gw / 2) / Math.abs(cA));
+                        if (sA > 1e-6) dd = Math.min(dd, gh / sA);
+                        return dd;
+                    }, fanPattern);
                 }
                 if (pn.main && transomType === 'opening') {
                     // Top-hung symbol (apex at the bottom edge)
@@ -3467,6 +3632,21 @@ class EstimateRenderer {
         function drawLeaf(lx, lw, hingeOnLeft) {
             // Leaf outline
             svg += `<rect x="${lx}" y="${leafY}" width="${lw}" height="${leafH}" fill="none" stroke="${mid}" stroke-width="1.5" rx="1"/>`;
+            // Front door: draw the panel grid instead of the glazed-style leaf
+            if (fdrGrid) {
+                drawPanelGrid(lx + 4, leafY + 4, lw - 8, leafH - 8, fdrGrid, hBars, vBars);
+                const hx0 = hingeOnLeft ? lx + lw - 12 : lx + 12;
+                const hy0 = leafY + leafH * 0.48;
+                svg += `<circle cx="${hx0}" cy="${hy0}" r="4" fill="${dark}" stroke="none"/>`;
+                svg += `<line x1="${hx0}" y1="${hy0 - 8}" x2="${hx0}" y2="${hy0 + 8}" stroke="${dark}" stroke-width="2" stroke-linecap="round"/>`;
+                const hix0 = hingeOnLeft ? lx - 1 : lx + lw + 1;
+                const hdir0 = hingeOnLeft ? -1 : 1;
+                [0.12, 0.5, 0.88].forEach(ratio => {
+                    const hy2 = leafY + leafH * ratio;
+                    svg += `<polygon points="${hix0},${hy2 - 4} ${hix0 + hdir0 * 5},${hy2} ${hix0},${hy2 + 4}" fill="${mid}"/>`;
+                });
+                return;
+            }
             // Glass area
             const gx = lx + 4, gw = lw - 8, gy = leafY;
             svg += `<rect x="${gx}" y="${gy + 4}" width="${gw}" height="${glassH - 4}" fill="${glass}" stroke="${mid}" stroke-width="0.8" rx="1"/>`;
