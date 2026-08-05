@@ -12,18 +12,20 @@ import DoorGlazing from './DoorGlazing';
 
 const mm = (v) => v / 1000;
 
-// Leaf frame (outer rails/stiles) — must match DoorPanel LEAF_* constants
-const LEAF_STILE = 93;
-const LEAF_TOP_RAIL = 93;
-const LEAF_BOTTOM_RAIL = 185;
+// Front-door leaf frame — 94mm stiles/top rail, 180mm bottom rail.
+// These ARE Piotr's 94/94/180: the leaf frame itself provides the border
+// around the panels, so the grid adds no extra inset (margins = 0).
+const LEAF_STILE = 94;
+const LEAF_TOP_RAIL = 94;
+const LEAF_BOTTOM_RAIL = 180;
 const SASH_DEPTH = 57;
 const D = mm(SASH_DEPTH);
 const halfD = D / 2;
 
-// Grid geometry (Piotr's spec, layer 2):
-const DIVIDER_MM = 94;      // timber divider between cells (vertical muntin / horizontal rail)
-const CELL_MARGIN_X_MM = 94;  // inset from leaf inner edge (left/right) to first cell
-const CELL_MARGIN_Y_MM = 180; // inset from leaf inner edge (top/bottom) to first cell
+// Grid geometry:
+const DIVIDER_MM = 94;        // timber divider between cells (muntin / cross rail)
+const CELL_MARGIN_X_MM = 0;   // cells fill the full leaf light — leaf stiles are the border
+const CELL_MARGIN_Y_MM = 0;   // cells fill the full leaf light — leaf rails are the border
 
 // Raised-field params inside each panel cell (reuse DoorPanel look)
 const BEVEL1_W_MM = 30;
@@ -173,6 +175,25 @@ export default function PanelGridLeaf({
 
   if (cellW <= 0 || cellH <= 0) return null; // too small — safety
 
+  // Solid timber backing across the whole leaf light. Without this the leaf
+  // would be see-through wherever a cell is a panel (the old single-panel /
+  // glazing that used to fill this area is disabled when the grid is on).
+  // Set BACK_INSET below the raised-field Z so panel geometry stays on top.
+  const BACK_INSET = mm(RECESS_DEPTH_MM);   // backing core sits inside the recess depth
+  const backW = innerR - innerL;
+  const backH = innerT - innerB;
+  const backCx = (innerL + innerR) / 2;
+  const backCy = (innerB + innerT) / 2;
+  const backDepth = D - BACK_INSET * 2;     // thinner than the leaf, recessed both faces
+  const solidBacking = (
+    <group>
+      <mesh position={[backCx, backCy, 0]} castShadow receiveShadow>
+        <boxGeometry args={[backW, backH, backDepth]} />
+        <primitive object={mat} attach="material" />
+      </mesh>
+    </group>
+  );
+
   const gridItems = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -209,8 +230,14 @@ export default function PanelGridLeaf({
     hDividers.push(<Divider key={`hd-${r}`} cx={(areaL + areaR) / 2} cy={cy} w={areaW} h={div} mat={mat} mi={mi} />);
   }
 
+  const anyGlass = [];
+  for (let i = 0; i < rows * cols; i++) {
+    if ((cells[i] || { type: 'panel' }).type === 'glass') anyGlass.push(i);
+  }
+
   return (
     <group>
+      {anyGlass.length === 0 && solidBacking}
       {gridItems}
       {vDividers}
       {hDividers}

@@ -865,6 +865,7 @@ export default function DoorWindow({
             centerMullion={centerMullion}
             paneling={paneling}
             panelGrid={isFanlight ? null : panelGrid}
+            {...(!isFanlight && panelGrid ? { stileWidthMm: 94, topRailMm: 94, bottomRailMm: 180 } : {})}
             material={extMaterial}
             materialInt={intMaterial}
             spacerColor={spacerColor}
