@@ -38,8 +38,6 @@ export default function PetalFanBars({
 
     const minTip = Math.min(...angles.map(a => tipRadius(a)));
     const hubR = hubRadiusM != null ? hubRadiusM : Math.max(mm(60), minTip * 0.28);
-    const halfStep = (Math.PI / petals) * 0.40;   // half angular width at the hub
-
     // ── shared strip/stepped helpers (ported from SemiCircleFrame) ──
     function ptsToStrip(pts, hw) {
       if (pts.length < 3) return null;
@@ -102,25 +100,22 @@ export default function PetalFanBars({
     for (let i = 0; i <= 40; i++) hubLine.push(pt(hubR, (i / 40) * Math.PI));
     const hubRing = buildStepped(hubLine);
 
-    // ── Petals: hub(θ+δ) → tip(θ) → hub(θ−δ), sides ease into the tip ──
+    // ── Petals (approved mockup v4): a straight bar from the hub runs to
+    // one end of an OPEN tip arc, the arc wraps over the top, and a straight
+    // bar returns to the same hub point. One continuous centreline per petal.
     const petalGeos = [];
-    const N_SIDE = 22;
+    const tipR = Math.max(mm(25), minTip * 0.12);   // tip arc radius (2x the first draft)
     for (const a of angles) {
-      const rTip = tipRadius(a) - BAR_W * 0.9;
-      if (rTip - hubR < mm(40)) continue;
+      const rC = tipRadius(a) - PETAL_W * 0.7 - tipR;   // tip-circle centre radius
+      if (rC - hubR < mm(40)) continue;
+      const C = pt(rC, a);
       const line = [];
-      for (let i = 0; i <= N_SIDE; i++) {           // left side: hub → tip
-        const s = i / N_SIDE;
-        const ang = a + halfStep * Math.pow(1 - s, 1.25);
-        const r = hubR + (rTip - hubR) * s;
-        line.push(pt(r, ang));
+      line.push(pt(hubR, a));                        // start on the hub
+      for (let i = 0; i <= 16; i++) {                // open arc: (a+90°) → over the top → (a−90°)
+        const ta = a + Math.PI / 2 - (i / 16) * Math.PI;
+        line.push([C[0] + tipR * Math.cos(ta), C[1] + tipR * Math.sin(ta)]);
       }
-      for (let i = N_SIDE - 1; i >= 0; i--) {       // right side: tip → hub
-        const s = i / N_SIDE;
-        const ang = a - halfStep * Math.pow(1 - s, 1.25);
-        const r = hubR + (rTip - hubR) * s;
-        line.push(pt(r, ang));
-      }
+      line.push(pt(hubR, a));                        // back to the same hub point
       petalGeos.push(buildStepped(line, PETAL_W));
     }
 
