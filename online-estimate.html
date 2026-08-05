@@ -973,6 +973,10 @@
               <input type="radio" id="fdr-fanbars-triple" name="fdr-fanbars" value="triple-hub-spoke">
               <label for="fdr-fanbars-triple" class="radio-label">Triple Hub</label>
             </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-fanbars-daisy" name="fdr-fanbars" value="daisy">
+              <label for="fdr-fanbars-daisy" class="radio-label">Daisy (petals)</label>
+            </div>
           </div>
           <p style="font-size:0.65rem;color:#999;margin-top:2px;" id="fdr-fanbars-hint"></p>
         </div>
@@ -4583,7 +4587,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=88";
+      psw3dScript.src = "3d/assets/window3d.js?v=90";
       document.head.appendChild(psw3dScript);
     }
   </script>

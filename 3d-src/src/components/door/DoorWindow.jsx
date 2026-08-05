@@ -35,6 +35,7 @@ import TransomPanel from './TransomPanel';
 import DoorGlazing from './DoorGlazing';
 import FixFrameWindow from '../fix-frame/FixFrameWindow';
 import RectFanBars from './RectFanBars';
+import PetalFanBars from './PetalFanBars';
 
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
@@ -667,11 +668,45 @@ export default function DoorWindow({
             showGuides={false}
             fixShape={fdrFanShape}
             fixType="standard"
-            fixSemiBarPattern={fdrFanShape === 'semi-circle' ? fanBarPattern : 'none'}
+            fixSemiBarPattern={fdrFanShape === 'semi-circle' && fanBarPattern !== 'daisy' ? fanBarPattern : 'none'}
           />
           {/* Rectangular fanlight: sunburst bars overlay (Type 05) — the hub
               sits on the bottom edge, spokes run out to the frame edges. */}
-          {fdrFanShape === 'rectangle' && fanBarPattern !== 'none' && (() => {
+          {fanBarPattern === 'daisy' && (() => {
+            const FIX_FRAME_FACE = 64;
+            const fanSpacerMat = new THREE.MeshStandardMaterial({
+              color: spacerColor === 'white' ? '#f8f8f8' : spacerColor === 'black' ? '#1a1a1a' : '#a0a4a8',
+              metalness: 0.6, roughness: 0.4,
+            });
+            if (fdrFanShape === 'semi-circle') {
+              // Arch: hub sits on the springing line; tips follow the inner arc
+              const springYLocal = -mm(fdrFanH) / 2 + mm(80);
+              const iHalfArc = mm(width) / 2 - mm(FIX_FRAME_FACE);
+              const tipFn = () => iHalfArc;
+              return (
+                <PetalFanBars hubCenterY={springYLocal} tipRadius={tipFn}
+                  mat={extMaterial} mi={intMaterial} spacerMat={fanSpacerMat} />
+              );
+            }
+            // Rectangle: hub on the bottom edge; tips run to the frame edges
+            const gW = width - FIX_FRAME_FACE * 2;
+            const gH = fdrFanH - FIX_FRAME_FACE * 2;
+            if (gW <= 100 || gH <= 100) return null;
+            const iHalfWr = mm(gW) / 2, iHr = mm(gH);
+            const iBottomR = -iHr / 2;
+            const tipFn = (a) => {
+              const cx = Math.cos(a), sy = Math.sin(a);
+              let d = Infinity;
+              if (Math.abs(cx) > 1e-6) d = Math.min(d, iHalfWr / Math.abs(cx));
+              if (sy > 1e-6) d = Math.min(d, iHr / sy);
+              return d;
+            };
+            return (
+              <PetalFanBars hubCenterY={iBottomR} tipRadius={tipFn}
+                mat={extMaterial} mi={intMaterial} spacerMat={fanSpacerMat} />
+            );
+          })()}
+          {fdrFanShape === 'rectangle' && fanBarPattern !== 'none' && fanBarPattern !== 'daisy' && (() => {
             const FIX_FRAME_FACE = 64;   // FixFrameWindow frame face width
             const gW = width - FIX_FRAME_FACE * 2;
             const gH = fdrFanH - FIX_FRAME_FACE * 2;
