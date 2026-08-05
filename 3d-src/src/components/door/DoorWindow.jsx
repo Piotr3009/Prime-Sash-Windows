@@ -32,6 +32,7 @@ import DoorFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REB
 import DoorPanel, { SASH_RAIL } from './DoorPanel';
 import DoorSidePanel from './DoorSidePanel';
 import TransomPanel from './TransomPanel';
+import DoorGlazing from './DoorGlazing';
 
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
@@ -653,6 +654,22 @@ export default function DoorWindow({
         const paneBottomY = paneY - mm(paneH) / 2;
         return (
           <group>
+            {/* Front Door fanlight: glazed straight into the frame — no leaf,
+                so the pane fills the opening (French keeps its sash). */}
+            {panelGrid ? (
+              <DoorGlazing
+                width={innerW - REBATE_STEP * 2}
+                height={transomCavityH - REBATE_STEP * 2}
+                hBars={0}
+                vBars={paneVBars}
+                barMaterial={extMaterial}
+                barMaterialInt={intMaterial}
+                spacerColor={spacerColor}
+                glassFinish={glassFinish}
+                position={[0, paneY, halfD - mm(EXT_DEPTH) + mm(GASKET_T) + mm(28)]}
+              />
+            ) : (
+            <>
             {/* Top-hung tilt: follows the Door Opening slider (max ~30°) */}
             <group
               position={[0, paneTopY, paneZ]}
@@ -695,6 +712,8 @@ export default function DoorWindow({
                   <meshStandardMaterial color={hingeColor} metalness={0.7} roughness={0.3} />
                 </mesh>
               </group>
+            )}
+            </>
             )}
           </group>
         );
