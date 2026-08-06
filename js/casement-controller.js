@@ -392,7 +392,7 @@
     }
 
     // Update price on every spec change
-    window.currentConfig = getCasementConfig();
+    if (casementOwnsConfig()) window.currentConfig = getCasementConfig();
     updateCasementPrice();
   }
 
@@ -484,7 +484,7 @@
     updateSpecPanel();
 
     // Update currentConfig and calculate price directly
-    window.currentConfig = getCasementConfig();
+    if (casementOwnsConfig()) window.currentConfig = getCasementConfig();
     updateCasementPrice();
   }
 
@@ -518,7 +518,7 @@
   // Existing 3D listeners are untouched — this is attached in parallel.
   var debouncedPriceSync = debounce(function() {
     updateSpecPanel();
-    window.currentConfig = getCasementConfig();
+    if (casementOwnsConfig()) window.currentConfig = getCasementConfig();
     updateCasementPrice();
   }, 300);
 
@@ -592,7 +592,7 @@
           });
         }
         updateSpecPanel();
-        window.currentConfig = getCasementConfig();
+        if (casementOwnsConfig()) window.currentConfig = getCasementConfig();
         updateCasementPrice();
       });
     });
@@ -705,7 +705,7 @@
       woodColorExt: casementColourState.woodColorExt
     });
     updateSpecPanel();
-    window.currentConfig = getCasementConfig();
+    if (casementOwnsConfig()) window.currentConfig = getCasementConfig();
     updateCasementPrice();
   }
 
@@ -910,13 +910,23 @@
     var qtyInput = $('c-quantity');
     if (qtyInput) {
       qtyInput.addEventListener('input', function() {
-        window.currentConfig = getCasementConfig();
+        if (casementOwnsConfig()) window.currentConfig = getCasementConfig();
         updateCasementPrice();
       });
     }
   }
 
   // ─── Store casement config (parallel to window.currentConfig for sash) ───
+  // Casement may only own window.currentConfig while casement IS the selected
+  // type. Without this, a stray casement updater firing after the user switches
+  // to sash silently reverts the config — and the saved price/SVG go wrong.
+  function casementOwnsConfig() {
+    var r = document.querySelector('input[name="product-range"]:checked');
+    if (r && r.value !== 'windows') return false;
+    var tSel = document.querySelector('input[name="window-type"]:checked');
+    return !!tSel && tSel.value === 'casement';
+  }
+
   function getCasementConfig() {
     var isArched = checked('casement-type') === 'arched';
     return {

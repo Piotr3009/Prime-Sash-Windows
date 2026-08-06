@@ -4225,7 +4225,7 @@
 <script src="js/configurator-core.js?v=3"></script>
 <script src="js/color-config.js?v=1"></script>
 <script src="js/color-module.js?v=4"></script>
-<script src="js/casement-controller.js?v=12"></script>
+<script src="js/casement-controller.js?v=13"></script>
 <script src="js/casement-type-modal.js?v=11"></script>
 <script src="js/french-layout-picker.js?v=2"></script>
 <script src="js/door-controller.js?v=4"></script>
@@ -4973,6 +4973,15 @@
             } else if (radio.value === 'fix-only') {
               window.update3D({ windowCategory: 'fix-only' });
             } else {
+              // Restore the sash source of truth: configuratorCore.state.config.
+              // Without this, currentConfig keeps the previous type's object and
+              // the saved price/config/SVG follow the OLD type.
+              if (window.configuratorCore && window.configuratorCore.state && window.configuratorCore.state.config) {
+                window.currentConfig = window.configuratorCore.state.config;
+              }
+              window.currentConfig.windowType = 'sash';
+              delete window.currentConfig.productType;
+              delete window.currentConfig.windowCategory;
               // Reset sash dimensions to defaults
               var ws = document.getElementById('width-select');
               var hs = document.getElementById('height-select');
