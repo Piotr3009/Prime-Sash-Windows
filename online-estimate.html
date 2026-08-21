@@ -449,22 +449,30 @@
           <div class="input-group">
             <label>Arch Style:</label>
             <div class="radio-group">
-              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-                <input type="radio" id="arch-gothic" name="arch-style" value="gothic" disabled>
-                <label for="arch-gothic" class="radio-label">Gothic Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              <div class="radio-option">
+                <input type="radio" id="arch-gothic" name="arch-style" value="gothic">
+                <label for="arch-gothic" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 16 A24 24 0 0 1 14 3 A24 24 0 0 1 26 16 L26 34 L2 34 Z"/><line x1="2" y1="24" x2="26" y2="24"/></svg>Gothic Arch</label>
               </div>
-              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-                <input type="radio" id="arch-segmental" name="arch-style" value="segmental" disabled>
-                <label for="arch-segmental" class="radio-label">Segmental Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              <div class="radio-option">
+                <input type="radio" id="arch-segmental" name="arch-style" value="segmental">
+                <label for="arch-segmental" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 9 A20 20 0 0 1 26 9 L26 34 L2 34 Z"/><line x1="2" y1="21" x2="26" y2="21"/></svg>Segmental Arch</label>
               </div>
-              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-                <input type="radio" id="arch-semicircular" name="arch-style" value="semicircular" disabled>
-                <label for="arch-semicircular" class="radio-label">Semicircular Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              <div class="radio-option">
+                <input type="radio" id="arch-semicircular" name="arch-style" value="semicircular" checked>
+                <label for="arch-semicircular" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 14 A12 12 0 0 1 26 14 L26 34 L2 34 Z"/><line x1="2" y1="24" x2="26" y2="24"/></svg>Semicircular Arch</label>
               </div>
-              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-                <input type="radio" id="arch-elliptical" name="arch-style" value="elliptical" disabled>
-                <label for="arch-elliptical" class="radio-label">Elliptical Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              <div class="radio-option">
+                <input type="radio" id="arch-elliptical" name="arch-style" value="elliptical">
+                <label for="arch-elliptical" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 12 A16 8 0 0 1 26 12 L26 34 L2 34 Z"/><line x1="2" y1="23" x2="26" y2="23"/></svg>Elliptical Arch</label>
               </div>
+            </div>
+          </div>
+
+          <!-- Arched sash size note — same box style the measurement info uses -->
+          <div id="arched-dim-note" class="measurement-info-box" style="display:none;">
+            <div class="info-content">
+              <p><strong>Arched sash size limits</strong></p>
+              <p id="arched-dim-note-text"></p>
             </div>
           </div>
         </div>
@@ -4246,14 +4254,14 @@
 <script src="js/ironmongery-gallery.js?v=4"></script>
 <script src="js/pricing-config.js?v=8"></script>
 <script src="js/config.js?v=3"></script>
-<script src="js/price-calculator.js?v=11"></script>
+<script src="js/price-calculator.js?v=12"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=3"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=8"></script>
+<script src="js/specification-controller.js?v=9"></script>
 <script src="js/configurator-core.js?v=4"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
@@ -4619,7 +4627,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=95";
+      psw3dScript.src = "3d/assets/window3d.js?v=96";
       document.head.appendChild(psw3dScript);
     }
   </script>
@@ -5108,6 +5116,41 @@
               if (!isNaN(_h)) window.currentConfig.height = _h;
               window.currentConfig.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
               window.currentConfig.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+              // The arched radio value is 'arched-group'; everything downstream
+              // (pricing, spec, CSV, 3D) speaks 'arched'. headType is ignored for
+              // arched — Glazing Arch is a separate product for double/triple.
+              if (window.currentConfig.sashType === 'arched-group') {
+                window.currentConfig.sashType = 'arched';
+                var _as = window.ArchedSash;
+                var _shape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+                var _mt2 = (document.querySelector('input[name="measurement-type"]:checked') || {}).value;
+                var _afw = _w + (_mt2 === 'brick-to-brick' ? 150 : 0);
+                var _afh = _h + (_mt2 === 'brick-to-brick' ? 75 : 0);
+                var _am = _as ? _as.metricsFor(_shape, _afw, _afh) : null;
+                window.currentConfig.archShape = _shape;
+                window.currentConfig.archBarPattern = (typeof window.getArchBarPattern === 'function') ? window.getArchBarPattern() : 'none';
+                window.currentConfig.archHBars = (typeof window.getArchHBars === 'function') ? window.getArchHBars() : 0;
+                window.currentConfig.archVBars = (typeof window.getArchVBars === 'function') ? window.getArchVBars() : 0;
+                if (_am) {
+                  window.currentConfig.archRise = _am.archRise;
+                  window.currentConfig.straightHeight = _am.straightHeight;
+                  window.currentConfig.upperSashHeight = _am.upperSashHeight;
+                  window.currentConfig.upperMaxDrop = _am.upperMaxDrop;
+                }
+                if (typeof window.update3D === 'function') {
+                  window.update3D({
+                    windowCategory: 'sash',
+                    sashType: 'arched',
+                    archShape: _shape,
+                    extWidth: _afw,
+                    extHeight: _afh,
+                    upperMaxDrop: _am ? _am.upperMaxDrop : 0,
+                    archBarPattern: window.currentConfig.archBarPattern,
+                    archHBars: window.currentConfig.archHBars,
+                    archVBars: window.currentConfig.archVBars
+                  });
+                }
+              }
               // price-calculator prefers actualFrameWidth/Height over width when present —
               // these are a derived cache and go stale; purge so pricing follows the inputs,
               // populateInitialSpec() below rebuilds them fresh
@@ -5176,6 +5219,14 @@
             if (!isNaN(_vh)) m.height = _vh;
             m.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
             m.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+            if (m.sashType === 'arched-group') {
+              // Canon for the arched product — same normalisation as syncActiveProduct.
+              m.sashType = 'arched';
+              m.archShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+              m.archBarPattern = (typeof window.getArchBarPattern === 'function') ? window.getArchBarPattern() : 'none';
+              m.archHBars = (typeof window.getArchHBars === 'function') ? window.getArchHBars() : 0;
+              m.archVBars = (typeof window.getArchVBars === 'function') ? window.getArchVBars() : 0;
+            }
             m.measurementType = (document.querySelector('input[name="measurement-type"]:checked') || {}).value || m.measurementType;
             cfg = m;
           }
@@ -5224,6 +5275,12 @@
       // 'measurement-type' flips frame vs structural sizing, which changes the
       // priced area — without it here the sidebar kept the PREVIOUS mode's price.
       var SYNC_NAMES = { 'window-type':1, 'product-range':1, 'head-type':1, 'sash-type':1, 'measurement-type':1 };
+      // Arched sash controls. Registering them here is what keeps the sidebar
+      // price in step — an unregistered control leaves the price one step behind.
+      SYNC_NAMES['arch-style'] = 1;
+      SYNC_NAMES['arch-bar-pattern'] = 1;
+      SYNC_IDS['arch-h-bars'] = 1;
+      SYNC_IDS['arch-v-bars'] = 1;
       var _microQueued = false;
       function maybeScheduleSync(e) {
         var t = e.target || {};
@@ -6338,6 +6395,132 @@
         return checked ? checked.value : 'double';
       }
 
+      // ══ ARCHED SASH ═══════════════════════════════════════════════════════
+      // Radio value stays 'arched-group'; the config/CSV value is 'arched'.
+      // Shape ids are the shared ones (gothic-arch / semi-circle / ...), so the
+      // renderer, edit-mode and production all read one dictionary.
+      function getArchShape() {
+        var A = window.ArchedSash;
+        var r = document.querySelector('input[name="arch-style"]:checked');
+        return (A && A.SHAPE_FROM_RADIO[r ? r.value : '']) || 'semi-circle';
+      }
+      function getArchBarPattern() {
+        var r = document.querySelector('input[name="arch-bar-pattern"]:checked');
+        return r ? r.value : 'none';
+      }
+      function getArchHBars() { var e = document.getElementById('arch-h-bars'); return e ? (parseInt(e.value, 10) || 0) : 0; }
+      function getArchVBars() { var e = document.getElementById('arch-v-bars'); return e ? (parseInt(e.value, 10) || 0) : 0; }
+      function isArchedActive() { return getSashType() === 'arched-group'; }
+      window.getArchShape = getArchShape;
+      window.getArchBarPattern = getArchBarPattern;
+      window.getArchHBars = getArchHBars;
+      window.getArchVBars = getArchVBars;
+      window.isArchedSashActive = isArchedActive;
+
+      function showArchedNote(msg) {
+        var box = document.getElementById('arched-dim-note');
+        var txt = document.getElementById('arched-dim-note-text');
+        if (!box || !txt) return;
+        if (msg) { txt.textContent = msg; box.style.display = 'block'; }
+        else { txt.textContent = ''; box.style.display = 'none'; }
+      }
+
+      function archMeasureOffsets() {
+        var brick = (document.querySelector('input[name="measurement-type"]:checked') || {}).value === 'brick-to-brick';
+        return { w: brick ? 150 : 0, h: brick ? 75 : 0 };
+      }
+
+      // Clamp the inputs to the arched limits, refresh the selects, then push
+      // the arched config to 3D + price + spec. Called on: arched selected,
+      // arch style changed, and any width/height change while arched is active.
+      function applyArchedSash() {
+        var A = window.ArchedSash;
+        if (!A) return null;
+        var shape = getArchShape();
+        var widthSelect  = document.getElementById('width-select');
+        var widthInput   = document.getElementById('width');
+        var heightSelect = document.getElementById('height-select');
+        var heightInput  = document.getElementById('height');
+        var off = archMeasureOffsets();
+        var MAX_INPUT_H = 3000;
+
+        // Limits are on the FRAME size (spec §5), the inputs may be structural.
+        var minFW = A.MIN_WIDTH;
+        var maxFW = A.maxWidthFor(shape, MAX_INPUT_H + off.h);
+        var curW = parseInt((widthInput || {}).value, 10); if (isNaN(curW)) curW = 1000;
+        var curH = parseInt((heightInput || {}).value, 10); if (isNaN(curH)) curH = 1500;
+
+        var newFW = Math.min(Math.max(curW + off.w, minFW), maxFW);
+        newFW = Math.round(newFW / 10) * 10;
+        var newW = newFW - off.w;
+
+        var minFH = A.minHeightFor(shape, newFW);
+        var newFH = Math.min(Math.max(curH + off.h, minFH), MAX_INPUT_H + off.h);
+        var newH = newFH - off.h;
+
+        var notes = [];
+        if (newW !== curW) {
+          notes.push('Width clamped to ' + (minFW - off.w) + '–' + (maxFW - off.w) + ' mm for a ' +
+            (A.SHAPE_NAMES[shape] || shape).toLowerCase() + ' arch.');
+        }
+        if (newH !== curH) {
+          notes.push('Height raised to ' + newH + ' mm — the arch rises ' + A.riseFor(shape, newFW) +
+            ' mm and needs at least ' + A.MIN_STRAIGHT + ' mm of straight frame below the arch start, plus ' +
+            A.MIN_UPPER_STILE + ' mm of straight stile on the upper sash.');
+        }
+        showArchedNote(notes.join(' '));
+
+        var minInputW = minFW - off.w, maxInputW = maxFW - off.w;
+        var minInputH = minFH - off.h;
+        if (widthInput)  { widthInput.min = minInputW; widthInput.max = maxInputW; }
+        if (heightInput) { heightInput.min = minInputH; heightInput.max = MAX_INPUT_H; }
+
+        if (widthSelect) {
+          widthSelect.querySelectorAll('option').forEach(function(opt) {
+            if (opt.value === 'custom' || opt.value === '0') return;
+            var v = parseInt(opt.value, 10);
+            opt.style.display = (v >= minInputW && v <= maxInputW) ? '' : 'none';
+          });
+          widthInput.value = newW;
+          widthSelect.value = String(newW);
+          if (widthSelect.value !== String(newW)) widthSelect.value = 'custom';
+        }
+        if (heightSelect) {
+          heightSelect.querySelectorAll('option').forEach(function(opt) {
+            if (opt.value === 'custom' || opt.value === '0') return;
+            var v = parseInt(opt.value, 10);
+            opt.style.display = (v >= minInputH && v <= MAX_INPUT_H) ? '' : 'none';
+          });
+          heightInput.value = newH;
+          heightSelect.value = String(newH);
+          if (heightSelect.value !== String(newH)) heightSelect.value = 'custom';
+        }
+
+        if (window.currentConfig) {
+          window.currentConfig.width = newW;
+          window.currentConfig.height = newH;
+          window.currentConfig.sashType = 'arched';
+          window.currentConfig.archShape = shape;
+        }
+
+        var m = A.metricsFor(shape, newFW, newFH);
+        if (typeof window.update3D === 'function') {
+          window.update3D({
+            windowCategory: 'sash',
+            sashType: 'arched',
+            archShape: shape,
+            extWidth: newFW,
+            extHeight: newFH,
+            upperMaxDrop: m.upperMaxDrop,
+            archBarPattern: getArchBarPattern(),
+            archHBars: getArchHBars(),
+            archVBars: getArchVBars()
+          });
+        }
+        return { shape: shape, frameWidth: newFW, frameHeight: newFH, metrics: m };
+      }
+      window.applyArchedSash = applyArchedSash;
+
       sashTypeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
           var isTriple = radio.value === 'triple';
@@ -6355,8 +6538,17 @@
             document.getElementById('head-flat').checked = true;
           }
 
-          // Don't update dims/3D for arched-group (all coming soon)
-          if (isArchedGroup) return;
+          // Arched sash: its own limits + config value ('arched', not 'arched-group').
+          if (isArchedGroup) {
+            applyArchedSash();
+            if (window.specificationController) {
+              window.specificationController.applyProductRange();
+              window.specificationController.applyDimensions();
+            }
+            if (typeof window.scheduleProductSync === 'function') window.scheduleProductSync();
+            return;
+          }
+          showArchedNote('');
 
           // UI: Update dimension limits and defaults
           var widthSelect = document.getElementById('width-select');
@@ -6441,6 +6633,30 @@
           if (typeof window.scheduleProductSync === 'function') window.scheduleProductSync();
         });
       });
+
+      // Arch style radio — live 3D + price + spec
+      var archStyleRadios = document.querySelectorAll('input[name="arch-style"]');
+      archStyleRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          if (!isArchedActive()) return;
+          applyArchedSash();
+          if (window.specificationController) {
+            window.specificationController.applyProductRange();
+            window.specificationController.applyDimensions();
+          }
+          if (typeof window.scheduleProductSync === 'function') window.scheduleProductSync();
+        });
+      });
+
+      // Width/height while arched is active: re-clamp, then re-push the arched
+      // config. Without this the plain dimension handler would push a size the
+      // arch cannot physically take.
+      document.addEventListener('change', function(e) {
+        var t = e.target || {};
+        if (t.id !== 'width' && t.id !== 'height' && t.id !== 'width-select' && t.id !== 'height-select' && t.name !== 'measurement-type') return;
+        if (!isArchedActive()) return;
+        applyArchedSash();
+      }, false);
 
       // Head type radio — live 3D update
       var headTypeRadios = document.querySelectorAll('input[name="head-type"]');

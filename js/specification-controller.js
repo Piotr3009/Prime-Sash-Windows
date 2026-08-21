@@ -716,6 +716,38 @@ class SpecificationController {
         splitRatio: splitRatio
       });
     }
+
+    // ── ARCHED SASH ───────────────────────────────────────────────────────
+    // The radio value is 'arched-group'; the 3D/config/CSV value is 'arched'.
+    // Re-push after the generic call above so the arched product is not left
+    // rendered and priced as a plain double hung.
+    if (typeof window.update3D === 'function' &&
+        (document.querySelector('input[name="sash-type"]:checked')?.value) === 'arched-group') {
+      const _archShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+      const _archMetrics = window.ArchedSash
+        ? window.ArchedSash.metricsFor(_archShape, frameWidth, frameHeight) : null;
+      window.update3D({
+        windowCategory: 'sash',
+        sashType: 'arched',
+        archShape: _archShape,
+        extWidth: frameWidth,
+        extHeight: frameHeight,
+        upperMaxDrop: _archMetrics ? _archMetrics.upperMaxDrop : 0,
+        archBarPattern: (typeof window.getArchBarPattern === 'function') ? window.getArchBarPattern() : 'none',
+        archHBars: (typeof window.getArchHBars === 'function') ? window.getArchHBars() : 0,
+        archVBars: (typeof window.getArchVBars === 'function') ? window.getArchVBars() : 0
+      });
+      if (window.currentConfig) {
+        window.currentConfig.sashType = 'arched';
+        window.currentConfig.archShape = _archShape;
+        if (_archMetrics) {
+          window.currentConfig.archRise = _archMetrics.archRise;
+          window.currentConfig.straightHeight = _archMetrics.straightHeight;
+          window.currentConfig.upperSashHeight = _archMetrics.upperSashHeight;
+          window.currentConfig.upperMaxDrop = _archMetrics.upperMaxDrop;
+        }
+      }
+    }
   }
 
   applyBars() {
@@ -858,6 +890,44 @@ class SpecificationController {
         extWidth: frameWidth,
         extHeight: frameHeight
       });
+    }
+
+    // Arch limits are stated on the FRAME size, and frameWidth/frameHeight above
+    // are the raw inputs, so correct for structural (brick-to-brick) measuring.
+    const _archBrick = (document.querySelector('input[name="measurement-type"]:checked')?.value) === 'brick-to-brick';
+    const _archFrameW = frameWidth + (_archBrick ? 150 : 0);
+    const _archFrameH = frameHeight + (_archBrick ? 75 : 0);
+
+    // ── ARCHED SASH ───────────────────────────────────────────────────────
+    // The radio value is 'arched-group'; the 3D/config/CSV value is 'arched'.
+    // Re-push after the generic call above so the arched product is not left
+    // rendered and priced as a plain double hung.
+    if (typeof window.update3D === 'function' &&
+        (document.querySelector('input[name="sash-type"]:checked')?.value) === 'arched-group') {
+      const _archShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+      const _archMetrics = window.ArchedSash
+        ? window.ArchedSash.metricsFor(_archShape, _archFrameW, _archFrameH) : null;
+      window.update3D({
+        windowCategory: 'sash',
+        sashType: 'arched',
+        archShape: _archShape,
+        extWidth: _archFrameW,
+        extHeight: _archFrameH,
+        upperMaxDrop: _archMetrics ? _archMetrics.upperMaxDrop : 0,
+        archBarPattern: (typeof window.getArchBarPattern === 'function') ? window.getArchBarPattern() : 'none',
+        archHBars: (typeof window.getArchHBars === 'function') ? window.getArchHBars() : 0,
+        archVBars: (typeof window.getArchVBars === 'function') ? window.getArchVBars() : 0
+      });
+      if (window.currentConfig) {
+        window.currentConfig.sashType = 'arched';
+        window.currentConfig.archShape = _archShape;
+        if (_archMetrics) {
+          window.currentConfig.archRise = _archMetrics.archRise;
+          window.currentConfig.straightHeight = _archMetrics.straightHeight;
+          window.currentConfig.upperSashHeight = _archMetrics.upperSashHeight;
+          window.currentConfig.upperMaxDrop = _archMetrics.upperMaxDrop;
+        }
+      }
     }
 
     // Update spec panel

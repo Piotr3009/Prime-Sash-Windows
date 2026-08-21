@@ -3293,3 +3293,33 @@ function HornMesh({ material, depth = 57, type = 'A' }) {
     </mesh>
   );
 }
+/* ═══ NAMED EXPORTS — arched sash reuses these box/sash pieces
+   (task §Phase 1.2 and spec §7 Faza 1.0: export, don't copy).
+   Nothing above is changed: the default export keeps working exactly as before. ═══ */
+export {
+  mm,
+  Sash,
+  GlassPane,
+  GlazingBars,
+  LowerBottomRail,
+  SashStileCore,
+  SashRailCore,
+  ExternalStileBead,
+  InternalOvoloStileBead,
+  ExternalRailBead,
+  InternalOvoloRailBead,
+  PulleySet,
+  JambWithPartingBead,
+  ExternalBoxElement,
+  InternalBoxElement,
+  StaffBead,
+  StaffBeadHorizontal,
+  TraditionalSill,
+  MullionPost,
+  HornMesh,
+  HandleMesh,
+  FingerLift,
+  FitchFastenerBody,
+  FitchFastenerKeep,
+  DimensionGuide,
+};

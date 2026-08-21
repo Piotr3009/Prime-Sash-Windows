@@ -825,3 +825,129 @@ window.priceCalculator = new PriceCalculator();
 window.calculatePrice = function(configuration) {
   return window.priceCalculator.calculate(configuration);
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ARCHED SASH — one source of truth for shape names, rise and dimension limits.
+//
+// Everything outside the 3D bundle (online-estimate.html validation + handlers,
+// estimate-renderer SVG/spec rows, edit-mode restore, specification-controller
+// labels) reads these helpers, so the four ratios are stated once here.
+// The bundle cannot import from js/, so ArchedSashWindow.jsx mirrors the same
+// four ratios — keep the two in step.
+//
+// Terminology: the line where the arch begins is the "arch start"; the straight
+// part below it is `straightHeight`. (Piotr, 21.08 — do not use the s-word.)
+// ═══════════════════════════════════════════════════════════════════════════
+window.ArchedSash = (function () {
+  // rise as a fraction of the EXTERNAL frame width (spec §5)
+  var RISE_RATIO = {
+    'segmental-arch': 0.20,
+    'elliptical-arch': 0.325,
+    'semi-circle': 0.50,
+    'gothic-arch': Math.sqrt(3) / 2,
+  };
+
+  // The radio values in online-estimate.html are the legacy short names; the
+  // config/CSV value is the shared shape id used by casArchShape / fixShape.
+  var SHAPE_FROM_RADIO = {
+    gothic: 'gothic-arch',
+    segmental: 'segmental-arch',
+    semicircular: 'semi-circle',
+    elliptical: 'elliptical-arch',
+  };
+  var RADIO_FROM_SHAPE = {
+    'gothic-arch': 'gothic',
+    'segmental-arch': 'segmental',
+    'semi-circle': 'semicircular',
+    'elliptical-arch': 'elliptical',
+  };
+  var SHAPE_NAMES = {
+    'gothic-arch': 'Gothic',
+    'segmental-arch': 'Segmental',
+    'semi-circle': 'Semicircular',
+    'elliptical-arch': 'Elliptical',
+  };
+
+  // Arch bar pattern premium — same table as arched casement (spec §3.3)
+  var PATTERN_PREMIUM = {
+    'intersecting': 250,
+    'half-hub': 150,
+    'hub-spoke': 210,
+    'double-hub-spoke': 270,
+    'triple-hub-spoke': 320,
+  };
+
+  // Which patterns each shape offers (spec §5 / O9)
+  var PATTERNS_FOR_SHAPE = {
+    'semi-circle': ['none', 'half-hub', 'hub-spoke', 'double-hub-spoke', 'triple-hub-spoke', 'intersecting'],
+    'gothic-arch': ['none', 'intersecting'],
+    'segmental-arch': ['none'],
+    'elliptical-arch': ['none'],
+  };
+
+  var MIN_WIDTH = 400;          // O5
+  var MAX_WIDTH = 1500;         // O5
+  var MIN_STRAIGHT = 900;       // O4: H >= rise + 900
+  var MIN_UPPER_STILE = 300;    // O8: H_inner/2 - rise >= 300
+  var INNER_OFFSET = 144;       // H_inner = H_total - 144 (sill + head + running gaps)
+  var HEIGHT_STEP = 10;         // the dimension selects only carry multiples of 10
+
+  function riseFor(shape, extWidth) {
+    var r = RISE_RATIO[shape];
+    if (r === undefined) r = RISE_RATIO['semi-circle'];
+    return Math.round(r * (parseFloat(extWidth) || 0));
+  }
+
+  // Smallest external height that satisfies BOTH O4 and O8, on the 10 mm grid.
+  function minHeightFor(shape, extWidth) {
+    var rise = riseFor(shape, extWidth);
+    var byStraight = rise + MIN_STRAIGHT;
+    var byUpperStile = 2 * (rise + MIN_UPPER_STILE) + INNER_OFFSET;
+    var need = Math.max(byStraight, byUpperStile);
+    return Math.ceil(need / HEIGHT_STEP) * HEIGHT_STEP;
+  }
+
+  // Widest external width whose minimum height still fits under maxHeight.
+  function maxWidthFor(shape, maxHeight) {
+    var w = MAX_WIDTH;
+    while (w > MIN_WIDTH && minHeightFor(shape, w) > maxHeight) w -= HEIGHT_STEP;
+    return w;
+  }
+
+  function metricsFor(shape, extWidth, extHeight) {
+    var W = parseFloat(extWidth) || 0;
+    var H = parseFloat(extHeight) || 0;
+    var rise = riseFor(shape, W);
+    var straightHeight = H - rise;
+    var innerHeight = H - INNER_OFFSET;
+    return {
+      shape: shape,
+      shapeName: SHAPE_NAMES[shape] || shape,
+      archRise: rise,
+      straightHeight: straightHeight,
+      innerHeight: innerHeight,
+      upperSashHeight: Math.round(innerHeight / 2),
+      lowerSashHeight: Math.round(innerHeight / 2),
+      upperMaxDrop: Math.max(0, Math.round(Math.min(300, 0.25 * straightHeight))),
+      minHeight: minHeightFor(shape, W),
+    };
+  }
+
+  return {
+    RISE_RATIO: RISE_RATIO,
+    SHAPE_FROM_RADIO: SHAPE_FROM_RADIO,
+    RADIO_FROM_SHAPE: RADIO_FROM_SHAPE,
+    SHAPE_NAMES: SHAPE_NAMES,
+    PATTERN_PREMIUM: PATTERN_PREMIUM,
+    PATTERNS_FOR_SHAPE: PATTERNS_FOR_SHAPE,
+    MIN_WIDTH: MIN_WIDTH,
+    MAX_WIDTH: MAX_WIDTH,
+    MIN_STRAIGHT: MIN_STRAIGHT,
+    MIN_UPPER_STILE: MIN_UPPER_STILE,
+    INNER_OFFSET: INNER_OFFSET,
+    riseFor: riseFor,
+    minHeightFor: minHeightFor,
+    maxWidthFor: maxWidthFor,
+    metricsFor: metricsFor,
+  };
+})();
