@@ -5089,6 +5089,10 @@
             if (typeof window.updateCasement3D === 'function') window.updateCasement3D();
             if (typeof window.updateCasementPrice === 'function') window.updateCasementPrice();
           } else if (wt === 'fix-only') {
+            // updateCasement3D() self-guards on window-type === 'casement', so it is a
+            // silent no-op here: fix-only needs its OWN dimension push or the engine
+            // keeps the PREVIOUS type's size until the watchdog heals it seconds later.
+            if (typeof window.update3DFix === 'function') window.update3DFix();
             if (typeof window.updateCasement3D === 'function') window.updateCasement3D();
             if (typeof window.updateFixPrice === 'function') window.updateFixPrice();
             if (typeof window.updateFixSpec === 'function') window.updateFixSpec();
@@ -5217,7 +5221,9 @@
       // Event DELEGATION at document level (capture): direct element listeners
       // die when init code clone-replaces inputs — delegation survives any swap.
       var SYNC_IDS = { 'width':1, 'width-select':1, 'height':1, 'height-select':1, 'c-width':1, 'c-height':1, 'd-width':1, 'd-height':1 };
-      var SYNC_NAMES = { 'window-type':1, 'product-range':1, 'head-type':1, 'sash-type':1 };
+      // 'measurement-type' flips frame vs structural sizing, which changes the
+      // priced area — without it here the sidebar kept the PREVIOUS mode's price.
+      var SYNC_NAMES = { 'window-type':1, 'product-range':1, 'head-type':1, 'sash-type':1, 'measurement-type':1 };
       var _microQueued = false;
       function maybeScheduleSync(e) {
         var t = e.target || {};
@@ -5237,7 +5243,9 @@
 
       // ── INVARIANT WATCHDOG: 3D dimensions must ALWAYS equal the active inputs ──
       // One-directional heal (inputs are the source of truth); logs the trigger.
-      var DIM_IDS = { sash: ['width', 'height'], casement: ['c-width', 'c-height'], 'fix-only': ['c-width', 'c-height'], door: ['d-width', 'd-height'] };
+      // fix-only has its OWN inputs (#fix-width/#fix-height); pointing this at the
+      // casement pair made the watchdog compare — and 'heal' 3D to — the wrong boxes.
+      var DIM_IDS = { sash: ['width', 'height'], casement: ['c-width', 'c-height'], 'fix-only': ['fix-width', 'fix-height'], door: ['d-width', 'd-height'] };
       function activeDimIds() {
         var range = (document.querySelector('input[name="product-range"]:checked') || {}).value || 'windows';
         if (range === 'doors') return DIM_IDS.door;
@@ -5256,11 +5264,20 @@
             if (!wEl || !hEl) return;
             var iw = parseInt(wEl.value, 10), ih = parseInt(hEl.value, 10);
             var c3 = window.get3DConfig() || {};
-            var badW = !isNaN(iw) && typeof c3.extWidth === 'number' && c3.extWidth !== iw;
-            var badH = !isNaN(ih) && typeof c3.extHeight === 'number' && c3.extHeight !== ih;
+            // The engine is fed FRAME dimensions. For sash in 'brick-to-brick'
+            // (structural) mode the frame is input +150/+75, so comparing the raw
+            // input fired a false mismatch and 'healed' a CORRECT state back to the
+            // structural numbers. Casement/fix/door are always frame-measured.
+            var ew = iw, eh = ih;
+            if (ids[0] === 'width' && (document.querySelector('input[name="measurement-type"]:checked') || {}).value === 'brick-to-brick') {
+              if (!isNaN(iw)) ew = iw + 150;
+              if (!isNaN(ih)) eh = ih + 75;
+            }
+            var badW = !isNaN(ew) && typeof c3.extWidth === 'number' && c3.extWidth !== ew;
+            var badH = !isNaN(eh) && typeof c3.extHeight === 'number' && c3.extHeight !== eh;
             if (badW || badH) {
-              console.warn('[dim-sync] mismatch after "' + src + '": inputs ' + iw + 'x' + ih + ' vs 3D ' + c3.extWidth + 'x' + c3.extHeight + ' — auto-healing');
-              if (typeof window.update3D === 'function') window.update3D({ extWidth: iw, extHeight: ih });
+              console.warn('[dim-sync] mismatch after "' + src + '": expected ' + ew + 'x' + eh + ' vs 3D ' + c3.extWidth + 'x' + c3.extHeight + ' — auto-healing');
+              if (typeof window.update3D === 'function') window.update3D({ extWidth: ew, extHeight: eh });
               scheduleSync();
             }
           } catch (e) {}
@@ -6289,6 +6306,7 @@
         };
       }
       window.getFixConfig = getFixConfig;
+      window.update3DFix = update3DFix;
 
       // ── Fix-Only Live Price Update ──
       function updateFixPrice() {
