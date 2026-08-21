@@ -517,8 +517,8 @@ class PriceCalculator {
       basePrice = BIFOLD_PER_SQM * doorSqm;
     } else if ((configuration.doorType || '') === 'front-door') {
       // Front doors: heavier construction, panel grid, entrance-grade spec —
-      // priced 60% above the patio-door base rate.
-      const FRONT_DOOR_PER_SQM = Math.round(DOOR_BASE_PER_SQM * 1.6);   // 1568
+      // priced 28% above the patio-door base rate (was 60%; -20% price cut, Aug 2026).
+      const FRONT_DOOR_PER_SQM = Math.round(DOOR_BASE_PER_SQM * 1.28);  // 1254
       basePrice = FRONT_DOOR_PER_SQM * doorSqm;
     } else {
       basePrice = DOOR_BASE_PER_SQM * doorSqm;
