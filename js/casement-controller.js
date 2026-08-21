@@ -44,13 +44,17 @@
     '013':  { w: 700,  h: 2400 },
     '023':  { w: 1300, h: 2400 },
     '140L': { w: 2400, h: 1200 },
+    '142':  { w: 2400, h: 1500 },
+    '144':  { w: 2400, h: 1500 },
     '140R': { w: 2400, h: 1200 },
   };
   // Exposed for the type-picker modal (preview proportions) — single source, no copy
   window.CASEMENT_LAYOUT_DEFAULTS = LAYOUT_DEFAULTS;
+  // Layout definitions version — must match Production Core (casementLayouts.js)
+  window.CASEMENT_LAYOUTS_VERSION = 2;
 
   // Layouts that have fanlights (transom)
-  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132', '133', '013', '023'];
+  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132', '133', '013', '023', '142', '144'];
   const FAN2_LAYOUTS = ['013', '023'];
   const TRIPLE_LAYOUTS = ['130', '131', '132', '133'];
 

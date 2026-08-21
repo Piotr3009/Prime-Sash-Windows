@@ -1795,6 +1795,79 @@ class EstimateRenderer {
           };
         }
     
+        // ─── 142: Quad — fanlights over the TWO CENTRE lights ───
+        //   Mirrors 131: end lights run full height and open; the centre pair carries
+        //   a top-hung fan over a fixed bottom pane. Panel order: L end, C1 top,
+        //   C1 bottom, C2 top, C2 bottom, R end — index-aligned to casementHinges,
+        //   DO NOT reorder. (PC mirror: casementLayouts.js, layouts version 2)
+        case '142': {
+          const panelW = (innerW - mullW * 3) / 4;
+          const m1 = FRAME_FACE + panelW + mullW / 2;
+          const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+          const m3 = FRAME_FACE + panelW * 3 + mullW * 2 + mullW / 2;
+          const xEndL = -(1.5 * panelW + 1.5 * mullW);
+          const xC1 = -(0.5 * panelW + 0.5 * mullW);
+          const xC2 = (0.5 * panelW + 0.5 * mullW);
+          const xEndR = (1.5 * panelW + 1.5 * mullW);
+          const topH = innerH * FR;
+          const bottomH = innerH - MULLION_W - topH;
+          const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
+          return {
+            mullions: [m1, m2, m3],
+            transoms: [
+              { y: transomY, width: panelW, offsetX: xC1 },
+              { y: transomY, width: panelW, offsetX: xC2 },
+            ],
+            panels: [
+              { x: xEndL, y: 0, w: panelW, h: innerH, hinge: 'left' },
+              { x: xC1, y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+              { x: xC1, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+              { x: xC2, y: (bottomH + MULLION_W) / 2, w: panelW, h: topH, hinge: 'top' },
+              { x: xC2, y: -(topH + MULLION_W) / 2, w: panelW, h: bottomH, hinge: 'fixed' },
+              { x: xEndR, y: 0, w: panelW, h: innerH, hinge: 'right' },
+            ],
+          };
+        }
+
+        // ─── 144: Quad — fanlights over ALL FOUR lights ───
+        //   Mirrors 133 panel order (top row L->R, then bottom row L->R); per PC spec
+        //   the END bottoms open left/right, centre bottoms fixed. Index-aligned to
+        //   casementHinges, DO NOT reorder. (PC mirror: layouts version 2)
+        case '144': {
+          const panelW = (innerW - mullW * 3) / 4;
+          const m1 = FRAME_FACE + panelW + mullW / 2;
+          const m2 = FRAME_FACE + panelW * 2 + mullW + mullW / 2;
+          const m3 = FRAME_FACE + panelW * 3 + mullW * 2 + mullW / 2;
+          const x0 = -(1.5 * panelW + 1.5 * mullW);
+          const x1 = -(0.5 * panelW + 0.5 * mullW);
+          const x2 = (0.5 * panelW + 0.5 * mullW);
+          const x3 = (1.5 * panelW + 1.5 * mullW);
+          const topH = innerH * FR;
+          const bottomH = innerH - MULLION_W - topH;
+          const transomY = BOTTOM_FACE + bottomH + MULLION_W / 2;
+          const topY = (bottomH + MULLION_W) / 2;
+          const botY = -(topH + MULLION_W) / 2;
+          return {
+            mullions: [m1, m2, m3],
+            transoms: [
+              { y: transomY, width: panelW, offsetX: x0 },
+              { y: transomY, width: panelW, offsetX: x1 },
+              { y: transomY, width: panelW, offsetX: x2 },
+              { y: transomY, width: panelW, offsetX: x3 },
+            ],
+            panels: [
+              { x: x0, y: topY, w: panelW, h: topH, hinge: 'top' },
+              { x: x1, y: topY, w: panelW, h: topH, hinge: 'top' },
+              { x: x2, y: topY, w: panelW, h: topH, hinge: 'top' },
+              { x: x3, y: topY, w: panelW, h: topH, hinge: 'top' },
+              { x: x0, y: botY, w: panelW, h: bottomH, hinge: 'left' },
+              { x: x1, y: botY, w: panelW, h: bottomH, hinge: 'fixed' },
+              { x: x2, y: botY, w: panelW, h: bottomH, hinge: 'fixed' },
+              { x: x3, y: botY, w: panelW, h: bottomH, hinge: 'right' },
+            ],
+          };
+        }
+
         // ─── 131: Triple + transom ONLY in center ───
         case '131': {
           // Custom middle section (mullion-axis setting-out); 0 -> equal thirds
