@@ -27,6 +27,20 @@ function escapeHtml(str) {
   }[m]));
 }
 
+// Turn bare URLs into links. IMPORTANT: this runs on ALREADY-ESCAPED text, so
+// the token can never contain a raw < > " ' — it is safe inside href="...".
+// Trailing sentence punctuation is pushed back outside the anchor so that
+// "see example.com/page." does not swallow the full stop into the link.
+function linkifyEscaped(escaped) {
+  return escaped.replace(/\b(?:https?:\/\/|www\.)[^\s]+/gi, function (token) {
+    const core = token.replace(/(?:[.,!?)\]]|&quot;|&#39;)+$/, '');
+    if (!core) return token;
+    const trail = token.slice(core.length);
+    const href = /^www\./i.test(core) ? 'https://' + core : core;
+    return '<a href="' + href + '" target="_blank" rel="noopener">' + core + '</a>' + trail;
+  });
+}
+
 // Overview text -> paragraphs (blank line = new paragraph)
 function textToParagraphs(text) {
   if (!text) return '';
@@ -34,7 +48,7 @@ function textToParagraphs(text) {
     .split(/\r?\n\s*\r?\n/)
     .map(p => p.trim())
     .filter(Boolean)
-    .map(p => '<p>' + escapeHtml(p).replace(/\r?\n/g, '<br>') + '</p>')
+    .map(p => '<p>' + linkifyEscaped(escapeHtml(p)).replace(/\r?\n/g, '<br>') + '</p>')
     .join('\n');
 }
 
