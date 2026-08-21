@@ -28,7 +28,7 @@
   // (Phone block removed 2026-07-28 with explicit approval - it was inherited
   // from the configurator, where it guards the full editing UI, not 3D itself.)
 
-  var BUNDLE_URL = '/3d/assets/window3d.js?v=92';
+  var BUNDLE_URL = '/3d/assets/window3d.js?v=93';
 
   // Button styles are injected as soon as this module loads (not when the modal
   // is first built), because estimate-renderer draws the button immediately.
