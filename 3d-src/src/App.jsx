@@ -168,7 +168,7 @@ function RalInput({ onColor }) {
 }
 
 const SWATCHES = [
-  { name: 'Pure White', hex: '#F4F4F2' },
+  { name: 'Traffic White', hex: '#F4F4F2' },
   { name: 'Jet Black', hex: '#1C1C1C' },
   { name: 'Anthracite', hex: '#2E3A3F' },
   { name: 'Olive Green', hex: '#4A4F3B' },

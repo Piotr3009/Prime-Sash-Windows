@@ -13,7 +13,7 @@ window.COLOR_DATA = {
 
   // Standard swatch tiles (identical set used by sash, casement, door, fix)
   SWATCHES: [
-    { bg: '#FAFAFA', key: 'white', name: "Pure White", ral: 'RAL 9016' },
+    { bg: '#FAFAFA', key: 'white', name: "Traffic White", ral: 'RAL 9016' },  // RAL 9016 = Traffic White (was mislabelled Pure White)
     { bg: '#0A0A0A', key: 'black', name: "Jet Black", ral: 'RAL 9005' },
     { bg: '#293133', key: 'anthracite', name: "Anthracite Grey", ral: 'RAL 7016' },
     { bg: '#424632', key: 'olive', name: "Olive Green", ral: 'RAL 6003' },

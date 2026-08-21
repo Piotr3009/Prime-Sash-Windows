@@ -88,7 +88,7 @@ const pricingConfig = {
     
     // Color surcharges - nieużywane, obsługiwane bezpośrednio w price-calculator
     colorSurcharges: {
-      'white': 0,         // Pure White - bez dopłaty
+      'white': 0,         // Traffic White (RAL 9016) - bez dopłaty
       'oak': 0.30,        // Oak - +30%
       'custom': 0.10,     // Custom Color - +10%
       'other': 0.05       // Inne kolory - +5%

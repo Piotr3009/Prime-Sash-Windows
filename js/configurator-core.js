@@ -93,7 +93,7 @@ class ConfiguratorCore {
     }
     if (!window.currentConfig.colorSingle) {
       window.currentConfig.colorSingle = 'white';
-      window.currentConfig.colorSingleName = 'Pure White';
+      window.currentConfig.colorSingleName = 'Traffic White';
     }
     
     // Subskrybuj zmiany
@@ -747,6 +747,23 @@ class ConfiguratorCore {
     var windowType = (document.querySelector('input[name="window-type"]:checked') || {}).value;
     if (productRange === 'doors' || windowType === 'casement') return;
     
+    // SOURCE-OF-TRUTH REFRESH (fix: stale-price race, Aug 2026)
+    // Every pricing pass must read the live DOM state; currentConfig wins the
+    // merge below, and actualFrameWidth/Height is a derived cache the price
+    // calculator prefers over width — purge it so pricing follows the inputs.
+    if (window.currentConfig) {
+      var _ws = document.getElementById('width-select');
+      var _hs = document.getElementById('height-select');
+      var _liveW = (_ws && _ws.value && _ws.value !== 'custom') ? parseInt(_ws.value, 10) : parseInt((document.getElementById('width') || {}).value, 10);
+      var _liveH = (_hs && _hs.value && _hs.value !== 'custom') ? parseInt(_hs.value, 10) : parseInt((document.getElementById('height') || {}).value, 10);
+      if (!isNaN(_liveW)) window.currentConfig.width = _liveW;
+      if (!isNaN(_liveH)) window.currentConfig.height = _liveH;
+      window.currentConfig.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
+      window.currentConfig.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+      delete window.currentConfig.actualFrameWidth;
+      delete window.currentConfig.actualFrameHeight;
+    }
+    
     // Merge state with currentConfig (currentConfig has color data)
     const stateConfig = this.state.get();
     const config = { ...stateConfig, ...window.currentConfig };
@@ -997,7 +1014,7 @@ class ConfiguratorCore {
       frameType: 'standard',
       colorType: 'single',
       colorSingle: 'white',
-      colorSingleName: 'Pure White',
+      colorSingleName: 'Traffic White',
       singleColor: 'white',
       interiorColor: 'white',
       exteriorColor: 'black',

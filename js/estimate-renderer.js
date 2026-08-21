@@ -212,8 +212,8 @@ class EstimateRenderer {
         const colorType = fc.colorType || item.color_type || 'single';
         let colorDisplay = '';
         const formatColor = (name, ral) => {
-            if (!name || name === 'white') return 'Pure White (RAL 9016)';
-            if (name === 'Pure White') return 'Pure White (RAL 9016)';
+            if (!name || name === 'white') return 'Traffic White (RAL 9016)';
+            if (name === 'Pure White' || name === 'Traffic White') return 'Traffic White (RAL 9016)';
             if (ral && ral.startsWith('F&B')) return `${name} (Farrow & Ball)`;
             if (ral && ral.startsWith('RAL') && !name.startsWith('RAL')) return `${name} (${ral})`;
             if (name.startsWith('RAL')) return name;

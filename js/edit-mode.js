@@ -213,7 +213,7 @@
         if (window.currentConfig) {
           window.currentConfig.colorType = 'single';
           window.currentConfig.colorSingle = fc.colorSingle || 'white';
-          window.currentConfig.colorSingleName = fc.colorSingleName || 'Pure White';
+          window.currentConfig.colorSingleName = fc.colorSingleName || 'Traffic White';
           window.currentConfig.colorSingleRal = fc.colorSingleRal || '';
           window.currentConfig.singleColor = fc.colorSingle || 'white';
           window.currentConfig.woodColor = hex;
@@ -673,7 +673,7 @@
         if (isSingle) {
           const dp = document.getElementById('d-single-preview-name');
           const dr = document.getElementById('d-single-preview-ral');
-          if (dp) dp.textContent = fc.colorSingleName || 'Pure White';
+          if (dp) dp.textContent = fc.colorSingleName || 'Traffic White';
           if (dr) dr.textContent = fc.colorSingleRal || '';
         } else {
           const dpi = document.getElementById('d-dual-preview-interior');
@@ -893,27 +893,27 @@
       if (specDual) specDual.style.display = 'none';
       const nameEl = document.getElementById('spec-color-name');
       const ralEl = document.getElementById('spec-color-ral');
-      if (nameEl) nameEl.textContent = fc.colorSingleName || 'Pure White';
+      if (nameEl) nameEl.textContent = fc.colorSingleName || 'Traffic White';
       if (ralEl) ralEl.textContent = fc.colorSingleRal || 'RAL 9016';
       if (hint) hint.textContent = fc.colorSingleName || 'White';
       // Update color picker preview
       const prevName = document.getElementById(p + 'single-preview-name');
       const prevRal = document.getElementById(p + 'single-preview-ral');
-      if (prevName) prevName.textContent = fc.colorSingleName || 'Pure White';
+      if (prevName) prevName.textContent = fc.colorSingleName || 'Traffic White';
       if (prevRal) prevRal.textContent = fc.colorSingleRal || '#FAFAFA';
     } else {
       if (specSingle) specSingle.style.display = 'none';
       if (specDual) specDual.style.display = 'block';
       const intEl = document.getElementById('spec-interior-color');
       const extEl = document.getElementById('spec-exterior-color');
-      if (intEl) intEl.textContent = (fc.colorInteriorName || 'Pure White') + ' (' + (fc.colorInteriorRal || 'RAL 9016') + ')';
-      if (extEl) extEl.textContent = (fc.colorExteriorName || 'Pure White') + ' (' + (fc.colorExteriorRal || 'RAL 9016') + ')';
+      if (intEl) intEl.textContent = (fc.colorInteriorName || 'Traffic White') + ' (' + (fc.colorInteriorRal || 'RAL 9016') + ')';
+      if (extEl) extEl.textContent = (fc.colorExteriorName || 'Traffic White') + ' (' + (fc.colorExteriorRal || 'RAL 9016') + ')';
       if (hint) hint.textContent = 'Dual';
       // Update color picker preview
       const prevInt = document.getElementById(p + 'dual-preview-interior');
       const prevExt = document.getElementById(p + 'dual-preview-exterior');
-      if (prevInt) prevInt.textContent = (fc.colorInteriorName || 'Pure White') + ' (' + (fc.colorInteriorRal || 'RAL 9016') + ')';
-      if (prevExt) prevExt.textContent = (fc.colorExteriorName || 'Pure White') + ' (' + (fc.colorExteriorRal || 'RAL 9016') + ')';
+      if (prevInt) prevInt.textContent = (fc.colorInteriorName || 'Traffic White') + ' (' + (fc.colorInteriorRal || 'RAL 9016') + ')';
+      if (prevExt) prevExt.textContent = (fc.colorExteriorName || 'Traffic White') + ' (' + (fc.colorExteriorRal || 'RAL 9016') + ')';
     }
   }
 
@@ -1030,7 +1030,7 @@
 
     // Fix-only: set preview elements directly (its own color module)
     if (isFixOnly) {
-      const colorName = fc.colorSingleName || 'Pure White';
+      const colorName = fc.colorSingleName || 'Traffic White';
       const colorRal = fc.colorSingleRal || '#FAFAFA';
       const pn = document.getElementById('fx-single-preview-name');
       const pr = document.getElementById('fx-single-preview-ral');
@@ -1047,7 +1047,7 @@
       // Find hex from sash picker (shared tiles) for 3D
       const colorKey = fc.colorSingle || fc.singleColor;
       const opt = document.querySelector(`.color-option[data-color="${colorKey}"]`) ||
-                  document.querySelector(`.color-option[data-name="${colorName}"]`);
+                  document.querySelector(`.color-option[data-name="${colorName === 'Pure White' ? 'Traffic White' : colorName}"]`);
       if (opt && window.update3D) {
         let hex = opt.style.backgroundColor || '#FAFAFA';
         if (hex.startsWith('rgb')) {
@@ -1074,7 +1074,7 @@
 
       // Find in correct picker
       const opt = document.querySelector(`${singleSelector}[data-color="${colorKey}"]`) ||
-                  document.querySelector(`${singleSelector}[data-name="${colorName}"]`);
+                  document.querySelector(`${singleSelector}[data-name="${colorName === 'Pure White' ? 'Traffic White' : colorName}"]`);
 
       if (opt) {
         // For casement: click works because panel is visible
@@ -1094,7 +1094,7 @@
         if (window.currentConfig) {
           window.currentConfig.colorType = 'single';
           window.currentConfig.colorSingle = colorKey || 'white';
-          window.currentConfig.colorSingleName = colorName || 'Pure White';
+          window.currentConfig.colorSingleName = colorName || 'Traffic White';
           window.currentConfig.colorSingleRal = colorRal || '';
           window.currentConfig.singleColor = colorKey || 'white';
         }
@@ -1133,7 +1133,7 @@
         if (window.currentConfig) {
           window.currentConfig.colorType = 'single';
           window.currentConfig.colorSingle = colorKey || 'custom';
-          window.currentConfig.colorSingleName = colorName || 'Pure White';
+          window.currentConfig.colorSingleName = colorName || 'Traffic White';
           window.currentConfig.colorSingleRal = colorRal || '';
           window.currentConfig.singleColor = colorKey || 'custom';
         }

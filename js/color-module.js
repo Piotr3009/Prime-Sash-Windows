@@ -151,7 +151,7 @@
     h += buildDropdownRow(p, 'single');
     h += buildRalInput(p, 'single');
     h += '<div class="color-preview-info" id="' + p + '-single-preview-info">';
-    h += '<div class="preview-item"><span class="preview-label">Selected Color:</span><span class="preview-value" id="' + p + '-single-preview-name">Pure White</span></div>';
+    h += '<div class="preview-item"><span class="preview-label">Selected Color:</span><span class="preview-value" id="' + p + '-single-preview-name">Traffic White</span></div>';
     h += '<div class="preview-item"><span class="preview-label">Code:</span><span class="preview-value" id="' + p + '-single-preview-ral">#FAFAFA</span></div>';
     h += '</div></div>';
 
@@ -174,8 +174,8 @@
 
     // Dual preview
     h += '<div class="color-preview-info" id="' + p + '-dual-preview-info" style="display:none;">';
-    h += '<div class="preview-item"><span class="preview-label">Interior:</span><span class="preview-value" id="' + p + '-dual-preview-interior">Pure White (RAL 9016)</span></div>';
-    h += '<div class="preview-item"><span class="preview-label">Exterior:</span><span class="preview-value" id="' + p + '-dual-preview-exterior">Pure White (RAL 9016)</span></div>';
+    h += '<div class="preview-item"><span class="preview-label">Interior:</span><span class="preview-value" id="' + p + '-dual-preview-interior">Traffic White (RAL 9016)</span></div>';
+    h += '<div class="preview-item"><span class="preview-label">Exterior:</span><span class="preview-value" id="' + p + '-dual-preview-exterior">Traffic White (RAL 9016)</span></div>';
     h += '</div></div>';
 
     this.container.innerHTML = h;

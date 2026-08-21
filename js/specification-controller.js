@@ -644,8 +644,14 @@ class SpecificationController {
   }
 
   applyDimensions() {
-    const width = parseInt(document.getElementById('width').value);
-    const height = parseInt(document.getElementById('height').value);
+    // Select-first read: the hidden #width/#height inputs lag behind the selects,
+    // and this method runs on a 300ms debounce — reading the laggards here kept
+    // re-writing STALE actualFrame* into currentConfig after every price sync
+    // (the one-step-behind price bug). The selects are the live source of truth.
+    const _wSel = document.getElementById('width-select');
+    const _hSel = document.getElementById('height-select');
+    const width = (_wSel && _wSel.value && _wSel.value !== 'custom') ? parseInt(_wSel.value) : parseInt(document.getElementById('width').value);
+    const height = (_hSel && _hSel.value && _hSel.value !== 'custom') ? parseInt(_hSel.value) : parseInt(document.getElementById('height').value);
     const measurementType = document.querySelector('input[name="measurement-type"]:checked')?.value;
 
     // Calculate actual frame dimensions

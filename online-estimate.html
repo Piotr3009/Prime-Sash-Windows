@@ -2464,7 +2464,7 @@
           <div class="color-preview-info" id="single-color-preview-info">
             <div class="preview-item">
               <span class="preview-label">Selected Color:</span>
-              <span class="preview-value" id="single-preview-name">Pure White</span>
+              <span class="preview-value" id="single-preview-name">Traffic White</span>
             </div>
             <div class="preview-item">
               <span class="preview-label">Code:</span>
@@ -2497,7 +2497,7 @@
               <div class="ral-input-row"><input type="text" id="ext-ral-input" placeholder="RAL e.g. 7016"><button type="button" id="ext-ral-apply">Apply</button><span class="ral-error" id="ext-ral-error"></span></div>
             </div>
             <div class="color-preview-info" id="dual-color-preview-info" style="display:none;">
-              <div class="preview-item"><span class="preview-label">Interior:</span><span class="preview-value" id="dual-preview-interior">Pure White (RAL 9016)</span></div>
+              <div class="preview-item"><span class="preview-label">Interior:</span><span class="preview-value" id="dual-preview-interior">Traffic White (RAL 9016)</span></div>
               <div class="preview-item"><span class="preview-label">Exterior:</span><span class="preview-value" id="dual-preview-exterior">Jet Black (RAL 9005)</span></div>
             </div>
           </div>
@@ -3370,7 +3370,7 @@
           <div class="color-preview-info" id="c-single-color-preview-info">
             <div class="preview-item">
               <span class="preview-label">Selected Color:</span>
-              <span class="preview-value" id="c-single-preview-name">Pure White</span>
+              <span class="preview-value" id="c-single-preview-name">Traffic White</span>
             </div>
             <div class="preview-item">
               <span class="preview-label">Code:</span>
@@ -3403,7 +3403,7 @@
               <div class="ral-input-row"><input type="text" id="c-ext-ral-input" placeholder="RAL e.g. 7016"><button type="button" id="c-ext-ral-apply">Apply</button><span class="ral-error" id="c-ext-ral-error"></span></div>
             </div>
             <div class="color-preview-info" id="c-dual-color-preview-info" style="display:none;">
-              <div class="preview-item"><span class="preview-label">Interior:</span><span class="preview-value" id="c-dual-preview-interior">Pure White (RAL 9016)</span></div>
+              <div class="preview-item"><span class="preview-label">Interior:</span><span class="preview-value" id="c-dual-preview-interior">Traffic White (RAL 9016)</span></div>
               <div class="preview-item"><span class="preview-label">Exterior:</span><span class="preview-value" id="c-dual-preview-exterior">Jet Black (RAL 9005)</span></div>
             </div>
           </div>
@@ -4253,11 +4253,11 @@
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=3"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=7"></script>
-<script src="js/configurator-core.js?v=3"></script>
-<script src="js/color-config.js?v=1"></script>
-<script src="js/color-module.js?v=4"></script>
-<script src="js/casement-controller.js?v=14"></script>
+<script src="js/specification-controller.js?v=8"></script>
+<script src="js/configurator-core.js?v=4"></script>
+<script src="js/color-config.js?v=2"></script>
+<script src="js/color-module.js?v=5"></script>
+<script src="js/casement-controller.js?v=15"></script>
 <script src="js/casement-type-modal.js?v=12"></script>
 <script src="js/french-layout-picker.js?v=2"></script>
 <script src="js/door-controller.js?v=5"></script>
@@ -4273,10 +4273,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=3"></script>
-<script src="js/estimate-renderer.js?v=30"></script>
+<script src="js/estimate-renderer.js?v=31"></script>
 <script src="js/estimate-selector.js?v=3"></script>
 <script src="js/estimate-manager.js?v=7"></script>
-<script src="js/edit-mode.js?v=11"></script>
+<script src="js/edit-mode.js?v=12"></script>
 
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
@@ -4619,7 +4619,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=94";
+      psw3dScript.src = "3d/assets/window3d.js?v=95";
       document.head.appendChild(psw3dScript);
     }
   </script>
@@ -5073,6 +5073,201 @@
           // Auto-switch removed
         });
       });
+
+      // ── SINGLE SOURCE OF TRUTH: inputs -> engine -> price -> spec ──
+      // One full pipeline per active product type; wired to every type switch.
+      function syncActiveProduct() {
+        try {
+          var range = (document.querySelector('input[name="product-range"]:checked') || {}).value || 'windows';
+          if (range === 'doors') {
+            if (typeof window.updateDoor3D === 'function') window.updateDoor3D();
+            if (typeof window.updateDoorPrice === 'function') window.updateDoorPrice();
+            return;
+          }
+          var wt = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+          if (wt === 'casement') {
+            if (typeof window.updateCasement3D === 'function') window.updateCasement3D();
+            if (typeof window.updateCasementPrice === 'function') window.updateCasementPrice();
+          } else if (wt === 'fix-only') {
+            if (typeof window.updateCasement3D === 'function') window.updateCasement3D();
+            if (typeof window.updateFixPrice === 'function') window.updateFixPrice();
+            if (typeof window.updateFixSpec === 'function') window.updateFixSpec();
+          } else {
+            // sash: updateAll() prices from {...state, ...currentConfig} — currentConfig WINS,
+            // so every field the user can change must be forced from DOM here (stale-price root)
+            if (window.currentConfig) {
+              var _ws2 = document.getElementById('width-select');
+              var _hs2 = document.getElementById('height-select');
+              var _w = (_ws2 && _ws2.value && _ws2.value !== 'custom') ? parseInt(_ws2.value, 10) : parseInt((document.getElementById('width') || {}).value, 10);
+              var _h = (_hs2 && _hs2.value && _hs2.value !== 'custom') ? parseInt(_hs2.value, 10) : parseInt((document.getElementById('height') || {}).value, 10);
+              if (!isNaN(_w)) window.currentConfig.width = _w;
+              if (!isNaN(_h)) window.currentConfig.height = _h;
+              window.currentConfig.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
+              window.currentConfig.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+              // price-calculator prefers actualFrameWidth/Height over width when present —
+              // these are a derived cache and go stale; purge so pricing follows the inputs,
+              // populateInitialSpec() below rebuilds them fresh
+              delete window.currentConfig.actualFrameWidth;
+              delete window.currentConfig.actualFrameHeight;
+            }
+            // spec panel first (may regenerate derived caches from its own sources)
+            if (window.specificationController && window.specificationController.populateInitialSpec) {
+              window.specificationController.populateInitialSpec();
+            }
+            // Overwrite whatever the spec pass regenerated with FRESH derived
+            // values, and pin the spec panel text — this branch is the last word.
+            if (window.currentConfig) {
+              var _mt = (document.querySelector('input[name="measurement-type"]:checked') || {}).value;
+              var _fw = _w + (_mt === 'brick-to-brick' ? 150 : 0);
+              var _fh = _h + (_mt === 'brick-to-brick' ? 75 : 0);
+              if (!isNaN(_fw)) window.currentConfig.actualFrameWidth = _fw;
+              if (!isNaN(_fh)) window.currentConfig.actualFrameHeight = _fh;
+              var _sw = document.getElementById('spec-width');
+              var _sh = document.getElementById('spec-height');
+              if (_sw && !isNaN(_fw)) _sw.textContent = _fw + 'mm';
+              if (_sh && !isNaN(_fh)) _sh.textContent = _fh + 'mm';
+            }
+            var _writePrice = function() {
+              try {
+                var _merged = Object.assign({}, (window.AppState && window.AppState.get) ? window.AppState.get() : {}, window.currentConfig || {});
+                delete _merged.actualFrameWidth; delete _merged.actualFrameHeight;
+                var _pd = (typeof window.calculatePrice === 'function') ? window.calculatePrice(_merged) : null;
+                var _pe = document.getElementById('sidebar-total-price');
+                if (_pd && _pd.unitPrice > 0 && _pe) _pe.textContent = '£' + _pd.unitPrice.toFixed(2);
+              } catch (e2) {}
+            };
+            _writePrice();
+          }
+        } catch (e) { console.warn('[sync] syncActiveProduct failed:', e); }
+        armPriceGuard();
+      }
+      window.syncActiveProduct = syncActiveProduct;
+
+      // ── CANONICAL PRICE + GUARD ──────────────────────────────────────────
+      // Any late animated writer that lands a stale price gets corrected on the
+      // spot: we observe the sidebar for 2.5s after each sync and enforce the
+      // canonical value computed from the live inputs.
+      function canonicalPrice() {
+        try {
+          var range = (document.querySelector('input[name="product-range"]:checked') || {}).value || 'windows';
+          var wt = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+          var cfg = null;
+          if (range === 'doors') {
+            cfg = (typeof window.getDoorConfig === 'function') ? window.getDoorConfig() : null;
+          } else if (wt === 'casement') {
+            cfg = (typeof window.getCasementConfig === 'function') ? window.getCasementConfig() : null;
+          } else if (wt === 'fix-only') {
+            cfg = (typeof window.getFixConfig === 'function') ? window.getFixConfig() : null;
+          } else {
+            // Pure-DOM sash config: late writers keep poisoning currentConfig
+            // (stale actualFrame/width from the lagging hidden inputs), so the
+            // canon must not trust it for the fields the user can change.
+            var m = Object.assign({}, (window.AppState && window.AppState.get) ? window.AppState.get() : {}, window.currentConfig || {});
+            delete m.actualFrameWidth; delete m.actualFrameHeight;
+            var _cw = document.getElementById('width-select');
+            var _ch = document.getElementById('height-select');
+            var _vw = (_cw && _cw.value && _cw.value !== 'custom') ? parseInt(_cw.value, 10) : parseInt((document.getElementById('width') || {}).value, 10);
+            var _vh = (_ch && _ch.value && _ch.value !== 'custom') ? parseInt(_ch.value, 10) : parseInt((document.getElementById('height') || {}).value, 10);
+            if (!isNaN(_vw)) m.width = _vw;
+            if (!isNaN(_vh)) m.height = _vh;
+            m.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
+            m.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+            m.measurementType = (document.querySelector('input[name="measurement-type"]:checked') || {}).value || m.measurementType;
+            cfg = m;
+          }
+          if (!cfg || typeof window.calculatePrice !== 'function') return null;
+          var pd = window.calculatePrice(cfg);
+          return (pd && pd.unitPrice > 0) ? '£' + pd.unitPrice.toFixed(2) : null;
+        } catch (e) { return null; }
+      }
+      // Permanent dynamic guard: the sidebar must ALWAYS equal canonicalPrice()
+      // computed from the LIVE inputs at the moment of each write. A frozen
+      // snapshot here caused the one-step-behind bug (the old value was being
+      // enforced against newer, correct writes). Dynamic recompute makes writer
+      // ordering irrelevant: whoever writes last gets corrected to the fresh
+      // canon, and the correction itself re-triggers, matches, and stops.
+      function enforceCanonicalPrice() {
+        var el = document.getElementById('sidebar-total-price');
+        if (!el) return;
+        var want = canonicalPrice();
+        if (want && el.textContent !== want) el.textContent = want;
+      }
+      function armPriceGuard() { enforceCanonicalPrice(); }
+      (function() {
+        var el = document.getElementById('sidebar-total-price');
+        if (el && window.MutationObserver) {
+          new MutationObserver(function() { enforceCanonicalPrice(); })
+            .observe(el, { childList: true, characterData: true, subtree: true });
+        }
+      })();
+
+      // Serialized scheduler with MAXWAIT: cascades of synthetic events kept
+      // pushing a pure trailing debounce forever — guarantee a sync no later
+      // than 600ms after the burst starts, plus a trailing one for final state.
+      var syncTimer = null, syncDeadline = null;
+      function runScheduledSync() { syncTimer = null; syncDeadline = null; syncActiveProduct(); }
+      function scheduleSync() {
+        var now = Date.now();
+        if (!syncDeadline) syncDeadline = now + 600;
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(runScheduledSync, Math.max(0, Math.min(350, syncDeadline - now)));
+      }
+      window.scheduleProductSync = scheduleSync;
+
+      // Event DELEGATION at document level (capture): direct element listeners
+      // die when init code clone-replaces inputs — delegation survives any swap.
+      var SYNC_IDS = { 'width':1, 'width-select':1, 'height':1, 'height-select':1, 'c-width':1, 'c-height':1, 'd-width':1, 'd-height':1 };
+      var SYNC_NAMES = { 'window-type':1, 'product-range':1, 'head-type':1, 'sash-type':1 };
+      var _microQueued = false;
+      function maybeScheduleSync(e) {
+        var t = e.target || {};
+        if (!(SYNC_IDS[t.id] || SYNC_NAMES[t.name])) return;
+        // Immediate microtask sync: this environment throttles setTimeout hard
+        // enough that a deferred timer can fire in the NEXT interaction and
+        // price the PREVIOUS state. Microtasks are never throttled; the
+        // mutation-driven canonical guard (also timerless) finishes the job.
+        if (!_microQueued) {
+          _microQueued = true;
+          Promise.resolve().then(function() { _microQueued = false; syncActiveProduct(); });
+        }
+        scheduleSync();
+      }
+      document.addEventListener('change', maybeScheduleSync, true);
+      document.addEventListener('input', maybeScheduleSync, true);
+
+      // ── INVARIANT WATCHDOG: 3D dimensions must ALWAYS equal the active inputs ──
+      // One-directional heal (inputs are the source of truth); logs the trigger.
+      var DIM_IDS = { sash: ['width', 'height'], casement: ['c-width', 'c-height'], 'fix-only': ['c-width', 'c-height'], door: ['d-width', 'd-height'] };
+      function activeDimIds() {
+        var range = (document.querySelector('input[name="product-range"]:checked') || {}).value || 'windows';
+        if (range === 'doors') return DIM_IDS.door;
+        var wt = (document.querySelector('input[name="window-type"]:checked') || {}).value || 'sash';
+        return DIM_IDS[wt] || DIM_IDS.sash;
+      }
+      var wdTimer = null;
+      function dimWatchdog(src) {
+        clearTimeout(wdTimer);
+        wdTimer = setTimeout(function() {
+          try {
+            if (typeof window.get3DConfig !== 'function') return;
+            var ids = activeDimIds();
+            var wEl = document.getElementById(ids[0]);
+            var hEl = document.getElementById(ids[1]);
+            if (!wEl || !hEl) return;
+            var iw = parseInt(wEl.value, 10), ih = parseInt(hEl.value, 10);
+            var c3 = window.get3DConfig() || {};
+            var badW = !isNaN(iw) && typeof c3.extWidth === 'number' && c3.extWidth !== iw;
+            var badH = !isNaN(ih) && typeof c3.extHeight === 'number' && c3.extHeight !== ih;
+            if (badW || badH) {
+              console.warn('[dim-sync] mismatch after "' + src + '": inputs ' + iw + 'x' + ih + ' vs 3D ' + c3.extWidth + 'x' + c3.extHeight + ' — auto-healing');
+              if (typeof window.update3D === 'function') window.update3D({ extWidth: iw, extHeight: ih });
+              scheduleSync();
+            }
+          } catch (e) {}
+        }, 450);
+      }
+      document.addEventListener('change', function(e) { dimWatchdog((e.target && (e.target.id || e.target.name)) || '?'); }, true);
+      document.addEventListener('input', function(e) { dimWatchdog((e.target && e.target.id) || '?'); }, true);
 
       // ── INIT: Sync currentConfig with actual DOM radio state ──
       // Prevents localStorage from polluting windowType/windowCategory
@@ -6064,12 +6259,12 @@
           colorType: (function() { var v = (document.querySelector('input[name="fx-colour-mode"]:checked') || {}).value || 'same'; return v === 'dual' ? 'dual' : 'single'; })(),
           colorSingle: (function() {
             var pn = document.getElementById('fx-single-preview-name');
-            var name = pn ? pn.textContent.trim() : 'Pure White';
-            return name === 'Pure White' ? 'white' : 'custom';
+            var name = pn ? pn.textContent.trim() : 'Traffic White';
+            return (name === 'Traffic White' || name === 'Pure White') ? 'white' : 'custom';
           })(),
           colorSingleName: (function() {
             var pn = document.getElementById('fx-single-preview-name');
-            return pn ? pn.textContent.trim() : 'Pure White';
+            return pn ? pn.textContent.trim() : 'Traffic White';
           })(),
           colorSingleRal: (function() {
             var fbSel = document.getElementById('fx-single-fb-select');
@@ -6158,6 +6353,13 @@
           var defaultW = isTriple ? 2000 : 1000;
           var defaultH = isTriple ? 1500 : 1500;
 
+          // Preserve the user's dimensions when they fit the new type's range;
+          // fall back to defaults only when out of range (same rule as doors).
+          var curW = parseInt((widthInput || {}).value, 10);
+          var curH = parseInt((heightInput || {}).value, 10);
+          var newW = (!isNaN(curW) && curW >= minW && curW <= maxW) ? curW : defaultW;
+          var newH = (!isNaN(curH) && curH >= minH && curH <= maxH) ? curH : defaultH;
+
           if (widthInput) { widthInput.min = minW; widthInput.max = maxW; }
           if (heightInput) { heightInput.min = minH; heightInput.max = maxH; }
 
@@ -6168,8 +6370,9 @@
               var v = parseInt(opt.value);
               opt.style.display = (v >= minW && v <= maxW) ? '' : 'none';
             });
-            widthInput.value = defaultW;
-            widthSelect.value = String(defaultW);
+            widthInput.value = newW;
+            widthSelect.value = String(newW);
+            if (widthSelect.value !== String(newW)) widthSelect.value = 'custom';
           }
 
           // Filter height options
@@ -6179,8 +6382,9 @@
               var v = parseInt(opt.value);
               opt.style.display = (v >= minH && v <= maxH) ? '' : 'none';
             });
-            heightInput.value = defaultH;
-            heightSelect.value = String(defaultH);
+            heightInput.value = newH;
+            heightSelect.value = String(newH);
+            if (heightSelect.value !== String(newH)) heightSelect.value = 'custom';
           }
 
           // UI: hide "both" opening for triple, restore for double
@@ -6205,8 +6409,8 @@
             window.update3D({
               sashType: radio.value,
               headType: headType,
-              extWidth: defaultW,
-              extHeight: defaultH
+              extWidth: newW,
+              extHeight: newH
             });
           }
 
@@ -6215,6 +6419,8 @@
             window.specificationController.applyProductRange();
             window.specificationController.applyDimensions();
           }
+          // Recompute price/spec from the fresh state (kills stale-price residue)
+          if (typeof window.scheduleProductSync === 'function') window.scheduleProductSync();
         });
       });
 
