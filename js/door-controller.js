@@ -35,6 +35,7 @@
   var DOOR_DIMS = {
     'single-external': { wMin: 600, wMax: 1100, hMin: 1900, hMax: 3000, defaultW: 900, defaultH: 2100 },
     'front-door':      { wMin: 700, wMax: 1200, hMin: 1900, hMax: 3000, defaultW: 900, defaultH: 2100 },
+    'front-door-2':    { wMin: 1400, wMax: 2400, hMin: 1900, hMax: 3000, defaultW: 1800, defaultH: 2100 },  // Double front door (2 leaves, 50/50)
     'french':          { wMin: 1000, wMax: 2000, hMin: 1900, hMax: 3000, defaultW: 1400, defaultH: 2100 },
     'sliding':         { wMin: 1500, wMax: 8000, hMin: 1900, hMax: 2500, defaultW: 2400, defaultH: 2100 },
     'bifold':          { wMin: 1500, wMax: 7500, hMin: 1900, hMax: 2500, defaultW: 3000, defaultH: 2100 }
@@ -48,6 +49,8 @@
     var isBifold = doorType === 'bifold';
     var isFrontDoor = doorType === 'front-door';   // Layer 1: behaves as single; panels/arch/sunburst come in later layers
     var prefix = isFrench ? 'fd-door-' : 'door-';
+    // Double front door: 2 leaves (50/50 split); hinge side selects the ACTIVE leaf
+    var frontDoorLeaves = isFrontDoor ? (parseInt(checked('fdr-leaves') || '1', 10) === 2 ? 2 : 1) : 1;
 
     // Sliding: fixed defaults (no shape/style/paneling/sidePanels)
     // Bifold: fixed shape + no sidePanels/mullion, but style/paneling allowed
@@ -170,6 +173,8 @@
     var transomHeight = transomCapable ? (numVal('fd-transom-height') || 450) : 0;
     // Arched fanlight: a semi-circle's rise IS half the width — the height input
     // does not apply, so it is computed here and the field is disabled in the UI.
+    // Double front door: arched fanlight blocked (rise = W/2 + 80mm folds on wide spans) - force rectangular
+    if (isFrontDoor && frontDoorLeaves === 2 && transomType === 'arched') { transomType = 'fixed'; }
     if (isFrontDoor && transomType === 'arched') {
       transomHeight = Math.round((numVal('d-width') || 900) / 2) + 80;  // + 80mm straight springing (frame face is 64mm)
     }
@@ -178,6 +183,7 @@
     return {
       productType: 'door',
       doorType: doorType,
+      frontDoorLeaves: frontDoorLeaves,
       doorShape: doorShape,
       doorStyle: doorStyle,
       doorPaneling: doorPaneling,
@@ -253,6 +259,7 @@
     window.update3D({
       windowCategory: 'door',
       doorType: config.doorType,
+      frontDoorLeaves: config.frontDoorLeaves,
       doorShape: config.doorShape,
       doorStyle: config.doorStyle,
       paneling: config.doorPaneling,
@@ -329,7 +336,7 @@
     // Door Type name
     var specDoorType = $('spec-d-door-type');
     var doorTypeLabels = { 'single-external': 'Single Patio Door', 'front-door': 'Front Door', 'french': 'French Doors', 'sliding': 'Sliding Door', 'bifold': 'Bi-Fold Door' };
-    if (specDoorType) specDoorType.textContent = doorTypeLabels[config.doorType] || 'Single Patio Door';
+    if (specDoorType) specDoorType.textContent = (config.doorType === 'front-door' && config.frontDoorLeaves === 2) ? 'Double Front Door' : (doorTypeLabels[config.doorType] || 'Single Patio Door');
 
     // Shape / Style / Paneling / Mullion — hide for sliding/bifold
     var isSliding = config.doorType === 'sliding';
@@ -592,6 +599,11 @@
   function updateDimConstraints() {
     var doorType = checked('door-type') || 'single-external';
     var dims = DOOR_DIMS[doorType] || DOOR_DIMS['single-external'];
+    // Double front door uses its own range
+    if (doorType === 'front-door') {
+      var fdlSel = document.querySelector('input[name="fdr-leaves"]:checked');
+      if (fdlSel && fdlSel.value === '2') dims = DOOR_DIMS['front-door-2'];
+    }
 
     var wEl = $('d-width');
     var hEl = $('d-height');
@@ -742,6 +754,24 @@
           }
           updateSpecPanel();
         }
+      });
+    });
+    // Double front door toggle: dims range, arch lock, hint, rerender
+    document.querySelectorAll('input[name="fdr-leaves"]').forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        var dbl = (checked('fdr-leaves') === '2');
+        updateDimConstraints();
+        var archEl = $('fdr-fanlight-arched');
+        if (archEl) {
+          archEl.disabled = dbl;
+          if (dbl && archEl.checked) {
+            var fixEl = $('fdr-fanlight-fixed');
+            if (fixEl) { fixEl.checked = true; fixEl.dispatchEvent(new Event('change', { bubbles: true })); }
+          }
+        }
+        var hintEl = $('fdr-leaves-hint');
+        if (hintEl) hintEl.textContent = dbl ? 'Hinge side selects the active leaf (letterplate, knocker, numerals). Arched fanlight is not available on double doors.' : '';
+        updateDoor3D(); updateSpecPanel(); updateDoorPrice();
       });
     });
     ['fdr-panels', 'fdr-top', 'fdr-side-panels'].forEach(function(nm) {

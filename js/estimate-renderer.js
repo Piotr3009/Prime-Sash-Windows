@@ -662,7 +662,7 @@ class EstimateRenderer {
                             ${R.specRow('Colour', p.colorDisplay)}
                             ${R.specRow('Bars', p.fixBarsFull)}
                             ` : p.windowType === 'door' ? `
-                            ${R.specRow('Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? 'Front Door' : 'Single Patio Door'))))}
+                            ${R.specRow('Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? ((p.frontDoorLeaves === 2) ? 'Double Front Door' : 'Front Door') : 'Single Patio Door'))))}
                             ${p.isSlidingOrBifold ? '' : R.specRow('Shape', p.doorShapeText)}
                             ${p.isSliding || p.fdrPanelsSpecText ? '' : R.specRow('Style', p.doorStyleText)}
                             ${p.fdrPanelsSpecText ? R.specRow('Panels', p.fdrPanelsSpecText) : ''}
@@ -3804,7 +3804,7 @@ class EstimateRenderer {
             const ax = doorX + doorW / 2;
             svg += `<line x1="${ax - arrowDir * 18}" y1="${arrowY}" x2="${ax + arrowDir * 18}" y2="${arrowY}" stroke="${mid}" stroke-width="1.5"/>`;
             svg += `<polygon points="${ax + arrowDir * 18},${arrowY} ${ax + arrowDir * 13},${arrowY - 3} ${ax + arrowDir * 13},${arrowY + 3}" fill="${mid}"/>`;
-        } else if (isFrench) {
+        } else if (isFrench || (isFrontDoorSVG && (fc.frontDoorLeaves || 1) === 2)) {
             // Two leaves, no mullion
             const halfDoorW = (doorW - frameT * 2) / 2;
             const leftLeafX = doorX + frameT;
@@ -4192,7 +4192,7 @@ class EstimateRenderer {
                     specs.push(['Colour', p.colorDisplay]);
                     specs.push(['Bars', p.fixBarsFull]);
                 } else if (p.windowType === 'door') {
-                    specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? 'Front Door' : 'Single Door')))]);
+                    specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? ((p.frontDoorLeaves === 2) ? 'Double Front Door' : 'Front Door') : 'Single Door')))]);
                     if (!p.isSlidingOrBifold) specs.push(['Shape', p.doorShapeText]);
                     if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
                     if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);
@@ -4252,7 +4252,7 @@ class EstimateRenderer {
                     `).join('')
                     : `<div style="font-family:'Jost',sans-serif;font-size:11px;color:#888;font-style:italic;">No ironmongery specified for this item.</div>`;
 
-                const typeLabel = p.windowType === 'door' ? (p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? 'Front Door' : 'Single Door'))))
+                const typeLabel = p.windowType === 'door' ? (p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? ((p.frontDoorLeaves === 2) ? 'Double Front Door' : 'Front Door') : 'Single Door'))))
                     : p.windowType === 'casement' ? 'Casement Window'
                     : p.windowType === 'fix-only' ? 'Fix Frame'
                     : p.sashType === 'triple' ? 'Triple Sash Window'
@@ -4774,7 +4774,7 @@ class EstimateRenderer {
                 specs.push(['Colour', p.colorDisplay]);
                 specs.push(['Bars', p.fixBarsFull]);
             } else if (p.windowType === 'door') {
-                specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? 'Front Door' : 'Single Patio Door')))]);
+                specs.push(['Type', p.isSliding ? p.slidingTypeText : (p.isBifold ? p.bifoldTypeText : (p.doorType === 'french' ? 'French Doors' : (p.doorType === 'front-door' ? ((p.frontDoorLeaves === 2) ? 'Double Front Door' : 'Front Door') : 'Single Patio Door')))]);
                 if (!p.isSlidingOrBifold) specs.push(['Shape', p.doorShapeText]);
                 if (!p.isSliding) specs.push(['Style', p.doorStyleText]);
                 if (!p.isSliding && p.doorStyle !== 'full-glass') specs.push(['Paneling', p.doorPanelingText]);

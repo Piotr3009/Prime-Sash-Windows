@@ -980,7 +980,7 @@ export default function DoorWindow({
             centerMullion={centerMullion}
             paneling={paneling}
             panelGrid={isFanlight ? null : panelGrid}
-            furniture={isFanlight ? null : furniture}
+            furniture={isFanlight || (layout === '040F' && p.hinge !== primaryLeaf) ? null : furniture}
             {...(!isFanlight && panelGrid ? { stileWidthMm: 94, topRailMm: 94, bottomRailMm: 180 } : {})}
             material={extMaterial}
             materialInt={intMaterial}

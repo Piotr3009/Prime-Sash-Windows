@@ -114,7 +114,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css?v=7">
+  <link rel="stylesheet" href="css/main.css?v=5">
   <link rel="stylesheet" href="css/configurator.css?v=2">
   <style>
 .login-button-top {
@@ -350,7 +350,6 @@
         <p class="sidebar-price-value" id="sidebar-total-price">£0.00</p>
         <p class="sidebar-price-note">per window excl. VAT</p>
         <p class="sidebar-price-note" style="margin-top:6px;color:rgba(192,192,192,.6);font-size:.65rem;letter-spacing:.1em;">🇬🇧 Made in UK · 4–5 week delivery</p>
-        <a class="tmmx-sidebar-note" href="https://www.themanufacturer.com/articles/finalists-announced-for-updated-the-manufacturer-mx-awards-2026/" target="_blank" rel="noopener">MX Awards 2026 &middot; <b>Smart Factory Finalist</b></a>
       </div>
       <div class="sidebar-reset">
         <button class="btn-reset-window" id="btn-reset-window">↺ RESET WINDOW</button>
@@ -997,6 +996,21 @@
       <!-- ═══ FRONT DOOR DESIGN (front-door only) ═══ -->
       <div class="config-section" data-for="door" data-category="door-dimensions" id="fdr-design-options" style="display:none;">
         <h3>Step 2: Door Design</h3>
+
+        <h3>Configuration</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="fdr-leaves-1" name="fdr-leaves" value="1" checked>
+              <label for="fdr-leaves-1" class="radio-label">Single Door</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="fdr-leaves-2" name="fdr-leaves" value="2">
+              <label for="fdr-leaves-2" class="radio-label">Double Door (2 Leaves)</label>
+            </div>
+          </div>
+          <p style="font-size:0.65rem;color:#999;margin-top:4px;" id="fdr-leaves-hint"></p>
+        </div>
 
         <h3>Panels</h3>
         <div class="input-group">
@@ -4189,10 +4203,6 @@
     <div style="width:36px;height:1px;background:linear-gradient(90deg,rgba(158,158,144,0),rgba(158,158,144,.6),rgba(158,158,144,0));"></div>
   </div>
   <span style="font-size:11px;color:rgba(255,255,255,.25);font-family:'Jost',sans-serif;">&copy; 2026 Prime Sash Windows. All rights reserved. A trading name of Skylon Joinery LTD</span>
-
-  <a class="ft-tmmx" href="https://www.themanufacturer.com/articles/finalists-announced-for-updated-the-manufacturer-mx-awards-2026/" target="_blank" rel="noopener">
-    <img src="img/tmmx/tmmx-smart-factory-finalist.webp" alt="The Manufacturer MX Awards 2026 — Smart Factory Finalist" width="650" height="150" loading="lazy">
-  </a>
 </footer>
 
 <!-- SCRIPTS - POPRAWIONA KOLEJNOŚĆ -->
@@ -4233,7 +4243,7 @@
 <script src="js/casement-controller.js?v=13"></script>
 <script src="js/casement-type-modal.js?v=11"></script>
 <script src="js/french-layout-picker.js?v=2"></script>
-<script src="js/door-controller.js?v=4"></script>
+<script src="js/door-controller.js?v=5"></script>
 
 <!-- Authentication Integration -->
 <script src="js/menu-loader.js?v=3"></script>
@@ -4246,10 +4256,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=3"></script>
-<script src="js/estimate-renderer.js?v=28"></script>
+<script src="js/estimate-renderer.js?v=29"></script>
 <script src="js/estimate-selector.js?v=3"></script>
 <script src="js/estimate-manager.js?v=7"></script>
-<script src="js/edit-mode.js?v=10"></script>
+<script src="js/edit-mode.js?v=11"></script>
 
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
@@ -4592,7 +4602,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=91";
+      psw3dScript.src = "3d/assets/window3d.js?v=92";
       document.head.appendChild(psw3dScript);
     }
   </script>

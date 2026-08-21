@@ -797,7 +797,7 @@ function Scene({ config, isMobile }) {
               <DoorWindow
                 width={config.extWidth}
                 height={config.extHeight}
-                layout={config.doorType === 'sliding' ? ('0' + config.panelCount + '0S') : config.doorType === 'bifold' ? ('0' + config.panelCount + '0B') : config.doorType === 'french' ? '040F' : (config.doorHinge === 'right' ? '040R' : '040L')}
+                layout={config.doorType === 'sliding' ? ('0' + config.panelCount + '0S') : config.doorType === 'bifold' ? ('0' + config.panelCount + '0B') : (config.doorType === 'french' || (config.doorType === 'front-door' && config.frontDoorLeaves === 2)) ? '040F' : (config.doorHinge === 'right' ? '040R' : '040L')}
                 opening={config.doorOpening || 0}
                 primaryLeaf={config.doorHinge || 'left'}
                 openDirection={config.doorOpenDirection || 'outward'}

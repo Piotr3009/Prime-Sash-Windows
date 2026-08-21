@@ -562,6 +562,9 @@
         // Single external + Front Door (both use door- prefix)
         if (doorType === 'single-external' || doorType === 'front-door') {
           if (doorType === 'front-door') {
+            // Leaves FIRST - the change listener widens the dims range before other fields settle
+            setRadio('fdr-leaves', String(fc.frontDoorLeaves === 2 ? 2 : 1));
+            setInput('d-width', w, 'input');  // re-apply width after range switch (clamp guard)
             // Panel grid: count + top row glazing (restore BEFORE fanlight so
             // side-panel locking sees the final state last)
             const pg = fc.panelGrid || {};

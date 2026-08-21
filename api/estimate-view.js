@@ -9,7 +9,7 @@
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://rfelsfwjszjdtzuovlal.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmZWxzZndqc3pqZHR6dW92bGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Nzc1MTgsImV4cCI6MjA5MDA1MzUxOH0.Ut9EtffoU-L1g6IKiqcaVaoA2sEDoc0so821L1Uxn_A';
 
-const RENDERER_VERSION = '27'; // keep in sync with the ?v= used on dashboards
+const RENDERER_VERSION = '29'; // keep in sync with the ?v= used on dashboards
 
 function escapeHtml(str) {
   return String(str == null ? '' : str).replace(/[&<>"']/g, m => ({
@@ -47,8 +47,6 @@ function pageShell(title, bodyHtml, opts = {}) {
   .share-center { max-width: 560px; margin: 12vh auto 0; text-align: center; padding: 0 1.5rem; }
   .share-center h1 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 600; margin-bottom: .8rem; }
   .share-center p { color: #555; line-height: 1.7; font-size: .95rem; }
-  .share-tmmx { font-size: .64rem; letter-spacing: .22em; text-transform: uppercase; margin: 0 0 .5rem; }
-  .share-tmmx a { color: #00A69C; text-decoration: none; font-weight: 500; }
   .share-sep { width: 60px; height: 1px; margin: 1.2rem auto; background: linear-gradient(90deg, transparent, var(--silver), transparent); }
 </style>
 ${withRenderer ? `
@@ -66,7 +64,7 @@ ${withRenderer ? `
   ${bodyHtml}
 ${withRenderer ? `
 <script>window.__SHARED_ESTIMATE__ = ${estimateJson};</script>
-<script src="/js/viewer3d-modal.js?v=3"></script>
+<script src="/js/viewer3d-modal.js?v=4"></script>
 <script src="/js/estimate-renderer.js?v=${RENDERER_VERSION}"></script>
 <script>
   (function () {
@@ -141,7 +139,6 @@ module.exports = async (req, res) => {
   const title = 'Estimate ' + (data.estimate_number || '');
   const body = `
     <div class="share-wrap">
-      <p class="share-tmmx"><a href="https://www.themanufacturer.com/articles/finalists-announced-for-updated-the-manufacturer-mx-awards-2026/" target="_blank" rel="noopener">The Manufacturer MX Awards 2026 &mdash; Smart Factory Finalist</a></p>
       <p class="share-note">This is a live view of your estimate — it always shows the current version. Use the Download PDF button for a copy.</p>
       <div id="share-estimate"></div>
     </div>`;
