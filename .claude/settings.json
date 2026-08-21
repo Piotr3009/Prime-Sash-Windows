@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(git reset --hard)",
+      "Bash(git checkout -- *)",
+      "Bash(git checkout .)",
+      "Bash(git restore .)",
+      "Bash(git restore *)",
+      "Bash(git clean *)",
+      "Bash(git stash drop *)",
+      "Bash(git stash drop)",
+      "Bash(git stash clear)",
+      "Bash(git branch -D *)",
+      "Bash(git rebase *)",
+      "Bash(git commit --amend *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
+      "Bash(Remove-Item * -Recurse *)",
+      "Bash(del /s *)",
+      "Bash(rmdir /s *)",
+      "Edit(api/**)",
+      "Edit(db/**)",
+      "Edit(js/pricing-config.js)",
+      "Edit(admin-dashboard.html)",
+      "Edit(customer-dashboard.html)"
+    ]
+  }
+}
