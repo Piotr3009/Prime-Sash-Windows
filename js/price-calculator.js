@@ -76,6 +76,13 @@ class PriceCalculator {
       return this.calculateDoor(configuration, frameWidth, frameHeight);
     }
 
+    // ═══ ARCHED SASH PRICING ═══
+    // sashType 'arched' is its own product: base × 1.6 (curved IGU is inside the
+    // multiplier, spec O3/O7), then pattern premium + bars + options.
+    if (configuration.sashType === 'arched') {
+      return this.calculateArchedSash(configuration, sqm, frameWidth, frameHeight);
+    }
+
     // 1. CENA BAZOWA (SASH)
     let basePrice;
     let sizeMultiplier;
@@ -678,6 +685,85 @@ class PriceCalculator {
   }
 
   // ═══ ARCHED CASEMENT PRICING ═══
+  // ═══════════════════════════════════════════════════════════════════════
+  // ARCHED SASH (spec O2/O3)
+  //   (basePrice_double(sqm) × 1.6) + archPatternPremium + bars + options
+  // The 1.6 multiplies the BASE ONLY — not the subtotal. Glazing Arch's +10%
+  // works on the subtotal, but that is a different product and headType is
+  // ignored here. Colour and quantity then behave exactly like a double sash.
+  // ═══════════════════════════════════════════════════════════════════════
+  calculateArchedSash(configuration, sqm, frameWidth, frameHeight) {
+    const A = window.ArchedSash;
+    const shape = configuration.archShape || 'semi-circle';
+
+    // Base: the double-hung base for this area, × 1.6
+    const sizeMultiplier = this.getSizeMultiplier(sqm);
+    const basePriceDouble = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
+    const basePrice = basePriceDouble * 1.6;
+
+    // Arch bar pattern premium — same table as arched casement
+    const pattern = configuration.archBarPattern || 'none';
+    const patternPrice = (A && A.PATTERN_PREMIUM[pattern]) ? A.PATTERN_PREMIUM[pattern] : 0;
+
+    // Upper (arched) sash grid — casement convention: (h + v) × 2 × rate
+    const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
+    const archBars = (configuration.archHBars || 0) + (configuration.archVBars || 0);
+    const archBarsPrice = archBars * 2 * barRate;
+
+    // Lower sash keeps the ordinary sash bar pricing
+    const lowerBarsPrice = this.calculateBarsPrice('none', configuration.lowerBars || 'none', configuration.customBars);
+
+    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice, sqm);
+
+    let subtotal = basePrice + patternPrice + archBarsPrice + lowerBarsPrice + additionalPrice;
+
+    // Colour — identical to the double sash branch (single non-white +5%, dual +15%)
+    if (configuration.colorType === 'dual') {
+      subtotal += subtotal * 0.15;
+    } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
+      subtotal += subtotal * 0.05;
+    }
+
+    const quantity = configuration.quantity || 1;
+    const discount = this.getQuantityDiscount(quantity);
+    const discountAmount = subtotal * discount;
+    const unitPrice = subtotal - discountAmount;
+    const totalPrice = unitPrice * quantity;
+
+    const metrics = A ? A.metricsFor(shape, frameWidth, frameHeight) : null;
+
+    return {
+      unitPrice: Math.round(unitPrice * 100) / 100,
+      totalPrice: Math.round(totalPrice * 100) / 100,
+      breakdown: {
+        windowType: 'arched-sash',
+        archShape: shape,
+        archRise: metrics ? metrics.archRise : null,
+        straightHeight: metrics ? metrics.straightHeight : null,
+        upperMaxDrop: metrics ? metrics.upperMaxDrop : null,
+        frameWidth: frameWidth,
+        frameHeight: frameHeight,
+        sqm: sqm.toFixed(2),
+        sizeMultiplier: sizeMultiplier,
+        basePriceDouble: basePriceDouble.toFixed(2),
+        archMultiplier: 1.6,
+        basePrice: basePrice.toFixed(2),
+        patternPrice: patternPrice,
+        archBarsPrice: archBarsPrice.toFixed(2),
+        lowerBarsPrice: lowerBarsPrice,
+        additionalOptions: additionalPrice,
+        subtotal: subtotal.toFixed(2),
+        quantity: quantity,
+        discount: (discount * 100) + '%',
+        discountAmount: discountAmount.toFixed(2),
+        unitPrice: unitPrice.toFixed(2),
+        totalPrice: totalPrice.toFixed(2),
+        vatAmount: (totalPrice * this.pricing.vatRate).toFixed(2),
+        totalWithVat: (totalPrice * (1 + this.pricing.vatRate)).toFixed(2)
+      }
+    };
+  }
+
   calculateArchedCasement(configuration, sqm, frameWidth, frameHeight) {
     const shape = configuration.casArchShape || 'semi-circle';
 
@@ -825,3 +911,129 @@ window.priceCalculator = new PriceCalculator();
 window.calculatePrice = function(configuration) {
   return window.priceCalculator.calculate(configuration);
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ARCHED SASH — one source of truth for shape names, rise and dimension limits.
+//
+// Everything outside the 3D bundle (online-estimate.html validation + handlers,
+// estimate-renderer SVG/spec rows, edit-mode restore, specification-controller
+// labels) reads these helpers, so the four ratios are stated once here.
+// The bundle cannot import from js/, so ArchedSashWindow.jsx mirrors the same
+// four ratios — keep the two in step.
+//
+// Terminology: the line where the arch begins is the "arch start"; the straight
+// part below it is `straightHeight`. (Piotr, 21.08 — do not use the s-word.)
+// ═══════════════════════════════════════════════════════════════════════════
+window.ArchedSash = (function () {
+  // rise as a fraction of the EXTERNAL frame width (spec §5)
+  var RISE_RATIO = {
+    'segmental-arch': 0.20,
+    'elliptical-arch': 0.325,
+    'semi-circle': 0.50,
+    'gothic-arch': Math.sqrt(3) / 2,
+  };
+
+  // The radio values in online-estimate.html are the legacy short names; the
+  // config/CSV value is the shared shape id used by casArchShape / fixShape.
+  var SHAPE_FROM_RADIO = {
+    gothic: 'gothic-arch',
+    segmental: 'segmental-arch',
+    semicircular: 'semi-circle',
+    elliptical: 'elliptical-arch',
+  };
+  var RADIO_FROM_SHAPE = {
+    'gothic-arch': 'gothic',
+    'segmental-arch': 'segmental',
+    'semi-circle': 'semicircular',
+    'elliptical-arch': 'elliptical',
+  };
+  var SHAPE_NAMES = {
+    'gothic-arch': 'Gothic',
+    'segmental-arch': 'Segmental',
+    'semi-circle': 'Semicircular',
+    'elliptical-arch': 'Elliptical',
+  };
+
+  // Arch bar pattern premium — same table as arched casement (spec §3.3)
+  var PATTERN_PREMIUM = {
+    'intersecting': 250,
+    'half-hub': 150,
+    'hub-spoke': 210,
+    'double-hub-spoke': 270,
+    'triple-hub-spoke': 320,
+  };
+
+  // Which patterns each shape offers (spec §5 / O9)
+  var PATTERNS_FOR_SHAPE = {
+    'semi-circle': ['none', 'half-hub', 'hub-spoke', 'double-hub-spoke', 'triple-hub-spoke', 'intersecting'],
+    'gothic-arch': ['none', 'intersecting'],
+    'segmental-arch': ['none'],
+    'elliptical-arch': ['none'],
+  };
+
+  var MIN_WIDTH = 400;          // O5
+  var MAX_WIDTH = 1500;         // O5
+  var MIN_STRAIGHT = 900;       // O4: H >= rise + 900
+  var MIN_UPPER_STILE = 300;    // O8: H_inner/2 - rise >= 300
+  var INNER_OFFSET = 144;       // H_inner = H_total - 144 (sill + head + running gaps)
+  var HEIGHT_STEP = 10;         // the dimension selects only carry multiples of 10
+
+  function riseFor(shape, extWidth) {
+    var r = RISE_RATIO[shape];
+    if (r === undefined) r = RISE_RATIO['semi-circle'];
+    return Math.round(r * (parseFloat(extWidth) || 0));
+  }
+
+  // Smallest external height that satisfies BOTH O4 and O8, on the 10 mm grid.
+  function minHeightFor(shape, extWidth) {
+    var rise = riseFor(shape, extWidth);
+    var byStraight = rise + MIN_STRAIGHT;
+    var byUpperStile = 2 * (rise + MIN_UPPER_STILE) + INNER_OFFSET;
+    var need = Math.max(byStraight, byUpperStile);
+    return Math.ceil(need / HEIGHT_STEP) * HEIGHT_STEP;
+  }
+
+  // Widest external width whose minimum height still fits under maxHeight.
+  function maxWidthFor(shape, maxHeight) {
+    var w = MAX_WIDTH;
+    while (w > MIN_WIDTH && minHeightFor(shape, w) > maxHeight) w -= HEIGHT_STEP;
+    return w;
+  }
+
+  function metricsFor(shape, extWidth, extHeight) {
+    var W = parseFloat(extWidth) || 0;
+    var H = parseFloat(extHeight) || 0;
+    var rise = riseFor(shape, W);
+    var straightHeight = H - rise;
+    var innerHeight = H - INNER_OFFSET;
+    return {
+      shape: shape,
+      shapeName: SHAPE_NAMES[shape] || shape,
+      archRise: rise,
+      straightHeight: straightHeight,
+      innerHeight: innerHeight,
+      upperSashHeight: Math.round(innerHeight / 2),
+      lowerSashHeight: Math.round(innerHeight / 2),
+      upperMaxDrop: Math.max(0, Math.round(Math.min(300, 0.25 * straightHeight))),
+      minHeight: minHeightFor(shape, W),
+    };
+  }
+
+  return {
+    RISE_RATIO: RISE_RATIO,
+    SHAPE_FROM_RADIO: SHAPE_FROM_RADIO,
+    RADIO_FROM_SHAPE: RADIO_FROM_SHAPE,
+    SHAPE_NAMES: SHAPE_NAMES,
+    PATTERN_PREMIUM: PATTERN_PREMIUM,
+    PATTERNS_FOR_SHAPE: PATTERNS_FOR_SHAPE,
+    MIN_WIDTH: MIN_WIDTH,
+    MAX_WIDTH: MAX_WIDTH,
+    MIN_STRAIGHT: MIN_STRAIGHT,
+    MIN_UPPER_STILE: MIN_UPPER_STILE,
+    INNER_OFFSET: INNER_OFFSET,
+    riseFor: riseFor,
+    minHeightFor: minHeightFor,
+    maxWidthFor: maxWidthFor,
+    metricsFor: metricsFor,
+  };
+})();

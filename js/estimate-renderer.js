@@ -142,12 +142,37 @@ class EstimateRenderer {
         const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
         const fc = spec.fullConfig || spec || {};
 
+        // An older draft can carry the RADIO value 'arched-group'; the shape
+        // dictionary and every renderer branch speak 'arched'.
+        if (fc.sashType === 'arched-group') fc.sashType = 'arched';
+
         // ═══ SINGLE SOURCE OF TRUTH: fc (fullConfig from specification) ═══
 
         // WINDOW TYPE
         const sashType = fc.sashType || 'double';
         const headType = fc.headType || 'flat';
         const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
+
+        // ── ARCHED SASH (sashType 'arched') ──
+        // One shape dictionary across the app: the same ids as casArchShape / fixShape.
+        const archShapeNames = { 'gothic-arch': 'Gothic', 'semi-circle': 'Semicircular', 'segmental-arch': 'Segmental', 'elliptical-arch': 'Elliptical' };
+        const archShape = fc.archShape || null;
+        const archShapeName = archShape ? (archShapeNames[archShape] || archShape) : null;
+        const archTypeLabel = archShapeName ? ('Arched Sash — ' + archShapeName) : 'Arched Sash';
+        const archRise = fc.archRise || null;
+        const archStraightHeight = fc.straightHeight || null;
+        const archUpperMaxDrop = fc.upperMaxDrop || null;
+        const archUpperSashHeight = fc.upperSashHeight || null;
+        const archBarPattern = fc.archBarPattern || 'none';
+        const archHBars = fc.archHBars || 0;
+        const archVBars = fc.archVBars || 0;
+        const archPatternNames = { 'none': 'None', 'half-hub': 'Half Hub', 'hub-spoke': 'Hub & Spoke', 'double-hub-spoke': 'Double Hub & Spoke', 'triple-hub-spoke': 'Triple Hub & Spoke', 'intersecting': 'Intersecting' };
+        const archHasGrid = archHBars > 0 || archVBars > 0;
+        let archBarsText = (archBarPattern === 'none' && archHasGrid)
+            ? '' : (archPatternNames[archBarPattern] || archBarPattern);
+        if (archHasGrid) {
+            archBarsText += (archBarsText ? ' + ' : '') + archHBars + 'H × ' + archVBars + 'V';
+        }
 
         // DIMENSIONS — prefer spec over item columns
         let width = fc.actualFrameWidth || item.width || 1000;
@@ -503,6 +528,8 @@ class EstimateRenderer {
 
         return {
             fc, spec, windowType, sashType, headType, splitRatio,
+            archShape, archShapeName, archTypeLabel, archRise, archStraightHeight,
+            archUpperMaxDrop, archUpperSashHeight, archBarPattern, archHBars, archVBars, archBarsText,
             width, height, originalWidth, originalHeight, measurementType,
             frameType, frameText,
             openingType, openingText,
@@ -691,8 +718,13 @@ class EstimateRenderer {
                             ${R.specRow('Trickle Vent', p.trickleText)}
                             ${p.isSlidingOrBifold && p.sillExtension !== 'none' ? R.specRow('Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')) : ''}
                             ` : `
-                            ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
-                            ${p.headType === 'arch' ? R.specRow('Head Type', 'Glazing Arch') : ''}
+                            ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
+                            ${p.headType === 'arch' && p.sashType !== 'arched' ? R.specRow('Head Type', 'Glazing Arch') : ''}
+                            ${p.sashType === 'arched' ? R.specRow('Sash Type', p.archTypeLabel) : ''}
+                            ${p.sashType === 'arched' && p.archRise ? R.specRow('Arch rise', p.archRise + 'mm') : ''}
+                            ${p.sashType === 'arched' && p.archStraightHeight ? R.specRow('Straight height', p.archStraightHeight + 'mm') : ''}
+                            ${p.sashType === 'arched' && p.archUpperMaxDrop ? R.specRow('Upper sash opening', 'limited to ' + p.archUpperMaxDrop + 'mm') : ''}
+                            ${p.sashType === 'arched' && p.archBarsText && p.archBarsText !== 'None' ? R.specRow('Upper sash bars', p.archBarsText) : ''}
                             ${p.sashType === 'triple' ? R.specRow('Split Ratio', p.splitRatio) : ''}
                             ${p.measurementType === 'brick-to-brick' 
                                 ? R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm') + R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')
@@ -793,7 +825,7 @@ class EstimateRenderer {
             const typeShort = p.windowType === 'door' ? 'Door'
                 : p.windowType === 'casement' ? 'Casement'
                 : p.windowType === 'fix-only' ? 'Fix Frame'
-                : p.sashType === 'triple' ? 'Triple Sash'
+                : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                 : p.sashType === 'single' ? 'Single Sash'
                 : 'Sash';
             const desc = `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
@@ -2232,9 +2264,172 @@ class EstimateRenderer {
         return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // ARCHED SASH — front elevation.
+    //
+    // Straight jambs up to the arch start, arched head above, upper sash arched
+    // and exactly as tall as the lower one (meeting rail on the mid line of the
+    // clear opening). Georgian bars are drawn as a straight grid; the arch
+    // tracery patterns are labelled rather than drawn — see the LOG.
+    // ═══════════════════════════════════════════════════════════════════════
+    static archPathD(shape, cx, halfW, ySpring, rise) {
+        // SVG y grows downward: the apex is at ySpring - rise.
+        const x0 = cx - halfW, x1 = cx + halfW;
+        if (shape === 'gothic-arch') {
+            const R = 2 * halfW;                       // two-centre arch
+            const apexY = ySpring - rise;
+            return `M ${x0} ${ySpring} A ${R} ${R} 0 0 1 ${cx} ${apexY} A ${R} ${R} 0 0 1 ${x1} ${ySpring}`;
+        }
+        if (shape === 'semi-circle') {
+            return `M ${x0} ${ySpring} A ${halfW} ${halfW} 0 0 1 ${x1} ${ySpring}`;
+        }
+        if (shape === 'segmental-arch') {
+            const R = (rise * rise + halfW * halfW) / (2 * rise);
+            return `M ${x0} ${ySpring} A ${R} ${R} 0 0 1 ${x1} ${ySpring}`;
+        }
+        // elliptical-arch
+        return `M ${x0} ${ySpring} A ${halfW} ${rise} 0 0 1 ${x1} ${ySpring}`;
+    }
+
+    static generateArchedSashSVG(item, fc) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+        const A = (typeof window !== 'undefined' && window.ArchedSash) ? window.ArchedSash : null;
+
+        const fw = fc.actualFrameWidth || item.width || 1000;
+        const fh = fc.actualFrameHeight || item.height || 1500;
+        const shape = fc.archShape || 'semi-circle';
+        const openingType = fc.openingType || 'both';
+        const lowerBars = fc.lowerBars || 'none';
+        const lowerCustom = fc.lowerCustomBars || [];
+        const archHBars = fc.archHBars || 0;
+        const archVBars = fc.archVBars || 0;
+        const horns = fc.horns && fc.horns !== 'none';
+        const hornType = (typeof fc.horns === 'string' && fc.horns.length === 1) ? fc.horns.toUpperCase() : (fc.hornType || 'A');
+
+        // Rise from the shape table — recomputed here so an old record without
+        // archRise still draws the right curve.
+        const rise = fc.archRise || (A ? A.riseFor(shape, fw) : Math.round(fw * 0.5));
+
+        // ── Layout (all mm, y measured up from the sill bottom) ──
+        const M = Math.max(G.margin * 1.35, Math.max(fw, fh) * 0.085);
+        const DM = Math.max(G.dimOffset, Math.max(fw, fh) * 0.07);
+        const totalW = M + fw + DM + M;
+        const totalH = M + fh + DM + M * 0.4;
+        const ox = M, oy = M;
+        const fs = 21 * (totalW / G.refW);
+        const SY = (y) => oy + (fh - y);
+        const frameStyle = `fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1.4" ${NS}`;
+        const glassStyle = `fill="${G.glassFill}" stroke="${G.glassStroke}" stroke-width="0.8" ${NS}`;
+
+        const springMm = Math.max(fh - rise, G.sillTop + 100);   // arch start, real mm
+        const cx = ox + fw / 2;
+        const outerHalfW = fw / 2;
+        const openHalfW = Math.max(fw / 2 - G.jambTop, 20);
+        const openRise = Math.max(rise - G.headH, 10);
+
+        let svg = '';
+
+        // ══ BOX: arched head as a crescent (outer arch out, inner arch back) ══
+        const headOuter = EstimateRenderer.archPathD(shape, cx, outerHalfW, SY(springMm), rise);
+        const headInnerRev = EstimateRenderer.archPathD(shape, cx, openHalfW, SY(springMm), openRise);
+        // Reverse the inner arch by drawing it as a separate sub-path and closing
+        // across the arch start; sweep flag flipped so it runs right → left.
+        const innerRight = ox + fw / 2 + openHalfW, innerLeft = ox + fw / 2 - openHalfW;
+        let innerBack;
+        if (shape === 'gothic-arch') {
+            const R = 2 * openHalfW;
+            innerBack = `L ${innerRight} ${SY(springMm)} A ${R} ${R} 0 0 0 ${cx} ${SY(springMm) - openRise} A ${R} ${R} 0 0 0 ${innerLeft} ${SY(springMm)} Z`;
+        } else if (shape === 'semi-circle') {
+            innerBack = `L ${innerRight} ${SY(springMm)} A ${openHalfW} ${openHalfW} 0 0 0 ${innerLeft} ${SY(springMm)} Z`;
+        } else if (shape === 'segmental-arch') {
+            const R = (openRise * openRise + openHalfW * openHalfW) / (2 * openRise);
+            innerBack = `L ${innerRight} ${SY(springMm)} A ${R} ${R} 0 0 0 ${innerLeft} ${SY(springMm)} Z`;
+        } else {
+            innerBack = `L ${innerRight} ${SY(springMm)} A ${openHalfW} ${openRise} 0 0 0 ${innerLeft} ${SY(springMm)} Z`;
+        }
+        svg += `<path d="${headOuter} ${innerBack}" ${frameStyle}/>`;
+
+        // ══ Straight jambs, stopped at the arch start ══
+        svg += `<path d="M ${ox + fw - G.jambBot} ${SY(0)} L ${ox + fw - G.jambBot} ${SY(G.sillTop)} ${EstimateRenderer.sashBulgeArc(ox + fw - G.jambBot, SY(G.sillTop), ox + fw - G.jambTop, SY(G.sillCurveTop), G.bulge)} L ${ox + fw - G.jambTop} ${SY(springMm)} L ${ox + fw} ${SY(springMm)} L ${ox + fw} ${SY(0)} Z" ${frameStyle}/>`;
+        svg += `<path d="M ${ox + G.jambBot} ${SY(0)} L ${ox + G.jambBot} ${SY(G.sillTop)} ${EstimateRenderer.sashBulgeArc(ox + G.jambBot, SY(G.sillTop), ox + G.jambTop, SY(G.sillCurveTop), -G.bulge)} L ${ox + G.jambTop} ${SY(springMm)} L ${ox} ${SY(springMm)} L ${ox} ${SY(0)} Z" ${frameStyle}/>`;
+
+        // ══ Sill ══
+        svg += `<path d="M ${ox + G.jambBot} ${SY(0)} L ${ox + fw - G.jambBot} ${SY(0)} L ${ox + fw - G.jambBot} ${SY(G.sillNose)} L ${ox + G.jambBot} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
+        svg += `<line x1="${ox + G.jambBot}" y1="${SY(G.sillWeatherbar)}" x2="${ox + fw - G.jambBot}" y2="${SY(G.sillWeatherbar)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
+        svg += `<line x1="${ox + G.jambBot}" y1="${SY(G.sillDrip)}" x2="${ox + fw - G.jambBot}" y2="${SY(G.sillDrip)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
+
+        // ══ Sashes: equal halves of the clear opening, meeting rail on the mid line ══
+        const cavBotMm = G.sillTop;
+        const apexMm = springMm + openRise;               // top of the clear opening
+        const cavHmm = apexMm - cavBotMm;
+        const meetMm = cavBotMm + cavHmm / 2;
+        const cavX = ox + G.jambTop, cavW = fw - 2 * G.jambTop;
+
+        // Upper sash glass: arched top, straight sides, meeting rail at the bottom
+        const uGlassX = cavX + G.stile, uGlassW = cavW - 2 * G.stile;
+        const uHalfW = uGlassW / 2;
+        const uRise = Math.max(openRise - G.stile, 8);
+        const uSpringY = SY(springMm);
+        const uBotY = SY(meetMm + G.meetRail / 2);
+        const uArch = EstimateRenderer.archPathD(shape, cx, uHalfW, uSpringY, uRise);
+        svg += `<path d="${uArch} L ${cx + uHalfW} ${uBotY} L ${cx - uHalfW} ${uBotY} Z" ${glassStyle}/>`;
+
+        // Straight grid in the upper sash (arch patterns are noted in the spec rows)
+        const uGridTop = uSpringY;
+        for (let i = 1; i <= archVBars; i++) {
+            const bx = cx - uHalfW + (uGlassW * i) / (archVBars + 1);
+            svg += `<rect x="${bx - G.barW / 2}" y="${uGridTop}" width="${G.barW}" height="${uBotY - uGridTop}" fill="${G.barFill}" stroke="${G.navy}" stroke-width="0.7" ${NS}/>`;
+        }
+        for (let j = 1; j <= archHBars; j++) {
+            const by = uGridTop + ((uBotY - uGridTop) * j) / (archHBars + 1);
+            svg += `<rect x="${cx - uHalfW}" y="${by - G.barW / 2}" width="${uGlassW}" height="${G.barW}" fill="${G.barFill}" stroke="${G.navy}" stroke-width="0.7" ${NS}/>`;
+        }
+        // Bar at the arch start separates the arch zone from the grid
+        if (fc.archBarPattern && fc.archBarPattern !== 'none') {
+            svg += `<rect x="${cx - uHalfW}" y="${uSpringY - G.barW / 2}" width="${uGlassW}" height="${G.barW}" fill="${G.barFill}" stroke="${G.navy}" stroke-width="0.7" ${NS}/>`;
+        }
+
+        // Meeting rail
+        svg += `<rect x="${cavX}" y="${SY(meetMm + G.meetRail / 2)}" width="${cavW}" height="${G.meetRail}" fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1" ${NS}/>`;
+
+        // Lower sash glass
+        const lGlassY = SY(meetMm - G.meetRail / 2);
+        const lGlassH = SY(cavBotMm + G.botRail) - lGlassY;
+        svg += `<rect x="${uGlassX}" y="${lGlassY}" width="${uGlassW}" height="${lGlassH}" ${glassStyle}/>`;
+        svg += EstimateRenderer.sashBarsSVG(uGlassX, lGlassY, uGlassW, lGlassH, lowerBars, lowerCustom);
+        svg += `<line x1="${cavX}" y1="${SY(cavBotMm + G.botRail)}" x2="${cavX + cavW}" y2="${SY(cavBotMm + G.botRail)}" stroke="${G.navy}" stroke-width="0.8" opacity="0.5" ${NS}/>`;
+
+        // Horns on the upper sash bottom corners
+        if (horns) {
+            const hornTopY = SY(meetMm + G.meetRail / 2) + G.meetRail;
+            const inset = (G.stile - 30) / 2;
+            const type = EstimateRenderer.SASH_HORN_DEF[hornType] ? hornType : 'A';
+            svg += `<path d="${EstimateRenderer.sashHornPath(type, cavX, cavW, hornTopY, 'L', inset)}" fill="${G.frameFill}" stroke="${G.navy}" stroke-width="0.9" ${NS}/>`;
+            svg += `<path d="${EstimateRenderer.sashHornPath(type, cavX, cavW, hornTopY, 'R', inset)}" fill="${G.frameFill}" stroke="${G.navy}" stroke-width="0.9" ${NS}/>`;
+        }
+
+        // Opening arrows — the upper sash only drops by upperMaxDrop
+        const arrFS = Math.max(60, cavW * 0.12);
+        const arrHalo = `fill="none" stroke="${G.barFill}" stroke-width="${arrFS * 0.22}" stroke-linejoin="round" font-family="Jost,sans-serif" font-size="${arrFS}" text-anchor="middle"`;
+        const arrFill = `fill="#1E8E3E" font-family="Jost,sans-serif" font-size="${arrFS}" text-anchor="middle"`;
+        const arrow = (x, y, ch) => `<text x="${x}" y="${y}" ${arrHalo}>${ch}</text><text x="${x}" y="${y}" ${arrFill}>${ch}</text>`;
+        if (openingType === 'both' || openingType === 'bottom') svg += arrow(cx, lGlassY + lGlassH / 2 + 20, '↑');
+        if (openingType === 'both') svg += arrow(cx, uBotY - (uBotY - uSpringY) * 0.35, '↓');
+
+        // ══ Dimensions: overall + the arch rise on the left ══
+        svg += EstimateRenderer.sashDimH(oy + fh + DM * 0.75, ox, ox + fw, oy + fh, `${Math.round(fw)}`, fs);
+        svg += EstimateRenderer.sashDimV(ox + fw + DM * 0.75, oy, oy + fh, ox + fw, `${Math.round(fh)}`, fs);
+        // 0.45 keeps the rotated label inside the viewBox (0.75 pushed it off the left edge)
+        svg += EstimateRenderer.sashDimVLeft(ox - DM * 0.45, oy, SY(springMm), ox, `${Math.round(rise)}`, fs * 0.9);
+
+        return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
+    }
+
     static generateWindowSVG(item) {
         const spec = item.specification ? (typeof item.specification === 'string' ? JSON.parse(item.specification) : item.specification) : {};
         const fc = spec.fullConfig || spec || {};
+        if (fc.sashType === 'arched-group') fc.sashType = 'arched';
 
         // ═══ CASEMENT SVG ═══
         const windowType = fc.windowType || fc.windowCategory || 'sash';
@@ -2254,6 +2449,11 @@ class EstimateRenderer {
         // ═══ DOOR SVG ═══
         if (windowType === 'door') {
             return EstimateRenderer.generateDoorSVG(item, fc);
+        }
+
+        // ═══ ARCHED SASH SVG ═══
+        if ((fc.sashType || 'double') === 'arched') {
+            return EstimateRenderer.generateArchedSashSVG(item, fc);
         }
 
         // ═══ SASH SVG v2 — real-mm geometry ═══
@@ -4393,7 +4593,7 @@ class EstimateRenderer {
                 const typeShort = p.windowType === 'door' ? 'Door'
                 : p.windowType === 'casement' ? 'Casement'
                     : p.windowType === 'fix-only' ? 'Fix Frame'
-                    : p.sashType === 'triple' ? 'Triple Sash'
+                    : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                     : p.sashType === 'single' ? 'Single Sash'
                     : 'Sash';
                 const desc = `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
@@ -4718,7 +4918,7 @@ class EstimateRenderer {
                     const typeShort = p.windowType === 'door' ? 'Door'
                         : p.windowType === 'casement' ? 'Casement'
                         : p.windowType === 'fix-only' ? 'Fix Frame'
-                        : p.sashType === 'triple' ? 'Triple Sash'
+                        : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                         : p.sashType === 'single' ? 'Single Sash'
                         : 'Sash';
                     return [
@@ -4871,7 +5071,13 @@ class EstimateRenderer {
                 specs.push(['Trickle Vent', p.trickleText]);
                 if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
             } else {
-            if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
+            if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
+            if (p.sashType === 'arched') {
+                if (p.archRise) specs.push(['Arch rise', p.archRise + 'mm']);
+                if (p.archStraightHeight) specs.push(['Straight height', p.archStraightHeight + 'mm']);
+                if (p.archUpperMaxDrop) specs.push(['Upper sash opening', 'limited to ' + p.archUpperMaxDrop + 'mm']);
+                if (p.archBarsText && p.archBarsText !== 'None') specs.push(['Upper sash bars', p.archBarsText]);
+            }
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
             if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
             if (p.measurementType === 'brick-to-brick') {
@@ -4906,7 +5112,7 @@ class EstimateRenderer {
                 </div>
             `).join('');
 
-            const typeLabel = p.windowType === 'door' ? 'Door' : p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+            const typeLabel = p.windowType === 'door' ? 'Door' : p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
             const headLabel = p.headType !== 'flat' ? ` — ${p.headType.charAt(0).toUpperCase() + p.headType.slice(1)} Head` : '';
 
             return `
@@ -5005,7 +5211,7 @@ class EstimateRenderer {
 
             estimate.estimate_items?.forEach(item => {
                 const p = R.parseItemForExport(item);
-                const typeLabel = p.windowType === 'door' ? 'Door' : p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
+                const typeLabel = p.windowType === 'door' ? 'Door' : p.windowType === 'casement' ? 'Casement' : p.windowType === 'fix-only' ? 'Fix Frame' : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType === 'single' ? 'Single Sash' : 'Double Sash';
                 const headLabel = p.headType !== 'flat' ? ` (${p.headType})` : '';
                 wsData.push([
                     item.window_number,

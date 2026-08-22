@@ -1281,3 +1281,22 @@ export default function FixFrameWindow({
     </group>
   );
 }
+/* ═══ NAMED EXPORTS — arched sash reuses this geometry (task §Phase 1.2: export, don't copy) ═══
+   Nothing above is changed: the default export and every internal user keep working. */
+export {
+  mm,
+  arcPoints,
+  makeFrameGeo,
+  FrameMesh,
+  CurvedGlass,
+  ContourBeads,
+  FixBars,
+  useGlassMat,
+  FRAME_FACE,
+  BAR_W,
+  BAR_TOP,
+  BAR_H,
+  SPACER_BAR_W,
+  SPACER_DEPTH,
+  glassHalf,
+};

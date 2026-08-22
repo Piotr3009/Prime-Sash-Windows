@@ -449,22 +449,167 @@
           <div class="input-group">
             <label>Arch Style:</label>
             <div class="radio-group">
-              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-                <input type="radio" id="arch-gothic" name="arch-style" value="gothic" disabled>
-                <label for="arch-gothic" class="radio-label">Gothic Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              <div class="radio-option">
+                <input type="radio" id="arch-gothic" name="arch-style" value="gothic">
+                <label for="arch-gothic" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 16 A24 24 0 0 1 14 3 A24 24 0 0 1 26 16 L26 34 L2 34 Z"/><line x1="2" y1="24" x2="26" y2="24"/></svg>Gothic Arch</label>
               </div>
-              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-                <input type="radio" id="arch-segmental" name="arch-style" value="segmental" disabled>
-                <label for="arch-segmental" class="radio-label">Segmental Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              <div class="radio-option">
+                <input type="radio" id="arch-segmental" name="arch-style" value="segmental">
+                <label for="arch-segmental" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 9 A20 20 0 0 1 26 9 L26 34 L2 34 Z"/><line x1="2" y1="21" x2="26" y2="21"/></svg>Segmental Arch</label>
               </div>
-              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-                <input type="radio" id="arch-semicircular" name="arch-style" value="semicircular" disabled>
-                <label for="arch-semicircular" class="radio-label">Semicircular Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              <div class="radio-option">
+                <input type="radio" id="arch-semicircular" name="arch-style" value="semicircular" checked>
+                <label for="arch-semicircular" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 14 A12 12 0 0 1 26 14 L26 34 L2 34 Z"/><line x1="2" y1="24" x2="26" y2="24"/></svg>Semicircular Arch</label>
               </div>
-              <div class="radio-option" style="opacity:0.45; pointer-events:none;">
-                <input type="radio" id="arch-elliptical" name="arch-style" value="elliptical" disabled>
-                <label for="arch-elliptical" class="radio-label">Elliptical Arch <span style="font-size:10px;color:#c8a24e;">Coming Soon</span></label>
+              <div class="radio-option">
+                <input type="radio" id="arch-elliptical" name="arch-style" value="elliptical">
+                <label for="arch-elliptical" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 12 A16 8 0 0 1 26 12 L26 34 L2 34 Z"/><line x1="2" y1="23" x2="26" y2="23"/></svg>Elliptical Arch</label>
               </div>
+            </div>
+          </div>
+
+
+          <!-- Upper (arched) sash bars — casement-style controls (spec D3 / O9 / O10).
+               Which patterns a shape offers comes from window.ArchedSash.PATTERNS_FOR_SHAPE. -->
+          <div class="input-group" id="arched-pattern-group" style="margin-top:12px;">
+            <label>Upper Sash — Arch Bar Pattern:</label>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+            <label class="layout-option" data-arch-pattern="none">
+              <input type="radio" name="arch-bar-pattern" value="none" checked>
+              <div class="layout-thumb" title="None">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="0"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">None</span>
+            </label>
+            <label class="layout-option" data-arch-pattern="half-hub">
+              <input type="radio" name="arch-bar-pattern" value="half-hub">
+              <div class="layout-thumb" title="Half Hub">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M18 20 A7 7 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="32.0" y1="20.0" x2="47.0" y2="20.0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="28.5" y1="13.9" x2="36.0" y2="0.9" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="21.5" y1="13.9" x2="14.0" y2="0.9" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18.0" y1="20.0" x2="3.0" y2="20.0" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Half Hub</span>
+            </label>
+            <label class="layout-option" data-arch-pattern="hub-spoke">
+              <input type="radio" name="arch-bar-pattern" value="hub-spoke">
+              <div class="layout-thumb" title="Hub &amp; Spoke">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M18 20 A7 7 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="32.0" y1="20.0" x2="47.0" y2="20.0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="28.5" y1="13.9" x2="36.0" y2="0.9" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="21.5" y1="13.9" x2="14.0" y2="0.9" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18.0" y1="20.0" x2="3.0" y2="20.0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18" y1="20" x2="18" y2="38" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="32" y1="20" x2="32" y2="38" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Hub &amp; Spoke</span>
+            </label>
+            <label class="layout-option" data-arch-pattern="double-hub-spoke">
+              <input type="radio" name="arch-bar-pattern" value="double-hub-spoke">
+              <div class="layout-thumb" title="Double Hub">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M18 20 A7 7 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M12 20 A13 13 0 0 1 38 20" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="32.0" y1="20.0" x2="47.0" y2="20.0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="30.7" y1="15.9" x2="42.8" y2="7.1" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="27.2" y1="13.3" x2="31.8" y2="-0.9" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="22.8" y1="13.3" x2="18.2" y2="-0.9" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="19.3" y1="15.9" x2="7.2" y2="7.1" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18.0" y1="20.0" x2="3.0" y2="20.0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18" y1="20" x2="18" y2="38" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="32" y1="20" x2="32" y2="38" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Double Hub</span>
+            </label>
+            <label class="layout-option" data-arch-pattern="triple-hub-spoke">
+              <input type="radio" name="arch-bar-pattern" value="triple-hub-spoke">
+              <div class="layout-thumb" title="Triple Hub">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M18 20 A7 7 0 0 1 32 20" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M12 20 A13 13 0 0 1 38 20" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <path d="M7 20 A18 18 0 0 1 43 20" fill="none" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="32.0" y1="20.0" x2="47.0" y2="20.0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="31.3" y1="17.0" x2="44.8" y2="10.5" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="29.4" y1="14.5" x2="38.7" y2="2.8" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="26.6" y1="13.2" x2="29.9" y2="-1.4" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="23.4" y1="13.2" x2="20.1" y2="-1.4" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="20.6" y1="14.5" x2="11.3" y2="2.8" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18.7" y1="17.0" x2="5.2" y2="10.5" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18.0" y1="20.0" x2="3.0" y2="20.0" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="18" y1="20" x2="18" y2="38" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="32" y1="20" x2="32" y2="38" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Triple Hub</span>
+            </label>
+            <label class="layout-option" data-arch-pattern="intersecting">
+              <input type="radio" name="arch-bar-pattern" value="intersecting">
+              <div class="layout-thumb" title="Intersecting">
+                <svg viewBox="0 0 50 40" width="44" height="34">
+                  <path d="M3 38 L3 20 A22 22 0 0 1 47 20 L47 38 Z" fill="#e8eef4" fill-opacity="0.4" stroke="#0a1628" stroke-width="2"/>
+                  <line x1="3" y1="20" x2="47" y2="20" stroke="#0a1628" stroke-width="1"/>
+                  <line x1="14" y1="20" x2="14" y2="38" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="25" y1="20" x2="25" y2="38" stroke="#0a1628" stroke-width="0.8"/>
+                  <line x1="36" y1="20" x2="36" y2="38" stroke="#0a1628" stroke-width="0.8"/>
+                  <path d="M14 20 A22 22 0 0 1 36 4" fill="none" stroke="#0a1628" stroke-width="0.8"/>
+                  <path d="M36 20 A22 22 0 0 0 14 4" fill="none" stroke="#0a1628" stroke-width="0.8"/>
+                  <path d="M25 20 A22 22 0 0 1 44 12" fill="none" stroke="#0a1628" stroke-width="0.8"/>
+                  <path d="M25 20 A22 22 0 0 0 6 12" fill="none" stroke="#0a1628" stroke-width="0.8"/>
+                </svg>
+              </div>
+              <span style="font-size:10px;color:#666;">Intersecting</span>
+            </label>
+            </div>
+          </div>
+
+          <div class="input-group" id="arched-hv-group" style="margin-top:10px;">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <div style="flex:1;min-width:120px;">
+                <label for="arch-h-bars">Upper Sash — Horizontal Bars:</label>
+                <select id="arch-h-bars" class="detail-select">
+                  <option value="0" selected>0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+              </div>
+              <div style="flex:1;min-width:120px;" id="arch-vbars-wrap">
+                <label for="arch-v-bars">Upper Sash — Vertical Bars:</label>
+                <select id="arch-v-bars" class="detail-select">
+                  <option value="0" selected>0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arched sash size note — same box style the measurement info uses -->
+          <div id="arched-dim-note" class="measurement-info-box" style="display:none;">
+            <div class="info-content">
+              <p><strong>Arched sash size limits</strong></p>
+              <p id="arched-dim-note-text"></p>
             </div>
           </div>
         </div>
@@ -4246,14 +4391,14 @@
 <script src="js/ironmongery-gallery.js?v=4"></script>
 <script src="js/pricing-config.js?v=8"></script>
 <script src="js/config.js?v=3"></script>
-<script src="js/price-calculator.js?v=11"></script>
+<script src="js/price-calculator.js?v=12"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=3"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=8"></script>
+<script src="js/specification-controller.js?v=9"></script>
 <script src="js/configurator-core.js?v=4"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
@@ -4273,10 +4418,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=3"></script>
-<script src="js/estimate-renderer.js?v=31"></script>
+<script src="js/estimate-renderer.js?v=32"></script>
 <script src="js/estimate-selector.js?v=3"></script>
-<script src="js/estimate-manager.js?v=7"></script>
-<script src="js/edit-mode.js?v=12"></script>
+<script src="js/estimate-manager.js?v=8"></script>
+<script src="js/edit-mode.js?v=13"></script>
 
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
@@ -4619,7 +4764,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=95";
+      psw3dScript.src = "3d/assets/window3d.js?v=98";
       document.head.appendChild(psw3dScript);
     }
   </script>
@@ -5108,6 +5253,41 @@
               if (!isNaN(_h)) window.currentConfig.height = _h;
               window.currentConfig.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
               window.currentConfig.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+              // The arched radio value is 'arched-group'; everything downstream
+              // (pricing, spec, CSV, 3D) speaks 'arched'. headType is ignored for
+              // arched — Glazing Arch is a separate product for double/triple.
+              if (window.currentConfig.sashType === 'arched-group') {
+                window.currentConfig.sashType = 'arched';
+                var _as = window.ArchedSash;
+                var _shape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+                var _mt2 = (document.querySelector('input[name="measurement-type"]:checked') || {}).value;
+                var _afw = _w + (_mt2 === 'brick-to-brick' ? 150 : 0);
+                var _afh = _h + (_mt2 === 'brick-to-brick' ? 75 : 0);
+                var _am = _as ? _as.metricsFor(_shape, _afw, _afh) : null;
+                window.currentConfig.archShape = _shape;
+                window.currentConfig.archBarPattern = (typeof window.getArchBarPattern === 'function') ? window.getArchBarPattern() : 'none';
+                window.currentConfig.archHBars = (typeof window.getArchHBars === 'function') ? window.getArchHBars() : 0;
+                window.currentConfig.archVBars = (typeof window.getArchVBars === 'function') ? window.getArchVBars() : 0;
+                if (_am) {
+                  window.currentConfig.archRise = _am.archRise;
+                  window.currentConfig.straightHeight = _am.straightHeight;
+                  window.currentConfig.upperSashHeight = _am.upperSashHeight;
+                  window.currentConfig.upperMaxDrop = _am.upperMaxDrop;
+                }
+                if (typeof window.update3D === 'function') {
+                  window.update3D({
+                    windowCategory: 'sash',
+                    sashType: 'arched',
+                    archShape: _shape,
+                    extWidth: _afw,
+                    extHeight: _afh,
+                    upperMaxDrop: _am ? _am.upperMaxDrop : 0,
+                    archBarPattern: window.currentConfig.archBarPattern,
+                    archHBars: window.currentConfig.archHBars,
+                    archVBars: window.currentConfig.archVBars
+                  });
+                }
+              }
               // price-calculator prefers actualFrameWidth/Height over width when present —
               // these are a derived cache and go stale; purge so pricing follows the inputs,
               // populateInitialSpec() below rebuilds them fresh
@@ -5176,6 +5356,14 @@
             if (!isNaN(_vh)) m.height = _vh;
             m.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
             m.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+            if (m.sashType === 'arched-group') {
+              // Canon for the arched product — same normalisation as syncActiveProduct.
+              m.sashType = 'arched';
+              m.archShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+              m.archBarPattern = (typeof window.getArchBarPattern === 'function') ? window.getArchBarPattern() : 'none';
+              m.archHBars = (typeof window.getArchHBars === 'function') ? window.getArchHBars() : 0;
+              m.archVBars = (typeof window.getArchVBars === 'function') ? window.getArchVBars() : 0;
+            }
             m.measurementType = (document.querySelector('input[name="measurement-type"]:checked') || {}).value || m.measurementType;
             cfg = m;
           }
@@ -5224,6 +5412,12 @@
       // 'measurement-type' flips frame vs structural sizing, which changes the
       // priced area — without it here the sidebar kept the PREVIOUS mode's price.
       var SYNC_NAMES = { 'window-type':1, 'product-range':1, 'head-type':1, 'sash-type':1, 'measurement-type':1 };
+      // Arched sash controls. Registering them here is what keeps the sidebar
+      // price in step — an unregistered control leaves the price one step behind.
+      SYNC_NAMES['arch-style'] = 1;
+      SYNC_NAMES['arch-bar-pattern'] = 1;
+      SYNC_IDS['arch-h-bars'] = 1;
+      SYNC_IDS['arch-v-bars'] = 1;
       var _microQueued = false;
       function maybeScheduleSync(e) {
         var t = e.target || {};
@@ -6338,6 +6532,207 @@
         return checked ? checked.value : 'double';
       }
 
+      // ══ ARCHED SASH ═══════════════════════════════════════════════════════
+      // Radio value stays 'arched-group'; the config/CSV value is 'arched'.
+      // Shape ids are the shared ones (gothic-arch / semi-circle / ...), so the
+      // renderer, edit-mode and production all read one dictionary.
+      function getArchShape() {
+        var A = window.ArchedSash;
+        var r = document.querySelector('input[name="arch-style"]:checked');
+        return (A && A.SHAPE_FROM_RADIO[r ? r.value : '']) || 'semi-circle';
+      }
+      function getArchBarPattern() {
+        var r = document.querySelector('input[name="arch-bar-pattern"]:checked');
+        return r ? r.value : 'none';
+      }
+      function getArchHBars() { var e = document.getElementById('arch-h-bars'); return e ? (parseInt(e.value, 10) || 0) : 0; }
+      function getArchVBars() { var e = document.getElementById('arch-v-bars'); return e ? (parseInt(e.value, 10) || 0) : 0; }
+      function isArchedActive() { return getSashType() === 'arched-group'; }
+      window.getArchShape = getArchShape;
+      window.getArchBarPattern = getArchBarPattern;
+      window.getArchHBars = getArchHBars;
+      window.getArchVBars = getArchVBars;
+      window.isArchedSashActive = isArchedActive;
+
+      function showArchedNote(msg) {
+        var box = document.getElementById('arched-dim-note');
+        var txt = document.getElementById('arched-dim-note-text');
+        if (!box || !txt) return;
+        if (msg) { txt.textContent = msg; box.style.display = 'block'; }
+        else { txt.textContent = ''; box.style.display = 'none'; }
+      }
+
+      function archMeasureOffsets() {
+        var brick = (document.querySelector('input[name="measurement-type"]:checked') || {}).value === 'brick-to-brick';
+        return { w: brick ? 150 : 0, h: brick ? 75 : 0 };
+      }
+
+      // Clamp the inputs to the arched limits, refresh the selects, then push
+      // the arched config to 3D + price + spec. Called on: arched selected,
+      // arch style changed, and any width/height change while arched is active.
+      function applyArchedSash() {
+        var A = window.ArchedSash;
+        if (!A) return null;
+        var shape = getArchShape();
+        var widthSelect  = document.getElementById('width-select');
+        var widthInput   = document.getElementById('width');
+        var heightSelect = document.getElementById('height-select');
+        var heightInput  = document.getElementById('height');
+        var off = archMeasureOffsets();
+        var MAX_INPUT_H = 3000;
+
+        // Limits are on the FRAME size (spec §5), the inputs may be structural.
+        var minFW = A.MIN_WIDTH;
+        var maxFW = A.maxWidthFor(shape, MAX_INPUT_H + off.h);
+        var curW = parseInt((widthInput || {}).value, 10); if (isNaN(curW)) curW = 1000;
+        var curH = parseInt((heightInput || {}).value, 10); if (isNaN(curH)) curH = 1500;
+
+        var newFW = Math.min(Math.max(curW + off.w, minFW), maxFW);
+        newFW = Math.round(newFW / 10) * 10;
+        var newW = newFW - off.w;
+
+        var minFH = A.minHeightFor(shape, newFW);
+        var newFH = Math.min(Math.max(curH + off.h, minFH), MAX_INPUT_H + off.h);
+        var newH = newFH - off.h;
+
+        var notes = [];
+        if (newW !== curW) {
+          notes.push('Width clamped to ' + (minFW - off.w) + '–' + (maxFW - off.w) + ' mm for a ' +
+            (A.SHAPE_NAMES[shape] || shape).toLowerCase() + ' arch.');
+        }
+        if (newH !== curH) {
+          notes.push('Height raised to ' + newH + ' mm — the arch rises ' + A.riseFor(shape, newFW) +
+            ' mm and needs at least ' + A.MIN_STRAIGHT + ' mm of straight frame below the arch start, plus ' +
+            A.MIN_UPPER_STILE + ' mm of straight stile on the upper sash.');
+        }
+        showArchedNote(notes.join(' '));
+
+        var minInputW = minFW - off.w, maxInputW = maxFW - off.w;
+        var minInputH = minFH - off.h;
+        if (widthInput)  { widthInput.min = minInputW; widthInput.max = maxInputW; }
+        if (heightInput) { heightInput.min = minInputH; heightInput.max = MAX_INPUT_H; }
+
+        if (widthSelect) {
+          widthSelect.querySelectorAll('option').forEach(function(opt) {
+            if (opt.value === 'custom' || opt.value === '0') return;
+            var v = parseInt(opt.value, 10);
+            opt.style.display = (v >= minInputW && v <= maxInputW) ? '' : 'none';
+          });
+          widthInput.value = newW;
+          widthSelect.value = String(newW);
+          if (widthSelect.value !== String(newW)) widthSelect.value = 'custom';
+        }
+        if (heightSelect) {
+          heightSelect.querySelectorAll('option').forEach(function(opt) {
+            if (opt.value === 'custom' || opt.value === '0') return;
+            var v = parseInt(opt.value, 10);
+            opt.style.display = (v >= minInputH && v <= MAX_INPUT_H) ? '' : 'none';
+          });
+          heightInput.value = newH;
+          heightSelect.value = String(newH);
+          if (heightSelect.value !== String(newH)) heightSelect.value = 'custom';
+        }
+
+        if (window.currentConfig) {
+          window.currentConfig.width = newW;
+          window.currentConfig.height = newH;
+          window.currentConfig.sashType = 'arched';
+          window.currentConfig.archShape = shape;
+        }
+
+        var m = A.metricsFor(shape, newFW, newFH);
+        if (typeof window.update3D === 'function') {
+          window.update3D({
+            windowCategory: 'sash',
+            sashType: 'arched',
+            archShape: shape,
+            extWidth: newFW,
+            extHeight: newFH,
+            upperMaxDrop: m.upperMaxDrop,
+            archBarPattern: getArchBarPattern(),
+            archHBars: getArchHBars(),
+            archVBars: getArchVBars()
+          });
+        }
+        return { shape: shape, frameWidth: newFW, frameHeight: newFH, metrics: m };
+      }
+      window.applyArchedSash = applyArchedSash;
+
+      // Which arch patterns the current shape offers, and the V-bar rule.
+      // Mirrors updateDesignBarsVisibility() for the fix/casement shapes.
+      function updateArchedBarsVisibility() {
+        var A = window.ArchedSash;
+        if (!A) return;
+        var shape = getArchShape();
+        var allowed = A.PATTERNS_FOR_SHAPE[shape] || ['none'];
+        var patternGroup = document.getElementById('arched-pattern-group');
+        var hvGroup = document.getElementById('arched-hv-group');
+        var vWrap = document.getElementById('arch-vbars-wrap');
+
+        document.querySelectorAll('#arched-pattern-group [data-arch-pattern]').forEach(function(opt) {
+          var v = opt.getAttribute('data-arch-pattern');
+          opt.style.display = (allowed.indexOf(v) >= 0) ? '' : 'none';
+        });
+        // Only 'none' on offer → the whole pattern picker is meaningless
+        if (patternGroup) patternGroup.style.display = (allowed.length > 1) ? '' : 'none';
+
+        // A pattern that this shape does not offer falls back to 'none'
+        var current = getArchBarPattern();
+        if (allowed.indexOf(current) < 0) {
+          var noneRadio = document.querySelector('input[name="arch-bar-pattern"][value="none"]');
+          if (noneRadio) noneRadio.checked = true;
+          current = 'none';
+        }
+
+        // The SPOKE patterns define their own columns, so the V-bar picker goes
+        // away for them. Half hub has no spokes reaching the arch start, so the
+        // user's columns still run under it (reference photo 2).
+        var spokeHub = current === 'hub-spoke' ||
+                       current === 'double-hub-spoke' || current === 'triple-hub-spoke';
+        if (vWrap) vWrap.style.display = spokeHub ? 'none' : '';
+        if (hvGroup) hvGroup.style.display = '';
+      }
+      window.updateArchedBarsVisibility = updateArchedBarsVisibility;
+
+      // Lower sash vertical bars default to the upper sash's, so the mullions
+      // line up through the meeting rail (spec O10). The preset lower patterns
+      // top out at 2 vertical bars, so 3+ is left for the user to set.
+      var LOWER_FOR_V = { 0: 'none', 1: '2x2', 2: '3x3' };
+      var lowerBarsTouched = false;
+      var lowerBarsSel = document.getElementById('lower-bars');
+      if (lowerBarsSel) {
+        lowerBarsSel.addEventListener('change', function() { lowerBarsTouched = true; });
+      }
+      function syncLowerBarsToUpper() {
+        if (lowerBarsTouched || !lowerBarsSel) return;
+        var want = LOWER_FOR_V[getArchVBars()];
+        if (want === undefined || lowerBarsSel.value === want) return;
+        var sameChk = document.getElementById('same-bars-both-sashes');
+        if (sameChk && sameChk.checked) {
+          sameChk.checked = false;
+          sameChk.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        lowerBarsSel.value = want;
+        lowerBarsSel.dispatchEvent(new Event('change', { bubbles: true }));
+        lowerBarsTouched = false;   // still an automatic default, not a user choice
+      }
+
+      function archBarsChanged() {
+        if (!isArchedActive()) return;
+        updateArchedBarsVisibility();
+        syncLowerBarsToUpper();
+        applyArchedSash();
+        if (window.specificationController) window.specificationController.applyProductRange();
+        if (typeof window.scheduleProductSync === 'function') window.scheduleProductSync();
+      }
+      document.querySelectorAll('input[name="arch-bar-pattern"]').forEach(function(r) {
+        r.addEventListener('change', archBarsChanged);
+      });
+      ['arch-h-bars', 'arch-v-bars'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', archBarsChanged);
+      });
+
       sashTypeRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
           var isTriple = radio.value === 'triple';
@@ -6355,8 +6750,18 @@
             document.getElementById('head-flat').checked = true;
           }
 
-          // Don't update dims/3D for arched-group (all coming soon)
-          if (isArchedGroup) return;
+          // Arched sash: its own limits + config value ('arched', not 'arched-group').
+          if (isArchedGroup) {
+            updateArchedBarsVisibility();
+            applyArchedSash();
+            if (window.specificationController) {
+              window.specificationController.applyProductRange();
+              window.specificationController.applyDimensions();
+            }
+            if (typeof window.scheduleProductSync === 'function') window.scheduleProductSync();
+            return;
+          }
+          showArchedNote('');
 
           // UI: Update dimension limits and defaults
           var widthSelect = document.getElementById('width-select');
@@ -6441,6 +6846,31 @@
           if (typeof window.scheduleProductSync === 'function') window.scheduleProductSync();
         });
       });
+
+      // Arch style radio — live 3D + price + spec
+      var archStyleRadios = document.querySelectorAll('input[name="arch-style"]');
+      archStyleRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          if (!isArchedActive()) return;
+          updateArchedBarsVisibility();
+          applyArchedSash();
+          if (window.specificationController) {
+            window.specificationController.applyProductRange();
+            window.specificationController.applyDimensions();
+          }
+          if (typeof window.scheduleProductSync === 'function') window.scheduleProductSync();
+        });
+      });
+
+      // Width/height while arched is active: re-clamp, then re-push the arched
+      // config. Without this the plain dimension handler would push a size the
+      // arch cannot physically take.
+      document.addEventListener('change', function(e) {
+        var t = e.target || {};
+        if (t.id !== 'width' && t.id !== 'height' && t.id !== 'width-select' && t.id !== 'height-select' && t.name !== 'measurement-type') return;
+        if (!isArchedActive()) return;
+        applyArchedSash();
+      }, false);
 
       // Head type radio — live 3D update
       var headTypeRadios = document.querySelectorAll('input[name="head-type"]');

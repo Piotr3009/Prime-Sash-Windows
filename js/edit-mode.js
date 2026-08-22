@@ -177,6 +177,12 @@
       h = fc.actualFrameHeight || fc.height || editItem.height;
     }
 
+    // ── ARCHED SASH ──
+    // The stored/priced value is 'arched'; the radio value is 'arched-group'.
+    // Remember it before the mapping so the rest of the restore can branch on it.
+    const isArchedSash = fc.sashType === 'arched';
+    if (isArchedSash) fc.sashType = 'arched-group';
+
     // Sub-type
     setRadio('sash-type', fc.sashType || 'double');
 
@@ -186,12 +192,31 @@
       setSelect('split-ratio', fc.splitRatio);
       setRadio('head-type', fc.headType || 'flat');
 
+      // Arched sash: shape first — the dimension clamp below depends on it.
+      if (isArchedSash) {
+        const A = window.ArchedSash;
+        const shapeRadio = (A && A.RADIO_FROM_SHAPE[fc.archShape]) || 'semicircular';
+        setRadio('arch-style', shapeRadio);
+        if (document.querySelector('input[name="arch-bar-pattern"]')) {
+          setRadio('arch-bar-pattern', fc.archBarPattern || 'none');
+        }
+        if (document.getElementById('arch-h-bars')) setSelect('arch-h-bars', String(fc.archHBars || 0));
+        if (document.getElementById('arch-v-bars')) setSelect('arch-v-bars', String(fc.archVBars || 0));
+      }
+
       // Set measurement-type BEFORE dimensions so handler knows context
       setRadio('measurement-type', fc.measurementType);
 
       // Dimensions via DimensionHandler (triggers 3D + display + config)
       setDimensionSash('width', w);
       setDimensionSash('height', h);
+
+      // Arched sash: setDimensionSash calls DimensionHandler directly without a
+      // change event, so the arched handler has to be re-run by hand — it is what
+      // pushes archShape / archRise / upperMaxDrop and the arched price.
+      if (isArchedSash && typeof window.applyArchedSash === 'function') {
+        window.applyArchedSash();
+      }
 
       // Glass
       setRadio('frame-type', fc.frameType);
