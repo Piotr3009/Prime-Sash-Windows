@@ -222,7 +222,14 @@ function apexRise(shape, halfW, rise, inset) {
 /* ═══════════════════════════════════════════════════════════════════════════
    Component
    ═══════════════════════════════════════════════════════════════════════════ */
-export default function ArchedSashWindow({
+export default function ArchedSashWindowOuter(props) {
+  // One fallback for the whole component: an unrecognised shape must not make
+  // the rise say "semicircle" while the arc builder draws an ellipse.
+  const shape = ARCH_RISE_RATIO[props.archShape] !== undefined ? props.archShape : 'semi-circle';
+  return <ArchedSashWindow {...props} archShape={shape} />;
+}
+
+function ArchedSashWindow({
   width = 1000,          // inner frame width  (extWidth - 104)
   height = 1500,         // inner frame height (extHeight - 87)
   extWidth = null,

@@ -1,7 +1,60 @@
 # ARCHED SASH — implementation log
 
-> Final report is written at the top of this file at the end of the run (§8 of the task).
-> Everything below is the running log.
+## FINAL REPORT
+
+```
+STATUS: Phase 1 DONE | Phase 4 DONE | Phase 5 DONE | Phase 3 DONE | Phase 2 DONE
+Branch: arched-sash   Commits: 9   Build: OK   Regression matrix: identical to baseline
+Nothing was pushed. No blockers. No stashes. Working tree clean.
+```
+
+Arched sash windows are implemented end to end: four shapes in 3D with a real arched box
+head and an arched upper sash that drops on weights and cords, dimension validation,
+pricing at base × 1.6 plus the pattern premium, the spec panel, the estimate SVG, the
+saved `specification` JSON, a verified edit-mode round trip, and the arch bar patterns
+including the new semicircular `intersecting` tracery.
+
+**What to check by hand in the morning** (exact clicks, `online-estimate.html`):
+
+- **Shapes and the height clamp** — Sash Windows → *Arched Sash Windows* → *Gothic Arch* →
+  Width `1200`. The height should jump to **2830 mm**, the beige note should explain why,
+  and the 3D should show a pointed arch with the upper and lower sash the same height.
+  Then click through Segmental / Semicircular / Elliptical and watch the arch change.
+- **Reference photo 1** — *Semicircular Arch*, Width `1200`, Height `2200`, Arch Bar
+  Pattern → *Intersecting*, Vertical Bars → `3`. Expect 4 columns with crossing arcs in
+  the arch and a horizontal bar on the arch-start line.
+- **Reference photo 2** — same window, Arch Bar Pattern → *Half Hub*, Vertical Bars → `2`.
+  Expect a small ring with 4 spokes in the arch, 3 columns below it, and **Lower Sash
+  Bars** to have auto-set itself to `3x3` so the mullions line up through the meeting rail.
+- **Price** — Semicircular, Width `1000`, Height `1600`, white, qty 1 → **£1958.40**
+  (the double-hung base for 1.6 m² is £1224; £1224 × 1.6 = £1958.40). Switching the
+  pattern to *Intersecting* must add exactly £250.
+- **Save and re-edit** — add the window to an estimate, reopen it and press Edit. Shape,
+  size, bar pattern, H/V counts, lower bars and price must all come back identical, and
+  the estimate drawing must show the arch (not a flat head).
+
+**Open questions for Piotr** (only what the spec does not answer):
+
+1. **O10 above 2 vertical bars.** Reference photo 1 has 4 columns (V = 3) carried through
+   both sashes, but the lower sash's preset patterns top out at 2 vertical bars
+   (`2x2` = 1, `3x3` = 2, `9x9` = 2). The default currently follows the upper sash for
+   V ∈ {0,1,2} and is left to the user above that. Add lower presets ("3 vertical",
+   "4 vertical"), or drive the lower sash from Custom bars at matching mm positions?
+2. **The O8 minimum height.** The spec states `H_inner/2 − rise ≥ 300` but never defines
+   H_inner. I used the real clear opening, `H_total − 144`, giving
+   `minHeight = max(rise + 900, 2·rise + 744)` — 1750 mm for a 1000 mm semicircle. Is that
+   the intended floor, or should it be looser?
+3. **Gothic maximum width.** At 0.866 × W a 1500 mm gothic needs a 3342 mm frame, and the
+   height input stops at 3000. Gothic is therefore capped at **1300 mm** wide. Raise the
+   height limit for arched, or is 1300 mm an acceptable ceiling for gothic?
+4. **Tracery in the estimate drawing.** The SVG draws the true arch profile, the straight
+   H/V grid and the arch-start bar, and names the pattern in the spec rows
+   ("Upper sash bars: Intersecting + 0H × 3V"). It does not draw the hubs/tracery itself.
+   Enough for a quote, or should the drawing show them?
+5. **A pre-existing edit-mode quirk, unrelated to arched.** Restoring any window through
+   edit mode adds five colour keys (`woodColor`, `woodColorExt`, `woodColorInt`,
+   `sameColor`, `frosted-location`) to the saved config that the fresh path never writes —
+   a plain double sash does exactly the same. Left alone under ZASADA #1. Worth a ticket?
 
 ---
 
@@ -175,16 +228,20 @@ Audited with `/home/user/arched-sash-proof/audit-deletions.sh` before every comm
 
 ## Cache busts
 
-| File | Old | New | Referenced from |
+Final values on this branch, against `origin/main`. Every HTML that references a
+bumped file was bumped (`grep -rn "<file>?v=" --include=*.html .`).
+
+| File | origin/main | this branch | Referenced from |
 |---|---|---|---|
-| `3d/assets/window3d.js` | v=95 | v=96 | `index.html`, `online-estimate.html` |
-| `js/price-calculator.js` | v=11 | v=12 | `online-estimate.html` |
-| `js/specification-controller.js` | v=8 | v=9 | `online-estimate.html` |
-| `js/estimate-renderer.js` | v=31 | v=32 | `online-estimate.html`, `admin-dashboard.html`, `customer-dashboard.html` |
-| `js/estimate-manager.js` | v=7 | v=8 | `online-estimate.html` |
-| `js/edit-mode.js` | v=12 | v=13 | `online-estimate.html` |
-| `3d/assets/window3d.js` | v=96 | v=97 | `index.html`, `online-estimate.html` (rebuilt for the bar geometry) |
-| `3d/assets/window3d.js` | v=97 | v=98 | `index.html`, `online-estimate.html` (rebuilt for `openingType`) |
+| `3d/assets/window3d.js` | v=95 | **v=98** | `index.html`, `online-estimate.html` |
+| `js/price-calculator.js` | v=11 | **v=12** | `online-estimate.html` |
+| `js/specification-controller.js` | v=8 | **v=9** | `online-estimate.html` |
+| `js/estimate-renderer.js` | v=31 | **v=32** | `online-estimate.html`, `admin-dashboard.html`, `customer-dashboard.html` |
+| `js/estimate-manager.js` | v=7 | **v=8** | `online-estimate.html` |
+| `js/edit-mode.js` | v=12 | **v=13** | `online-estimate.html` |
+
+The 3D bundle went 95 → 96 (phase 1) → 97 (bar geometry) → 98 (`openingType`), one
+bump per rebuild; 98 is the value that ships.
 
 ---
 
