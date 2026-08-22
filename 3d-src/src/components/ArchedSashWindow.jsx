@@ -772,8 +772,13 @@ export function useArchedSashBars({ shape, halfW, bottomY, springY, apexRise: ri
       straight.push({ type: 'h', x: 0, y: springY, len: glassW });
     }
 
+    const isHalf = pat === 'half-hub';
+    // Half hub has no spokes reaching the arch start, so the user's own vertical
+    // bars still run underneath it (reference photo 2: half hub over 3 columns).
+    // The spoke patterns DO define their own columns, so they replace them.
+    const spokeHub = isHub && !isHalf;
+
     if (isHub) {
-      const isHalf = pat === 'half-hub';
       const isDouble = pat === 'double-hub-spoke';
       const isTriple = pat === 'triple-hub-spoke';
       const spokeCount = isTriple ? 8 : isDouble ? 6 : 4;
@@ -781,31 +786,39 @@ export function useArchedSashBars({ shape, halfW, bottomY, springY, apexRise: ri
       const hubR2 = (isDouble || isTriple) ? halfW * 0.6 : null;
       const hubR3 = isTriple ? halfW * 0.8 : null;
 
-      if (!isHalf) {
-        const rings = [hubR1, hubR2, hubR3].filter((r) => r);
-        for (const r of rings) {
-          const pts = [];
-          for (let i = 0; i <= 48; i++) {
-            const a = (i / 48) * Math.PI;
-            pts.push([r * Math.cos(a), springY + r * Math.sin(a)]);
-          }
-          curves.push(buildCurve(pts));
+      // Ring feet carry on down as mullions — spoke patterns only. Half hub
+      // stops at the arch start, which is what leaves room for the user's own
+      // columns underneath it (reference photo 2).
+      if (!isHalf && belowH > 0) {
+        for (const r of [hubR1, hubR2, hubR3].filter((v) => v)) {
+          straight.push({ type: 'v', x: -r, y: bottomY + belowH / 2, len: belowH });
+          straight.push({ type: 'v', x: r, y: bottomY + belowH / 2, len: belowH });
         }
-        // Spokes, hub → next ring (or the frame)
-        const spans = [[hubR1, hubR2 || halfW]];
-        if (hubR2) spans.push([hubR2, hubR3 || halfW]);
-        if (hubR3) spans.push([hubR3, halfW]);
-        for (const [r0, r1] of spans) {
-          for (let i = 0; i < spokeCount; i++) {
-            const a = (i / (spokeCount - 1)) * Math.PI;
-            const start = r0 + BAR_W * 0.6;
-            const end = r1 - BAR_W * 0.4;
-            if (end - start < mm(20)) continue;
-            curves.push(buildCurve([
-              [start * Math.cos(a), springY + start * Math.sin(a)],
-              [end * Math.cos(a), springY + end * Math.sin(a)],
-            ]));
-          }
+      }
+
+      // Rings + spokes — every hub pattern, half hub included (it is a single
+      // ring with four spokes out to the frame, exactly as SemiCircleFrame).
+      for (const r of [hubR1, hubR2, hubR3].filter((v) => v)) {
+        const pts = [];
+        for (let i = 0; i <= 48; i++) {
+          const a = (i / 48) * Math.PI;
+          pts.push([r * Math.cos(a), springY + r * Math.sin(a)]);
+        }
+        curves.push(buildCurve(pts));
+      }
+      const spans = [[hubR1, hubR2 || halfW]];
+      if (hubR2) spans.push([hubR2, hubR3 || halfW]);
+      if (hubR3) spans.push([hubR3, halfW]);
+      for (const [r0, r1] of spans) {
+        for (let i = 0; i < spokeCount; i++) {
+          const a = (i / (spokeCount - 1)) * Math.PI;
+          const start = r0 + BAR_W * 0.6;
+          const end = r1 - BAR_W * 0.4;
+          if (end - start < mm(20)) continue;
+          curves.push(buildCurve([
+            [start * Math.cos(a), springY + start * Math.sin(a)],
+            [end * Math.cos(a), springY + end * Math.sin(a)],
+          ]));
         }
       }
     }
@@ -857,10 +870,12 @@ export function useArchedSashBars({ shape, halfW, bottomY, springY, apexRise: ri
       }
       straight.push({ type: 'h', x: 0, y, len });
     }
-    for (const x of columns) {
-      const top = (isHub || isIntersecting) ? springY : (archYAt(x) - BAR_W / 2);
-      const barH = top - bottomY;
-      if (barH > mm(20)) straight.push({ type: 'v', x, y: bottomY + barH / 2, len: barH });
+    if (!spokeHub) {
+      for (const x of columns) {
+        const top = (isHub || isIntersecting) ? springY : (archYAt(x) - BAR_W / 2);
+        const barH = top - bottomY;
+        if (barH > mm(20)) straight.push({ type: 'v', x, y: bottomY + barH / 2, len: barH });
+      }
     }
 
     return { straight, curves, spacerMat, columns, belowH };

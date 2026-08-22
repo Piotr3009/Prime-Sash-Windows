@@ -167,9 +167,11 @@ class EstimateRenderer {
         const archHBars = fc.archHBars || 0;
         const archVBars = fc.archVBars || 0;
         const archPatternNames = { 'none': 'None', 'half-hub': 'Half Hub', 'hub-spoke': 'Hub & Spoke', 'double-hub-spoke': 'Double Hub & Spoke', 'triple-hub-spoke': 'Triple Hub & Spoke', 'intersecting': 'Intersecting' };
-        let archBarsText = archPatternNames[archBarPattern] || archBarPattern;
-        if (archHBars > 0 || archVBars > 0) {
-            archBarsText += (archBarPattern !== 'none' ? ' + ' : '') + archHBars + 'H × ' + archVBars + 'V';
+        const archHasGrid = archHBars > 0 || archVBars > 0;
+        let archBarsText = (archBarPattern === 'none' && archHasGrid)
+            ? '' : (archPatternNames[archBarPattern] || archBarPattern);
+        if (archHasGrid) {
+            archBarsText += (archBarsText ? ' + ' : '') + archHBars + 'H × ' + archVBars + 'V';
         }
 
         // DIMENSIONS — prefer spec over item columns

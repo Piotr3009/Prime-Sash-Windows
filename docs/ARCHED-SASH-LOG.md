@@ -38,6 +38,14 @@
   edit-mode path with supabase stubbed: **specification and viewer3d both round-trip with
   zero differences**. A control run on a plain double sash was used to prove the only
   residual diffs are pre-existing.
+- `T4` — **Phase 3 (bars) DONE.** Arch pattern picker (6 thumbnails) + upper H/V selects in
+  `online-estimate.html`, shown per shape from `PATTERNS_FOR_SHAPE`, with the V picker
+  hidden under the spoke patterns; lower-sash default follows the upper V count.
+  3D: hub rings + spokes (0.3/0.6/0.8 × halfW, 4/6/8 spokes), ring feet carried down as
+  mullions, `intersecting` for gothic and the new `intersecting` for semicircular, and the
+  horizontal bar at the arch start. Price premium and per-bar price verified against the
+  table. Phase 3 gate: **all pass**; Phases 1/4/5 and the price sanity re-run green
+  afterwards; matrix identical to baseline.
 
 ---
 
@@ -104,6 +112,16 @@
   this is pre-existing edit-mode behaviour, not arched. Nothing is lost — they are
   additions — and the cause sits outside the arched scope, so the test accounts for them
   and the code is left alone (ZASADA #1). Worth a separate ticket.
+- `DECISION: half hub keeps the user's vertical bars, the spoke patterns do not` —
+  `SemiCircleFrame` draws a ring + 4 spokes for `half-hub` but no mullions below the arch
+  start, while `hub-spoke`/`double`/`triple` carry their ring feet down as mullions. So the
+  V-bar picker stays visible for half hub (reference photo 2 is a half hub over 3 columns)
+  and is hidden for the spoke patterns, whose own feet define the columns.
+- `DECISION: lower-sash V bars follow the upper only up to 2` — the preset lower patterns
+  map to at most 2 vertical bars (`2x2` → 1, `3x3` → 2, `4x4`/`6x6`/`9x9` → 1/2/2), so
+  O10's "V bars top = bottom by default" is applied for V ∈ {0,1,2} and left alone above
+  that. Reference photo 1 has 4 columns (V = 3), which the presets cannot express — see
+  Open questions.
 - `DECISION (D-T2): harness "nudges" get3DConfig before reading` — `window.get3DConfig` is
   re-installed by an effect keyed on the memoised config and in this browser build it lands
   one commit behind, so the first read after a change returns the PREVIOUS value. Two extra
@@ -145,6 +163,7 @@ Audited with `/home/user/arched-sash-proof/audit-deletions.sh` before every comm
 | `js/estimate-renderer.js` | v=31 | v=32 | `online-estimate.html`, `admin-dashboard.html`, `customer-dashboard.html` |
 | `js/estimate-manager.js` | v=7 | v=8 | `online-estimate.html` |
 | `js/edit-mode.js` | v=12 | v=13 | `online-estimate.html` |
+| `3d/assets/window3d.js` | v=96 | v=97 | `index.html`, `online-estimate.html` (rebuilt for the bar geometry) |
 
 ---
 
@@ -177,6 +196,9 @@ Re-run with `node matrix.js <label>`; compare with `node compare.js <label>`.
 | Phase 5 — edit-mode round trip (arched) | **PASS** — spec diff 0, viewer3d diff 0 | `node phase5.js arched` |
 | Phase 5 — control run (double) | **PASS** — same 5 pre-existing colour additions | `node phase5.js double` |
 | Phase 5 — matrix | identical to baseline | `matrix-phase5.json` |
+| Phase 3 — bars (controls, 3D, price, SVG) | **PASS** (all checks) | `node phase3.js` |
+| Phase 3 — matrix | identical to baseline | `matrix-phase3.json` |
+| All gates re-run together after Phase 3 | 1, 3, 4, 5 + price sanity all **PASS** | — |
 | §2.2 deletions | 0 unexplained | `./audit-deletions.sh` |
 | §2.5 tmmx markers | no drop vs origin/main | `./markers.sh` |
 
@@ -203,3 +225,4 @@ used to prove the scalloped-row artefact was mine and not pre-existing).
 | `cbc8a05` | arched sash: phase 0 — log file + baseline captured |
 | `b7b71d6` | arched sash: phase 1 — 3D core (4 shapes, arched box head, opening sash, validation, sync) |
 | `d1a3e43` | arched sash: phase 4 — price (base x1.6), spec panel, SVG, specification JSON |
+| `7527003` | arched sash: phase 5 — edit-mode restore, specification round-trips unchanged |
