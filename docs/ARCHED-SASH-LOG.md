@@ -46,6 +46,12 @@
   horizontal bar at the arch start. Price premium and per-bar price verified against the
   table. Phase 3 gate: **all pass**; Phases 1/4/5 and the price sanity re-run green
   afterwards; matrix identical to baseline.
+- `T5` — **Phase 2 (cords, weights, horns, parity) DONE.** The mechanism, horns and
+  furniture already came in with Phase 1 (the arched box drives the same
+  `JambWithPartingBead` → `PulleySet` = plate + wheel + cord + weight, at the top of the
+  STRAIGHT jambs, with the arched head carrying none). This phase verified parity and
+  fixed one real gap: `openingType` was App state that never reached the config, so no
+  component — arched or otherwise — could see it. Phase 2 gate: **all pass**.
 
 ---
 
@@ -122,6 +128,20 @@
   O10's "V bars top = bottom by default" is applied for V ∈ {0,1,2} and left alone above
   that. Reference photo 1 has 4 columns (V = 3), which the presets cannot express — see
   Open questions.
+- `DECISION: openingType added to App's config memo` — it was state only, so it never
+  reached any component or `get3DConfig`, and the arched component's `openingType` guard
+  was dead. Adding it is one key: no existing component reads it (the double/triple get
+  their sashes zeroed by `update3D` instead, unchanged), and the saved `viewer3d` gains a
+  field that `update3D` already knows how to replay. Blast radius stated plainly: every
+  product's saved `viewer3d` now carries `openingType`. Regression matrix and all five
+  gates re-run green afterwards.
+- `DECISION: Phase 2 parity is proven by pixel diffs, not by the scene graph` — R3F v9
+  keeps its root in a module-local map, so the scene is not reachable from the page. The
+  gate instead asserts (a) every shared control's value arrives in the arched config and
+  (b) the rendered canvas actually changes when it does. The scene is frame-deterministic
+  here (four consecutive renders were byte-identical), so the noise floor is ~3 px; a real
+  change is hundreds to tens of thousands. The horns are the one small case — only the
+  left one is unoccluded from this camera, 59 px — so that check uses a 25 px threshold.
 - `DECISION (D-T2): harness "nudges" get3DConfig before reading` — `window.get3DConfig` is
   re-installed by an effect keyed on the memoised config and in this browser build it lands
   one commit behind, so the first read after a change returns the PREVIOUS value. Two extra
@@ -164,6 +184,7 @@ Audited with `/home/user/arched-sash-proof/audit-deletions.sh` before every comm
 | `js/estimate-manager.js` | v=7 | v=8 | `online-estimate.html` |
 | `js/edit-mode.js` | v=12 | v=13 | `online-estimate.html` |
 | `3d/assets/window3d.js` | v=96 | v=97 | `index.html`, `online-estimate.html` (rebuilt for the bar geometry) |
+| `3d/assets/window3d.js` | v=97 | v=98 | `index.html`, `online-estimate.html` (rebuilt for `openingType`) |
 
 ---
 
@@ -199,6 +220,8 @@ Re-run with `node matrix.js <label>`; compare with `node compare.js <label>`.
 | Phase 3 — bars (controls, 3D, price, SVG) | **PASS** (all checks) | `node phase3.js` |
 | Phase 3 — matrix | identical to baseline | `matrix-phase3.json` |
 | All gates re-run together after Phase 3 | 1, 3, 4, 5 + price sanity all **PASS** | — |
+| Phase 2 — parity (cords/weights, horns, opening, frosted, dual colour, ironmongery) | **PASS** (all checks) | `node phase2.js` |
+| Phase 2 — matrix | identical to baseline | `matrix-phase2.json` |
 | §2.2 deletions | 0 unexplained | `./audit-deletions.sh` |
 | §2.5 tmmx markers | no drop vs origin/main | `./markers.sh` |
 
@@ -226,3 +249,5 @@ used to prove the scalloped-row artefact was mine and not pre-existing).
 | `b7b71d6` | arched sash: phase 1 — 3D core (4 shapes, arched box head, opening sash, validation, sync) |
 | `d1a3e43` | arched sash: phase 4 — price (base x1.6), spec panel, SVG, specification JSON |
 | `7527003` | arched sash: phase 5 — edit-mode restore, specification round-trips unchanged |
+| `a58b970` | arched sash: phase 3 — arch bar patterns, upper H/V grid, hub/intersecting tracery |
+| `bb940d9` | arched sash: phase 2 — cords/weights/horns parity, openingType reaches the 3D config |
