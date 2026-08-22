@@ -25,6 +25,12 @@
   registration; `js/price-calculator.js` gained the canonical `window.ArchedSash` helper;
   `js/specification-controller.js` re-pushes the arched config after its generic push.
   Phase 1 gate: **all pass**. Matrix identical to baseline. Zero pageerrors.
+- `T2` — **Phase 4 (price + spec + SVG + save) DONE.** `calculateArchedSash()` and its
+  dispatch in `price-calculator.js`; arched label in `specification-controller.js`;
+  `parseItem` arched fields, extended label chains, arched spec rows and a new
+  `generateArchedSashSVG()` in `estimate-renderer.js`; explicit arched fields + a
+  `sashType` normalisation in `estimate-manager.js`. Phase 4 gate: **all pass**, price
+  sanity: **all pass**, matrix identical to baseline.
 
 ---
 
@@ -69,6 +75,21 @@
   `arched-group` (spec §5). Rather than editing the existing `sashType: sashType` pushes in
   `specification-controller.js` (which would be a deletion under ZASADA #1), a follow-up
   `update3D` re-push corrects them. Same for `syncActiveProduct` and `canonicalPrice`.
+- `DECISION: 'arched-group' is normalised at the boundaries, not at the source` —
+  `js/configurator-core.js` rewrites `currentConfig.sashType` from the radio on every
+  `updateAll()`, and that file is **read-only** per task §3. So the normalisation sits at
+  the four points that actually consume it: `syncActiveProduct`, `canonicalPrice`,
+  `estimate-manager.getCurrentWindowConfig`/`getCurrentPrice`, and
+  `estimate-renderer.parseItem`/`generateWindowSVG`. All additive.
+- `DECISION: SVG draws the arch shape truly, the arch tracery patterns as a straight grid` —
+  the four arch profiles are exact SVG arc commands (`A`), and the H/V grid is drawn.
+  Hub/spoke and intersecting tracery is NOT drawn in the SVG; the pattern is named in the
+  spec rows ("Upper sash bars: Intersecting + 0H × 4V") and the bar at the arch start is
+  drawn. Task §Phase 3 gate explicitly allows this and asks for it to be logged.
+- `DECISION: the arched label extends the existing ternary chains rather than replacing them` —
+  `p.sashType === 'arched' ? p.archTypeLabel : <original chain>`. Every original token is
+  still present, so the audit classifies it as a line extended in place, and every
+  pre-existing input still produces its original output.
 - `DECISION (D-T2): harness "nudges" get3DConfig before reading` — `window.get3DConfig` is
   re-installed by an effect keyed on the memoised config and in this browser build it lands
   one commit behind, so the first read after a change returns the PREVIOUS value. Two extra
@@ -107,6 +128,8 @@ Audited with `/home/user/arched-sash-proof/audit-deletions.sh` before every comm
 | `3d/assets/window3d.js` | v=95 | v=96 | `index.html`, `online-estimate.html` |
 | `js/price-calculator.js` | v=11 | v=12 | `online-estimate.html` |
 | `js/specification-controller.js` | v=8 | v=9 | `online-estimate.html` |
+| `js/estimate-renderer.js` | v=31 | v=32 | `online-estimate.html`, `admin-dashboard.html`, `customer-dashboard.html` |
+| `js/estimate-manager.js` | v=7 | v=8 | `online-estimate.html` |
 
 ---
 
@@ -127,6 +150,32 @@ Audited with `/home/user/arched-sash-proof/audit-deletions.sh` before every comm
 Stored at `/home/user/arched-sash-proof/matrix-baseline.json`.
 Re-run with `node matrix.js <label>`; compare with `node compare.js <label>`.
 
+### Phase gates
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Phase 1 — 3D core | **PASS** (all checks) | `node phase1.js` |
+| Phase 1 — matrix | identical to baseline | `matrix-phase1.json` |
+| Phase 4 — price/spec/SVG/save | **PASS** (all checks) | `node phase4.js` |
+| Phase 4 — price sanity (base × 1.6) | **PASS** | `node price-check.js` |
+| Phase 4 — matrix | identical to baseline | `matrix-phase4.json` |
+| §2.2 deletions | 0 unexplained | `./audit-deletions.sh` |
+| §2.5 tmmx markers | no drop vs origin/main | `./markers.sh` |
+
+### Screenshots and drawings (`/home/user/arched-sash-proof/`)
+
+3D, bundle driven directly — `p1-<shape>-closed.png`, `p1-<shape>-open.png` for
+`semi-circle`, `gothic-arch`, `segmental-arch`, `elliptical-arch` (8 files: closed, and
+`upperOpening = 9999` clamped to `upperMaxDrop`).
+
+3D through the real UI — `phase1-<shape>.png` (4 files, with dimension guides).
+
+Estimate SVG — `svg-semi.png`, `svg-gothic.png`, `svg-segmental.png`, `svg-elliptical.png`
+(plus the `.svg` sources).
+
+Reference for comparison — `ref-arched-casement-gothic.png` (the existing arched casement,
+used to prove the scalloped-row artefact was mine and not pre-existing).
+
 ---
 
 ## Commits
@@ -134,3 +183,4 @@ Re-run with `node matrix.js <label>`; compare with `node compare.js <label>`.
 | Hash | Message |
 |---|---|
 | `cbc8a05` | arched sash: phase 0 — log file + baseline captured |
+| `b7b71d6` | arched sash: phase 1 — 3D core (4 shapes, arched box head, opening sash, validation, sync) |

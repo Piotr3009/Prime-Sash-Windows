@@ -619,6 +619,11 @@ class EstimateManager {
         // Użyj window.currentConfig który ma WSZYSTKIE dane ze specyfikacji
         if (window.currentConfig) {
             const cfg = window.currentConfig;
+        // The sash-type RADIO value is 'arched-group'; the value that is priced,
+        // saved and read in production is 'arched'. configurator-core rewrites
+        // currentConfig.sashType from the radio on every updateAll(), so
+        // normalise here — at the two points that actually leave the page.
+            if (cfg.sashType === 'arched-group') cfg.sashType = 'arched';
             const isCasement = cfg.windowType === 'casement' || cfg.windowCategory === 'casement';
             const isFixOnly = cfg.windowType === 'fix-only';
 
@@ -668,6 +673,20 @@ class EstimateManager {
                 // Bary
                 upperBars: isCasement ? (cfg.hBars || cfg.casementHBars || null) : (cfg.upperBars || null),
                 lowerBars: isCasement ? (cfg.vBars || cfg.casementVBars || null) : (cfg.lowerBars || null),
+
+                // ── ARCHED SASH ──
+                // fullConfig below already carries these (it is a spread of
+                // currentConfig), but production reads the top level of the
+                // specification JSON too, so state them explicitly.
+                sashType: cfg.sashType || null,
+                archShape: cfg.archShape || null,
+                archRise: cfg.archRise || null,
+                straightHeight: cfg.straightHeight || null,
+                upperSashHeight: cfg.upperSashHeight || null,
+                upperMaxDrop: cfg.upperMaxDrop || null,
+                archBarPattern: cfg.archBarPattern || null,
+                archHBars: cfg.archHBars || null,
+                archVBars: cfg.archVBars || null,
                 
                 // Detale (horns są w ironmongery)
                 horns: null,
@@ -699,6 +718,11 @@ class EstimateManager {
         // unit_price on edit — sidebar DOM shows unit price for those types.
         try {
             const cfg = window.currentConfig;
+        // The sash-type RADIO value is 'arched-group'; the value that is priced,
+        // saved and read in production is 'arched'. configurator-core rewrites
+        // currentConfig.sashType from the radio on every updateAll(), so
+        // normalise here — at the two points that actually leave the page.
+            if (cfg && cfg.sashType === 'arched-group') cfg.sashType = 'arched';
             if (cfg && typeof window.calculatePrice === 'function') {
                 const priceData = window.calculatePrice(cfg);
                 if (priceData && priceData.unitPrice > 0) {

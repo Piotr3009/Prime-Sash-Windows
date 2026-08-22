@@ -681,6 +681,14 @@ class SpecificationController {
     let typeLabel = sashTypeVal === 'triple' ? 'Triple Sash' : 'Double Hung Sash';
     if (headTypeVal === 'arch') typeLabel += ' — Glazing Arch';
     if (specSashType) specSashType.textContent = typeLabel;
+
+    // Arched sash label: 'Arched Sash — Semicircular' etc. Written after the
+    // generic label above so the arched product is not shown as a double hung.
+    if ((document.querySelector('input[name="sash-type"]:checked')?.value) === 'arched-group' && specSashType) {
+      const _lblShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+      const _lblName = (window.ArchedSash && window.ArchedSash.SHAPE_NAMES[_lblShape]) || _lblShape;
+      specSashType.textContent = 'Arched Sash — ' + _lblName;
+    }
     if (specSplitItem) specSplitItem.style.display = sashTypeVal === 'triple' ? '' : 'none';
     if (specSplitRatio) specSplitRatio.textContent = splitRatioVal;
 
@@ -939,6 +947,14 @@ class SpecificationController {
     let typeLabel = isTriple ? 'Triple Sash' : 'Double Hung Sash';
     if (headType === 'arch') typeLabel += ' — Glazing Arch';
     if (specSashType) specSashType.textContent = typeLabel;
+
+    // Arched sash label: 'Arched Sash — Semicircular' etc. Written after the
+    // generic label above so the arched product is not shown as a double hung.
+    if (sashType === 'arched-group' && specSashType) {
+      const _lblShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+      const _lblName = (window.ArchedSash && window.ArchedSash.SHAPE_NAMES[_lblShape]) || _lblShape;
+      specSashType.textContent = 'Arched Sash — ' + _lblName;
+    }
     if (specSplitItem) specSplitItem.style.display = isTriple ? '' : 'none';
     if (specSplitRatio) specSplitRatio.textContent = splitRatio;
 

@@ -76,6 +76,13 @@ class PriceCalculator {
       return this.calculateDoor(configuration, frameWidth, frameHeight);
     }
 
+    // ═══ ARCHED SASH PRICING ═══
+    // sashType 'arched' is its own product: base × 1.6 (curved IGU is inside the
+    // multiplier, spec O3/O7), then pattern premium + bars + options.
+    if (configuration.sashType === 'arched') {
+      return this.calculateArchedSash(configuration, sqm, frameWidth, frameHeight);
+    }
+
     // 1. CENA BAZOWA (SASH)
     let basePrice;
     let sizeMultiplier;
@@ -678,6 +685,85 @@ class PriceCalculator {
   }
 
   // ═══ ARCHED CASEMENT PRICING ═══
+  // ═══════════════════════════════════════════════════════════════════════
+  // ARCHED SASH (spec O2/O3)
+  //   (basePrice_double(sqm) × 1.6) + archPatternPremium + bars + options
+  // The 1.6 multiplies the BASE ONLY — not the subtotal. Glazing Arch's +10%
+  // works on the subtotal, but that is a different product and headType is
+  // ignored here. Colour and quantity then behave exactly like a double sash.
+  // ═══════════════════════════════════════════════════════════════════════
+  calculateArchedSash(configuration, sqm, frameWidth, frameHeight) {
+    const A = window.ArchedSash;
+    const shape = configuration.archShape || 'semi-circle';
+
+    // Base: the double-hung base for this area, × 1.6
+    const sizeMultiplier = this.getSizeMultiplier(sqm);
+    const basePriceDouble = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
+    const basePrice = basePriceDouble * 1.6;
+
+    // Arch bar pattern premium — same table as arched casement
+    const pattern = configuration.archBarPattern || 'none';
+    const patternPrice = (A && A.PATTERN_PREMIUM[pattern]) ? A.PATTERN_PREMIUM[pattern] : 0;
+
+    // Upper (arched) sash grid — casement convention: (h + v) × 2 × rate
+    const barRate = this.pricing.barPricing ? this.pricing.barPricing.pricePerBar : 15;
+    const archBars = (configuration.archHBars || 0) + (configuration.archVBars || 0);
+    const archBarsPrice = archBars * 2 * barRate;
+
+    // Lower sash keeps the ordinary sash bar pricing
+    const lowerBarsPrice = this.calculateBarsPrice('none', configuration.lowerBars || 'none', configuration.customBars);
+
+    const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice, sqm);
+
+    let subtotal = basePrice + patternPrice + archBarsPrice + lowerBarsPrice + additionalPrice;
+
+    // Colour — identical to the double sash branch (single non-white +5%, dual +15%)
+    if (configuration.colorType === 'dual') {
+      subtotal += subtotal * 0.15;
+    } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
+      subtotal += subtotal * 0.05;
+    }
+
+    const quantity = configuration.quantity || 1;
+    const discount = this.getQuantityDiscount(quantity);
+    const discountAmount = subtotal * discount;
+    const unitPrice = subtotal - discountAmount;
+    const totalPrice = unitPrice * quantity;
+
+    const metrics = A ? A.metricsFor(shape, frameWidth, frameHeight) : null;
+
+    return {
+      unitPrice: Math.round(unitPrice * 100) / 100,
+      totalPrice: Math.round(totalPrice * 100) / 100,
+      breakdown: {
+        windowType: 'arched-sash',
+        archShape: shape,
+        archRise: metrics ? metrics.archRise : null,
+        straightHeight: metrics ? metrics.straightHeight : null,
+        upperMaxDrop: metrics ? metrics.upperMaxDrop : null,
+        frameWidth: frameWidth,
+        frameHeight: frameHeight,
+        sqm: sqm.toFixed(2),
+        sizeMultiplier: sizeMultiplier,
+        basePriceDouble: basePriceDouble.toFixed(2),
+        archMultiplier: 1.6,
+        basePrice: basePrice.toFixed(2),
+        patternPrice: patternPrice,
+        archBarsPrice: archBarsPrice.toFixed(2),
+        lowerBarsPrice: lowerBarsPrice,
+        additionalOptions: additionalPrice,
+        subtotal: subtotal.toFixed(2),
+        quantity: quantity,
+        discount: (discount * 100) + '%',
+        discountAmount: discountAmount.toFixed(2),
+        unitPrice: unitPrice.toFixed(2),
+        totalPrice: totalPrice.toFixed(2),
+        vatAmount: (totalPrice * this.pricing.vatRate).toFixed(2),
+        totalWithVat: (totalPrice * (1 + this.pricing.vatRate)).toFixed(2)
+      }
+    };
+  }
+
   calculateArchedCasement(configuration, sqm, frameWidth, frameHeight) {
     const shape = configuration.casArchShape || 'semi-circle';
 
