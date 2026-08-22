@@ -279,6 +279,25 @@ Re-run with `node matrix.js <label>`; compare with `node compare.js <label>`.
 | All gates re-run together after Phase 3 | 1, 3, 4, 5 + price sanity all **PASS** | — |
 | Phase 2 — parity (cords/weights, horns, opening, frosted, dual colour, ironmongery) | **PASS** (all checks) | `node phase2.js` |
 | Phase 2 — matrix | identical to baseline | `matrix-phase2.json` |
+
+### Final suite — every gate re-run against the shipped bundle (v=98)
+
+```
+=== phase1 ===        PHASE 1 GATE: ALL PASS
+=== phase2 ===        PHASE 2 GATE: ALL PASS
+=== phase3 ===        PHASE 3 GATE: ALL PASS
+=== phase4 ===        PHASE 4 GATE: ALL PASS
+=== price-check ===   PRICE SANITY: ALL PASS
+=== final-check ===   FINAL SMOKE: ALL PASS      (arched survives casement / fix-only /
+                                                  doors round trips; triple untouched)
+=== phase5 arched === PHASE 5 GATE (arched): ALL PASS
+=== phase5 double === PHASE 5 GATE (double): ALL PASS
+=== matrix ===        MATRIX IDENTICAL TO BASELINE
+```
+
+Raw output: `/home/user/arched-sash-proof/FINAL-SUITE.txt`.
+Deletion audit: **0 unexplained**. Markers: **no drop** vs `origin/main`.
+`cd 3d-src && npm run build`: **OK**.
 | §2.2 deletions | 0 unexplained | `./audit-deletions.sh` |
 | §2.5 tmmx markers | no drop vs origin/main | `./markers.sh` |
 
@@ -308,3 +327,6 @@ used to prove the scalloped-row artefact was mine and not pre-existing).
 | `7527003` | arched sash: phase 5 — edit-mode restore, specification round-trips unchanged |
 | `a58b970` | arched sash: phase 3 — arch bar patterns, upper H/V grid, hub/intersecting tracery |
 | `bb940d9` | arched sash: phase 2 — cords/weights/horns parity, openingType reaches the 3D config |
+| `ec47a43` | arched sash: phase 2 — log |
+| `076efb9` | arched sash: final report + arch shape fallback hardening |
+| _(final)_ | arched sash: final suite results |
