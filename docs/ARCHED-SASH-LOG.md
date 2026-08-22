@@ -329,4 +329,4 @@ used to prove the scalloped-row artefact was mine and not pre-existing).
 | `bb940d9` | arched sash: phase 2 — cords/weights/horns parity, openingType reaches the 3D config |
 | `ec47a43` | arched sash: phase 2 — log |
 | `076efb9` | arched sash: final report + arch shape fallback hardening |
-| _(final)_ | arched sash: final suite results |
+| `921424d` | arched sash: final suite results — all gates pass, matrix identical to baseline |
