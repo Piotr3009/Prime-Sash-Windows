@@ -685,8 +685,9 @@ class EstimateManager {
                 upperSashHeight: cfg.upperSashHeight || null,
                 upperMaxDrop: cfg.upperMaxDrop || null,
                 archBarPattern: cfg.archBarPattern || null,
-                archHBars: cfg.archHBars || null,
-                archVBars: cfg.archVBars || null,
+                // 0 is a real bar count, so keep it rather than collapsing to null
+                archHBars: cfg.archHBars !== undefined ? cfg.archHBars : null,
+                archVBars: cfg.archVBars !== undefined ? cfg.archVBars : null,
                 
                 // Detale (horns są w ironmongery)
                 horns: null,

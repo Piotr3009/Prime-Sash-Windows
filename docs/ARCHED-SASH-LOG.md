@@ -31,6 +31,13 @@
   `generateArchedSashSVG()` in `estimate-renderer.js`; explicit arched fields + a
   `sashType` normalisation in `estimate-manager.js`. Phase 4 gate: **all pass**, price
   sanity: **all pass**, matrix identical to baseline.
+- `T3` — **Phase 5 (edit-mode round trip) DONE.** `js/edit-mode.js` maps the stored
+  `'arched'` back to the `'arched-group'` radio, restores `arch-style` (and the bar
+  controls once Phase 3 adds them) *before* the dimensions so the clamp uses the right
+  shape, and re-runs `applyArchedSash()` after them. Round trip proven through the REAL
+  edit-mode path with supabase stubbed: **specification and viewer3d both round-trip with
+  zero differences**. A control run on a plain double sash was used to prove the only
+  residual diffs are pre-existing.
 
 ---
 
@@ -90,6 +97,13 @@
   `p.sashType === 'arched' ? p.archTypeLabel : <original chain>`. Every original token is
   still present, so the audit classifies it as a line extended in place, and every
   pre-existing input still produces its original output.
+- `DECISION: five edit-mode colour keys are accounted for, not fixed` — restoring through
+  edit-mode ADDS `frosted-location`, `woodColor`, `woodColorExt`, `woodColorInt` and
+  `sameColor` to `currentConfig`, which the fresh configure path never sets. A control run
+  on a plain **double** sash (`node phase5.js double`) produces exactly the same five, so
+  this is pre-existing edit-mode behaviour, not arched. Nothing is lost — they are
+  additions — and the cause sits outside the arched scope, so the test accounts for them
+  and the code is left alone (ZASADA #1). Worth a separate ticket.
 - `DECISION (D-T2): harness "nudges" get3DConfig before reading` — `window.get3DConfig` is
   re-installed by an effect keyed on the memoised config and in this browser build it lands
   one commit behind, so the first read after a change returns the PREVIOUS value. Two extra
@@ -130,6 +144,7 @@ Audited with `/home/user/arched-sash-proof/audit-deletions.sh` before every comm
 | `js/specification-controller.js` | v=8 | v=9 | `online-estimate.html` |
 | `js/estimate-renderer.js` | v=31 | v=32 | `online-estimate.html`, `admin-dashboard.html`, `customer-dashboard.html` |
 | `js/estimate-manager.js` | v=7 | v=8 | `online-estimate.html` |
+| `js/edit-mode.js` | v=12 | v=13 | `online-estimate.html` |
 
 ---
 
@@ -159,6 +174,9 @@ Re-run with `node matrix.js <label>`; compare with `node compare.js <label>`.
 | Phase 4 — price/spec/SVG/save | **PASS** (all checks) | `node phase4.js` |
 | Phase 4 — price sanity (base × 1.6) | **PASS** | `node price-check.js` |
 | Phase 4 — matrix | identical to baseline | `matrix-phase4.json` |
+| Phase 5 — edit-mode round trip (arched) | **PASS** — spec diff 0, viewer3d diff 0 | `node phase5.js arched` |
+| Phase 5 — control run (double) | **PASS** — same 5 pre-existing colour additions | `node phase5.js double` |
+| Phase 5 — matrix | identical to baseline | `matrix-phase5.json` |
 | §2.2 deletions | 0 unexplained | `./audit-deletions.sh` |
 | §2.5 tmmx markers | no drop vs origin/main | `./markers.sh` |
 
@@ -184,3 +202,4 @@ used to prove the scalloped-row artefact was mine and not pre-existing).
 |---|---|
 | `cbc8a05` | arched sash: phase 0 — log file + baseline captured |
 | `b7b71d6` | arched sash: phase 1 — 3D core (4 shapes, arched box head, opening sash, validation, sync) |
+| `d1a3e43` | arched sash: phase 4 — price (base x1.6), spec panel, SVG, specification JSON |
