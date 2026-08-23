@@ -26,7 +26,12 @@ Repo: `Piotr3009/Prime-Sash-Windows` @ `091af457` · Data: 2026-08-21
 | O6 | Kolejność kształtów | **wszystkie 4 naraz** |
 | O7 | Gięta szyba zespolona | tak — koszt w mnożniku 1.6, bez osobnej pozycji |
 
-| O8 | Min. prosta część stile GÓRNEJ sashki | **300 mm** → `H_inner/2 − rise ≥ 300` — potwierdzone pomiarem zdjęcia (0.32 × W) |
+| O8 | Min. prosta część stile GÓRNEJ sashki | **100 mm** (22.08, po merge; było 300) → `H/2 − rise ≥ 100` na wysokości całkowitej (prosta część = H/2 − rise, zgodnie z layoutem 3D). Semi 1000 → min 1400; gothic 1200 → 2280 / 1880 / 1640 |
+| O11 | Stromość gotyku | radio **Equilateral 0.866 / Drop 0.70 / Shallow 0.60** × W (22.08), domyślnie Equilateral; geometria z rise (dwa środki ±c) |
+| O12 | Dolna sashka — bary | **`match`** (22.08): pionowe dokładnie na kolumnach górnej sashki (lub stopach hubów), poziome wg wyboru 0–3, domyślnie 2 |
+| O13 | Otwieranie | górna **pełny skok** jak w double (O1 wycofane); dolna **do początku łuku** (−20 mm) |
+| O14 | Kolejność kształtów | Semicircular → Gothic → Elliptical → Segmental |
+| O15 | Tracery (hub/intersecting) w SVG wyceny | **nie rysujemy** — SVG daje kształt łuku + siatkę + kontynuację w dolnej sashce; wizualizacja jest w 3D |
 | O9 | `intersecting` także dla **semicircular** (zdj. 1) | **tak** (Piotr: „ok”, 21.08) — nowa geometria, nie kopia z gothic |
 | O10 | Szprosy łuku **na kolumnach V-barów** górnej sashki, nie automat z szerokości | **tak** (Piotr: „ok”, 21.08) — V-bary góra = dół domyślnie |
 

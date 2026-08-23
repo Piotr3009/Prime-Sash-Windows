@@ -450,20 +450,40 @@
             <label>Arch Style:</label>
             <div class="radio-group">
               <div class="radio-option">
+                <input type="radio" id="arch-semicircular" name="arch-style" value="semicircular" checked>
+                <label for="arch-semicircular" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 14 A12 12 0 0 1 26 14 L26 34 L2 34 Z"/><line x1="2" y1="24" x2="26" y2="24"/></svg>Semicircular Arch</label>
+              </div>
+              <div class="radio-option">
                 <input type="radio" id="arch-gothic" name="arch-style" value="gothic">
                 <label for="arch-gothic" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 16 A24 24 0 0 1 14 3 A24 24 0 0 1 26 16 L26 34 L2 34 Z"/><line x1="2" y1="24" x2="26" y2="24"/></svg>Gothic Arch</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="arch-elliptical" name="arch-style" value="elliptical">
+                <label for="arch-elliptical" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 12 A16 8 0 0 1 26 12 L26 34 L2 34 Z"/><line x1="2" y1="23" x2="26" y2="23"/></svg>Elliptical Arch</label>
               </div>
               <div class="radio-option">
                 <input type="radio" id="arch-segmental" name="arch-style" value="segmental">
                 <label for="arch-segmental" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 9 A20 20 0 0 1 26 9 L26 34 L2 34 Z"/><line x1="2" y1="21" x2="26" y2="21"/></svg>Segmental Arch</label>
               </div>
+            </div>
+          </div>
+
+          <!-- Gothic steepness (owner decision 22.08.2026). Shown for Gothic only;
+               rise = GOTHIC_PROFILE_RATIO × width, see window.ArchedSash. -->
+          <div class="input-group" id="arch-profile-group" style="display:none; margin-top:10px;">
+            <label>Gothic Arch Profile:</label>
+            <div class="radio-group">
               <div class="radio-option">
-                <input type="radio" id="arch-semicircular" name="arch-style" value="semicircular" checked>
-                <label for="arch-semicircular" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 14 A12 12 0 0 1 26 14 L26 34 L2 34 Z"/><line x1="2" y1="24" x2="26" y2="24"/></svg>Semicircular Arch</label>
+                <input type="radio" id="arch-profile-equilateral" name="arch-profile" value="equilateral" checked>
+                <label for="arch-profile-equilateral" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 34 L3 20 A24 24 0 0 1 14 3 A24 24 0 0 1 25 20 L25 34"/></svg> Equilateral</label>
               </div>
               <div class="radio-option">
-                <input type="radio" id="arch-elliptical" name="arch-style" value="elliptical">
-                <label for="arch-elliptical" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M2 12 A16 8 0 0 1 26 12 L26 34 L2 34 Z"/><line x1="2" y1="23" x2="26" y2="23"/></svg>Elliptical Arch</label>
+                <input type="radio" id="arch-profile-drop" name="arch-profile" value="drop">
+                <label for="arch-profile-drop" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 34 L3 20 A17 17 0 0 1 14 8 A17 17 0 0 1 25 20 L25 34"/></svg> Drop</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="arch-profile-shallow" name="arch-profile" value="shallow">
+                <label for="arch-profile-shallow" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 34 L3 20 A14 14 0 0 1 14 11 A14 14 0 0 1 25 20 L25 34"/></svg> Shallow</label>
               </div>
             </div>
           </div>
@@ -601,6 +621,18 @@
                   <option value="4">4</option>
                   <option value="5">5</option>
                 </select>
+              </div>
+              <!-- Lower sash (22.08.2026): verticals CONTINUE the upper columns automatically
+                   ('match'); only the horizontal count is chosen here. -->
+              <div style="flex:1;min-width:120px;" id="arch-lower-h-wrap">
+                <label for="arch-lower-h-bars">Lower Sash — Horizontal Bars:</label>
+                <select id="arch-lower-h-bars" class="detail-select">
+                  <option value="0">0</option>
+                  <option value="1">1</option>
+                  <option value="2" selected>2</option>
+                  <option value="3">3</option>
+                </select>
+                <div style="font-size:11px;color:#666;margin-top:4px;">Vertical bars follow the upper sash columns.</div>
               </div>
             </div>
           </div>
@@ -2415,7 +2447,7 @@
         
       </div>
       
-      <div class="config-section" data-for="sash" data-category="dim-design">
+      <div class="config-section" data-for="sash" data-category="dim-design" id="georgian-bars-section">
         <h3>Step 2: Georgian Bars</h3>
         <div class="bars-inline-row">
           <div class="bars-group">
@@ -4391,14 +4423,14 @@
 <script src="js/ironmongery-gallery.js?v=4"></script>
 <script src="js/pricing-config.js?v=8"></script>
 <script src="js/config.js?v=3"></script>
-<script src="js/price-calculator.js?v=12"></script>
+<script src="js/price-calculator.js?v=13"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=3"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=9"></script>
+<script src="js/specification-controller.js?v=10"></script>
 <script src="js/configurator-core.js?v=4"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
@@ -4418,10 +4450,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=3"></script>
-<script src="js/estimate-renderer.js?v=32"></script>
+<script src="js/estimate-renderer.js?v=33"></script>
 <script src="js/estimate-selector.js?v=3"></script>
-<script src="js/estimate-manager.js?v=8"></script>
-<script src="js/edit-mode.js?v=13"></script>
+<script src="js/estimate-manager.js?v=9"></script>
+<script src="js/edit-mode.js?v=14"></script>
 
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
@@ -4764,7 +4796,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=98";
+      psw3dScript.src = "3d/assets/window3d.js?v=99";
       document.head.appendChild(psw3dScript);
     }
   </script>
@@ -5268,14 +5300,18 @@
                 window.currentConfig.archBarPattern = (typeof window.getArchBarPattern === 'function') ? window.getArchBarPattern() : 'none';
                 window.currentConfig.archHBars = (typeof window.getArchHBars === 'function') ? window.getArchHBars() : 0;
                 window.currentConfig.archVBars = (typeof window.getArchVBars === 'function') ? window.getArchVBars() : 0;
+                var _ax = (typeof window.getArchedExtras === 'function') ? window.getArchedExtras() : {};
+                Object.assign(window.currentConfig, _ax);
+                _am = _as ? _as.metricsFor(_shape, _afw, _afh, _ax.archProfile) : _am;
                 if (_am) {
                   window.currentConfig.archRise = _am.archRise;
                   window.currentConfig.straightHeight = _am.straightHeight;
                   window.currentConfig.upperSashHeight = _am.upperSashHeight;
                   window.currentConfig.upperMaxDrop = _am.upperMaxDrop;
+                  window.currentConfig.lowerMaxLift = _am.lowerMaxLift;
                 }
                 if (typeof window.update3D === 'function') {
-                  window.update3D({
+                  window.update3D(Object.assign({
                     windowCategory: 'sash',
                     sashType: 'arched',
                     archShape: _shape,
@@ -5285,9 +5321,13 @@
                     archBarPattern: window.currentConfig.archBarPattern,
                     archHBars: window.currentConfig.archHBars,
                     archVBars: window.currentConfig.archVBars
-                  });
+                  }, _ax));
                 }
               }
+              // Georgian Bars section (double/triple selects) is meaningless for arched —
+              // its bars live in the Arch block. Hidden, never removed.
+              var _geo = document.getElementById('georgian-bars-section');
+              if (_geo) _geo.style.display = (((document.querySelector('input[name="sash-type"]:checked') || {}).value === 'arched-group')) ? 'none' : '';
               // price-calculator prefers actualFrameWidth/Height over width when present —
               // these are a derived cache and go stale; purge so pricing follows the inputs,
               // populateInitialSpec() below rebuilds them fresh
@@ -5310,6 +5350,15 @@
               var _sh = document.getElementById('spec-height');
               if (_sw && !isNaN(_fw)) _sw.textContent = _fw + 'mm';
               if (_sh && !isNaN(_fh)) _sh.textContent = _fh + 'mm';
+              // populateInitialSpec() rewrites lowerBars from the Georgian selects and
+              // re-pushes them to 3D; for arched the lower sash is 'match' — re-assert.
+              var _archedNow = ((document.querySelector('input[name="sash-type"]:checked') || {}).value === 'arched-group');
+              if (_archedNow && typeof window.getArchedExtras === 'function') {
+                window.currentConfig.sashType = 'arched';
+                var _ax2 = window.getArchedExtras();
+                Object.assign(window.currentConfig, _ax2);
+                if (typeof window.update3D === 'function') window.update3D(_ax2);
+              }
             }
             var _writePrice = function() {
               try {
@@ -5418,6 +5467,8 @@
       SYNC_NAMES['arch-bar-pattern'] = 1;
       SYNC_IDS['arch-h-bars'] = 1;
       SYNC_IDS['arch-v-bars'] = 1;
+      SYNC_IDS['arch-lower-h-bars'] = 1;
+      SYNC_NAMES['arch-profile'] = 1;
       var _microQueued = false;
       function maybeScheduleSync(e) {
         var t = e.target || {};
@@ -6547,6 +6598,37 @@
       }
       function getArchHBars() { var e = document.getElementById('arch-h-bars'); return e ? (parseInt(e.value, 10) || 0) : 0; }
       function getArchVBars() { var e = document.getElementById('arch-v-bars'); return e ? (parseInt(e.value, 10) || 0) : 0; }
+      // Gothic steepness radio (22.08.2026). Only meaningful for gothic-arch.
+      function getArchProfile() {
+        var r = document.querySelector('input[name="arch-profile"]:checked');
+        var A = window.ArchedSash;
+        var v = r ? r.value : null;
+        return (A && A.GOTHIC_PROFILE_RATIO && A.GOTHIC_PROFILE_RATIO[v] !== undefined) ? v : 'equilateral';
+      }
+      function getLowerHBars() { var e = document.getElementById('arch-lower-h-bars'); return e ? (parseInt(e.value, 10) || 0) : 0; }
+      // How many verticals the lower sash carries on ('match'): the user's columns,
+      // or the ring feet when a spoke pattern defines its own. Mirrors
+      // useArchedSashBars().lowerVX in ArchedSashWindow.jsx.
+      function getLowerVBarsCount() {
+        var pat = getArchBarPattern();
+        if (pat === 'hub-spoke') return 2;
+        if (pat === 'double-hub-spoke') return 4;
+        if (pat === 'triple-hub-spoke') return 6;
+        return getArchVBars();
+      }
+      // Everything the arched product adds on top of shape + size. One helper so
+      // applyArchedSash(), syncActiveProduct() and the spec controller stay in step.
+      function getArchedExtras() {
+        return {
+          archProfile: getArchProfile(),
+          lowerBars: 'match',
+          lowerHBars: getLowerHBars(),
+          lowerVBars: getLowerVBarsCount()
+        };
+      }
+      window.getArchProfile = getArchProfile;
+      window.getLowerHBars = getLowerHBars;
+      window.getArchedExtras = getArchedExtras;
       function isArchedActive() { return getSashType() === 'arched-group'; }
       window.getArchShape = getArchShape;
       window.getArchBarPattern = getArchBarPattern;
@@ -6583,7 +6665,8 @@
 
         // Limits are on the FRAME size (spec §5), the inputs may be structural.
         var minFW = A.MIN_WIDTH;
-        var maxFW = A.maxWidthFor(shape, MAX_INPUT_H + off.h);
+        var profile = getArchProfile();
+        var maxFW = A.maxWidthFor(shape, MAX_INPUT_H + off.h, profile);
         var curW = parseInt((widthInput || {}).value, 10); if (isNaN(curW)) curW = 1000;
         var curH = parseInt((heightInput || {}).value, 10); if (isNaN(curH)) curH = 1500;
 
@@ -6591,7 +6674,7 @@
         newFW = Math.round(newFW / 10) * 10;
         var newW = newFW - off.w;
 
-        var minFH = A.minHeightFor(shape, newFW);
+        var minFH = A.minHeightFor(shape, newFW, profile);
         var newFH = Math.min(Math.max(curH + off.h, minFH), MAX_INPUT_H + off.h);
         var newH = newFH - off.h;
 
@@ -6601,9 +6684,9 @@
             (A.SHAPE_NAMES[shape] || shape).toLowerCase() + ' arch.');
         }
         if (newH !== curH) {
-          notes.push('Height raised to ' + newH + ' mm — the arch rises ' + A.riseFor(shape, newFW) +
+          notes.push('Height raised to ' + newH + ' mm — the arch rises ' + A.riseFor(shape, newFW, profile) +
             ' mm and needs at least ' + A.MIN_STRAIGHT + ' mm of straight frame below the arch start, plus ' +
-            A.MIN_UPPER_STILE + ' mm of straight stile on the upper sash.');
+            A.MIN_UPPER_STILE + ' mm of straight stile on the upper sash (both sashes are equal in height).');
         }
         showArchedNote(notes.join(' '));
 
@@ -6638,11 +6721,12 @@
           window.currentConfig.height = newH;
           window.currentConfig.sashType = 'arched';
           window.currentConfig.archShape = shape;
+          Object.assign(window.currentConfig, getArchedExtras());
         }
 
-        var m = A.metricsFor(shape, newFW, newFH);
+        var m = A.metricsFor(shape, newFW, newFH, profile);
         if (typeof window.update3D === 'function') {
-          window.update3D({
+          window.update3D(Object.assign({
             windowCategory: 'sash',
             sashType: 'arched',
             archShape: shape,
@@ -6652,7 +6736,7 @@
             archBarPattern: getArchBarPattern(),
             archHBars: getArchHBars(),
             archVBars: getArchVBars()
-          });
+          }, getArchedExtras()));
         }
         return { shape: shape, frameWidth: newFW, frameHeight: newFH, metrics: m };
       }
@@ -6691,6 +6775,9 @@
                        current === 'double-hub-spoke' || current === 'triple-hub-spoke';
         if (vWrap) vWrap.style.display = spokeHub ? 'none' : '';
         if (hvGroup) hvGroup.style.display = '';
+        // Gothic steepness picker only makes sense for the pointed arch.
+        var profileGroup = document.getElementById('arch-profile-group');
+        if (profileGroup) profileGroup.style.display = (shape === 'gothic-arch') ? '' : 'none';
       }
       window.updateArchedBarsVisibility = updateArchedBarsVisibility;
 
@@ -6704,6 +6791,9 @@
         lowerBarsSel.addEventListener('change', function() { lowerBarsTouched = true; });
       }
       function syncLowerBarsToUpper() {
+        // 22.08.2026: superseded by lowerBars = 'match' (the lower sash continues
+        // the upper columns in 3D directly). Kept for reference, intentionally inert.
+        if (isArchedActive()) return;
         if (lowerBarsTouched || !lowerBarsSel) return;
         var want = LOWER_FOR_V[getArchVBars()];
         if (want === undefined || lowerBarsSel.value === want) return;
@@ -6728,9 +6818,21 @@
       document.querySelectorAll('input[name="arch-bar-pattern"]').forEach(function(r) {
         r.addEventListener('change', archBarsChanged);
       });
-      ['arch-h-bars', 'arch-v-bars'].forEach(function(id) {
+      ['arch-h-bars', 'arch-v-bars', 'arch-lower-h-bars'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener('change', archBarsChanged);
+      });
+      // Gothic profile changes the rise → limits, 3D, price and spec, like a shape change.
+      document.querySelectorAll('input[name="arch-profile"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          if (!isArchedActive()) return;
+          applyArchedSash();
+          if (window.specificationController) {
+            window.specificationController.applyProductRange();
+            window.specificationController.applyDimensions();
+          }
+          if (typeof window.scheduleProductSync === 'function') window.scheduleProductSync();
+        });
       });
 
       sashTypeRadios.forEach(function(radio) {
@@ -6744,6 +6846,9 @@
           tripleOptions.style.display = isTriple ? 'block' : 'none';
           headTypeOptions.style.display = (isDouble || isTriple) ? 'block' : 'none';
           archedTypes.style.display = isArchedGroup ? 'block' : 'none';
+          // Georgian Bars selects belong to double/triple; the arched sash has its own bar controls.
+          var georgianSection = document.getElementById('georgian-bars-section');
+          if (georgianSection) georgianSection.style.display = isArchedGroup ? 'none' : '';
 
           // Reset head type to flat when switching
           if (isDouble || isTriple) {

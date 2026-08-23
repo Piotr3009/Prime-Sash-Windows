@@ -688,6 +688,11 @@ class EstimateManager {
                 // 0 is a real bar count, so keep it rather than collapsing to null
                 archHBars: cfg.archHBars !== undefined ? cfg.archHBars : null,
                 archVBars: cfg.archVBars !== undefined ? cfg.archVBars : null,
+                // 22.08.2026: gothic steepness, lower sash 'match' bars, lower sash travel
+                archProfile: cfg.archProfile || null,
+                lowerHBars: cfg.lowerHBars !== undefined ? cfg.lowerHBars : null,
+                lowerVBars: cfg.lowerVBars !== undefined ? cfg.lowerVBars : null,
+                lowerMaxLift: cfg.lowerMaxLift || null,
                 
                 // Detale (horns są w ironmongery)
                 horns: null,

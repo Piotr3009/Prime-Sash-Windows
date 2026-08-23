@@ -687,7 +687,10 @@ class SpecificationController {
     if ((document.querySelector('input[name="sash-type"]:checked')?.value) === 'arched-group' && specSashType) {
       const _lblShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
       const _lblName = (window.ArchedSash && window.ArchedSash.SHAPE_NAMES[_lblShape]) || _lblShape;
-      specSashType.textContent = 'Arched Sash — ' + _lblName;
+      // Gothic carries its steepness in the label: 'Arched Sash — Gothic (Drop)' (22.08.2026)
+      const _lblProfile = (_lblShape === 'gothic-arch' && typeof window.getArchProfile === 'function' && window.ArchedSash && window.ArchedSash.GOTHIC_PROFILE_NAMES)
+        ? (window.ArchedSash.GOTHIC_PROFILE_NAMES[window.getArchProfile()] || null) : null;
+      specSashType.textContent = 'Arched Sash — ' + _lblName + (_lblProfile ? ' (' + _lblProfile + ')' : '');
     }
     if (specSplitItem) specSplitItem.style.display = sashTypeVal === 'triple' ? '' : 'none';
     if (specSplitRatio) specSplitRatio.textContent = splitRatioVal;
@@ -732,9 +735,10 @@ class SpecificationController {
     if (typeof window.update3D === 'function' &&
         (document.querySelector('input[name="sash-type"]:checked')?.value) === 'arched-group') {
       const _archShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+      const _archExtras = (typeof window.getArchedExtras === 'function') ? window.getArchedExtras() : {};
       const _archMetrics = window.ArchedSash
-        ? window.ArchedSash.metricsFor(_archShape, frameWidth, frameHeight) : null;
-      window.update3D({
+        ? window.ArchedSash.metricsFor(_archShape, frameWidth, frameHeight, _archExtras.archProfile) : null;
+      window.update3D(Object.assign({
         windowCategory: 'sash',
         sashType: 'arched',
         archShape: _archShape,
@@ -744,15 +748,17 @@ class SpecificationController {
         archBarPattern: (typeof window.getArchBarPattern === 'function') ? window.getArchBarPattern() : 'none',
         archHBars: (typeof window.getArchHBars === 'function') ? window.getArchHBars() : 0,
         archVBars: (typeof window.getArchVBars === 'function') ? window.getArchVBars() : 0
-      });
+      }, _archExtras));
       if (window.currentConfig) {
         window.currentConfig.sashType = 'arched';
         window.currentConfig.archShape = _archShape;
+        Object.assign(window.currentConfig, _archExtras);
         if (_archMetrics) {
           window.currentConfig.archRise = _archMetrics.archRise;
           window.currentConfig.straightHeight = _archMetrics.straightHeight;
           window.currentConfig.upperSashHeight = _archMetrics.upperSashHeight;
           window.currentConfig.upperMaxDrop = _archMetrics.upperMaxDrop;
+          window.currentConfig.lowerMaxLift = _archMetrics.lowerMaxLift;
         }
       }
     }
@@ -913,9 +919,10 @@ class SpecificationController {
     if (typeof window.update3D === 'function' &&
         (document.querySelector('input[name="sash-type"]:checked')?.value) === 'arched-group') {
       const _archShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
+      const _archExtras = (typeof window.getArchedExtras === 'function') ? window.getArchedExtras() : {};
       const _archMetrics = window.ArchedSash
-        ? window.ArchedSash.metricsFor(_archShape, _archFrameW, _archFrameH) : null;
-      window.update3D({
+        ? window.ArchedSash.metricsFor(_archShape, _archFrameW, _archFrameH, _archExtras.archProfile) : null;
+      window.update3D(Object.assign({
         windowCategory: 'sash',
         sashType: 'arched',
         archShape: _archShape,
@@ -925,15 +932,17 @@ class SpecificationController {
         archBarPattern: (typeof window.getArchBarPattern === 'function') ? window.getArchBarPattern() : 'none',
         archHBars: (typeof window.getArchHBars === 'function') ? window.getArchHBars() : 0,
         archVBars: (typeof window.getArchVBars === 'function') ? window.getArchVBars() : 0
-      });
+      }, _archExtras));
       if (window.currentConfig) {
         window.currentConfig.sashType = 'arched';
         window.currentConfig.archShape = _archShape;
+        Object.assign(window.currentConfig, _archExtras);
         if (_archMetrics) {
           window.currentConfig.archRise = _archMetrics.archRise;
           window.currentConfig.straightHeight = _archMetrics.straightHeight;
           window.currentConfig.upperSashHeight = _archMetrics.upperSashHeight;
           window.currentConfig.upperMaxDrop = _archMetrics.upperMaxDrop;
+          window.currentConfig.lowerMaxLift = _archMetrics.lowerMaxLift;
         }
       }
     }
@@ -953,7 +962,10 @@ class SpecificationController {
     if (sashType === 'arched-group' && specSashType) {
       const _lblShape = (typeof window.getArchShape === 'function') ? window.getArchShape() : 'semi-circle';
       const _lblName = (window.ArchedSash && window.ArchedSash.SHAPE_NAMES[_lblShape]) || _lblShape;
-      specSashType.textContent = 'Arched Sash — ' + _lblName;
+      // Gothic carries its steepness in the label: 'Arched Sash — Gothic (Drop)' (22.08.2026)
+      const _lblProfile = (_lblShape === 'gothic-arch' && typeof window.getArchProfile === 'function' && window.ArchedSash && window.ArchedSash.GOTHIC_PROFILE_NAMES)
+        ? (window.ArchedSash.GOTHIC_PROFILE_NAMES[window.getArchProfile()] || null) : null;
+      specSashType.textContent = 'Arched Sash — ' + _lblName + (_lblProfile ? ' (' + _lblProfile + ')' : '');
     }
     if (specSplitItem) specSplitItem.style.display = isTriple ? '' : 'none';
     if (specSplitRatio) specSplitRatio.textContent = splitRatio;

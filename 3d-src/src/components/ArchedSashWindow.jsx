@@ -65,9 +65,30 @@ export const ARCH_RISE_RATIO = {
   'gothic-arch': Math.sqrt(3) / 2, // 0.8660254…
 };
 
-export function archRiseFor(shape, extWidth) {
-  const r = ARCH_RISE_RATIO[shape];
-  return (r === undefined ? ARCH_RISE_RATIO['semi-circle'] : r) * (extWidth || 0);
+// Gothic steepness (owner decision 22.08.2026) — mirrors GOTHIC_PROFILE_RATIO in
+// price-calculator.js. 'equilateral' is the original 0.866 and the default.
+export const GOTHIC_PROFILE_RATIO = {
+  equilateral: Math.sqrt(3) / 2,
+  drop: 0.70,
+  shallow: 0.60,
+};
+
+export function archRiseFor(shape, extWidth, archProfile) {
+  let r = ARCH_RISE_RATIO[shape];
+  if (r === undefined) r = ARCH_RISE_RATIO['semi-circle'];
+  if (shape === 'gothic-arch' && GOTHIC_PROFILE_RATIO[archProfile] !== undefined) {
+    r = GOTHIC_PROFILE_RATIO[archProfile];
+  }
+  return r * (extWidth || 0);
+}
+
+// Pointed arch from its rise: two arcs whose centres sit on the arch-start
+// line at ±c. rise² = halfW·(halfW + 2c)  →  c = (rise² − halfW²) / (2·halfW).
+// Equilateral gives c = halfW (the original "radius = width" construction);
+// flatter profiles pull the centres inward; c = 0 would be a semicircle.
+export function gothicCentreOffset(halfW, rise) {
+  const c = (rise * rise - halfW * halfW) / (2 * halfW);
+  return Math.max(0, c);
 }
 
 // Box/sash constants — same numbers ParametricSashWindow uses for the flat box.
@@ -99,14 +120,20 @@ const SASH_ARCH_FACE = 64;
  * Every derived number the arched product needs, from the external size + shape.
  * Pure — used by the component, by App's config, and (mirrored) by the HTML.
  */
-export function archedSashMetrics(extWidth, extHeight, archShape) {
+export function archedSashMetrics(extWidth, extHeight, archShape, archProfile) {
   const W = extWidth || 0;
   const H = extHeight || 0;
-  const rise = archRiseFor(archShape, W);
+  const rise = archRiseFor(archShape, W, archProfile);
   const straightHeight = H - rise;
   // Clear opening height: total minus sill/head structure and the 3 mm gaps.
   const innerHeight = H - 144;
-  const upperMaxDrop = Math.max(0, Math.min(300, 0.25 * straightHeight));
+  // 22.08.2026 (owner): the upper sash is not limited by the arch — its straight
+  // stiles run in the straight jambs and the arch follows. It travels like any
+  // sash until its bottom rail nears the sill (the O1 300 mm cap is withdrawn).
+  const upperMaxDrop = Math.max(0, innerHeight / 2 - 120);
+  // The lower sash stops where the arch starts — its square top rail cannot
+  // enter the curved head. Straight stile of the upper sash = H/2 − rise.
+  const lowerMaxLift = Math.max(0, straightHeight - H / 2);
   return {
     rise,
     riseMm: Math.round(rise),
@@ -116,6 +143,7 @@ export function archedSashMetrics(extWidth, extHeight, archShape) {
     upperSashHeight: innerHeight / 2,
     lowerSashHeight: innerHeight / 2,
     upperMaxDrop: Math.round(upperMaxDrop),
+    lowerMaxLift: Math.round(lowerMaxLift),
   };
 }
 
@@ -126,14 +154,18 @@ function archArcPoints(shape, halfW, rise, springY, inset, segs = SEGS) {
   const hw = Math.max(halfW - inset, mm(10));
 
   if (shape === 'gothic-arch') {
-    // Two arcs of radius = full width, centred on the opposite bottom corners.
-    const R = Math.max(2 * halfW - inset, mm(20));
-    // Meet the two arcs exactly on the centre line instead of at a fixed 60°,
+    // Two-centre pointed arch built from the rise (profile-aware, 22.08.2026):
+    // centres at ±c on the arch-start line, radius c + halfW, so each arc
+    // passes through the opposite arch-start corner. Equilateral → c = halfW,
+    // R = width (the original construction); drop/shallow pull c inward.
+    const c = gothicCentreOffset(halfW, rise);
+    const R = Math.max(c + halfW - inset, mm(20));
+    // Meet the two arcs exactly on the centre line instead of at a fixed angle,
     // otherwise the offset arcs cross each other just below the apex.
-    const cosT = Math.min(1, Math.max(-1, halfW / R));
+    const cosT = Math.min(1, Math.max(-1, c / R));
     const t = Math.acos(cosT);
-    const right = arcPoints(-halfW, springY, R, 0, t, segs);
-    const left = arcPoints(halfW, springY, R, Math.PI - t, Math.PI, segs);
+    const right = arcPoints(-c, springY, R, 0, t, segs);
+    const left = arcPoints(c, springY, R, Math.PI - t, Math.PI, segs);
     return [...right, ...left];
   }
 
@@ -238,9 +270,11 @@ function ArchedSashWindow({
   boxDepthLabel = null,
   sashDepth = 57,
   archShape = 'semi-circle',
+  archProfile = 'equilateral',
   opening = 0,
   upperOpening = 0,
-  upperMaxDrop = 0,
+  upperMaxDrop = 0,        // kept for config compatibility; travel is now physical (see Openings)
+  lowerHBars = 0,          // 'match' lower bars: horizontal count (verticals follow the upper columns)
   showGuides = true,
   showHorns = true,
   hornType = 'A',
@@ -336,7 +370,7 @@ function ArchedSashWindow({
   // Rise from the EXTERNAL width (spec §5). Clamped so a bad config can never
   // fold the arch into the meeting rail — the UI validation normally prevents
   // ever reaching the clamp.
-  const riseNominal = mm(archRiseFor(archShape, extW));
+  const riseNominal = mm(archRiseFor(archShape, extW, archProfile));
   const riseMax = Math.max(yBoxTop - upperSashBottomY - mm(20), mm(20));
   const riseM = Math.min(riseNominal, riseMax);
   const ySpring = yBoxTop - riseM;
@@ -385,17 +419,27 @@ function ArchedSashWindow({
     hBars: archHBars,
     vBars: archVBars,
   });
+  // Lower sash 'match' bars: verticals on the exact x of the upper columns (or
+  // hub feet), horizontals by count. Scene x is shared by both sashes, so the
+  // mullions line up through the meeting rail even though the arched sash's
+  // face (64) is wider than a straight stile (57).
+  const lowerMatchBars = useMemo(
+    () => ({ vX: upperBarData.lowerVX || [], h: lowerHBars || 0 }),
+    [upperBarData, lowerHBars]
+  );
 
   /* ─── Openings ─── */
   const maxLift = Math.max(0, (meetingY - lowerVisibleBottomY) * 1000 - 120);
-  const lowerOpeningLift = openingType === 'fixed' ? 0 : Math.min(opening, maxLift);
-  // Separate clamp from maxLift (spec O1): min(300, 25% of the straight height).
-  const autoMaxDrop = Math.max(0, Math.min(300, 0.25 * (extH - archRiseFor(archShape, extW))));
-  const effMaxDrop = Math.min(
-    upperMaxDrop > 0 ? upperMaxDrop : autoMaxDrop,
-    autoMaxDrop,
-    Math.max(0, (ySpring - upperSashBottomY) * 1000 - 40)
-  );
+  // 22.08.2026 (owner): the LOWER sash stops where the arch starts — its square
+  // top rail cannot enter the curved head. Its top rail sits at meetingY +
+  // LOWER_MEETING_RAIL/2, the arch starts at ySpring; keep a 20 mm clearance.
+  const lowerTopY = meetingY + mm(LOWER_MEETING_RAIL / 2);
+  const lowerArchLimit = Math.max(0, (ySpring - lowerTopY) * 1000 - 20);
+  const lowerOpeningLift = openingType === 'fixed' ? 0 : Math.min(opening, maxLift, lowerArchLimit);
+  // The UPPER sash is not limited by the arch: its straight stiles run in the
+  // straight jambs and the arched head follows them down. It travels like any
+  // sash — until its bottom rail nears the sill. (O1's 300 mm cap withdrawn.)
+  const effMaxDrop = Math.max(0, (upperSashBottomY - lowerVisibleBottomY) * 1000 - 120);
   const upperOpeningDrop = (openingType === 'fixed' || openingType === 'bottom')
     ? 0 : Math.min(upperOpening, effMaxDrop);
 
@@ -539,6 +583,7 @@ function ArchedSashWindow({
         flipChamfer={false}
         barPattern={lowerBars}
         customBars={lowerCustomBars}
+        matchBars={lowerMatchBars}
         colorExt={cExt}
         colorInt={cInt}
         frosted={lowerGlass === 'frosted'}
@@ -752,9 +797,10 @@ export function useArchedSashBars({ shape, halfW, bottomY, springY, apexRise: ri
         return springY + (sq > 0 ? Math.sqrt(sq) : 0);
       }
       if (shape === 'gothic-arch') {
-        // two arcs radius R centred at ∓halfW, apex height = rise
-        const R = Math.sqrt(rise * rise + halfW * halfW);
-        const cx = x >= 0 ? -halfW : halfW;
+        // two-centre arch from the rise (profile-aware): centres at ±c, radius c + halfW
+        const c = gothicCentreOffset(halfW, rise);
+        const R = c + halfW;
+        const cx = x >= 0 ? -c : c;
         const sq = R * R - (x - cx) * (x - cx);
         return springY + (sq > 0 ? Math.sqrt(sq) : 0);
       }
@@ -822,10 +868,16 @@ export function useArchedSashBars({ shape, halfW, bottomY, springY, apexRise: ri
           const start = r0 + BAR_W * 0.6;
           const end = r1 - BAR_W * 0.4;
           if (end - start < mm(20)) continue;
-          curves.push(buildCurve([
-            [start * Math.cos(a), springY + start * Math.sin(a)],
-            [end * Math.cos(a), springY + end * Math.sin(a)],
-          ]));
+          // ptsToStrip() needs >= 3 points, so a two-point spoke produced no
+          // geometry at all (bug found 22.08.2026). Three collinear points are
+          // enough — more collinear vertices make the strip triangulate badly.
+          const spoke = [];
+          const SPOKE_PTS = 2;
+          for (let k = 0; k <= SPOKE_PTS; k++) {
+            const rr = start + ((end - start) * k) / SPOKE_PTS;
+            spoke.push([rr * Math.cos(a), springY + rr * Math.sin(a)]);
+          }
+          curves.push(buildCurve(spoke));
         }
       }
     }
@@ -835,7 +887,7 @@ export function useArchedSashBars({ shape, halfW, bottomY, springY, apexRise: ri
       // V-bar column, crossing one another, clipped to the arch profile.
       const mullions = columns.length ? columns : [-halfW / 2, halfW / 2];
       const R = shape === 'gothic-arch'
-        ? Math.sqrt(rise * rise + halfW * halfW)   // gothic: two-centre arcs
+        ? gothicCentreOffset(halfW, rise) + halfW   // gothic: same radius as the head arcs (profile-aware)
         : halfW;                                    // semicircular: same radius as the head
       for (const mx of mullions) {
         for (const dir of [1, -1]) {
@@ -885,6 +937,19 @@ export function useArchedSashBars({ shape, halfW, bottomY, springY, apexRise: ri
       }
     }
 
-    return { straight, curves, spacerMat, columns, belowH };
+    // Which verticals continue into the LOWER sash ('match', 22.08.2026): the
+    // user's columns, or the ring feet when a spoke pattern defines its own.
+    let lowerVX = columns.slice();
+    if (spokeHub) {
+      const feet = [];
+      const isDouble2 = pat === 'double-hub-spoke';
+      const isTriple2 = pat === 'triple-hub-spoke';
+      for (const r of [halfW * 0.3, (isDouble2 || isTriple2) ? halfW * 0.6 : null, isTriple2 ? halfW * 0.8 : null].filter((v) => v)) {
+        feet.push(-r, r);
+      }
+      lowerVX = feet.sort((a, b) => a - b);
+    }
+
+    return { straight, curves, spacerMat, columns, belowH, lowerVX };
   }, [shape, halfW, bottomY, springY, rise, pattern, hBars, vBars, spacerMat]);
 }

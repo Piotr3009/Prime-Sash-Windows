@@ -814,7 +814,7 @@ const BAR_PATTERNS = {
   'custom': null,
 };
 
-function GlazingBars({ clearWidth, clearHeight, glassDepth, barPattern = 'none', customBars = [], material, materialInt, doubleGlazing = false, spacerColor = 'silver' }) {
+function GlazingBars({ clearWidth, clearHeight, glassDepth, barPattern = 'none', customBars = [], matchBars = null, material, materialInt, doubleGlazing = false, spacerColor = 'silver' }) {
   const pattern = BAR_PATTERNS[barPattern];
   const barW = mm(22);
   const barH = mm(16.5);
@@ -947,6 +947,21 @@ function GlazingBars({ clearWidth, clearHeight, glassDepth, barPattern = 'none',
       });
       return result;
     }
+    // 'match' (arched sash, 22.08.2026): vertical bars at given x positions (scene
+    // units, relative to the glass centre — the upper sash's columns), horizontal
+    // bars spread evenly by count. Keeps the mullions continuous through the
+    // meeting rail for any column count, hub feet included.
+    if (barPattern === 'match') {
+      const out = [];
+      const vX = (matchBars && matchBars.vX) || [];
+      vX.forEach((x) => { if (Math.abs(x) < clearWidth / 2) out.push({ type: 'v', x, y: 0 }); });
+      const hc = (matchBars && matchBars.h) || 0;
+      for (let i = 1; i <= hc; i++) {
+        const y = -clearHeight / 2 + (clearHeight / (hc + 1)) * i;
+        out.push({ type: 'h', x: 0, y });
+      }
+      return out;
+    }
     if (!pattern) return [];
     const items = [];
     const { h, v } = pattern;
@@ -959,7 +974,7 @@ function GlazingBars({ clearWidth, clearHeight, glassDepth, barPattern = 'none',
       items.push({ type: 'h', x: 0, y });
     }
     return items;
-  }, [clearWidth, clearHeight, barPattern, customBars, pattern]);
+  }, [clearWidth, clearHeight, barPattern, customBars, matchBars, pattern]);
 
   if (bars.length === 0) return null;
 
@@ -1011,6 +1026,7 @@ function Sash({
   flipChamfer = false,
   barPattern = 'none',
   customBars = [],
+  matchBars = null,
   colorExt = null,
   colorInt = null,
   frosted = false,
@@ -1117,7 +1133,7 @@ function Sash({
         <GlassPane size={[clearWidth, clearHeight, glassD]} position={[0, glassY, glassCenterZ]} frosted={frosted} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
       )}
       <group position={[0, glassY, glassCenterZ]}>
-        <GlazingBars clearWidth={clearWidth} clearHeight={clearHeight} glassDepth={glassD} barPattern={barPattern} customBars={customBars} material={extCoreMaterial} materialInt={intCoreMaterial} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
+        <GlazingBars clearWidth={clearWidth} clearHeight={clearHeight} glassDepth={glassD} barPattern={barPattern} customBars={customBars} matchBars={matchBars} material={extCoreMaterial} materialInt={intCoreMaterial} doubleGlazing={doubleGlazing} spacerColor={spacerColor} />
       </group>
     </group>
   );

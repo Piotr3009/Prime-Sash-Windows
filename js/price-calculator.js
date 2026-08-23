@@ -710,8 +710,12 @@ class PriceCalculator {
     const archBars = (configuration.archHBars || 0) + (configuration.archVBars || 0);
     const archBarsPrice = archBars * 2 * barRate;
 
-    // Lower sash keeps the ordinary sash bar pricing
-    const lowerBarsPrice = this.calculateBarsPrice('none', configuration.lowerBars || 'none', configuration.customBars);
+    // Lower sash: with 'match' (22.08.2026) its bars continue the upper sash's
+    // columns — priced per bar like any other bar: (V + H) × rate. Otherwise the
+    // ordinary sash bar pricing applies.
+    const lowerBarsPrice = (configuration.lowerBars === 'match')
+      ? ((configuration.lowerVBars || 0) + (configuration.lowerHBars || 0)) * barRate
+      : this.calculateBarsPrice('none', configuration.lowerBars || 'none', configuration.customBars);
 
     const additionalPrice = this.calculateAdditionalOptions(configuration, sqm, basePrice, sqm);
 
@@ -730,7 +734,7 @@ class PriceCalculator {
     const unitPrice = subtotal - discountAmount;
     const totalPrice = unitPrice * quantity;
 
-    const metrics = A ? A.metricsFor(shape, frameWidth, frameHeight) : null;
+    const metrics = A ? A.metricsFor(shape, frameWidth, frameHeight, configuration.archProfile) : null;
 
     return {
       unitPrice: Math.round(unitPrice * 100) / 100,
@@ -738,6 +742,7 @@ class PriceCalculator {
       breakdown: {
         windowType: 'arched-sash',
         archShape: shape,
+        archProfile: metrics ? metrics.archProfile : null,
         archRise: metrics ? metrics.archRise : null,
         straightHeight: metrics ? metrics.straightHeight : null,
         upperMaxDrop: metrics ? metrics.upperMaxDrop : null,
@@ -932,6 +937,16 @@ window.ArchedSash = (function () {
     'semi-circle': 0.50,
     'gothic-arch': Math.sqrt(3) / 2,
   };
+  // Gothic steepness (owner decision 22.08.2026): the pointed arch can be the
+  // classic equilateral one or a flatter "drop" arch. Rise as a fraction of W.
+  // Default 'equilateral' = the original 0.866 — existing estimates unchanged.
+  var GOTHIC_PROFILE_RATIO = {
+    equilateral: Math.sqrt(3) / 2,   // 0.866
+    drop: 0.70,
+    shallow: 0.60,
+  };
+  var GOTHIC_PROFILE_NAMES = { equilateral: 'Equilateral', drop: 'Drop', shallow: 'Shallow' };
+  var DEFAULT_GOTHIC_PROFILE = 'equilateral';
 
   // The radio values in online-estimate.html are the legacy short names; the
   // config/CSV value is the shared shape id used by casArchShape / fixShape.
@@ -974,36 +989,41 @@ window.ArchedSash = (function () {
   var MIN_WIDTH = 400;          // O5
   var MAX_WIDTH = 1500;         // O5
   var MIN_STRAIGHT = 900;       // O4: H >= rise + 900
-  var MIN_UPPER_STILE = 300;    // O8: H_inner/2 - rise >= 300
-  var INNER_OFFSET = 144;       // H_inner = H_total - 144 (sill + head + running gaps)
+  var MIN_UPPER_STILE = 100;    // O8 (owner, 22.08.2026): straight stile of the upper sash >= 100 mm (was 300)
+  var INNER_OFFSET = 144;       // H_inner = H_total - 144 (sill + head + running gaps) — geometry only, not validation
+  var SASH_TRAVEL_MARGIN = 120; // same margin ParametricSashWindow leaves at the end of a sash's travel
   var HEIGHT_STEP = 10;         // the dimension selects only carry multiples of 10
 
-  function riseFor(shape, extWidth) {
+  function riseFor(shape, extWidth, archProfile) {
     var r = RISE_RATIO[shape];
     if (r === undefined) r = RISE_RATIO['semi-circle'];
+    if (shape === 'gothic-arch') {
+      var pr = GOTHIC_PROFILE_RATIO[archProfile || DEFAULT_GOTHIC_PROFILE];
+      if (pr !== undefined) r = pr;
+    }
     return Math.round(r * (parseFloat(extWidth) || 0));
   }
 
   // Smallest external height that satisfies BOTH O4 and O8, on the 10 mm grid.
-  function minHeightFor(shape, extWidth) {
-    var rise = riseFor(shape, extWidth);
+  function minHeightFor(shape, extWidth, archProfile) {
+    var rise = riseFor(shape, extWidth, archProfile);
     var byStraight = rise + MIN_STRAIGHT;
-    var byUpperStile = 2 * (rise + MIN_UPPER_STILE) + INNER_OFFSET;
+    var byUpperStile = 2 * (rise + MIN_UPPER_STILE);   // straight stile = H/2 - rise (arch starts at H - rise, meeting line at H/2)
     var need = Math.max(byStraight, byUpperStile);
     return Math.ceil(need / HEIGHT_STEP) * HEIGHT_STEP;
   }
 
   // Widest external width whose minimum height still fits under maxHeight.
-  function maxWidthFor(shape, maxHeight) {
+  function maxWidthFor(shape, maxHeight, archProfile) {
     var w = MAX_WIDTH;
-    while (w > MIN_WIDTH && minHeightFor(shape, w) > maxHeight) w -= HEIGHT_STEP;
+    while (w > MIN_WIDTH && minHeightFor(shape, w, archProfile) > maxHeight) w -= HEIGHT_STEP;
     return w;
   }
 
-  function metricsFor(shape, extWidth, extHeight) {
+  function metricsFor(shape, extWidth, extHeight, archProfile) {
     var W = parseFloat(extWidth) || 0;
     var H = parseFloat(extHeight) || 0;
-    var rise = riseFor(shape, W);
+    var rise = riseFor(shape, W, archProfile);
     var straightHeight = H - rise;
     var innerHeight = H - INNER_OFFSET;
     return {
@@ -1014,13 +1034,22 @@ window.ArchedSash = (function () {
       innerHeight: innerHeight,
       upperSashHeight: Math.round(innerHeight / 2),
       lowerSashHeight: Math.round(innerHeight / 2),
-      upperMaxDrop: Math.max(0, Math.round(Math.min(300, 0.25 * straightHeight))),
-      minHeight: minHeightFor(shape, W),
+      // 22.08.2026: the upper sash travels like any sash — nothing in the box
+      // stops it until its bottom rail nears the sill (O1 limit withdrawn).
+      upperMaxDrop: Math.max(0, Math.round(innerHeight / 2 - SASH_TRAVEL_MARGIN)),
+      // The lower sash stops where the arch starts: its top rail cannot enter the head.
+      lowerMaxLift: Math.max(0, Math.round(straightHeight - H / 2)),   // = upper straight stile: lower top rail stops at the arch start
+      archProfile: shape === 'gothic-arch' ? (GOTHIC_PROFILE_RATIO[archProfile] !== undefined ? archProfile : DEFAULT_GOTHIC_PROFILE) : null,
+      minHeight: minHeightFor(shape, W, archProfile),
     };
   }
 
   return {
     RISE_RATIO: RISE_RATIO,
+    GOTHIC_PROFILE_RATIO: GOTHIC_PROFILE_RATIO,
+    GOTHIC_PROFILE_NAMES: GOTHIC_PROFILE_NAMES,
+    DEFAULT_GOTHIC_PROFILE: DEFAULT_GOTHIC_PROFILE,
+    SASH_TRAVEL_MARGIN: SASH_TRAVEL_MARGIN,
     SHAPE_FROM_RADIO: SHAPE_FROM_RADIO,
     RADIO_FROM_SHAPE: RADIO_FROM_SHAPE,
     SHAPE_NAMES: SHAPE_NAMES,
