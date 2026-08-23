@@ -77,7 +77,7 @@ class PriceCalculator {
     }
 
     // ═══ ARCHED SASH PRICING ═══
-    // sashType 'arched' is its own product: base × 1.6 (curved IGU is inside the
+    // sashType 'arched' is its own product: base × 1.8 (curved IGU is inside the
     // multiplier, spec O3/O7), then pattern premium + bars + options.
     if (configuration.sashType === 'arched') {
       return this.calculateArchedSash(configuration, sqm, frameWidth, frameHeight);
@@ -431,7 +431,9 @@ class PriceCalculator {
     const semiPat = configuration.fixSemiBarPattern || 'none';
     const gothPat = configuration.fixGothicBars || 'none';
     const circlePat = configuration.fixCircleBarPattern || 'none';
-    const patternPrices = { 'intersecting': 250, 'half-hub': 150, 'hub-spoke': 210, 'double-hub-spoke': 270, 'triple-hub-spoke': 320, 'sunburst': 300 };
+    // 23.08.2026 (owner): same rise as PATTERN_PREMIUM — identical workshop work
+    // whether the head sits over a fanlight, a casement or a sash.
+    const patternPrices = { 'intersecting': 450, 'half-hub': 280, 'hub-spoke': 390, 'double-hub-spoke': 520, 'triple-hub-spoke': 680, 'sunburst': 560 };
     if (semiPat !== 'none' && patternPrices[semiPat]) patternPrice = patternPrices[semiPat];
     if (gothPat !== 'none' && patternPrices[gothPat]) patternPrice = patternPrices[gothPat];
     if (circlePat !== 'none' && patternPrices[circlePat]) patternPrice = patternPrices[circlePat];
@@ -687,8 +689,8 @@ class PriceCalculator {
   // ═══ ARCHED CASEMENT PRICING ═══
   // ═══════════════════════════════════════════════════════════════════════
   // ARCHED SASH (spec O2/O3)
-  //   (basePrice_double(sqm) × 1.6) + archPatternPremium + bars + options
-  // The 1.6 multiplies the BASE ONLY — not the subtotal. Glazing Arch's +10%
+  //   (basePrice_double(sqm) × 1.8) + archPatternPremium + bars + options
+  // The 1.8 multiplies the BASE ONLY — not the subtotal. Glazing Arch's +10%
   // works on the subtotal, but that is a different product and headType is
   // ignored here. Colour and quantity then behave exactly like a double sash.
   // ═══════════════════════════════════════════════════════════════════════
@@ -696,10 +698,12 @@ class PriceCalculator {
     const A = window.ArchedSash;
     const shape = configuration.archShape || 'semi-circle';
 
-    // Base: the double-hung base for this area, × 1.6
+    // Base: the double-hung base for this area, × 1.8
+    // 23.08.2026 (owner): raised 1.6 -> 1.8. The 1.6 start did not cover the
+    // real workshop cost of a curved head — bent frame, curved IGU, bent beads.
     const sizeMultiplier = this.getSizeMultiplier(sqm);
     const basePriceDouble = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
-    const basePrice = basePriceDouble * 1.6;
+    const basePrice = basePriceDouble * 1.8;
 
     // Arch bar pattern premium — same table as arched casement
     const pattern = configuration.archBarPattern || 'none';
@@ -751,7 +755,7 @@ class PriceCalculator {
         sqm: sqm.toFixed(2),
         sizeMultiplier: sizeMultiplier,
         basePriceDouble: basePriceDouble.toFixed(2),
-        archMultiplier: 1.6,
+        archMultiplier: 1.8,
         basePrice: basePrice.toFixed(2),
         patternPrice: patternPrice,
         archBarsPrice: archBarsPrice.toFixed(2),
@@ -781,7 +785,8 @@ class PriceCalculator {
     let patternPrice = 0;
     const semiPat = configuration.fixSemiBarPattern || 'none';
     const gothPat = configuration.fixGothicBars || 'none';
-    const patternPrices = { 'intersecting': 250, 'half-hub': 150, 'hub-spoke': 210, 'double-hub-spoke': 270, 'triple-hub-spoke': 320 };
+    // 23.08.2026 (owner): same rise as PATTERN_PREMIUM (see fix-only copy above).
+    const patternPrices = { 'intersecting': 450, 'half-hub': 280, 'hub-spoke': 390, 'double-hub-spoke': 520, 'triple-hub-spoke': 680 };
     if (semiPat !== 'none' && patternPrices[semiPat]) patternPrice = patternPrices[semiPat];
     if (gothPat !== 'none' && patternPrices[gothPat]) patternPrice = patternPrices[gothPat];
 
@@ -970,12 +975,15 @@ window.ArchedSash = (function () {
   };
 
   // Arch bar pattern premium — same table as arched casement (spec §3.3)
+  // 23.08.2026 (owner): raised across the board. The old spread was too flat —
+  // triple hub is 3 rings + 24 spoke segments against 1 ring + 4, so it climbs
+  // hardest. Kept in step with the two literal copies (fix-only, casement).
   var PATTERN_PREMIUM = {
-    'intersecting': 250,
-    'half-hub': 150,
-    'hub-spoke': 210,
-    'double-hub-spoke': 270,
-    'triple-hub-spoke': 320,
+    'intersecting': 450,
+    'half-hub': 280,
+    'hub-spoke': 390,
+    'double-hub-spoke': 520,
+    'triple-hub-spoke': 680,
   };
 
   // Which patterns each shape offers (spec §5 / O9)
