@@ -337,15 +337,18 @@ class ConfiguratorCore {
       if (radio) radio.checked = true;
     }
     
-    // Bars
-    if (config.upperBars) {
+    // Bars — not for arched (23.08.2026): its bars are archHBars/archVBars +
+    // lowerBars:'match', which is not a Georgian select option; setting it here
+    // fired a change that wrote a stale value back into the config.
+    const _cfgArched = config.sashType === 'arched';
+    if (config.upperBars && !_cfgArched) {
       const upperBars = document.getElementById('upper-bars');
       if (upperBars) {
         upperBars.value = config.upperBars;
         upperBars.dispatchEvent(new Event('change', { bubbles: true }));
       }
     }
-    if (config.lowerBars) {
+    if (config.lowerBars && !_cfgArched) {
       const lowerBars = document.getElementById('lower-bars');
       if (lowerBars) {
         lowerBars.value = config.lowerBars;
@@ -468,8 +471,8 @@ class ConfiguratorCore {
       }
     }
     
-    // Bars
-    if (config.upperBars || config.lowerBars) {
+    // Bars — arched writes its own spec labels (23.08.2026)
+    if ((config.upperBars || config.lowerBars) && config.sashType !== 'arched') {
       const specBars = document.getElementById('spec-bars');
       if (specBars) {
         specBars.style.display = 'block';

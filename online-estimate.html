@@ -4428,10 +4428,10 @@
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
 <script src="js/visualization-manager.js?v=3"></script>
-<script src="js/bars-unified.js?v=3"></script>
+<script src="js/bars-unified.js?v=4"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=10"></script>
-<script src="js/configurator-core.js?v=4"></script>
+<script src="js/specification-controller.js?v=11"></script>
+<script src="js/configurator-core.js?v=5"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
 <script src="js/casement-controller.js?v=15"></script>
@@ -4796,7 +4796,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=99";
+      psw3dScript.src = "3d/assets/window3d.js?v=100";
       document.head.appendChild(psw3dScript);
     }
   </script>
@@ -5325,9 +5325,13 @@
                 }
               }
               // Georgian Bars section (double/triple selects) is meaningless for arched —
-              // its bars live in the Arch block. Hidden, never removed.
+              // its bars live in the Arch block. Hidden + disabled, never removed.
               var _geo = document.getElementById('georgian-bars-section');
-              if (_geo) _geo.style.display = (((document.querySelector('input[name="sash-type"]:checked') || {}).value === 'arched-group')) ? 'none' : '';
+              if (_geo) {
+                var _geoOff = (((document.querySelector('input[name="sash-type"]:checked') || {}).value === 'arched-group'));
+                _geo.style.display = _geoOff ? 'none' : '';
+                _geo.querySelectorAll('select, input').forEach(function(el) { el.disabled = _geoOff; });
+              }
               // price-calculator prefers actualFrameWidth/Height over width when present —
               // these are a derived cache and go stale; purge so pricing follows the inputs,
               // populateInitialSpec() below rebuilds them fresh
@@ -6847,8 +6851,12 @@
           headTypeOptions.style.display = (isDouble || isTriple) ? 'block' : 'none';
           archedTypes.style.display = isArchedGroup ? 'block' : 'none';
           // Georgian Bars selects belong to double/triple; the arched sash has its own bar controls.
+          // 23.08.2026: also disabled (greyed) so nothing can read or fire them while arched.
           var georgianSection = document.getElementById('georgian-bars-section');
-          if (georgianSection) georgianSection.style.display = isArchedGroup ? 'none' : '';
+          if (georgianSection) {
+            georgianSection.style.display = isArchedGroup ? 'none' : '';
+            georgianSection.querySelectorAll('select, input').forEach(function(el) { el.disabled = isArchedGroup; });
+          }
 
           // Reset head type to flat when switching
           if (isDouble || isTriple) {

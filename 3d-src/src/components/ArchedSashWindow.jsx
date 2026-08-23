@@ -456,6 +456,25 @@ function ArchedSashWindow({
   const pulleyLocalY = jambLen / 2 - mm(100) - mm(64);
   const cordDropY = (meetingY - jambCenterY) - pulleyLocalY;
 
+  // ── Weight rest positions (23.08.2026, owner SS2) ──
+  // The straight boxes stop at the arch start, so a shared rest at meeting
+  // level let the UPPER sash's weights climb out over the frame at full drop.
+  // Real box physics: the upper sash's weights rest near the BOX BOTTOM (they
+  // rise as it drops), the lower sash's rest just under the pulleys (they fall
+  // as it lifts). Both clamped so a weight never leaves the box. Coordinates
+  // are pulley-local (PulleySet origin = pulley centre).
+  const WEIGHT_HALF = mm(90);   // WeightPreview height 180
+  const WEIGHT_MARGIN = mm(15);
+  const jambTopLocal = jambLen / 2 - pulleyLocalY;
+  const jambBottomLocal = -jambLen / 2 - pulleyLocalY;
+  let upperWeightStartY = jambBottomLocal + WEIGHT_MARGIN + WEIGHT_HALF;
+  upperWeightStartY = Math.min(upperWeightStartY, jambTopLocal - WEIGHT_MARGIN - WEIGHT_HALF - mm(effMaxDrop));
+  upperWeightStartY = Math.max(upperWeightStartY, jambBottomLocal + WEIGHT_HALF);
+  const lowerMaxDown = Math.min(maxLift, lowerArchLimit);
+  let lowerWeightStartY = -mm(140);   // just under the pulley wheel
+  lowerWeightStartY = Math.max(lowerWeightStartY, jambBottomLocal + WEIGHT_MARGIN + WEIGHT_HALF + mm(lowerMaxDown));
+  lowerWeightStartY = Math.min(lowerWeightStartY, -mm(120));
+
   const boxSideH = Math.max(ySpring - jambBottomY, mm(50));
   const boxIntH = Math.max(ySpring - (jambBottomY + jambEmbedIntoSill), mm(50));
   const staffH = Math.max(ySpring - (jambBottomY + jambEmbedIntoSill), mm(50));
@@ -482,6 +501,8 @@ function ArchedSashWindow({
         pulleyUpperTravel={upperOpeningDrop}
         pulleyLowerTravel={-lowerOpeningLift}
         weightStartY={cordDropY}
+        weightStartYUpper={upperWeightStartY}
+        weightStartYLower={lowerWeightStartY}
         sashDropY={cordDropY}
       />
       <JambWithPartingBead
@@ -501,6 +522,8 @@ function ArchedSashWindow({
         pulleyUpperTravel={upperOpeningDrop}
         pulleyLowerTravel={-lowerOpeningLift}
         weightStartY={cordDropY}
+        weightStartYUpper={upperWeightStartY}
+        weightStartYLower={lowerWeightStartY}
         sashDropY={cordDropY}
       />
 
@@ -711,7 +734,11 @@ function ArchedSashWindow({
    `intersecting` for semicircular is new geometry (spec O9).
    ═══════════════════════════════════════════════════════════════════════════ */
 function ptsToStrip(pts, hw) {
-  if (!pts || pts.length < 3) return null;
+  // 23.08.2026: 2 points are valid — a straight segment offsets to a clean
+  // 4-corner rectangle. (The old >= 3 guard forced collinear interior points
+  // on straight spokes, and earcut turned those into degenerate slivers that
+  // flickered as dark squares — owner SS1.)
+  if (!pts || pts.length < 2) return null;
   const leftEdge = [], rightEdge = [];
   for (let i = 0; i < pts.length; i++) {
     const prev = pts[Math.max(0, i - 1)];
@@ -819,9 +846,11 @@ export function useArchedSashBars({ shape, halfW, bottomY, springY, apexRise: ri
     const columns = [];
     for (let i = 1; i <= V; i++) columns.push(-halfW + (glassW / (V + 1)) * i);
 
-    if (isHub || isIntersecting) {
+    if (isHub) {
       // Horizontal bar at the arch start separates the arch zone from the grid
-      // (measured on reference photo 1; hub patterns already had it).
+      // (measured on reference photo 1 — hub fanlights only). Intersecting lost
+      // it 23.08.2026 (owner SS3): its columns flow straight into the tracery
+      // arcs, which spring exactly from the column tops.
       straight.push({ type: 'h', x: 0, y: springY, len: glassW });
     }
 
@@ -868,11 +897,12 @@ export function useArchedSashBars({ shape, halfW, bottomY, springY, apexRise: ri
           const start = r0 + BAR_W * 0.6;
           const end = r1 - BAR_W * 0.4;
           if (end - start < mm(20)) continue;
-          // ptsToStrip() needs >= 3 points, so a two-point spoke produced no
-          // geometry at all (bug found 22.08.2026). Three collinear points are
-          // enough — more collinear vertices make the strip triangulate badly.
+          // 23.08.2026 (owner SS1): a spoke is a plain 2-point segment — any
+          // collinear interior point makes earcut emit degenerate slivers that
+          // flicker as dark squares. (History: 22.08 the old >= 3 guard in
+          // ptsToStrip() rejected 2-point spokes, hence the 3-point workaround.)
           const spoke = [];
-          const SPOKE_PTS = 2;
+          const SPOKE_PTS = 1;
           for (let k = 0; k <= SPOKE_PTS; k++) {
             const rr = start + ((end - start) * k) / SPOKE_PTS;
             spoke.push([rr * Math.cos(a), springY + rr * Math.sin(a)]);

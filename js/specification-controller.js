@@ -765,6 +765,13 @@ class SpecificationController {
   }
 
   applyBars() {
+    // Arched sash (23.08.2026): its bars live in the Arch block and are written
+    // by the arched flow. The Georgian selects are inert here — otherwise every
+    // populate pass stomped lowerBars:'match' and the spec labels, and the
+    // arched code had to win it back with a post-hoc re-assert.
+    const _archedRadio = document.querySelector('input[name="sash-type"]:checked');
+    if ((_archedRadio && _archedRadio.value === 'arched-group') ||
+        (window.currentConfig && window.currentConfig.sashType === 'arched')) return;
     const upperBars = document.getElementById('upper-bars').value;
     const lowerBars = document.getElementById('lower-bars').value;
     const sameBars = document.getElementById('same-bars-both-sashes')?.checked;

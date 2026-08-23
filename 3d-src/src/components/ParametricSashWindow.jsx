@@ -1652,6 +1652,11 @@ function JambWithPartingBead({
   pulleyUpperTravel = 0,
   pulleyLowerTravel = 0,
   weightStartY = -mm(646),
+  // Per-sash weight rest positions (23.08.2026, arched): the arched frame's
+  // short boxes need the upper pair resting low and the lower pair high.
+  // Null keeps the shared weightStartY behaviour for every existing window.
+  weightStartYUpper = null,
+  weightStartYLower = null,
   sashDropY = -mm(556),
 }) {
   const jambDepth = mm(130);
@@ -1696,8 +1701,8 @@ function JambWithPartingBead({
 
       {showPulleyTestCutout && pulleyMaterial && (
         <>
-          <PulleySet x={pulleyLocalX} y={pulleyLocalY} z={mm(pulleyCutoutZCenter)} travel={pulleyUpperTravel} material={pulleyMaterial} showMarker={false} showAxes={false} plateOffsetX={mm(-10)} mirrorX={pulleyMirrorX} weightStartY={weightStartY} sashDropY={sashDropY} />
-          <PulleySet x={pulleyLocalX} y={pulleyLocalY} z={-mm(pulleyCutoutZCenter)} travel={pulleyLowerTravel} material={pulleyMaterial} showMarker={false} showAxes={false} plateOffsetX={mm(-10)} mirrorX={pulleyMirrorX} weightStartY={weightStartY} sashDropY={sashDropY} />
+          <PulleySet x={pulleyLocalX} y={pulleyLocalY} z={mm(pulleyCutoutZCenter)} travel={pulleyUpperTravel} material={pulleyMaterial} showMarker={false} showAxes={false} plateOffsetX={mm(-10)} mirrorX={pulleyMirrorX} weightStartY={weightStartYUpper ?? weightStartY} sashDropY={sashDropY} />
+          <PulleySet x={pulleyLocalX} y={pulleyLocalY} z={-mm(pulleyCutoutZCenter)} travel={pulleyLowerTravel} material={pulleyMaterial} showMarker={false} showAxes={false} plateOffsetX={mm(-10)} mirrorX={pulleyMirrorX} weightStartY={weightStartYLower ?? weightStartY} sashDropY={sashDropY} />
         </>
       )}
 

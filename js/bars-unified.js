@@ -57,6 +57,14 @@ class BarsController {
     this.updateAllVisualizations();
   }
 
+  georgianInert() {
+    // Arched sash (23.08.2026): bars come from the Arch block — the Georgian
+    // selects must never write upperBars/lowerBars into the shared config.
+    var r = document.querySelector('input[name="sash-type"]:checked');
+    if (r && r.value === 'arched-group') return true;
+    return !!(window.currentConfig && window.currentConfig.sashType === 'arched');
+  }
+
   syncStateFromSelects() {
     // Czytaj aktualne wartości z selectów
     const upperPattern = this.elements.upperSelect?.value || 'none';
@@ -70,8 +78,8 @@ class BarsController {
     this.generatePattern('upper', upperPattern);
     this.generatePattern('lower', lowerPattern);
     
-    // Zapisz do currentConfig
-    if (window.currentConfig) {
+    // Zapisz do currentConfig (nie dla arched — 23.08.2026)
+    if (window.currentConfig && !this.georgianInert()) {
       window.currentConfig.upperBars = upperPattern;
       window.currentConfig.lowerBars = lowerPattern;
     }
@@ -219,8 +227,8 @@ class BarsController {
 
     this.updateAllVisualizations();
     
-    // ZAPISZ DO KONFIGURACJI
-    if (window.currentConfig) {
+    // ZAPISZ DO KONFIGURACJI (nie dla arched — 23.08.2026)
+    if (window.currentConfig && !this.georgianInert()) {
       window.currentConfig[sash + 'Bars'] = pattern;
       // Jeśli same bars dla obu, zapisz też lower
       if (this.state.sameBarsForBoth && sash === 'upper') {
@@ -293,8 +301,8 @@ class BarsController {
 
     this.updateUIVisibility('lower', this.state.lower.pattern);
     
-    // Zapisz do konfiguracji
-    if (window.currentConfig) {
+    // Zapisz do konfiguracji (nie dla arched — 23.08.2026)
+    if (window.currentConfig && !this.georgianInert()) {
       window.currentConfig.lowerBars = this.state.upper.pattern;
     }
   }
@@ -487,8 +495,8 @@ class BarsController {
     // Zaktualizuj główną wizualizację
     this.updateAllVisualizations();
 
-    // Zaktualizuj konfigurację
-    if (window.currentConfig) {
+    // Zaktualizuj konfigurację (nie dla arched — 23.08.2026)
+    if (window.currentConfig && !this.georgianInert()) {
       window.currentConfig.upperBars = 'custom';
       window.currentConfig.lowerBars = 'custom';
       window.currentConfig.customBars = {
