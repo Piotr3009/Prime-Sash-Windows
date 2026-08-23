@@ -1,5 +1,38 @@
 # ARCHED SASH — implementation log
 
+## FIXES 22.08.2026 — post-merge owner changes (Claude in chat, ZIP + push together)
+
+Owner requests after the PR #2 merge, all implemented and verified on a live 3D:
+
+1. **Shape order**: Semicircular → Gothic → Elliptical → Segmental (Semicircular default). Radio blocks moved, none removed.
+2. **Lower sash bars continue the upper columns** — new bar pattern `'match'` (additive, `GlazingBars`/`Sash` in
+   `ParametricSashWindow.jsx`): verticals at the exact scene-x of the upper sash columns (or hub feet for
+   spoke patterns: ±0.3/0.6/0.8 halfW), horizontals by count. New select `arch-lower-h-bars` (default 2).
+   Config: `lowerBars:'match'`, `lowerHBars`, `lowerVBars` (2/4/6 for hub-spoke/double/triple, else archVBars).
+   Priced per bar. The Georgian Bars section is hidden for arched (kept in DOM). The old `syncLowerBarsToUpper`
+   auto-link is kept but inert. `getArchedExtras()` is the single source for these fields (HTML handler,
+   syncActiveProduct re-assert after populateInitialSpec, spec-controller re-push).
+3. **Opening**: the upper sash travels like any sash (O1's 300 mm cap withdrawn — nothing in the box blocks it);
+   the LOWER sash stops 20 mm before the arch start (its square top rail cannot enter the curved head).
+   `upperMaxDrop` = innerHeight/2 − 120 (physical), new `lowerMaxLift` = H/2 − rise, both in specification.
+4. **Hub spokes did not render** — `ptsToStrip()` rejects 2-point polylines; spokes were 2 points. Now 3
+   collinear points (more produce a badly triangulated strip — tried 9, got jagged artefacts).
+5. **Gothic steepness** — new radio `arch-profile`: Equilateral 0.866 (default, = previous geometry) /
+   Drop 0.70 / Shallow 0.60 × W. Gothic geometry is now built from the rise (two centres at ±c,
+   c = (rise² − halfW²)/(2·halfW)) in 3D, tracery and SVG. `archProfile` saved + restored; label
+   'Arched Sash — Gothic (Drop)'.
+6. **Min. straight stile 100 mm** (was 300): `minHeightFor = max(rise + 900, 2·(rise + 100))` on the TOTAL
+   height — verified against the 3D layout (straight stile = H/2 − rise). Semi 1000 → 1400 (was 1750);
+   gothic 1200 → 2280 / 1880 / 1640. The explicit gothic 1300 mm cap is gone: even equilateral 1500 mm now
+   fits under 3000 (min 2800) — the width limit derives from the height limit as before.
+
+Verified: order, limits, match counts per pattern, price per bar, label, Georgian toggle, full edit-mode
+round trip on 15 arched fields (incl. archProfile / lowerHBars / lowerVBars / lowerMaxLift), 3D after edit,
+regression double/triple/Glazing Arch, 0 page errors. Screenshots: half-hub + hub-spoke spokes clean,
+intersecting 4 columns continuing into the lower sash, upper sash full travel, lower sash stopping at the
+arch start, gothic Drop / Shallow. Cache busts: price-calculator 13, estimate-renderer 33, edit-mode 14,
+estimate-manager 9, specification-controller 10, window3d 99.
+
 ## FINAL REPORT
 
 ```

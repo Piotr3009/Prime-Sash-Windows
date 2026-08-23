@@ -158,7 +158,10 @@ class EstimateRenderer {
         const archShapeNames = { 'gothic-arch': 'Gothic', 'semi-circle': 'Semicircular', 'segmental-arch': 'Segmental', 'elliptical-arch': 'Elliptical' };
         const archShape = fc.archShape || null;
         const archShapeName = archShape ? (archShapeNames[archShape] || archShape) : null;
-        const archTypeLabel = archShapeName ? ('Arched Sash — ' + archShapeName) : 'Arched Sash';
+        // Gothic steepness (22.08.2026): 'Arched Sash — Gothic (Drop)'
+        const archProfileNames = { equilateral: 'Equilateral', drop: 'Drop', shallow: 'Shallow' };
+        const archProfileName = (archShape === 'gothic-arch' && fc.archProfile && archProfileNames[fc.archProfile]) ? archProfileNames[fc.archProfile] : null;
+        const archTypeLabel = archShapeName ? ('Arched Sash — ' + archShapeName + (archProfileName ? ' (' + archProfileName + ')' : '')) : 'Arched Sash';
         const archRise = fc.archRise || null;
         const archStraightHeight = fc.straightHeight || null;
         const archUpperMaxDrop = fc.upperMaxDrop || null;
@@ -173,6 +176,13 @@ class EstimateRenderer {
         if (archHasGrid) {
             archBarsText += (archBarsText ? ' + ' : '') + archHBars + 'H × ' + archVBars + 'V';
         }
+        // Lower sash 'match' (22.08.2026): verticals continue the upper columns, horizontals by count
+        const archLowerMaxLift = fc.lowerMaxLift || null;
+        const archLowerBarsText = (fc.lowerBars === 'match')
+            ? (((fc.lowerVBars || 0) + (fc.lowerHBars || 0)) > 0
+                ? (fc.lowerHBars || 0) + 'H × ' + (fc.lowerVBars || 0) + 'V (verticals aligned with the upper sash)'
+                : 'None')
+            : null;
 
         // DIMENSIONS — prefer spec over item columns
         let width = fc.actualFrameWidth || item.width || 1000;
@@ -274,6 +284,9 @@ class EstimateRenderer {
         };
 
         let barsText = 'None';
+        if (fc.sashType === 'arched' && lowerBars === 'match') {
+            barsText = archLowerBarsText || 'None';
+        } else
         if (upperBars !== 'none' || lowerBars !== 'none') {
             const upperText = formatBars(upperBars, upperCustomList);
             const lowerText = formatBars(lowerBars, lowerCustomList);
@@ -530,6 +543,7 @@ class EstimateRenderer {
             fc, spec, windowType, sashType, headType, splitRatio,
             archShape, archShapeName, archTypeLabel, archRise, archStraightHeight,
             archUpperMaxDrop, archUpperSashHeight, archBarPattern, archHBars, archVBars, archBarsText,
+            archLowerMaxLift, archLowerBarsText,
             width, height, originalWidth, originalHeight, measurementType,
             frameType, frameText,
             openingType, openingText,
@@ -723,8 +737,10 @@ class EstimateRenderer {
                             ${p.sashType === 'arched' ? R.specRow('Sash Type', p.archTypeLabel) : ''}
                             ${p.sashType === 'arched' && p.archRise ? R.specRow('Arch rise', p.archRise + 'mm') : ''}
                             ${p.sashType === 'arched' && p.archStraightHeight ? R.specRow('Straight height', p.archStraightHeight + 'mm') : ''}
-                            ${p.sashType === 'arched' && p.archUpperMaxDrop ? R.specRow('Upper sash opening', 'limited to ' + p.archUpperMaxDrop + 'mm') : ''}
+                            ${p.sashType === 'arched' && p.archUpperMaxDrop ? R.specRow('Upper sash opening', 'full travel, max ' + p.archUpperMaxDrop + 'mm') : ''}
+                            ${p.sashType === 'arched' && p.archLowerMaxLift ? R.specRow('Lower sash opening', 'up to the arch start, max ' + p.archLowerMaxLift + 'mm') : ''}
                             ${p.sashType === 'arched' && p.archBarsText && p.archBarsText !== 'None' ? R.specRow('Upper sash bars', p.archBarsText) : ''}
+                            ${p.sashType === 'arched' && p.archLowerBarsText && p.archLowerBarsText !== 'None' ? R.specRow('Lower sash bars', p.archLowerBarsText) : ''}
                             ${p.sashType === 'triple' ? R.specRow('Split Ratio', p.splitRatio) : ''}
                             ${p.measurementType === 'brick-to-brick' 
                                 ? R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm') + R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')
@@ -2276,7 +2292,10 @@ class EstimateRenderer {
         // SVG y grows downward: the apex is at ySpring - rise.
         const x0 = cx - halfW, x1 = cx + halfW;
         if (shape === 'gothic-arch') {
-            const R = 2 * halfW;                       // two-centre arch
+            // Two-centre arch from the rise (profile-aware, 22.08.2026): centres at
+            // ±c on the arch-start line, radius c + halfW. Equilateral → R = width.
+            const c = Math.max(0, (rise * rise - halfW * halfW) / (2 * halfW));
+            const R = c + halfW;
             const apexY = ySpring - rise;
             return `M ${x0} ${ySpring} A ${R} ${R} 0 0 1 ${cx} ${apexY} A ${R} ${R} 0 0 1 ${x1} ${ySpring}`;
         }
@@ -2309,7 +2328,7 @@ class EstimateRenderer {
 
         // Rise from the shape table — recomputed here so an old record without
         // archRise still draws the right curve.
-        const rise = fc.archRise || (A ? A.riseFor(shape, fw) : Math.round(fw * 0.5));
+        const rise = fc.archRise || (A ? A.riseFor(shape, fw, fc.archProfile) : Math.round(fw * 0.5));
 
         // ── Layout (all mm, y measured up from the sill bottom) ──
         const M = Math.max(G.margin * 1.35, Math.max(fw, fh) * 0.085);
@@ -2397,7 +2416,27 @@ class EstimateRenderer {
         const lGlassY = SY(meetMm - G.meetRail / 2);
         const lGlassH = SY(cavBotMm + G.botRail) - lGlassY;
         svg += `<rect x="${uGlassX}" y="${lGlassY}" width="${uGlassW}" height="${lGlassH}" ${glassStyle}/>`;
-        svg += EstimateRenderer.sashBarsSVG(uGlassX, lGlassY, uGlassW, lGlassH, lowerBars, lowerCustom);
+        if (lowerBars === 'match') {
+            // 22.08.2026: lower verticals continue the upper columns (or hub feet), horizontals by count
+            const mV = [];
+            const pat = fc.archBarPattern || 'none';
+            if (pat === 'hub-spoke' || pat === 'double-hub-spoke' || pat === 'triple-hub-spoke') {
+                const rr = [0.3]; if (pat !== 'hub-spoke') rr.push(0.6); if (pat === 'triple-hub-spoke') rr.push(0.8);
+                rr.forEach(r => { mV.push(cx - uHalfW * r); mV.push(cx + uHalfW * r); });
+            } else {
+                for (let i = 1; i <= archVBars; i++) mV.push(cx - uHalfW + (uGlassW * i) / (archVBars + 1));
+            }
+            mV.forEach(bx => {
+                svg += `<rect x="${bx - G.barW / 2}" y="${lGlassY}" width="${G.barW}" height="${lGlassH}" fill="${G.barFill}" stroke="${G.navy}" stroke-width="0.7" ${NS}/>`;
+            });
+            const lH = fc.lowerHBars || 0;
+            for (let j = 1; j <= lH; j++) {
+                const by = lGlassY + (lGlassH * j) / (lH + 1);
+                svg += `<rect x="${uGlassX}" y="${by - G.barW / 2}" width="${uGlassW}" height="${G.barW}" fill="${G.barFill}" stroke="${G.navy}" stroke-width="0.7" ${NS}/>`;
+            }
+        } else {
+            svg += EstimateRenderer.sashBarsSVG(uGlassX, lGlassY, uGlassW, lGlassH, lowerBars, lowerCustom);
+        }
         svg += `<line x1="${cavX}" y1="${SY(cavBotMm + G.botRail)}" x2="${cavX + cavW}" y2="${SY(cavBotMm + G.botRail)}" stroke="${G.navy}" stroke-width="0.8" opacity="0.5" ${NS}/>`;
 
         // Horns on the upper sash bottom corners
@@ -5075,8 +5114,10 @@ class EstimateRenderer {
             if (p.sashType === 'arched') {
                 if (p.archRise) specs.push(['Arch rise', p.archRise + 'mm']);
                 if (p.archStraightHeight) specs.push(['Straight height', p.archStraightHeight + 'mm']);
-                if (p.archUpperMaxDrop) specs.push(['Upper sash opening', 'limited to ' + p.archUpperMaxDrop + 'mm']);
+                if (p.archUpperMaxDrop) specs.push(['Upper sash opening', 'full travel, max ' + p.archUpperMaxDrop + 'mm']);
+                if (p.archLowerMaxLift) specs.push(['Lower sash opening', 'up to the arch start, max ' + p.archLowerMaxLift + 'mm']);
                 if (p.archBarsText && p.archBarsText !== 'None') specs.push(['Upper sash bars', p.archBarsText]);
+                if (p.archLowerBarsText && p.archLowerBarsText !== 'None') specs.push(['Lower sash bars', p.archLowerBarsText]);
             }
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
             if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);

@@ -202,6 +202,15 @@
         }
         if (document.getElementById('arch-h-bars')) setSelect('arch-h-bars', String(fc.archHBars || 0));
         if (document.getElementById('arch-v-bars')) setSelect('arch-v-bars', String(fc.archVBars || 0));
+        // 22.08.2026: gothic steepness + lower sash horizontal count ('match' bars).
+        // Records saved before these fields existed fall back to the defaults
+        // that reproduce them: equilateral gothic, 0 lower horizontals.
+        if (document.querySelector('input[name="arch-profile"]')) {
+          setRadio('arch-profile', fc.archProfile || 'equilateral');
+        }
+        if (document.getElementById('arch-lower-h-bars')) {
+          setSelect('arch-lower-h-bars', String(fc.lowerHBars !== undefined && fc.lowerHBars !== null ? fc.lowerHBars : 0));
+        }
       }
 
       // Set measurement-type BEFORE dimensions so handler knows context
