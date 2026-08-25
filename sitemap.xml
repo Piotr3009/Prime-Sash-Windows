@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
   <!-- Core Pages -->
   <url>
@@ -534,7 +534,32 @@
   <!-- New Product Pages -->
   <url>
     <loc>https://www.primesashwindows.co.uk/arched-windows.html</loc>
-    <lastmod>2026-05-27</lastmod>
+    <image:image><image:loc>https://www.primesashwindows.co.uk/img/arched/gothic-y-tracery-sash-window.webp</image:loc></image:image>
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/gothic-sash-windows.html</loc>
+    <image:image><image:loc>https://www.primesashwindows.co.uk/img/arched/gothic-y-tracery-sash-window.webp</image:loc></image:image>
+    <image:image><image:loc>https://www.primesashwindows.co.uk/img/arched/gothic-plain-sash-window.webp</image:loc></image:image>
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/arched-sash-windows.html</loc>
+    <image:image><image:loc>https://www.primesashwindows.co.uk/img/arched/arched-hub-spoke-sash-window.webp</image:loc></image:image>
+    <image:image><image:loc>https://www.primesashwindows.co.uk/img/arched/arched-triple-hub-sash-window.webp</image:loc></image:image>
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.primesashwindows.co.uk/fanlight-windows.html</loc>
+    <image:image><image:loc>https://www.primesashwindows.co.uk/img/arched/fanlight-half-hub-pattern.webp</image:loc></image:image>
+    <image:image><image:loc>https://www.primesashwindows.co.uk/img/arched/arched-double-hub-sash-window.webp</image:loc></image:image>
+    <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
