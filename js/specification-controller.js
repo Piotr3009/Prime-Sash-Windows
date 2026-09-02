@@ -176,6 +176,8 @@ class SpecificationController {
             infoPanel.innerHTML = '';
           }
         }
+        // Frame drives the glass unit description (4/8/4 vs 4/16/4) — refresh it.
+        this.applyGlass();
       });
     });
 
@@ -1146,8 +1148,15 @@ class SpecificationController {
     const glassType = document.querySelector('input[name="glass-type"]:checked')?.value;
     const spacerColor = document.querySelector('input[name="spacer-color"]:checked')?.value || 'white';
 
+    // Glass description depends on the FRAME (owner, 02.09.2026): a slim frame
+    // carries a 16mm unit (4/8/4), not the standard 24mm (4/16/4). No U-value is
+    // quoted for the slim unit — the thinner cavity performs differently and the
+    // figure is not declared.
+    const frameNow = document.querySelector('input[name="frame-type"]:checked')?.value || 'standard';
+    const isSlim = (frameNow === 'slim');
+
     const glassNames = {
-      'double': 'Double Glazing (U-value: 1.4)',
+      'double': isSlim ? 'Double Glazing 4/8/4 (16mm)' : 'Double Glazing 4/16/4 (24mm, U-value: 1.4)',
       'triple': 'Triple Glazing (U-value: 1.2)',
       'passive': 'Passive Glass (U-value: 0.8)'
     };

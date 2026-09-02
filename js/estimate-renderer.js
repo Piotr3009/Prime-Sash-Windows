@@ -209,8 +209,15 @@ class EstimateRenderer {
         const openingText = openingLabels[openingType] || openingType;
 
         // GLASS
+        // GLASS — the unit depends on the FRAME (owner, 02.09.2026): a slim frame
+        // takes a 16mm unit (4/8/4); no U-value is declared for it.
         const glassType = fc.glassType || item.glass_type || 'double';
-        const glassLabels = { 'double': 'Double Glazed (4/16/4, U:1.4)', 'triple': 'Triple Glazed (U:1.2)', 'passive': 'Passive Glass (U:0.8)' };
+        const slimFrame = (frameType === 'slim');
+        const glassLabels = {
+          'double': slimFrame ? 'Double Glazed (4/8/4, 16mm)' : 'Double Glazed (4/16/4, U:1.4)',
+          'triple': 'Triple Glazed (U:1.2)',
+          'passive': 'Passive Glass (U:0.8)'
+        };
         const glassText = glassLabels[glassType] || glassType;
         // Triple glazing requires 172mm frame regardless of frameType selection
         if (glassType === 'triple' || frameType === 'triple') {

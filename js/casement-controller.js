@@ -794,15 +794,55 @@
     });
   }
 
+  // ─── Width limit by layout (owner, 02.09.2026) ───────────────────────────
+  // Four-light layouts may go up to 4100 mm; every other layout stays at 3000,
+  // because two lights across 4100 would mean ~2050 mm sashes (warping, hinge load).
+  var QUAD_LAYOUTS = { '140L': 1, '140R': 1, '142': 1, '144': 1 };
+  var WIDTH_MAX_QUAD = 4100, WIDTH_MAX_STD = 3000;
+
+  function maxWidthFor(layout) {
+    return QUAD_LAYOUTS[layout] ? WIDTH_MAX_QUAD : WIDTH_MAX_STD;
+  }
+
+  function applyWidthLimit(layout) {
+    var lim = maxWidthFor(layout);
+    // show/hide the >3000 options
+    var xl = document.querySelectorAll('#c-width-select option.c-w-xl');
+    for (var i = 0; i < xl.length; i++) {
+      xl[i].hidden = (lim === WIDTH_MAX_STD);
+      xl[i].disabled = (lim === WIDTH_MAX_STD);
+    }
+    var custom = $('c-width-custom');
+    if (custom) custom.max = String(lim);
+    var hidden = $('c-width');
+    if (hidden) hidden.max = String(lim);
+    // clamp a width that is no longer allowed after switching layout
+    var sel = $('c-width-select');
+    var cur = parseInt((hidden && hidden.value) || (sel && sel.value) || '0', 10);
+    if (cur > lim) {
+      if (hidden) hidden.value = String(lim);
+      if (custom && custom.value && parseInt(custom.value, 10) > lim) custom.value = String(lim);
+      if (sel) {
+        var opt = sel.querySelector('option[value="' + lim + '"]');
+        if (opt) sel.value = String(lim);
+      }
+      return true; // caller should refresh 3D/price
+    }
+    return false;
+  }
+
   // ─── Layout change handler ───
   function setupLayoutChange() {
     var layoutRadios = document.querySelectorAll('input[name="casement-layout"]');
     layoutRadios.forEach(function(r) {
       r.addEventListener('change', function() {
+        applyWidthLimit(r.value);
         setDefaultDimensions(r.value);
         updateCasement3D();
       });
     });
+    // initial state on load
+    applyWidthLimit(checked('casement-layout') || '040L');
   }
 
   // ─── Live watchers for all casement inputs ───
