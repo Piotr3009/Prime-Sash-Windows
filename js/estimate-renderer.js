@@ -3,6 +3,18 @@
 
 class EstimateRenderer {
 
+    // Quantity discount is a windows discount, so it splits like the windows: half with
+    // the deposit, half with the balance (owner, 06.09.2026). Returns the discount extras
+    // split out of the custom list plus a half-value entry to show in each stage.
+    static splitQuantityDiscount(customExtras) {
+        const isDisc = (e) => /^Quantity discount \(/.test(e.name || '');
+        const discounts = customExtras.filter(isDisc);
+        const rest = customExtras.filter(e => !isDisc(e));
+        const total = discounts.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
+        const halfEntries = discounts.map(e => ({ name: e.name + ' — half', total_price: parseFloat(e.total_price || 0) / 2 }));
+        return { discounts, rest, half: total / 2, halfEntries };
+    }
+
     // "−£64.37" for negatives (discounts), "£643.69" otherwise (owner, 06.09.2026)
     static formatSigned(price) {
         const n = parseFloat(price) || 0;
@@ -1011,18 +1023,19 @@ class EstimateRenderer {
         `;
 
         // Group custom extras by payment_timing
+        const qd = R.splitQuantityDiscount(customExtras);
         const customByTiming = {
-            with_deposit: customExtras.filter(e => e.payment_timing === 'with_deposit'),
-            with_balance: customExtras.filter(e => e.payment_timing === 'with_balance'),
-            on_delivery: customExtras.filter(e => e.payment_timing === 'on_delivery'),
-            on_completion: customExtras.filter(e => !e.payment_timing || e.payment_timing === 'on_completion')
+            with_deposit: qd.rest.filter(e => e.payment_timing === 'with_deposit').concat(qd.halfEntries),
+            with_balance: qd.rest.filter(e => e.payment_timing === 'with_balance').concat(qd.halfEntries),
+            on_delivery: qd.rest.filter(e => e.payment_timing === 'on_delivery'),
+            on_completion: qd.rest.filter(e => !e.payment_timing || e.payment_timing === 'on_completion')
         };
         const sumTiming = (list) => list.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
         const customDepositAdd = sumTiming(customByTiming.with_deposit);
         const customBalanceAdd = sumTiming(customByTiming.with_balance);
         const customDeliveryAdd = sumTiming(customByTiming.on_delivery);
 
-        const listIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} £${R.formatPrice(e.total_price)}`).join(', ')}.` : '';
+        const listIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} ${R.formatSigned(e.total_price)}`).join(', ')}.` : '';
 
         // Windows: 50/50 split (live) OR frozen deposit + flowing balance (after deposit paid).
         const depCalc = R.computeDeposit(estimate, totalEx, windowsHalf, customDepositAdd, customBalanceAdd);
@@ -4759,17 +4772,18 @@ class EstimateRenderer {
             `;
 
             // PDF — Group custom extras by payment_timing (same hybrid logic as dashboard)
+            const pdfQd = R.splitQuantityDiscount(customExtras);
             const pdfCustomByTiming = {
-                with_deposit: customExtras.filter(e => e.payment_timing === 'with_deposit'),
-                with_balance: customExtras.filter(e => e.payment_timing === 'with_balance'),
-                on_delivery: customExtras.filter(e => e.payment_timing === 'on_delivery'),
-                on_completion: customExtras.filter(e => !e.payment_timing || e.payment_timing === 'on_completion')
+                with_deposit: pdfQd.rest.filter(e => e.payment_timing === 'with_deposit').concat(pdfQd.halfEntries),
+                with_balance: pdfQd.rest.filter(e => e.payment_timing === 'with_balance').concat(pdfQd.halfEntries),
+                on_delivery: pdfQd.rest.filter(e => e.payment_timing === 'on_delivery'),
+                on_completion: pdfQd.rest.filter(e => !e.payment_timing || e.payment_timing === 'on_completion')
             };
             const pdfSumTiming = (list) => list.reduce((s, e) => s + parseFloat(e.total_price || 0), 0);
             const pdfCustomDepositAdd = pdfSumTiming(pdfCustomByTiming.with_deposit);
             const pdfCustomBalanceAdd = pdfSumTiming(pdfCustomByTiming.with_balance);
             const pdfCustomDeliveryAdd = pdfSumTiming(pdfCustomByTiming.on_delivery);
-            const pdfListIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} £${R.formatPrice(e.total_price)}`).join(', ')}.` : '';
+            const pdfListIncludes = (list) => list.length ? ` Includes: ${list.map(e => `${e.name} ${R.formatSigned(e.total_price)}`).join(', ')}.` : '';
 
             const pdfDep = R.computeDeposit(estimate, totalEx, windowsHalf, pdfCustomDepositAdd, pdfCustomBalanceAdd);
             const pdfDepositAmount = pdfDep.depositVal;
