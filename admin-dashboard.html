@@ -346,6 +346,12 @@
     </section>
 
     <main class="container">
+        <!-- Estimate search (owner, 06.09.2026): filters every estimates view, not Customers -->
+        <section class="section" style="padding-top:18px;padding-bottom:0;">
+            <input type="search" id="admin-estimate-search" placeholder="Search estimates — number, customer, email, phone, project…" autocomplete="off"
+                   style="width:100%;max-width:560px;padding:10px 14px;border:1px solid #cfcfcf;border-radius:6px;font-family:'Jost',sans-serif;font-size:.85rem;letter-spacing:.02em;">
+            <span id="admin-estimate-search-count" style="margin-left:12px;font-family:'Jost',sans-serif;font-size:.75rem;color:#777;"></span>
+        </section>
         <!-- Stats Cards -->
         <section class="section dashboard-header">
             <div class="stats-grid" style="width: 100%;">
@@ -686,18 +692,49 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="js/estimate-extras.js?v=12"></script>
+    <script src="js/estimate-extras.js?v=13"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
     <script src="js/viewer3d-modal.js?v=5"></script>
     <script src="js/modal-drag.js?v=1"></script>
     <script src="js/passport-create.js?v=5"></script>
-    <script src="js/estimate-renderer.js?v=35"></script>
+    <script src="js/estimate-renderer.js?v=36"></script>
     <script>
         // ============================================
         // ADMIN DASHBOARD CONTROLLER
         // ============================================
         
         let allEstimates = [];
+
+        // ── Estimate search (owner, 06.09.2026) ────────────────────────────────
+        // Live text filter over allEstimates, applied by every estimates view
+        // (New / Awaiting / Production / Completed / Not ordered). Customers view untouched.
+        let adminSearchQuery = '';
+        function estimateMatchesSearch(e, q) {
+            if (!q) return true;
+            const c = e.customers || {};
+            const hay = [e.estimate_number, e.project_name, c.full_name, c.email, c.phone, c.postcode, c.address]
+                .filter(Boolean).join(' ').toLowerCase();
+            return q.split(/\s+/).every(w => hay.includes(w));
+        }
+        function searchedEstimates() {
+            const q = adminSearchQuery.trim().toLowerCase();
+            const out = allEstimates.filter(e => estimateMatchesSearch(e, q));
+            const el = document.getElementById('admin-estimate-search-count');
+            if (el) el.textContent = q ? (out.length + ' of ' + allEstimates.length + ' estimates') : '';
+            return out;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const inp = document.getElementById('admin-estimate-search');
+            if (!inp) return;
+            inp.addEventListener('input', () => {
+                adminSearchQuery = inp.value || '';
+                if (typeof renderNewQuotes === 'function') renderNewQuotes();
+                if (typeof renderAllQuotes === 'function') renderAllQuotes();
+                if (typeof renderProduction === 'function') renderProduction();
+                if (typeof renderCompleted === 'function') renderCompleted();
+                if (typeof renderNotOrdered === 'function') renderNotOrdered();
+            });
+        });
         let allCustomers = [];
         
         // Initialize
@@ -873,7 +910,7 @@
         // Render New Quotes
         function renderNewQuotes() {
             const container = document.getElementById('new-quotes-list');
-            const newQuotes = allEstimates.filter(e => e.status === 'sent');
+            const newQuotes = searchedEstimates().filter(e => e.status === 'sent');
             
             if (newQuotes.length === 0) {
                 container.innerHTML = `
@@ -899,7 +936,7 @@
         // Render Awaiting Confirmation (quoted only)
         function renderAllQuotes() {
             const container = document.getElementById('all-quotes-list');
-            const quoted = allEstimates.filter(e => e.status === 'quoted');
+            const quoted = searchedEstimates().filter(e => e.status === 'quoted');
             
             if (quoted.length === 0) {
                 container.innerHTML = `
@@ -959,7 +996,7 @@
         // Render Production
         function renderProduction() {
             const container = document.getElementById('production-list');
-            const inProd = allEstimates.filter(e => 
+            const inProd = searchedEstimates().filter(e => 
                 e.status === 'survey' || e.status === 'confirmed' || e.status === 'in_production'
             );
             
@@ -980,7 +1017,7 @@
         function renderCompleted() {
             const container = document.getElementById('completed-list');
             if (!container) return;
-            const done = allEstimates.filter(e => e.status === 'completed');
+            const done = searchedEstimates().filter(e => e.status === 'completed');
             
             if (done.length === 0) {
                 container.innerHTML = `
@@ -1264,17 +1301,23 @@
             const items = est.estimate_items || [];
             if (!items.length) return alert('This estimate has no windows.');
             const windowsTotal = items.reduce((s, i) => s + (parseFloat(i.total_price) || 0), 0);
-            const discount = Math.round(windowsTotal * 0.05 * 100) / 100;
+            // Admin chooses the percentage (owner, 06.09.2026): default 5, any 1–25
+            const raw = prompt('Quantity discount — enter percentage (1–25):', '5');
+            if (raw === null) return;
+            const pct = parseFloat(String(raw).replace(',', '.'));
+            if (!(pct >= 1 && pct <= 25)) return alert('Please enter a percentage between 1 and 25.');
+            const discount = Math.round(windowsTotal * (pct / 100) * 100) / 100;
             if (discount <= 0) return alert('Nothing to discount.');
-            if (!confirm('Add 5% quantity discount?\n\nWindows subtotal: \u00a3' + windowsTotal.toLocaleString('en-GB') +
+            if (!confirm('Add ' + pct + '% quantity discount?\n\nWindows subtotal: \u00a3' + windowsTotal.toLocaleString('en-GB') +
                          '\nDiscount: -\u00a3' + discount.toLocaleString('en-GB'))) return;
             try {
                 await EstimateExtras.addCustom(est.id, {
-                    name: 'Quantity discount (5%)',
+                    name: 'Quantity discount (' + pct + '%)',
                     description: 'Multi-window order discount',
                     quantity: 1,
                     unit_price: -discount,
-                    payment_timing: 'with_balance'
+                    payment_timing: 'with_balance',
+                    allowNegative: true
                 });
                 await viewEstimate(est.id);
                 await loadAllData();
@@ -1849,7 +1892,7 @@
         function renderNotOrdered() {
             const container = document.getElementById('not-ordered-list');
             if (!container) return;
-            const notOrdered = allEstimates.filter(e => e.status === 'not_ordered');
+            const notOrdered = searchedEstimates().filter(e => e.status === 'not_ordered');
 
             if (notOrdered.length === 0) {
                 container.innerHTML = `

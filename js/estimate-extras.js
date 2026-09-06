@@ -199,10 +199,12 @@ class EstimateExtras {
     }
 
     // ─── Admin: Add custom extra (crane, OC, scaffolding, make good, etc.) ───
-    static async addCustom(estimateId, { name, description = null, quantity = 1, unit_price, payment_timing = 'on_completion' }) {
+    static async addCustom(estimateId, { name, description = null, quantity = 1, unit_price, payment_timing = 'on_completion', allowNegative = false }) {
         if (!estimateId) throw new Error('estimateId required');
         if (!name || !name.trim()) throw new Error('name required');
-        if (unit_price == null || unit_price < 0) throw new Error('unit_price must be ≥ 0');
+        // allowNegative: only the admin discount button passes it (owner, 06.09.2026);
+        // hand-typed extras are still rejected below zero.
+        if (unit_price == null || (unit_price < 0 && !allowNegative)) throw new Error('unit_price must be ≥ 0');
         if (quantity < 1) throw new Error('quantity must be ≥ 1');
         if (!['with_deposit', 'with_balance', 'on_completion', 'on_delivery'].includes(payment_timing)) {
             throw new Error('invalid payment_timing');

@@ -610,8 +610,7 @@ class EstimateRenderer {
         const hasInstallation = installationExtras.length > 0;
         const hasDelivery = deliveryExtras.length > 0;
         // Quantity discount lives as a custom extra with a negative amount (owner, 06.09.2026)
-        const QTY_DISCOUNT_NAME = 'Quantity discount (5%)';
-        const hasQtyDiscount = customExtras.some(e => (e.name || '') === QTY_DISCOUNT_NAME);
+        const hasQtyDiscount = customExtras.some(e => /^Quantity discount \(/.test(e.name || ''));
         const hasAnyExtras = extras.length > 0;
 
         const items = estimate.estimate_items || [];
@@ -904,7 +903,7 @@ class EstimateRenderer {
                 <button onclick="adminToggleExtraForm(true)" id="admin-add-extra-btn" style="background:var(--navy);color:#fff;border:none;padding:.5rem 1rem;font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;">+ Add Extra</button>
                 ${quickBtn('Installation', 'adminAddInstallation()', hasInstallation)}
                 ${quickBtn('Delivery', 'adminAddDelivery()', hasDelivery)}
-                ${quickBtn('Quantity discount 5%', 'adminAddQuantityDiscount()', hasQtyDiscount)}
+                ${quickBtn('Quantity discount', 'adminAddQuantityDiscount()', hasQtyDiscount)}
             </div>
             <div id="admin-extra-form" style="display:none;margin-top:1rem;padding:1.2rem 1.4rem;background:${CREAM_LIGHT};border:1px solid ${BORDER};">
                 <h4 style="font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:1rem;margin:0 0 .8rem;">Add Custom Extra</h4>
