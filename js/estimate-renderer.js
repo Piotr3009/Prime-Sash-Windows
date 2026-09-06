@@ -3,6 +3,12 @@
 
 class EstimateRenderer {
 
+    // "−£64.37" for negatives (discounts), "£643.69" otherwise (owner, 06.09.2026)
+    static formatSigned(price) {
+        const n = parseFloat(price) || 0;
+        return (n < 0 ? '\u2212£' : '£') + EstimateRenderer.formatPrice(Math.abs(n));
+    }
+
     static formatPrice(price) {
         return new Intl.NumberFormat('en-GB', {
             minimumFractionDigits: 2,
@@ -873,7 +879,7 @@ class EstimateRenderer {
                     ${desc ? `<div style="font-size:.72rem;color:var(--muted);font-style:italic;margin-top:.15rem;">${desc}</div>` : ''}
                 </td>
                 <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;">${qty}</td>
-                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);vertical-align:top;">£${R.formatPrice(amount)}</td>
+                <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:right;font-weight:500;color:var(--navy);vertical-align:top;">${R.formatSigned(amount)}</td>
                 ${isAdmin ? `<td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};text-align:center;vertical-align:top;white-space:nowrap;">
                     <button onclick="adminEditExtra('${extraId}')" style="background:transparent;border:1px solid rgba(10,22,40,.3);color:var(--navy);font-family:'Jost',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .6rem;cursor:pointer;border-radius:2px;margin-right:.3rem;">Edit</button>
                     <button onclick="adminDeleteExtra('${extraId}')" style="background:transparent;border:1px solid rgba(220,80,80,.4);color:rgba(220,80,80,.8);font-family:'Jost',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .6rem;cursor:pointer;border-radius:2px;">Delete</button>
@@ -967,8 +973,13 @@ class EstimateRenderer {
                     <tfoot>
                         <tr>
                             <td colspan="3" style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;font-weight:500;color:var(--navy);">Subtotal — Additional Services</td>
-                            <td style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;color:var(--navy);font-weight:500;">£${R.formatPrice(extrasTotalAll)} <span style="font-size:.7rem;font-weight:400;color:var(--muted);">+ VAT</span></td>
+                            <td style="padding:.7rem 1rem;border-top:2px solid var(--navy);text-align:right;color:var(--navy);font-weight:500;">${R.formatSigned(extrasTotalAll)} <span style="font-size:.7rem;font-weight:400;color:var(--muted);">+ VAT</span></td>
                             ${isAdmin ? `<td style="padding:.7rem 1rem;border-top:2px solid var(--navy);"></td>` : ''}
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="padding:.85rem 1rem;background:var(--navy);text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:#fff;letter-spacing:.02em;">Total — Windows &amp; Services</td>
+                            <td style="padding:.85rem 1rem;background:var(--navy);text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:#fff;white-space:nowrap;">£${R.formatPrice(totalEx + extrasTotalAll)} <span style="font-family:'Jost',sans-serif;font-size:.7rem;font-weight:400;color:rgba(255,255,255,.65);">+ VAT</span></td>
+                            ${isAdmin ? `<td style="background:var(--navy);"></td>` : ''}
                         </tr>
                     </tfoot>
                 </table>

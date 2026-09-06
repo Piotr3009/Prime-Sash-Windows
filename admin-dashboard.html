@@ -346,12 +346,6 @@
     </section>
 
     <main class="container">
-        <!-- Estimate search (owner, 06.09.2026): filters every estimates view, not Customers -->
-        <section class="section" style="padding-top:18px;padding-bottom:0;">
-            <input type="search" id="admin-estimate-search" placeholder="Search estimates — number, customer, email, phone, project…" autocomplete="off"
-                   style="width:100%;max-width:560px;padding:10px 14px;border:1px solid #cfcfcf;border-radius:6px;font-family:'Jost',sans-serif;font-size:.85rem;letter-spacing:.02em;">
-            <span id="admin-estimate-search-count" style="margin-left:12px;font-family:'Jost',sans-serif;font-size:.75rem;color:#777;"></span>
-        </section>
         <!-- Stats Cards -->
         <section class="section dashboard-header">
             <div class="stats-grid" style="width: 100%;">
@@ -396,6 +390,13 @@
                     <div class="stat-label">Estimate Visits (All Time)</div>
                     <div class="stat-label" id="tracking-since" style="font-size:0.55rem;color:#999;margin-top:4px;"></div>
                 </div>
+            </div>
+            <!-- Estimate search (owner, 06.09.2026) — right column of the header grid; filters estimates views, not Customers -->
+            <div class="admin-search" style="padding:14px 18px;background:var(--white);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+                <label for="admin-estimate-search" style="display:block;font-family:'Jost',sans-serif;font-size:.62rem;letter-spacing:.25em;text-transform:uppercase;color:#888;margin-bottom:8px;">Search estimates</label>
+                <input type="search" id="admin-estimate-search" placeholder="Number, customer, email, phone, project…" autocomplete="off"
+                       style="width:100%;padding:11px 14px;border:1px solid #d6d6d6;border-radius:6px;font-family:'Jost',sans-serif;font-size:.9rem;">
+                <div id="admin-estimate-search-count" style="margin-top:8px;font-family:'Jost',sans-serif;font-size:.75rem;color:#777;min-height:1em;"></div>
             </div>
         </section>
 
@@ -697,7 +698,7 @@
     <script src="js/viewer3d-modal.js?v=5"></script>
     <script src="js/modal-drag.js?v=1"></script>
     <script src="js/passport-create.js?v=5"></script>
-    <script src="js/estimate-renderer.js?v=36"></script>
+    <script src="js/estimate-renderer.js?v=37"></script>
     <script>
         // ============================================
         // ADMIN DASHBOARD CONTROLLER
