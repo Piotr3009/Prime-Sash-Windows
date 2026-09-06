@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 // Usage:
 //   EstimateExtras.load(estimateId)                 → returns array of extras
-//   EstimateExtras.addInstallation(estimateId, items) → per-type pricing (sash £400, casement £250, fix £200, door £450)
+//   EstimateExtras.addInstallation(estimateId, items) → per-item pricing by frame area (see INSTALL_RATE / INSTALL_MIN)
 //   EstimateExtras.addDelivery(estimateId, totalQty)  → £300 base + £30/window above 10
 //   EstimateExtras.addCustom(estimateId, data)      → admin adds custom extra
 //   EstimateExtras.update(extraId, data)            → admin edits extra
@@ -22,6 +22,45 @@ class EstimateExtras {
     static DELIVERY_BASE_PRICE = 300;
     static DELIVERY_SURCHARGE_PER_WINDOW = 30;
     static DELIVERY_SURCHARGE_THRESHOLD = 10;
+
+    // ── Installation by size (owner, 06.09.2026) ───────────────────────────
+    // £/m² of FRAME area with a per-type minimum. Replaces the flat per-type
+    // rates (kept below as legacy) which charged 65% of a small sash and only
+    // 8% of a large bifold. Frame = opening +150 / +75 for brick-to-brick.
+    static INSTALL_RATE = { sash: 200, casement: 150, fix: 150, door: 150 };
+    static INSTALL_MIN  = { sash: 250, casement: 180, fix: 150, door: 300 };
+
+    static installKind(item) {
+        let spec = {};
+        try { spec = typeof item.specification === 'string' ? JSON.parse(item.specification) : (item.specification || {}); } catch (e) {}
+        const fc = spec.fullConfig || spec;
+        const w = String(item.window_type || fc.windowType || fc.windowCategory || 'sash').toLowerCase();
+        if (w === 'casement') return 'casement';
+        if (w === 'fix-only' || w.includes('fix')) return 'fix';
+        if (w === 'door' || w.includes('door')) return 'door';
+        return 'sash';
+    }
+
+    static installFrameSqm(item) {
+        let spec = {};
+        try { spec = typeof item.specification === 'string' ? JSON.parse(item.specification) : (item.specification || {}); } catch (e) {}
+        const fc = spec.fullConfig || spec;
+        let fw = parseFloat(fc.actualFrameWidth), fh = parseFloat(fc.actualFrameHeight);
+        if (!(fw > 0 && fh > 0)) {
+            const w = parseFloat(item.width || fc.width) || 0, h = parseFloat(item.height || fc.height) || 0;
+            const b2b = (item.measurement_type || fc.measurementType || 'brick-to-brick') === 'brick-to-brick';
+            fw = w + (b2b ? 150 : 0); fh = h + (b2b ? 75 : 0);
+        }
+        return (fw / 1000) * (fh / 1000);
+    }
+
+    // Price for ONE unit of this item (not multiplied by quantity)
+    static installUnitPrice(item) {
+        const kind = EstimateExtras.installKind(item);
+        const sqm = EstimateExtras.installFrameSqm(item);
+        const raw = EstimateExtras.INSTALL_RATE[kind] * sqm;
+        return { kind, sqm, price: Math.round(Math.max(EstimateExtras.INSTALL_MIN[kind], raw)) };
+    }
 
     // Legacy compat
     static INSTALLATION_UNIT_PRICE = 400;
@@ -70,34 +109,25 @@ class EstimateExtras {
         // If array of items passed → per-type pricing
         if (Array.isArray(totalQtyOrItems)) {
             const items = totalQtyOrItems;
-            let countSash = 0, countCasement = 0, countFix = 0, countDoor = 0;
+            // owner 06.09.2026: priced per item by frame area (see installUnitPrice)
+            const totals = { sash: 0, casement: 0, fix: 0, door: 0 };
+            const counts = { sash: 0, casement: 0, fix: 0, door: 0 };
 
             items.forEach(item => {
                 const qty = parseInt(item.quantity) || 1;
-                let spec = {};
-                try { spec = typeof item.specification === 'string' ? JSON.parse(item.specification) : (item.specification || {}); } catch(e) {}
-                const fc = spec.fullConfig || spec;
-                const wType = fc.windowType || fc.windowCategory || 'sash';
-
-                if (wType === 'casement') { countCasement += qty; }
-                else if (wType === 'fix-only') { countFix += qty; }
-                else if (wType === 'door') { countDoor += qty; }
-                else { countSash += qty; }
+                const u = EstimateExtras.installUnitPrice(item);
+                totals[u.kind] += u.price * qty;
+                counts[u.kind] += qty;
             });
 
-            totalQty = countSash + countCasement + countFix + countDoor;
+            totalQty = counts.sash + counts.casement + counts.fix + counts.door;
             if (totalQty < 1) throw new Error('No windows in estimate');
+            totalPrice = totals.sash + totals.casement + totals.fix + totals.door;
 
-            const sashTotal = countSash * EstimateExtras.INSTALL_PRICE_SASH;
-            const casementTotal = countCasement * EstimateExtras.INSTALL_PRICE_CASEMENT;
-            const fixTotal = countFix * EstimateExtras.INSTALL_PRICE_FIX;
-            const doorTotal = countDoor * EstimateExtras.INSTALL_PRICE_DOOR;
-            totalPrice = sashTotal + casementTotal + fixTotal + doorTotal;
-
-            if (countSash > 0) breakdownParts.push(`${countSash}× Sash £${sashTotal}`);
-            if (countCasement > 0) breakdownParts.push(`${countCasement}× Casement £${casementTotal}`);
-            if (countFix > 0) breakdownParts.push(`${countFix}× Fix £${fixTotal}`);
-            if (countDoor > 0) breakdownParts.push(`${countDoor}× Door £${doorTotal}`);
+            const label = { sash: 'Sash', casement: 'Casement', fix: 'Fix', door: 'Door' };
+            ['sash', 'casement', 'fix', 'door'].forEach(k => {
+                if (counts[k] > 0) breakdownParts.push(`${counts[k]}× ${label[k]} £${totals[k]}`);
+            });
 
         } else {
             // Legacy fallback: flat rate × qty

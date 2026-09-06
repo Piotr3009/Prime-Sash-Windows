@@ -77,7 +77,7 @@ class PriceCalculator {
     }
 
     // ═══ ARCHED SASH PRICING ═══
-    // sashType 'arched' is its own product: base × 1.8 (curved IGU is inside the
+    // sashType 'arched' is its own product: base × 1.6 (curved IGU is inside the
     // multiplier, spec O3/O7), then pattern premium + bars + options.
     if (configuration.sashType === 'arched') {
       return this.calculateArchedSash(configuration, sqm, frameWidth, frameHeight);
@@ -357,7 +357,11 @@ class PriceCalculator {
       barsPrice = totalBars * 2 * this.pricing.barPricing.pricePerBar;
       // Multiply by number of panels
       const panelCount = layoutData.mullions + 1 + (layoutData.transoms > 0 ? layoutData.mullions + 1 : 0);
-      barsPrice *= Math.max(1, layoutData.sashes + (layoutData.mullions + 1 - layoutData.sashes));
+      // owner 06.09.2026: first light at full price, every further light at 50% —
+      // the profile set-up is done once, repeats in the same window are cheaper.
+      // (was: × number of lights, which escalated 4-light windows too hard)
+      const lights = Math.max(1, layoutData.sashes + (layoutData.mullions + 1 - layoutData.sashes));
+      barsPrice *= 1 + 0.5 * (lights - 1);
     }
 
     // Fanlight bars — priced per bar, per fan pane (H and V, max 2 each)
@@ -710,8 +714,8 @@ class PriceCalculator {
   // ═══ ARCHED CASEMENT PRICING ═══
   // ═══════════════════════════════════════════════════════════════════════
   // ARCHED SASH (spec O2/O3)
-  //   (basePrice_double(sqm) × 1.8) + archPatternPremium + bars + options
-  // The 1.8 multiplies the BASE ONLY — not the subtotal. Glazing Arch's +10%
+  //   (basePrice_double(sqm) × 1.6) + archPatternPremium + bars + options
+  // The 1.6 multiplies the BASE ONLY — not the subtotal. Glazing Arch's +10%
   // works on the subtotal, but that is a different product and headType is
   // ignored here. Colour and quantity then behave exactly like a double sash.
   // ═══════════════════════════════════════════════════════════════════════
@@ -719,12 +723,13 @@ class PriceCalculator {
     const A = window.ArchedSash;
     const shape = configuration.archShape || 'semi-circle';
 
-    // Base: the double-hung base for this area, × 1.8
-    // 23.08.2026 (owner): raised 1.6 -> 1.8. The 1.6 start did not cover the
-    // real workshop cost of a curved head — bent frame, curved IGU, bent beads.
+    // Base: the double-hung base for this area, × 1.6
+    // 23.08.2026 (owner): raised 1.6 -> 1.8 for the curved-head workshop cost.
+    // 06.09.2026 (owner): back to 1.6 — a deliberate market-entry price for the
+    // arched range (unique 3D configurator); to be revisited once volume is in.
     const basePriceDouble = this.getSashBasePrice(sqm);
     const sizeMultiplier = basePriceDouble / (this.pricing.basePricePerSqm * sqm); // informational
-    const basePrice = basePriceDouble * 1.8;
+    const basePrice = basePriceDouble * 1.6;
 
     // Arch bar pattern premium — same table as arched casement
     const pattern = configuration.archBarPattern || 'none';
@@ -776,7 +781,7 @@ class PriceCalculator {
         sqm: sqm.toFixed(2),
         sizeMultiplier: sizeMultiplier,
         basePriceDouble: basePriceDouble.toFixed(2),
-        archMultiplier: 1.8,
+        archMultiplier: 1.6,
         basePrice: basePrice.toFixed(2),
         patternPrice: patternPrice,
         archBarsPrice: archBarsPrice.toFixed(2),

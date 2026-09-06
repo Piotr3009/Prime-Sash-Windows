@@ -686,7 +686,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="js/estimate-extras.js?v=2"></script>
+    <script src="js/estimate-extras.js?v=12"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
     <script src="js/viewer3d-modal.js?v=5"></script>
     <script src="js/modal-drag.js?v=1"></script>
@@ -1138,14 +1138,10 @@
             let total = 0;
             items.forEach(item => {
                 const qty = parseInt(item.quantity) || 1;
-                const raw = String(item.window_type || '').toLowerCase();
-                const kind = label[raw] || (raw.includes('door') ? 'door' : (raw.includes('fix') ? 'fix' : raw || 'window'));
-                const price = kind === 'sash' ? EstimateExtras.INSTALL_PRICE_SASH
-                            : kind === 'casement' ? EstimateExtras.INSTALL_PRICE_CASEMENT
-                            : kind === 'door' ? EstimateExtras.INSTALL_PRICE_DOOR
-                            : EstimateExtras.INSTALL_PRICE_FIX;
-                counts[kind] = (counts[kind] || 0) + qty;
-                total += price * qty;
+                // owner 06.09.2026: same size-based pricing as EstimateExtras.addInstallation
+                const u = EstimateExtras.installUnitPrice(item);
+                counts[u.kind] = (counts[u.kind] || 0) + qty;
+                total += u.price * qty;
             });
             const parts = Object.keys(counts).map(k => counts[k] + ' \u00d7 ' + k);
             return { text: parts.join(', '), total: total };
