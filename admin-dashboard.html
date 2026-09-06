@@ -691,7 +691,7 @@
     <script src="js/viewer3d-modal.js?v=5"></script>
     <script src="js/modal-drag.js?v=1"></script>
     <script src="js/passport-create.js?v=5"></script>
-    <script src="js/estimate-renderer.js?v=33"></script>
+    <script src="js/estimate-renderer.js?v=35"></script>
     <script>
         // ============================================
         // ADMIN DASHBOARD CONTROLLER
@@ -1257,6 +1257,37 @@
                 alert('Failed to load: ' + (err.message || 'unknown error'));
             }
         }
+
+        // ── Quantity discount (owner, 06.09.2026) ─────────────────────────────
+        // 5% of the windows subtotal, saved as a custom extra with a NEGATIVE amount
+        // so it flows through the same Summary / VAT / total maths as every extra.
+        // Removing it = the usual extra "Remove" button.
+        async function adminAddQuantityDiscount() {
+            const est = adminCurrentEstimate();
+            if (!est) return alert('No estimate selected — please reopen it.');
+            const items = est.estimate_items || [];
+            if (!items.length) return alert('This estimate has no windows.');
+            const windowsTotal = items.reduce((s, i) => s + (parseFloat(i.total_price) || 0), 0);
+            const discount = Math.round(windowsTotal * 0.05 * 100) / 100;
+            if (discount <= 0) return alert('Nothing to discount.');
+            if (!confirm('Add 5% quantity discount?\n\nWindows subtotal: \u00a3' + windowsTotal.toLocaleString('en-GB') +
+                         '\nDiscount: -\u00a3' + discount.toLocaleString('en-GB'))) return;
+            try {
+                await EstimateExtras.addCustom(est.id, {
+                    name: 'Quantity discount (5%)',
+                    description: 'Multi-window order discount',
+                    quantity: 1,
+                    unit_price: -discount,
+                    payment_timing: 'with_balance'
+                });
+                await viewEstimate(est.id);
+                await loadAllData();
+            } catch (err) {
+                console.error('Add quantity discount failed:', err);
+                alert('Failed to add discount: ' + (err.message || 'unknown error'));
+            }
+        }
+        window.adminAddQuantityDiscount = adminAddQuantityDiscount;
 
         async function adminAddExtra() {
             if (!currentAdminEstimateId) {

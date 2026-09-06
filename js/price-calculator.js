@@ -91,9 +91,12 @@ class PriceCalculator {
       sizeMultiplier = 1.0;
       basePrice = 950 * sqm;
     } else {
-      // Double: £800/sqm with degressive multiplier
-      sizeMultiplier = this.getSizeMultiplier(sqm);
-      basePrice = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
+      // Double: continuous curve (owner, 06.09.2026) — first m² is a minimum
+      // price, each extra m² at a flat rate. Never decreases with size.
+      basePrice = this.getSashBasePrice(sqm);
+      // Effective multiplier vs the flat £/m² rate — kept for the metadata/CSV
+      // fields that always carried it (informational only).
+      sizeMultiplier = basePrice / (this.pricing.basePricePerSqm * sqm);
     }
     
     // 2. CENA ZA SZPROSY (bars) — center sash
@@ -176,6 +179,22 @@ class PriceCalculator {
       totalPrice: Math.round(totalPrice * 100) / 100,
       breakdown: breakdown
     };
+  }
+
+  // ── Sash base price: continuous curve (owner, 06.09.2026) ──────────────
+  // firstSqm is charged in full for anything up to 1 m² (minimum price);
+  // every m² above 1 adds perExtraSqm. Falls back to the legacy tiers if the
+  // config has no sashCurve (older cached pricing-config).
+  getSashBasePrice(sqm) {
+    const c = this.pricing.sashCurve;
+    if (!c || !c.firstSqm) {
+      return this.pricing.basePricePerSqm * sqm * this.getSizeMultiplier(sqm);
+    }
+    const largeFrom = c.largeFrom || Infinity;
+    const perLarge = c.perLargeSqm || c.perExtraSqm;
+    const mid = Math.max(0, Math.min(sqm, largeFrom) - 1);   // m² between 1 and largeFrom
+    const big = Math.max(0, sqm - largeFrom);                // m² above largeFrom
+    return c.firstSqm + mid * c.perExtraSqm + big * perLarge;
   }
 
   getSizeMultiplier(sqm) {
@@ -368,7 +387,7 @@ class PriceCalculator {
       const dualSurcharge = subtotal * 0.15;
       subtotal += dualSurcharge;
     } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
-      const colorSurcharge = subtotal * 0.10;
+      const colorSurcharge = subtotal * 0.05;  // owner 06.09.2026: unified with sash/door (+5%)
       subtotal += colorSurcharge;
     }
     
@@ -455,7 +474,7 @@ class PriceCalculator {
       const surcharge = subtotal * 0.15;
       subtotal += surcharge;
     } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
-      const surcharge = subtotal * 0.10;
+      const surcharge = subtotal * 0.05;  // owner 06.09.2026: unified with sash/door (+5%)
       subtotal += surcharge;
     }
 
@@ -495,9 +514,10 @@ class PriceCalculator {
   // ═══ DOOR PRICING ═══
   calculateDoor(configuration, frameWidth, frameHeight) {
     const DOOR_BASE_PER_SQM = 980;
-    // French doors: same rate as single. Double = 2x the area, so the extra work
-    // is already paid for by the larger m2 — no per-sqm surcharge on top.
-    const FRENCH_SURCHARGE_PER_SQM = 0;
+    // French doors (owner 06.09.2026): -10% vs the single-door base rate.
+    // Applied as a negative per-sqm adjustment so the door branch below stays
+    // structurally unchanged. 980 -> 882 £/m². Single external door untouched.
+    const FRENCH_SURCHARGE_PER_SQM = -Math.round(DOOR_BASE_PER_SQM * 0.10);  // -98
     const PANEL_BASE_PER_SQM = 550; // side panels
     const TRANSOM_PER_SQM = 500;    // french transom / fanlight (own rate)
     const SILL_EXTENSION_PRICE = 80;
@@ -517,12 +537,13 @@ class PriceCalculator {
 
     let basePrice;
     if (isSlidingDoor) {
-      const SLIDING_STANDARD_PER_SQM = 1100;
-      const SLIDING_EXTRA_PER_SQM = 1400;
+      // owner 06.09.2026: -10% (was 1100 / 1400)
+      const SLIDING_STANDARD_PER_SQM = 990;
+      const SLIDING_EXTRA_PER_SQM = 1260;
       const slidingRate = configuration.extraWidth ? SLIDING_EXTRA_PER_SQM : SLIDING_STANDARD_PER_SQM;
       basePrice = slidingRate * doorSqm;
     } else if (isBifoldDoor) {
-      const BIFOLD_PER_SQM = 1050;
+      const BIFOLD_PER_SQM = 945;  // owner 06.09.2026: -10% (was 1050)
       basePrice = BIFOLD_PER_SQM * doorSqm;
     } else if ((configuration.doorType || '') === 'front-door') {
       // Front doors: heavier construction, panel grid, entrance-grade spec —
@@ -701,8 +722,8 @@ class PriceCalculator {
     // Base: the double-hung base for this area, × 1.8
     // 23.08.2026 (owner): raised 1.6 -> 1.8. The 1.6 start did not cover the
     // real workshop cost of a curved head — bent frame, curved IGU, bent beads.
-    const sizeMultiplier = this.getSizeMultiplier(sqm);
-    const basePriceDouble = this.pricing.basePricePerSqm * sqm * sizeMultiplier;
+    const basePriceDouble = this.getSashBasePrice(sqm);
+    const sizeMultiplier = basePriceDouble / (this.pricing.basePricePerSqm * sqm); // informational
     const basePrice = basePriceDouble * 1.8;
 
     // Arch bar pattern premium — same table as arched casement
@@ -807,7 +828,7 @@ class PriceCalculator {
       const surcharge = subtotal * 0.15;
       subtotal += surcharge;
     } else if (configuration.colorType === 'single' && configuration.colorSingle && configuration.colorSingle !== 'white') {
-      const surcharge = subtotal * 0.10;
+      const surcharge = subtotal * 0.05;  // owner 06.09.2026: unified with sash/door (+5%)
       subtotal += surcharge;
     }
 

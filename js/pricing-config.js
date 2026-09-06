@@ -2,8 +2,21 @@
 const pricingConfig = {
   // Cena bazowa za m²
   basePricePerSqm: 850,
-  
-  // Mnożniki degresywne - im większe okno, tym taniej za m²
+
+  // ── Sash base curve (owner, 06.09.2026) ──────────────────────────────────
+  // Replaces the stepped sizeMultipliers below. Price is continuous and never
+  // decreases with size: first m² is a minimum manufacturing price, every m²
+  // above it is charged at perExtraSqm. The old tiers produced cliffs of
+  // -£338 at 1.0 m² and -£381 at 3.0 m² (a bigger window got cheaper).
+  sashCurve: {
+    firstSqm: 850,       // £ for the first m² (also the minimum price)
+    perExtraSqm: 645,    // £ per m² between 1.0 and largeFrom
+    largeFrom: 3.0,      // m² threshold for the large-window rate
+    perLargeSqm: 420     // £ per m² above largeFrom
+  },
+
+  // Mnożniki degresywne - LEGACY, no longer used by the sash base (see sashCurve).
+  // Kept for reference and for any external reader of this config.
   sizeMultipliers: [
     { maxSqm: 1.0, multiplier: 1.35 },   // małe okna +35%
     { maxSqm: 1.5, multiplier: 0.95 },   // -5%
