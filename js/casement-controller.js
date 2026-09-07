@@ -415,13 +415,18 @@
     // Fanlight zone (panel opening) = axis - 91 (57 head + 34 half transom).
     var fanlightMm = parseInt(val('c-fanlight-height')) || 440;
     var innerH = h - 57 - 68; // height minus top rail minus bottom rail
-    var fanlightRatio = Math.max(0.15, Math.min(0.5, (fanlightMm - 91) / innerH));
+    // owner 06.09.2026: the 800 mm cap and the "half the window" rule are gone —
+    // customers order tall upper sections (e.g. 1646 mm axis on a 2496 mm window).
+    // The only remaining limit is physical: the zone left below the transom must
+    // still take a sash, so it never drops under MIN_ZONE.
+    var MIN_ZONE = 300;
+    var fanlightRatio = Math.max(0.15, Math.min((innerH - MIN_ZONE) / innerH, (fanlightMm - 91) / innerH));
 
     // Update min/max display (axis space)
     var fMinEl = $('c-fanlight-min');
     var fMaxEl = $('c-fanlight-max');
     var fMin = Math.ceil((innerH * 0.15 + 91) / 10) * 10;
-    var fMax = Math.floor((Math.min(800, innerH * 0.5) + 91) / 10) * 10;
+    var fMax = Math.floor(((innerH - MIN_ZONE) + 91) / 10) * 10;
     if (fMinEl) fMinEl.textContent = fMin;
     if (fMaxEl) fMaxEl.textContent = fMax;
     // Round to 10 mm + clamp; write back so 3D, spec and saved estimate always match
@@ -443,15 +448,16 @@
       var fanZoneNow = fanlightMm - 91;
       var fan2Mm = parseInt(f2El && f2El.value) || Math.round((h - 102 - innerH * 0.33) / 10) * 10;
       var zMin = innerH * 0.15;
-      var zMax = Math.min(800, innerH * 0.5);
-      var zGuardMax = innerH * 0.7 - fanZoneNow;             // top + bottom zones <= 70% of innerH
-      zMax = Math.min(zMax, Math.max(zMin, zGuardMax));
+      // owner 06.09.2026: same relaxation as transom 1 — no 800 mm cap, no half-window
+      // rule. Guard keeps a middle section of at least MIN_ZONE between both transoms.
+      var zMax = innerH - fanZoneNow - MIN_ZONE;
+      zMax = Math.max(zMin, zMax);
       // zone limits -> axis limits (bigger axis = smaller bottom zone)
       var f2Min = Math.ceil((h - 102 - zMax) / 10) * 10;
       var f2Max = Math.floor((h - 102 - zMin) / 10) * 10;
       var f2Clamped = Math.max(f2Min, Math.min(f2Max, Math.round(fan2Mm / 10) * 10));
       if (f2El) { f2El.min = f2Min; f2El.max = f2Max; if (f2Clamped !== fan2Mm) f2El.value = f2Clamped; }
-      fan2Ratio = Math.max(0.15, Math.min(0.5, (h - f2Clamped - 102) / innerH));
+      fan2Ratio = Math.max(0.15, Math.min((innerH - MIN_ZONE) / innerH, (h - f2Clamped - 102) / innerH));
     }
 
     var middleSec = getTripleMiddle(w);
