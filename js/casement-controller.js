@@ -435,7 +435,10 @@
       fEl.min = fMin; fEl.max = fMax;
       var fClamped = Math.max(fMin, Math.min(fMax, Math.round(fanlightMm / 10) * 10));
       if (fClamped !== fanlightMm) { fanlightMm = fClamped; fEl.value = fClamped; }
-      fanlightRatio = Math.max(0.15, Math.min(0.5, (fanlightMm - 91) / innerH));
+      // owner 06.09.2026: recompute with the same relaxed ceiling as above — this
+      // second assignment used to re-clamp the ratio back to 0.5 after the input
+      // was rounded, so the 3D never showed a transom past half the window.
+      fanlightRatio = Math.max(0.15, Math.min((innerH - MIN_ZONE) / innerH, (fanlightMm - 91) / innerH));
     }
 
     // Fanlight 2 (bottom tier) — same rules + shared 70% guard (middle keeps ≥30%)
