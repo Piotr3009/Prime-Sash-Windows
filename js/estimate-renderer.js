@@ -1714,6 +1714,37 @@ class EstimateRenderer {
             ],
           };
         }
+        // 033: 3 columns x 3 rows (owner, 06.09.2026) — mirrors the 3D getLayout case
+        case '033': {
+          const eqW = (innerW - mullW * 2) / 3;
+          const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+          const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+          const off = panelC / 2 + mullW + panelS / 2;
+          const m1 = FRAME_FACE + panelS + mullW / 2;
+          const m2 = m1 + panelC + mullW;
+          const topH = innerH * FR;
+          const botH = innerH * FR2;
+          const midH = innerH - topH - botH - MULLION_W * 2;
+          const t1Y = BOTTOM_FACE + botH + MULLION_W + midH + MULLION_W / 2;
+          const t2Y = BOTTOM_FACE + botH + MULLION_W / 2;
+          const yTop = (innerH - topH) / 2;
+          const yMid = -innerH / 2 + botH + MULLION_W + midH / 2;
+          const yBot = -(innerH - botH) / 2;
+          const cols = [-off, 0, off];
+          const widths = [panelS, panelC, panelS];
+          return {
+            mullions: [m1, m2],
+            transoms: [
+              { y: t1Y, width: panelS, offsetX: -off }, { y: t1Y, width: panelC, offsetX: 0 }, { y: t1Y, width: panelS, offsetX: off },
+              { y: t2Y, width: panelS, offsetX: -off }, { y: t2Y, width: panelC, offsetX: 0 }, { y: t2Y, width: panelS, offsetX: off },
+            ],
+            panels: [
+              ...cols.map((x, i) => ({ x, y: yTop, w: widths[i], h: topH, hinge: 'top' })),
+              ...cols.map((x, i) => ({ x, y: yMid, w: widths[i], h: midH, hinge: i === 0 ? 'left' : (i === 2 ? 'right' : 'fixed') })),
+              ...cols.map((x, i) => ({ x, y: yBot, w: widths[i], h: botH, hinge: 'fixed' })),
+            ],
+          };
+        }
         case '021': {
           const fanlightH = innerH * FR;
           const mainH = innerH - MULLION_W - fanlightH;
@@ -3537,6 +3568,25 @@ class EstimateRenderer {
                         { x:half+mW, y:fH+mW+tierMidH+mW, w:half, h:f2H, hinge:'fixed', fanlight2:true }
                     ]
                 };
+            // 033: 3 columns x 3 rows (owner, 06.09.2026)
+            case '033': {
+                const cW = third - mW / 2;
+                const cX = [0, third + mW / 2, third * 2 + mW + mW / 2];
+                const yMid = fH + mW, yBot = fH + mW + tierMidH + mW;
+                const tY1 = fH + mW / 2, tY2 = fH + mW + tierMidH + mW / 2;
+                return {
+                    mullions: [third, third * 2 + mW],
+                    transoms: [
+                        { y: tY1, x: cX[0], w: cW }, { y: tY1, x: cX[1], w: cW }, { y: tY1, x: cX[2], w: cW },
+                        { y: tY2, x: cX[0], w: cW }, { y: tY2, x: cX[1], w: cW }, { y: tY2, x: cX[2], w: cW }
+                    ],
+                    list: [
+                        ...cX.map(x => ({ x, y: 0, w: cW, h: fH, hinge: 'top', fanlight: true })),
+                        ...cX.map((x, i) => ({ x, y: yMid, w: cW, h: tierMidH, hinge: i === 0 ? 'left' : (i === 2 ? 'right' : 'fixed') })),
+                        ...cX.map(x => ({ x, y: yBot, w: cW, h: f2H, hinge: 'fixed', fanlight2: true }))
+                    ]
+                };
+            }
             case '021':
                 return {
                     transoms: [fH + mW/2],

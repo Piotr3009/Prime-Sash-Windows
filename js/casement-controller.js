@@ -54,9 +54,9 @@
   window.CASEMENT_LAYOUTS_VERSION = 2;
 
   // Layouts that have fanlights (transom)
-  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132', '133', '013', '023', '142', '144'];
-  const FAN2_LAYOUTS = ['013', '023'];
-  const TRIPLE_LAYOUTS = ['130', '131', '132', '133'];
+  const FANLIGHT_LAYOUTS = ['021', '031', '032', '052L', '052R', '022', '131', '132', '133', '013', '023', '033', '142', '144'];
+  const FAN2_LAYOUTS = ['013', '023', '033'];  // 033 added 06.09.2026 (3 cols x 3 rows)
+  const TRIPLE_LAYOUTS = ['130', '131', '132', '133', '033'];  // 033 added 06.09.2026
 
   // ─── Custom middle section (triple layouts): clamp + sides hint; null = equal ───
   function getTripleMiddle(totalW) {
@@ -154,7 +154,7 @@
       // Transom AXIS convention: input = frame top -> transom centre (91 = 57 head + 34 half transom)
       var defaultFH = Math.round((innerH * 0.3 + 91) / 10) * 10;
       var dMin = Math.ceil((innerH * 0.15 + 91) / 10) * 10;
-      var dMax = Math.floor((Math.min(800, innerH * 0.5) + 91) / 10) * 10;
+      var dMax = Math.floor(((innerH - 300) + 91) / 10) * 10;  // owner 06.09.2026: caps removed, 300 mm min bottom zone
       defaultFH = Math.max(dMin, Math.min(dMax, defaultFH));
       var fInput = $('c-fanlight-height');
       if (fInput) { fInput.min = dMin; fInput.max = dMax; fInput.value = defaultFH; }

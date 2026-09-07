@@ -108,7 +108,7 @@
     '021': '1 Light + Fanlight', '022': '2 Lights + Fanlights',
     '052L': '2 Lights + Fan Left', '052R': '2 Lights + Fan Right',
     '133': '3 Lights + Fanlights',
-    '013': 'Single — 3 Tier', '023': '2 Lights — 3 Tier',
+    '013': 'Single — 3 Tier', '023': '2 Lights — 3 Tier', '033': '3 Lights — 3 Tier',
     '140L': '4 Lights',
     '142': '4 Lights + Centre Fanlights',
     '144': '4 Lights + Fanlights'

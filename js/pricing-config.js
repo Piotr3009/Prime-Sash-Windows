@@ -175,6 +175,9 @@ const pricingConfig = {
       '133':  { mullions: 2, transoms: 3, sashes: 3 },
       '013':  { mullions: 0, transoms: 2, sashes: 1 },
       '023':  { mullions: 1, transoms: 4, sashes: 2 },
+      // 033 (owner 06.09.2026): 3 columns x 3 rows — 2 mullions, 6 transom segments,
+      // middle row openable (2 side sashes by default; per-pane choice in the modal).
+      '033':  { mullions: 2, transoms: 6, sashes: 2 },
       '140L': { mullions: 3, transoms: 0, sashes: 1 },
       '140R': { mullions: 3, transoms: 0, sashes: 1 }
     }

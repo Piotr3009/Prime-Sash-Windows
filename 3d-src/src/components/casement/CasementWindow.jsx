@@ -247,6 +247,39 @@ function getLayout(code, innerW, innerH, height, fanlightRatio, fan2Ratio, middl
         ],
       };
     }
+    // ─── 033: 3 columns x 3 rows (owner, 06.09.2026) ───
+    // Combines the 3-column setting-out of 133 with the 3-tier stacking of 023.
+    // Openings are chosen per pane in the type modal, so every pane starts fixed.
+    case '033': {
+      const eqW = (innerW - mullW * 2) / 3;
+      const panelC = middleSectionMm > 0 ? (middleSectionMm - mullW) : eqW;
+      const panelS = middleSectionMm > 0 ? (innerW - panelC - mullW * 2) / 2 : eqW;
+      const off = panelC / 2 + mullW + panelS / 2;
+      const m1 = FRAME_FACE + panelS + mullW / 2;
+      const m2 = m1 + panelC + mullW;
+      const topH = innerH * FR;
+      const botH = innerH * FR2;
+      const midH = innerH - topH - botH - MULLION_W * 2;
+      const t1Y = BOTTOM_FACE + botH + MULLION_W + midH + MULLION_W / 2;   // upper transom
+      const t2Y = BOTTOM_FACE + botH + MULLION_W / 2;                      // lower transom
+      const yTop = (innerH - topH) / 2;
+      const yMid = -innerH / 2 + botH + MULLION_W + midH / 2;
+      const yBot = -(innerH - botH) / 2;
+      const cols = [-off, 0, off];
+      const widths = [panelS, panelC, panelS];
+      return {
+        mullions: [m1, m2],
+        transoms: [
+          { y: t1Y, width: panelS, offsetX: -off }, { y: t1Y, width: panelC, offsetX: 0 }, { y: t1Y, width: panelS, offsetX: off },
+          { y: t2Y, width: panelS, offsetX: -off }, { y: t2Y, width: panelC, offsetX: 0 }, { y: t2Y, width: panelS, offsetX: off },
+        ],
+        panels: [
+          ...cols.map((x, i) => ({ x, y: yTop, w: widths[i], h: topH, hinge: 'top' })),
+          ...cols.map((x, i) => ({ x, y: yMid, w: widths[i], h: midH, hinge: i === 0 ? 'left' : (i === 2 ? 'right' : 'fixed') })),
+          ...cols.map((x, i) => ({ x, y: yBot, w: widths[i], h: botH, hinge: 'fixed' })),
+        ],
+      };
+    }
     case '021': {
       const fanlightH = innerH * FR;
       const mainH = innerH - MULLION_W - fanlightH;
