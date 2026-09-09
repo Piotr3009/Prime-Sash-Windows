@@ -746,6 +746,7 @@ function Scene({ config, isMobile }) {
                 width={config.extWidth}
                 height={config.extHeight}
                 layout={config.casementLayout}
+                headType={config.headType || 'flat'}
                 middleSection={config.casementMiddleWidth || 0}
                 casementHinges={config.casementHinges}
                 fanHBars={config.casementFanHBars || 0}

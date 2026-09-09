@@ -476,6 +476,7 @@
       windowCategory: 'casement',
       casementLayout: layout,
       casementMiddleWidth: middleSec,
+      headType: checked('c-head-type') || 'flat',   // owner 07.09.2026: Glazing Arch (top row)
       extWidth: w,
       extHeight: h,
       fanlightRatio: fanlightRatio,
