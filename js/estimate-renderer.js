@@ -4791,7 +4791,11 @@ class EstimateRenderer {
                             <tfoot>
                                 <tr>
                                     <td colspan="3" style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;font-weight:500;color:#0A1628;font-size:11px;">Subtotal — Additional Services</td>
-                                    <td style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;color:#0A1628;font-weight:500;">£${R.formatPrice(extrasTotalAll)} <span style="font-size:9px;font-weight:400;color:#6b6b6b;">+ VAT</span></td>
+                                    <td style="padding:3mm 5mm;border-top:2px solid #0A1628;text-align:right;color:#0A1628;font-weight:500;">${R.formatSigned(extrasTotalAll)} <span style="font-size:9px;font-weight:400;color:#6b6b6b;">+ VAT</span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" style="padding:3.5mm 5mm;background:#0A1628;text-align:right;font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:600;color:#fff;">Total — Windows &amp; Services</td>
+                                    <td style="padding:3.5mm 5mm;background:#0A1628;text-align:right;font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;color:#fff;white-space:nowrap;">£${R.formatPrice(totalEx + extrasTotalAll)} <span style="font-family:'Jost',sans-serif;font-size:9px;font-weight:400;color:rgba(255,255,255,.65);">+ VAT</span></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -5082,15 +5086,24 @@ class EstimateRenderer {
                     const exBody = [
                         ...installationExtras.map(e => ['I-' + String(exIdx++).padStart(2, '0'), e.name + (e.description ? '\n' + e.description : ''), String(e.quantity), '£' + R.formatPrice(e.total_price)]),
                         ...deliveryExtras.map(e => ['D-' + String(exIdx++).padStart(2, '0'), e.name + (e.description ? '\n' + e.description : ''), String(e.quantity), '£' + R.formatPrice(e.total_price)]),
-                        ...customExtras.map(e => ['X-' + String(exIdx++).padStart(2, '0'), e.name + (e.description ? '\n' + e.description : ''), String(e.quantity), '£' + R.formatPrice(e.total_price)])
+                        ...customExtras.map(e => ['X-' + String(exIdx++).padStart(2, '0'), e.name + (e.description ? '\n' + e.description : ''), String(e.quantity), R.formatSigned(e.total_price)])
                     ];
                     doc.autoTable(Object.assign({}, tableBase, {
                         startY: curSumY,
                         head: [['ITEM', 'DESCRIPTION', 'QTY', 'PRICE']],
                         body: exBody,
-                        foot: [[{ content: 'Subtotal — Additional Services', colSpan: 3, styles: { halign: 'right' } }, { content: '£' + R.formatPrice(extrasTotalAll) + '  + VAT', styles: { halign: 'right' } }]]
+                        foot: [[{ content: 'Subtotal — Additional Services', colSpan: 3, styles: { halign: 'right' } }, { content: R.formatSigned(extrasTotalAll) + '  + VAT', styles: { halign: 'right' } }]]
                     }));
                     curSumY = doc.lastAutoTable.finalY + 8;
+                    // Grand total (owner, 07.09.2026): the PDF had subtotals only — no combined figure.
+                    ensureRoom(16);
+                    doc.setFillColor(NAVY[0], NAVY[1], NAVY[2]);
+                    doc.rect(10, curSumY, usableW, 11, 'F');
+                    doc.setFont('times', 'bold'); doc.setFontSize(12);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text('Total — Windows & Services', 14, curSumY + 7.2);
+                    doc.text('£' + R.formatPrice(totalEx + extrasTotalAll) + '  + VAT', usableW + 6, curSumY + 7.2, { align: 'right' });
+                    curSumY += 19;
                 } else {
                     ensureRoom(16);
                     doc.setFillColor(245, 244, 240); doc.rect(10, curSumY, usableW, 12, 'F');
