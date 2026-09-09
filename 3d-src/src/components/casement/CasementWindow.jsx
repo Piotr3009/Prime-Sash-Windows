@@ -601,6 +601,7 @@ export default function CasementWindow({
   sillExtension = 0,
   sillWider = false,
   sealColour = 'black',
+  headType = 'flat',     // owner 07.09.2026: 'arch' = Glazing Arch on the top row
   showGuides = true,
   brightness = 1.0,
   hBars = 0,
@@ -682,6 +683,16 @@ export default function CasementWindow({
 
       {/* ─── Panels (leaves) ─── */}
       {layoutDef.panels && layoutDef.panels.map((p, i) => {
+        // Glazing Arch applies to the TOP ROW only — every pane in that row gets its
+        // own arch, sized from that pane's width (owner, 07.09.2026).
+        const topRowKeys = (() => {
+          const ps = layoutDef.panels || [];
+          if (!ps.length) return new Set();
+          const maxTop = Math.max(...ps.map(q => q.y + q.h / 2));
+          const set = new Set();
+          ps.forEach((q, k) => { if (Math.abs((q.y + q.h / 2) - maxTop) < 1) set.add(k); });
+          return set;
+        })();
         // Leaf sits in rebate: extends 21mm into frame rebate on each side, minus 4mm gap
         const leafGap = 4;
         const leafW = p.w + REBATE_STEP * 2 - leafGap * 2;
@@ -703,6 +714,7 @@ export default function CasementWindow({
             materialInt={intMaterial}
             spacerColor={spacerColor}
             glassFinish={glassFinish}
+            archRise={headType === 'arch' && topRowKeys.has(i) ? Math.min(80, Math.max(50, Math.round(p.w * 0.07))) : 0}
             hBars={p._role === 'fan' ? fanHBars : p._role === 'fan2' ? fan2HBars : hBars}
             vBars={p._role === 'fan' ? fanVBars : p._role === 'fan2' ? fan2VBars : vBars}
             ironmongery={ironmongery}

@@ -120,13 +120,29 @@ function buildTopRailShape() {
 }
 
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars }) {
+function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, archRise = 0 }) {
   const W = mm(width);
   const H = mm(height);
 
   // BOTH stiles and rails go full extent — overlap at corners = natural miter
   const glassW = width - SASH_RAIL * 2;
   const glassH = height - SASH_RAIL * 2;
+
+  // ─── Glazing Arch spandrel (owner, 07.09.2026) ───────────────────────────
+  // The sash frame itself stays square; the curved head is formed by a timber
+  // infill sitting between the straight top rail and the arched glass line.
+  // Flat 2D shape extruded in Z — no sweeping along a curve, so no twisting.
+  const spandrelShape = useMemo(() => {
+    if (!(archRise > 0)) return null;
+    const gw = mm(glassW), gh = mm(glassH), ar = mm(archRise);
+    const sh = new THREE.Shape();
+    sh.moveTo(-gw / 2, gh / 2 - ar);
+    sh.quadraticCurveTo(0, gh / 2 + ar, gw / 2, gh / 2 - ar);
+    sh.lineTo(gw / 2, gh / 2);
+    sh.lineTo(-gw / 2, gh / 2);
+    sh.closePath();
+    return sh;
+  }, [glassW, glassH, archRise]);
 
   const lStile = useMemo(() => buildLeftStileShape(), []);
   const rStile = useMemo(() => buildRightStileShape(), []);
@@ -237,7 +253,13 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
 
       {/* ─── Glazing ─── */}
       {glassW > 0 && glassH > 0 && (
-        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} position={[0, 0, 0]} />
+        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} archRise={archRise} position={[0, 0, 0]} />
+      )}
+      {spandrelShape && (
+        <mesh castShadow receiveShadow position={[0, 0, -D / 2]}>
+          <extrudeGeometry args={[spandrelShape, { depth: D, bevelEnabled: false }]} />
+          <primitive object={mat} attach="material" />
+        </mesh>
       )}
     </group>
   );
@@ -255,6 +277,7 @@ export default function CasementPanel({
   glassFinish = 'clear',
   hBars = 0,
   vBars = 0,
+  archRise = 0,          // owner 07.09.2026: Glazing Arch
   ironmongery = 'brass',
   position = [0, 0, 0],
 }) {
@@ -306,7 +329,7 @@ export default function CasementPanel({
 
   const content = (
     <group>
-      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} />
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} archRise={archRise} />
       {handlePos && hingeType !== 'fixed' && (
         <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
           <WindowCasementHandle rotationDeg={hingeType === 'left' ? -handleDeg : handleDeg} metalColor={handleColors.metalColor} lockColor={handleColors.lockColor} />

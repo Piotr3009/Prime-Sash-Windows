@@ -405,6 +405,8 @@ class EstimateRenderer {
             if (casArchHinge) casementTypeText += ' (' + (hingeNames[casArchHinge] || casArchHinge) + ')';
         } else {
             casementTypeText = 'Casement — Layout ' + casementLayout;
+            // owner 07.09.2026: Glazing Arch is part of the product description
+            if ((fc.headType || item.head_type) === 'arch') casementTypeText += ' — Glazing Arch';
         }
 
         // Build bars text with pattern

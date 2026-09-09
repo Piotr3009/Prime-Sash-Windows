@@ -188,9 +188,11 @@
     var specSashType = document.getElementById('spec-sash-type');
     var specSplitItem = document.getElementById('spec-split-ratio-item');
     if (specType) specType.style.display = 'block';
-    if (specSashType) specSashType.textContent = isArched
+    // owner 07.09.2026: Glazing Arch shown in the type label, same wording as sash
+    var cHead = checked('c-head-type') || 'flat';
+    if (specSashType) specSashType.textContent = (isArched
       ? 'Arched Casement — ' + (shapeNames[archShape] || archShape) + ' (' + archHingeLabel + ')'
-      : 'Casement — Layout ' + layout;
+      : 'Casement — Layout ' + layout) + (!isArched && cHead === 'arch' ? ' — Glazing Arch' : '');
     if (specSplitItem) specSplitItem.style.display = 'none';
 
     // Dimensions
@@ -204,7 +206,12 @@
     var secItem = document.getElementById('spec-c-sections-item');
     var secVal = document.getElementById('spec-c-sections');
     if (secItem && secVal) {
-      var midEl = $('c-middle-width');
+      // Glazing Arch changes geometry, not just price (owner, 07.09.2026)
+    document.querySelectorAll('input[name="c-head-type"]').forEach(function(r) {
+      r.addEventListener('change', function() { updateCasement3D(); });
+    });
+
+    var midEl = $('c-middle-width');
       var midV = midEl ? parseInt(midEl.value) : 0;
       if (TRIPLE_LAYOUTS.includes(layout) && midV > 0) {
         var sideV = Math.round((w - midV) / 2);
@@ -538,7 +545,7 @@
   function setupPriceSync() {
     var priceNames = [
       'c-hbars', 'c-vbars', 'c-fan-hbars', 'c-fan-vbars', 'c-fan2-hbars', 'c-fan2-vbars',
-      'c-glass-type', 'c-glass-spec', 'c-glass-finish', 'c-spacer-color', 'c-pas24',
+      'c-glass-type', 'c-glass-spec', 'c-glass-finish', 'c-spacer-color', 'c-pas24', 'c-head-type',
       'c-trickle-vent', 'c-trickle-colour', 'c-sill-ext', 'c-sill-wider', 'c-safety-glass'
     ];
     priceNames.forEach(function(name) {
@@ -990,6 +997,7 @@
       casArchHinge: isArched ? (checked('cas-arch-opening') || 'right') : null,
       measurementType: 'frame',
       casementLayout: checked('casement-layout') || '040L',
+      headType: checked('c-head-type') || 'flat',   // owner 07.09.2026: Glazing Arch
       casementMiddleWidth: (function() {
         var L = checked('casement-layout') || '';
         if (TRIPLE_LAYOUTS.indexOf(L) === -1) return null;
@@ -1008,6 +1016,7 @@
         return [side, v, side];
       })(),
       layout: checked('casement-layout') || '040L',
+      headType: checked('c-head-type') || 'flat',
       casementHinges: (window.currentConfig && Array.isArray(window.currentConfig.casementHinges)) ? window.currentConfig.casementHinges.slice() : null,
       width: parseInt(val('c-width')) || 800,
       height: parseInt(val('c-height')) || 1200,

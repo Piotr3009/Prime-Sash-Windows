@@ -32,10 +32,12 @@ export default function CasementGlazing({
   barMaterial,
   barMaterialInt,
   glassFinish = 'clear',
+  archRise = 0,          // owner 07.09.2026: Glazing Arch — curved head inside a square frame
   position = [0, 0, 0],
 }) {
   const W = mm(width);
   const H = mm(height);
+  const AR = mm(archRise);
   const D = mm(GLASS_UNIT_DEPTH);
   const glassHalf = D / 2;
   const spacerHex = spacerHexMap[spacerColor] || '#C8C8C8';
@@ -178,16 +180,58 @@ export default function CasementGlazing({
   const matExt = barMaterial || defaultBarMat;
   const matInt = barMaterialInt || barMaterial || defaultBarMat;
 
+  // ─── Glazing Arch: pane cut to a shallow curved head (owner, 07.09.2026) ───
+  // Same construction as the sash ArchedGlassPane: edges drop by `rise`, the centre
+  // rises by `rise`, so the visible head is a shallow arc inside a square sash.
+  const archGeom = useMemo(() => {
+    if (AR <= 0) return null;
+    const sh = new THREE.Shape();
+    sh.moveTo(-W / 2, -H / 2);
+    sh.lineTo(W / 2, -H / 2);
+    sh.lineTo(W / 2, H / 2 - AR);
+    sh.quadraticCurveTo(0, H / 2 + AR, -W / 2, H / 2 - AR);
+    sh.closePath();
+    const g = new THREE.ExtrudeGeometry(sh, { depth: D, bevelEnabled: false, steps: 1, curveSegments: 32 });
+    g.translate(0, 0, -D / 2);
+    g.computeVertexNormals();
+    return g;
+  }, [W, H, D, AR]);
+
+  // Arched spacer follows the same curve (thin tube along the arc)
+  const archSpacerGeom = useMemo(() => {
+    if (AR <= 0) return null;
+    const pts = [];
+    const SEG = 32;
+    for (let i = 0; i <= SEG; i++) {
+      const t = i / SEG;
+      const x = -W / 2 + W * t;
+      // quadratic Bezier: P0(-W/2, H/2-AR), P1(0, H/2+AR), P2(W/2, H/2-AR)
+      const y = (1 - t) * (1 - t) * (H / 2 - AR) + 2 * (1 - t) * t * (H / 2 + AR) + t * t * (H / 2 - AR);
+      pts.push(new THREE.Vector3(x, y, 0));
+    }
+    return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), SEG, mm(0.6), 6, false);
+  }, [W, H, AR]);
+
   return (
     <group position={position}>
       {/* Glass pane */}
-      <mesh castShadow={false} receiveShadow>
-        <boxGeometry args={[W, H, D]} />
-        <primitive object={glassMat} attach="material" />
-      </mesh>
+      {AR > 0 ? (
+        <mesh castShadow={false} receiveShadow geometry={archGeom}>
+          <primitive object={glassMat} attach="material" />
+        </mesh>
+      ) : (
+        <mesh castShadow={false} receiveShadow>
+          <boxGeometry args={[W, H, D]} />
+          <primitive object={glassMat} attach="material" />
+        </mesh>
+      )}
 
       {/* Edge spacers — 1mm visible like sash */}
+      {AR > 0 ? (
+        <mesh geometry={archSpacerGeom}><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
+      ) : (
       <mesh position={[0, H/2-mm(0.5), 0]}><boxGeometry args={[W, mm(1), D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
+      )}
       <mesh position={[0, -H/2+mm(0.5), 0]}><boxGeometry args={[W, mm(1), D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
       <mesh position={[-W/2+mm(0.5), 0, 0]}><boxGeometry args={[mm(1), H, D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>
       <mesh position={[W/2-mm(0.5), 0, 0]}><boxGeometry args={[mm(1), H, D+mm(1)]} /><meshStandardMaterial color={spacerHex} metalness={0.6} roughness={0.4} /></mesh>

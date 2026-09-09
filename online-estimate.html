@@ -3739,6 +3739,14 @@
           </div>
         </div>
         <div class="input-group">
+          <label>Head Type:</label>
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="c-head-flat" name="c-head-type" value="flat" checked><label for="c-head-flat" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="2" y="2" width="24" height="32"/><line x1="2" y1="11" x2="26" y2="11"/></svg>Flat</label></div>
+            <div class="radio-option"><input type="radio" id="c-head-arch" name="c-head-type" value="arch"><label for="c-head-arch" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="2" y="2" width="24" height="32"/><path d="M2 11 Q14 4.5 26 11"/></svg>Glazing Arch</label></div>
+          </div>
+          <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;">Curved glazing head on every pane of the top row — square frame, +10%.</p>
+        </div>
+        <div class="input-group">
           <label>Glass Finish:</label>
           <div class="radio-group">
             <div class="radio-option"><input type="radio" id="c-finish-clear" name="c-glass-finish" value="clear" checked><label for="c-finish-clear" class="radio-label">Clear</label></div>
@@ -4540,7 +4548,7 @@
 <script src="js/ironmongery-gallery.js?v=4"></script>
 <script src="js/pricing-config.js?v=10"></script>
 <script src="js/config.js?v=3"></script>
-<script src="js/price-calculator.js?v=16"></script>
+<script src="js/price-calculator.js?v=17"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
@@ -4551,7 +4559,7 @@
 <script src="js/configurator-core.js?v=5"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
-<script src="js/casement-controller.js?v=17"></script>
+<script src="js/casement-controller.js?v=18"></script>
 <script src="js/casement-type-modal.js?v=13"></script>
 <script src="js/french-layout-picker.js?v=2"></script>
 <script src="js/door-controller.js?v=5"></script>
@@ -4567,7 +4575,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=13"></script>
-<script src="js/estimate-renderer.js?v=40"></script>
+<script src="js/estimate-renderer.js?v=41"></script>
 <script src="js/estimate-selector.js?v=3"></script>
 <script src="js/estimate-manager.js?v=9"></script>
 <script src="js/edit-mode.js?v=14"></script>
@@ -4913,7 +4921,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=101";
+      psw3dScript.src = "3d/assets/window3d.js?v=102";
       document.head.appendChild(psw3dScript);
     }
   </script>

@@ -385,7 +385,13 @@ class PriceCalculator {
     
     // Subtotal
     let subtotal = basePrice + barsPrice + additionalPrice;
-    
+
+    // GLAZING ARCH: +10% on subtotal, same rate and placement as sash (owner, 07.09.2026).
+    // Applies before colour, so colour is charged on the arched product.
+    if (configuration.headType === 'arch') {
+      subtotal += subtotal * 0.10;
+    }
+
     // Colour surcharges (same logic as sash)
     if (configuration.colorType === 'dual') {
       const dualSurcharge = subtotal * 0.15;
