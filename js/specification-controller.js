@@ -1240,7 +1240,10 @@ class SpecificationController {
     };
 
     document.getElementById('spec-opening').style.display = 'block';
-    document.getElementById('spec-opening-type').textContent = openingNames[openingType] || openingType;
+    // 19.09.2026: arched upper sash locked (straight stile below the sliding minimum) — say why
+    const _lockNote = (window.currentConfig && window.currentConfig.upperSashLocked && openingType === 'bottom')
+      ? ' (upper sash fixed — straight stile ' + window.currentConfig.upperStraightStile + ' mm)' : '';
+    document.getElementById('spec-opening-type').textContent = (openingNames[openingType] || openingType) + _lockNote;
 
     // Update opening indicators (old + new)
     this.updateOpeningIndicators(openingType);

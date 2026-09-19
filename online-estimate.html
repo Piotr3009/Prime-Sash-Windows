@@ -4554,14 +4554,14 @@
 <script src="js/ironmongery-gallery.js?v=4"></script>
 <script src="js/pricing-config.js?v=10"></script>
 <script src="js/config.js?v=3"></script>
-<script src="js/price-calculator.js?v=17"></script>
+<script src="js/price-calculator.js?v=18"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=4"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=12"></script>
+<script src="js/specification-controller.js?v=13"></script>
 <script src="js/configurator-core.js?v=6"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
@@ -6862,6 +6862,8 @@
         }
 
         var m = A.metricsFor(shape, newFW, newFH, profile);
+        // Owner, 19.09.2026: short straight stile -> upper sash cannot slide -> force "Bottom only".
+        applyArchUpperLock(m);
         if (typeof window.update3D === 'function') {
           window.update3D(Object.assign({
             windowCategory: 'sash',
@@ -6878,6 +6880,38 @@
         return { shape: shape, frameWidth: newFW, frameHeight: newFH, metrics: m };
       }
       window.applyArchedSash = applyArchedSash;
+
+      // ── Upper-sash lock for short straight stiles (owner, 19.09.2026) ──────────
+      // Disables "Both sashes open", forces "Bottom only" and shows a note. Restores
+      // the radio when the stile is long enough again or the window is no longer arched.
+      function applyArchUpperLock(m) {
+        var both = document.getElementById('both-open');
+        var bottom = document.getElementById('bottom-open');
+        var note = document.getElementById('arch-upper-lock-note');
+        var locked = !!(m && m.upperSashLocked);
+        if (!note && both) {
+          note = document.createElement('p');
+          note.id = 'arch-upper-lock-note';
+          note.style.cssText = 'font-size:.75rem;color:#8a2b2b;margin:8px 0 0;display:none;';
+          var grp = both.closest('.radio-group') || both.parentElement;
+          if (grp && grp.parentElement) grp.parentElement.appendChild(note);
+        }
+        if (both) both.disabled = locked;
+        if (note) {
+          note.style.display = locked ? 'block' : 'none';
+          if (locked) note.textContent = 'Upper sash supplied fixed: its straight stile is ' + m.upperStraightStile +
+            ' mm, below the ' + m.upperOpenMinStile + ' mm needed for it to slide. The lower sash opens as normal.';
+        }
+        if (window.currentConfig) {
+          window.currentConfig.upperSashLocked = locked;
+          window.currentConfig.upperStraightStile = m ? m.upperStraightStile : null;
+        }
+        if (locked && both && both.checked && bottom) {
+          bottom.checked = true;
+          bottom.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+      window.applyArchUpperLock = applyArchUpperLock;
 
       // Which arch patterns the current shape offers, and the V-bar rule.
       // Mirrors updateDesignBarsVisibility() for the fix/casement shapes.
@@ -6992,6 +7026,8 @@
             georgianSection.hidden = isArchedGroup;
             georgianSection.querySelectorAll('select, input').forEach(function(el) { el.disabled = isArchedGroup; });
           }
+          // 19.09.2026: leaving the arched family restores "Both sashes open"
+          if (!isArchedGroup && typeof window.applyArchUpperLock === 'function') window.applyArchUpperLock(null);
 
           // Reset head type to flat when switching
           if (isDouble || isTriple) {

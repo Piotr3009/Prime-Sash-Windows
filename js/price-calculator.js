@@ -1030,6 +1030,10 @@ window.ArchedSash = (function () {
   var MAX_WIDTH = 1500;         // O5
   var MIN_STRAIGHT = 900;       // O4: H >= rise + 900
   var MIN_UPPER_STILE = 100;    // O8 (owner, 22.08.2026): straight stile of the upper sash >= 100 mm (was 300)
+  // Owner, 19.09.2026: an arched/gothic upper sash slides only if its straight stile (meeting
+  // line -> arch start) is at least this long; below it the sash cannot run in the jambs and is
+  // supplied fixed (opening type forced to "bottom"). Applies to every arch shape.
+  var UPPER_OPEN_MIN_STILE = 400;
   var INNER_OFFSET = 144;       // H_inner = H_total - 144 (sill + head + running gaps) — geometry only, not validation
   var SASH_TRAVEL_MARGIN = 120; // same margin ParametricSashWindow leaves at the end of a sash's travel
   var HEIGHT_STEP = 10;         // the dimension selects only carry multiples of 10
@@ -1066,7 +1070,12 @@ window.ArchedSash = (function () {
     var rise = riseFor(shape, W, archProfile);
     var straightHeight = H - rise;
     var innerHeight = H - INNER_OFFSET;
+    var upperStraightStile = Math.max(0, Math.round(straightHeight - H / 2));   // meeting line -> arch start
+    var upperSashLocked = upperStraightStile < UPPER_OPEN_MIN_STILE;
     return {
+      upperStraightStile: upperStraightStile,
+      upperSashLocked: upperSashLocked,
+      upperOpenMinStile: UPPER_OPEN_MIN_STILE,
       shape: shape,
       shapeName: SHAPE_NAMES[shape] || shape,
       archRise: rise,
@@ -1076,7 +1085,7 @@ window.ArchedSash = (function () {
       lowerSashHeight: Math.round(innerHeight / 2),
       // 22.08.2026: the upper sash travels like any sash — nothing in the box
       // stops it until its bottom rail nears the sill (O1 limit withdrawn).
-      upperMaxDrop: Math.max(0, Math.round(innerHeight / 2 - SASH_TRAVEL_MARGIN)),
+      upperMaxDrop: upperSashLocked ? 0 : Math.max(0, Math.round(innerHeight / 2 - SASH_TRAVEL_MARGIN)),
       // The lower sash stops where the arch starts: its top rail cannot enter the head.
       lowerMaxLift: Math.max(0, Math.round(straightHeight - H / 2)),   // = upper straight stile: lower top rail stops at the arch start
       archProfile: shape === 'gothic-arch' ? (GOTHIC_PROFILE_RATIO[archProfile] !== undefined ? archProfile : DEFAULT_GOTHIC_PROFILE) : null,
