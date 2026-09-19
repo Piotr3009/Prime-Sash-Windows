@@ -55,10 +55,10 @@
     },
     {
       id: 'finalise', step: ['finalise', 'door-finalise'], numbered: true,
-      anchor: function () { return visible('#add-to-estimate'); },
+      anchor: function () { return visible('#estimate-selector') || visible('#add-to-estimate'); },
       when: function () { return isActive('finalise') || isActive('door-finalise'); },
-      title: 'Almost done',
-      body: 'Adding the window saves this design and sends the estimate to your email. Nothing is ordered — a surveyor confirms measurements before any price is final.'
+      title: 'Save this window to an estimate',
+      body: 'First choose where it goes: pick one of your estimates from the list, or leave <strong>+ Create New Estimate</strong> and press the button below. You\u2019ll need a free account to save it. Nothing is ordered \u2014 a surveyor confirms measurements before any price is final.'
     },
     {
       id: 'arched', numbered: false,
@@ -69,7 +69,8 @@
     }
   ];
 
-  var STORE_OFF = 'psw_tips_off', STORE_SEEN = 'psw_tips_seen';
+  var VERSION = 4;
+  var STORE_OFF = 'psw_tips_off', STORE_SEEN = 'psw_tips_seen_v' + VERSION;   // versioned: new tip set = fresh start
   var ACCENT = '#0A1628';          // navy, on brand — no gold
 
   // ─── Helpers ────────────────────────────────────────────────────────────
@@ -183,7 +184,7 @@
   var toggle;
   function mountToggle() {
     var side = $('.config-sidebar'); if (!side || toggle) return;
-    toggle = document.createElement('div'); toggle.className = 'psw-guide-toggle';
+    toggle = document.createElement('div'); toggle.className = 'psw-guide-toggle'; toggle.title = 'guide-tips v' + VERSION;
     side.appendChild(toggle); updateToggle();
   }
   function updateToggle() {
@@ -201,6 +202,7 @@
   var pending = null;
   function schedule() { updateStrip(); clearTimeout(pending); pending = setTimeout(function () { updateStrip(); checkTips(); }, 250); }
   function init() {
+    try { console.info('[guide-tips] v' + VERSION + ' loaded'); } catch (e) {}
     injectStyles(); updateMenuNumbers(); mountToggle();
     document.addEventListener('click', function (e) {
       interacted = true;
