@@ -321,15 +321,35 @@ class ConfiguratorCore {
   }
   
   restoreFormValues(config) {
-    // Wymiary
-    if (config.width) {
-      const widthSelect = document.getElementById('width-select');
-      if (widthSelect) widthSelect.value = config.width;
-    }
-    if (config.height) {
-      const heightSelect = document.getElementById('height-select');
-      if (heightSelect) heightSelect.value = config.height;
-    }
+    // Wymiary — Fix B (owner, 19.09.2026): restore used to set ONLY the <select>,
+    // leaving the hidden #width/#height inputs on their defaults. Three readers then
+    // disagreed: applyDimensions() (select-first) pushed the saved size to 3D, the
+    // dim-sync watchdog (input-based) "healed" 3D back to the default, and every
+    // click flipped the model between the two — the flicker Piotr saw. Both the
+    // select and the input are now set together, so all readers see one value.
+    // A value not present in the select's options is restored as "custom" with the
+    // input shown, exactly as DimensionHandler does on a user pick.
+    const _restoreDim = (selectId, inputId, value) => {
+      const v = parseInt(value, 10);
+      if (!(v > 0)) return;
+      const sel = document.getElementById(selectId);
+      const inp = document.getElementById(inputId);
+      const hasOption = !!(sel && Array.from(sel.options).some(o => o.value === String(v)));
+      if (sel) sel.value = hasOption ? String(v) : 'custom';
+      if (inp) {
+        inp.value = String(v);
+        const wrapper = sel ? sel.closest('.dimension-input-wrapper') : null;
+        if (hasOption) {
+          inp.style.display = 'none';
+          if (wrapper) wrapper.classList.remove('custom-mode');
+        } else {
+          inp.style.display = 'block';
+          if (wrapper) wrapper.classList.add('custom-mode');
+        }
+      }
+    };
+    if (config.width)  _restoreDim('width-select',  'width',  config.width);
+    if (config.height) _restoreDim('height-select', 'height', config.height);
     
     // Measurement type
     if (config.measurementType) {
