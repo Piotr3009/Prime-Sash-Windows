@@ -1033,7 +1033,7 @@ window.ArchedSash = (function () {
   // Owner, 19.09.2026: an arched/gothic upper sash slides only if its straight stile (meeting
   // line -> arch start) is at least this long; below it the sash cannot run in the jambs and is
   // supplied fixed (opening type forced to "bottom"). Applies to every arch shape.
-  var UPPER_OPEN_MIN_STILE = 400;
+  var UPPER_OPEN_MIN_STILE = 350;   // owner 19.09.2026: 350 (was 400) — 350 mm of straight stile is enough to run
   var INNER_OFFSET = 144;       // H_inner = H_total - 144 (sill + head + running gaps) — geometry only, not validation
   var SASH_TRAVEL_MARGIN = 120; // same margin ParametricSashWindow leaves at the end of a sash's travel
   var HEIGHT_STEP = 10;         // the dimension selects only carry multiples of 10

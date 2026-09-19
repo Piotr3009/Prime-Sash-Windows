@@ -4554,7 +4554,7 @@
 <script src="js/ironmongery-gallery.js?v=4"></script>
 <script src="js/pricing-config.js?v=10"></script>
 <script src="js/config.js?v=3"></script>
-<script src="js/price-calculator.js?v=18"></script>
+<script src="js/price-calculator.js?v=19"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
@@ -6907,8 +6907,17 @@
           window.currentConfig.upperStraightStile = m ? m.upperStraightStile : null;
         }
         if (locked && both && both.checked && bottom) {
+          // remember that WE moved it, so we can move it back when the stile is long enough again
+          applyArchUpperLock._forced = true;
           bottom.checked = true;
           bottom.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (!locked && applyArchUpperLock._forced && both && bottom && bottom.checked) {
+          // unlock: restore "Both" only if the lock forced "Bottom" (a customer's own choice stays)
+          applyArchUpperLock._forced = false;
+          both.checked = true;
+          both.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (!locked) {
+          applyArchUpperLock._forced = false;
         }
       }
       window.applyArchUpperLock = applyArchUpperLock;
