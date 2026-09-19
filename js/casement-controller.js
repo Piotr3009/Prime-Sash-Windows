@@ -170,13 +170,13 @@
 
     // Arched casement overrides
     var archShape = isArched ? (checked('cas-arch-shape') || 'semi-circle') : null;
-    var archHinge = isArched ? (checked('cas-arch-opening') || 'right') : null;
+    var archHinge = isArched ? (checked('cas-arch-opening') || 'left') : null;
     var archHingeLabel = '';
     if (isArched) {
       var checkedRadio = document.querySelector('input[name="cas-arch-opening"]:checked');
       if (checkedRadio) {
         var label = document.querySelector('label[for="' + checkedRadio.id + '"]');
-        archHingeLabel = label ? label.textContent : (archHinge === 'right' ? 'Left Hinge' : 'Right Hinge');
+        archHingeLabel = label ? label.textContent : (archHinge === 'left' ? 'Left Hinge' : 'Right Hinge');  // outside-viewed (19.09.2026)
       } else {
         archHingeLabel = 'Left Hinge';
       }
@@ -995,7 +995,7 @@
       windowCategory: 'casement',
       casementType: checked('casement-type') || 'standard',
       casArchShape: isArched ? (checked('cas-arch-shape') || 'semi-circle') : null,
-      casArchHinge: isArched ? (checked('cas-arch-opening') || 'right') : null,
+      casArchHinge: isArched ? (checked('cas-arch-opening') || 'left') : null,   // outside-viewed hinge side (19.09.2026)
       measurementType: 'frame',
       casementLayout: checked('casement-layout') || '040L',
       headType: checked('c-head-type') || 'flat',   // owner 07.09.2026: Glazing Arch

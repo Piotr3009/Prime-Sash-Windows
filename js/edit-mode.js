@@ -385,7 +385,7 @@
     // Arched casement fields
     if (fc.casementType === 'arched') {
       setRadio('cas-arch-shape', fc.casArchShape || 'gothic-arch');
-      setRadio('cas-arch-opening', fc.casArchHinge || 'right');
+      setRadio('cas-arch-opening', fc.casArchHinge || 'left');
     }
 
     // Layout

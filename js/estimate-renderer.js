@@ -398,7 +398,8 @@ class EstimateRenderer {
 
         // Build type text
         const shapeNames = { 'gothic-arch': 'Gothic Arch', 'semi-circle': 'Semi-Circle', 'segmental-arch': 'Segmental Arch', 'elliptical-arch': 'Elliptical Arch' };
-        const hingeNames = { 'left': 'Right Hinge', 'right': 'Left Hinge' };
+        // Windows are handed viewed from OUTSIDE (owner, 19.09.2026) — value matches the label.
+        const hingeNames = { 'left': 'Left Hinge', 'right': 'Right Hinge' };
         let casementTypeText;
         if (casementType === 'arched' && casArchShape) {
             casementTypeText = 'Arched Casement — ' + (shapeNames[casArchShape] || casArchShape);

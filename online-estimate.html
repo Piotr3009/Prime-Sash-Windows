@@ -891,8 +891,11 @@
           <div class="input-group" style="margin-top:10px;">
             <label>Opening Direction:</label>
             <div class="radio-group">
-              <div class="radio-option"><input type="radio" id="cas-arch-open-left" name="cas-arch-opening" value="right" checked><label for="cas-arch-open-left" class="radio-label">Left Hinge</label></div>
-              <div class="radio-option"><input type="radio" id="cas-arch-open-right" name="cas-arch-opening" value="left"><label for="cas-arch-open-right" class="radio-label">Right Hinge</label></div>
+              <!-- Hinge convention for WINDOWS (owner, 19.09.2026): viewed from OUTSIDE, same as the
+                   standard casement modal and the 3D — value "left" = hinges on the left when you stand
+                   outside. (Doors keep their own inside-viewed convention on purpose; do not copy this there.) -->
+              <div class="radio-option"><input type="radio" id="cas-arch-open-left" name="cas-arch-opening" value="left" checked><label for="cas-arch-open-left" class="radio-label">Left Hinge</label></div>
+              <div class="radio-option"><input type="radio" id="cas-arch-open-right" name="cas-arch-opening" value="right"><label for="cas-arch-open-right" class="radio-label">Right Hinge</label></div>
             </div>
           </div>
         </div><!-- /casement-arched-options -->
