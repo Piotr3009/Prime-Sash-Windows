@@ -951,7 +951,7 @@ export default function App() {
   const [casementOpening, setCasementOpening] = useState(0);
   const [casementType, setCasementType] = useState('standard'); // standard / arched
   const [casArchShape, setCasArchShape] = useState('semi-circle');
-  const [casArchHinge, setCasArchHinge] = useState('right');
+  const [casArchHinge, setCasArchHinge] = useState('left');   // matches the default radio (outside-viewed, 19.09.2026)
   const [fanlightRatio, setFanlightRatio] = useState(0.3);
   const [casementHBars, setCasementHBars] = useState(0);
   const [casementVBars, setCasementVBars] = useState(0);
