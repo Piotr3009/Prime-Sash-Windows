@@ -400,7 +400,9 @@
       svg += '<rect x="' + px + '" y="' + py + '" width="' + pw + '" height="' + ph + '" fill="' + (open ? '#f6efe0' : '#fafafa') + '" stroke="#0a1628" stroke-width="2"/>';
       if (open) {
         var t = '';
-        if (st === 'top') t = 'M ' + px + ' ' + py + ' L ' + (px + pw / 2) + ' ' + (py + ph) + ' L ' + (px + pw) + ' ' + py;
+        // Apex of the triangle = hinge side (UK drawing convention, same as the estimate drawing).
+        // Top-hung: hinges at the TOP, so the apex points UP. (Was drawn apex-down — read as a hopper.)
+        if (st === 'top') t = 'M ' + px + ' ' + (py + ph) + ' L ' + (px + pw / 2) + ' ' + py + ' L ' + (px + pw) + ' ' + (py + ph);
         if (st === 'left') t = 'M ' + (px + pw) + ' ' + py + ' L ' + px + ' ' + (py + ph / 2) + ' L ' + (px + pw) + ' ' + (py + ph);
         if (st === 'right') t = 'M ' + px + ' ' + py + ' L ' + (px + pw) + ' ' + (py + ph / 2) + ' L ' + px + ' ' + (py + ph);
         svg += '<path d="' + t + '" fill="none" stroke="#c8a24e" stroke-width="1.4" stroke-dasharray="6 4"/>';
