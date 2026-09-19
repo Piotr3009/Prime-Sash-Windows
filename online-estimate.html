@@ -15,6 +15,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Phone block: configurator is desktop/iPad only -->
   <style>
+  /* 19.09.2026: Georgian bars are hidden via [hidden] while arched; must beat showCategory's inline display:block */
+  #georgian-bars-section[hidden]{display:none !important;}
+
     html.psw-phone-block, html.psw-phone-block body { overflow: hidden !important; }
     #psw-phone-overlay {
       position: fixed; inset: 0; z-index: 2147483647;
@@ -4565,7 +4568,7 @@
 <script src="js/casement-controller.js?v=19"></script>
 <script src="js/casement-type-modal.js?v=14"></script>
 <!-- Guided next-step (progress strip + tips). To remove: delete this one line. -->
-<script src="js/guide-tips.js?v=1"></script>
+<script src="js/guide-tips.js?v=3"></script>
 <script src="js/french-layout-picker.js?v=2"></script>
 <script src="js/door-controller.js?v=5"></script>
 
@@ -5459,7 +5462,7 @@
               var _geo = document.getElementById('georgian-bars-section');
               if (_geo) {
                 var _geoOff = (((document.querySelector('input[name="sash-type"]:checked') || {}).value === 'arched-group'));
-                _geo.style.display = _geoOff ? 'none' : '';
+                _geo.hidden = _geoOff;   // 19.09.2026: `hidden`, not style.display (see sash-type handler)
                 _geo.querySelectorAll('select, input').forEach(function(el) { el.disabled = _geoOff; });
               }
               // price-calculator prefers actualFrameWidth/Height over width when present —
@@ -6984,7 +6987,9 @@
           // 23.08.2026: also disabled (greyed) so nothing can read or fire them while arched.
           var georgianSection = document.getElementById('georgian-bars-section');
           if (georgianSection) {
-            georgianSection.style.display = isArchedGroup ? 'none' : '';
+            // 19.09.2026: use `hidden`, not style.display — showCategory() owns display and
+            // resetting it to '' here made the section leak onto the Product Range page.
+            georgianSection.hidden = isArchedGroup;
             georgianSection.querySelectorAll('select, input').forEach(function(el) { el.disabled = isArchedGroup; });
           }
 
