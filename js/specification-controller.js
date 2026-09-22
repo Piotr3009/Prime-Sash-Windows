@@ -786,6 +786,7 @@ class SpecificationController {
       '3x3': '3x3 Pattern',
       '4x4': '4x4 Pattern',
       '6x6': '6x6 Pattern',
+      '8x8': '8x8 Pattern',
       '9x9': '9x9 Pattern',
       'custom': 'Custom Design'
     };

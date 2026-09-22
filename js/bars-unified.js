@@ -7,6 +7,7 @@ class BarsController {
         '3x3': { name: '3×3', divisions: { h: 0, v: 2 } }, // 3 okienka (1×3)
         '4x4': { name: '4×4', divisions: { h: 1, v: 1 } }, // 4 okienka (2×2) - PRZYWRÓCONE
         '6x6': { name: '6×6', divisions: { h: 1, v: 2 } }, // 6 okienek (2×3)
+        '8x8': { name: '8×8', divisions: { h: 1, v: 3 } }, // 8 okienek (2×4) — jak Production Core
         '9x9': { name: '9×9', divisions: { h: 2, v: 2 } }, // 9 okienek (3×3)
         '2-vertical': { name: '2 Vertical Bars', divisions: { h: 0, v: 2 } },
         '1-vertical': { name: '1 Vertical Bar', divisions: { h: 0, v: 1 } },

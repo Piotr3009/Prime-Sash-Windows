@@ -36,6 +36,7 @@ const pricingConfig = {
       '3x3': 4,        // 2 pionowe + 2 poziome = 4
       '4x4': 4,        // 2 pionowe + 2 poziome = 4
       '6x6': 5,        // 2 pionowe + 3 poziome = 5
+      '8x8': 4,        // owner 19.09.2026: counted like custom bars — 3 pionowe + 1 poziomy = 4 per sash
       '9x9': 8,        // 4 pionowe + 4 poziome = 8
       '2-vertical': 2, // 2 pionowe
       '1-vertical': 1, // 1 pionowy

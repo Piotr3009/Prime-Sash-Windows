@@ -1235,7 +1235,7 @@ class EstimateRenderer {
     // ─── SVG Window Drawing ───
     static drawSVGBars(pattern, customList, glassX, glassW, topY, height, scale, light, panelWidthMm) {
         let svg = '';
-        const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
+        const patternDefs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'8x8':{h:1,v:3},'9x9':{h:2,v:2}};
 
         if (pattern === 'custom' && customList && customList.length > 0) {
             // Find max position to detect if we need to scale down
@@ -1359,7 +1359,7 @@ class EstimateRenderer {
         const G = EstimateRenderer.SASH_GEO;
         const NS = 'vector-effect="non-scaling-stroke"';
         const barStyle = `fill="${G.barFill}" stroke="${G.navy}" stroke-width="0.6" ${NS}`;
-        const defs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'9x9':{h:2,v:2}};
+        const defs = {'none':{h:0,v:0},'2x2':{h:0,v:1},'3x3':{h:0,v:2},'4x4':{h:1,v:1},'6x6':{h:1,v:2},'8x8':{h:1,v:3},'9x9':{h:2,v:2}};
         let svg = '';
 
         if (pattern === 'custom' && customList && customList.length > 0) {
@@ -4266,7 +4266,7 @@ class EstimateRenderer {
 
         const patternDefs = {
             'none': {h:0,v:0}, '2x2': {h:0,v:1}, '3x3': {h:0,v:2},
-            '4x4': {h:1,v:1}, '6x6': {h:1,v:2}, '9x9': {h:2,v:2},
+            '4x4': {h:1,v:1}, '6x6': {h:1,v:2}, '8x8': {h:1,v:3}, '9x9': {h:2,v:2},
             '2-vertical': {h:0,v:2}, '1-vertical': {h:0,v:1}, 'custom': {h:0,v:0}
         };
         const upperDiv = patternDefs[p.upperBars] || {h:0,v:0};

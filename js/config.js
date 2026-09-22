@@ -33,6 +33,7 @@ const config = {
  "3x3": { name: "3x3 Pattern", priceMultiplier: 1.06 },
  "4x4": { name: "4x4 Pattern", priceMultiplier: 1.06 },
  "6x6": { name: "6x6 Pattern", priceMultiplier: 1.08 },
+ "8x8": { name: "8x8 Pattern", priceMultiplier: 1.10 },
  "9x9": { name: "9x9 Pattern", priceMultiplier: 1.12 },
  "2-vertical": { name: "2 Vertical Bars", priceMultiplier: 1.05 },
  "1-vertical": { name: "1 Vertical Bar", priceMultiplier: 1.03 },

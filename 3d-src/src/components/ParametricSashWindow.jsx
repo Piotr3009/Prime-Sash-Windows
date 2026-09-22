@@ -810,6 +810,7 @@ const BAR_PATTERNS = {
   '3x3':   { h: 0, v: 2 },
   '4x4':   { h: 1, v: 1 },
   '6x6':   { h: 1, v: 2 },
+  '8x8':   { h: 1, v: 3 },   // 4 panes across x 2 rows — same as Production Core (Piotr 07.09)
   '9x9':   { h: 2, v: 2 },
   'custom': null,
 };
