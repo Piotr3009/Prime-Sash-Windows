@@ -1034,9 +1034,17 @@
       colorType: checked('c-color-type') || 'single',
       colourMode: checked('c-color-type') || 'single',
       colorSingle: (function() {
+        // owner 19.09.2026: the base colour is Traffic White (RAL 9016) ONLY — same rule as sash.
+        // Was: any name containing "white" counted as base, so Farrow & Ball shades such as
+        // Wimborne White / Strong White / Lime White got no colour surcharge while Pointing or
+        // Clunch did. Now every non-base colour, whatever its name, is a colour (+5%).
         var pn = document.getElementById('c-single-preview-name');
-        var name = pn ? pn.textContent.trim().toLowerCase() : 'white';
-        return name.indexOf('white') > -1 ? 'white' : name || 'white';
+        var pr = document.getElementById('c-single-preview-ral');
+        var name = pn ? pn.textContent.trim().toLowerCase() : '';
+        var code = pr ? pr.textContent.trim().toLowerCase() : '';
+        var isBase = !name || name === '-' || name === 'traffic white' || name === 'white'
+                     || code.indexOf('9016') > -1 || code === '#fafafa';
+        return isBase ? 'white' : name;
       })(),
       colorSingleName: (function() { var pn = document.getElementById('c-single-preview-name'); return pn ? pn.textContent.trim() : 'Traffic White'; })(),
       colorSingleRal: (function() { var pr = document.getElementById('c-single-preview-ral'); return pr ? pr.textContent.trim() : '#FAFAFA'; })(),
