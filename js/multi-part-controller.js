@@ -102,6 +102,9 @@
 
     var note = $('multi-units-note');
     var units = null, covers = 'both', sillExt = 0;
+    // A width below the sash minimum is a custom value still being typed ("9" of "9000"):
+    // leave the run as it is — the dimension handler ignores such values too.
+    if (multi && overallWidth() < UNIT_MIN) return;
     if (multi) {
       var r = computeUnits();
       // While the individual widths are wrong (typing, bad sum) keep the run alive with an

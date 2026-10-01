@@ -78,16 +78,10 @@ class DimensionHandler {
 
       if (!isNaN(value) && value >= min && value <= max) {
         this.updateDimension(dimension, value);
-
-        // Sprawdź czy wartość jest w liście select
-        const optionExists = Array.from(selectEl.options).some(opt => parseInt(opt.value) === value);
-        if (optionExists) {
-          selectEl.value = value.toString();
-          wrapperEl.classList.remove('custom-mode');
-          inputEl.style.display = 'none';
-        } else {
-          selectEl.value = 'custom';
-        }
+        // 01.10.2026 (owner): while typing, the input stays visible. Snapping to a list
+        // entry used to happen here, so typing "9000" hid the box at "900" (a listed
+        // value) and the 4th digit had nowhere to go. The snap now happens on blur below.
+        selectEl.value = 'custom';
       }
     });
 
@@ -104,6 +98,17 @@ class DimensionHandler {
       } else if (value > max) {
         inputEl.value = max;
         this.updateDimension(dimension, max);
+      }
+
+      // Sprawdź czy (poprawiona) wartość jest w liście select — dopiero po wyjściu z pola
+      const finalValue = parseInt(inputEl.value);
+      const optionExists = Array.from(selectEl.options).some(opt => parseInt(opt.value) === finalValue);
+      if (optionExists) {
+        selectEl.value = finalValue.toString();
+        wrapperEl.classList.remove('custom-mode');
+        inputEl.style.display = 'none';
+      } else {
+        selectEl.value = 'custom';
       }
     });
 
