@@ -84,6 +84,8 @@
   }
 
   // ── Compute the unit widths from the UI ────────────────────────────────────
+  // Equal: the overall width is split. Set individually: the units are typed and the
+  // OVERALL width follows their sum (owner, 01.10.2026) — apply() pushes it to the width field.
   function computeUnits() {
     var total = overallWidth(), n = unitCount();
     if (!(total > 0)) return { units: null, error: 'Enter the overall width first.' };
@@ -91,13 +93,12 @@
     var units = (mode === 'individual') ? readIndividual(n) : equalUnits(total, n);
     var sum = units.reduce(function (a, b) { return a + b; }, 0);
     var err = null;
-    if (mode === 'individual') {
-      if (units.some(function (u) { return !(u > 0); })) err = 'Enter a width for every unit.';
-      else if (sum !== total) err = 'Unit widths add up to ' + sum + ' mm — they must equal the overall width of ' + total + ' mm.';
-    }
+    if (mode === 'individual' && units.some(function (u) { return !(u > 0); })) err = 'Enter a width for every unit.';
     var bad = units.filter(function (u) { return u > 0 && (u < UNIT_MIN || u > UNIT_MAX); });
-    if (!err && bad.length) err = 'Each unit must be between ' + UNIT_MIN + ' and ' + UNIT_MAX + ' mm (a standard sash) — ' + n + ' units allow up to ' + (n * UNIT_MAX) + ' mm overall. Change the overall width or the number of units.';
-    return { units: units, error: err, total: total, n: n, mode: mode };
+    if (!err && bad.length) err = (mode === 'individual')
+      ? 'Each unit must be between ' + UNIT_MIN + ' and ' + UNIT_MAX + ' mm (a standard sash).'
+      : 'Each unit must be between ' + UNIT_MIN + ' and ' + UNIT_MAX + ' mm (a standard sash) — ' + n + ' units allow up to ' + (n * UNIT_MAX) + ' mm overall. Change the overall width or the number of units.';
+    return { units: units, error: err, total: total, sum: sum, n: n, mode: mode };
   }
 
   // ── Width list / max: extended to N × 1500 while a run is active, restored after ──
@@ -146,12 +147,25 @@
   // Pick a width from the list through the dimension handler (its select handler updates the
   // input, the config, the 3D and the price; our capture listener then re-splits the units).
   function setOverallWidth(mm) {
-    var sel = $('width-select'); if (!sel) return false;
-    var opt = sel.querySelector('option[value="' + mm + '"]'); if (!opt) return false;
-    sel.value = String(mm);
-    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    var sel = $('width-select'), inp = $('width'); if (!sel || !inp) return false;
+    lastTotal = mm;                                   // our own change — not the user editing the overall
+    var opt = sel.querySelector('option[value="' + mm + '"]');
+    if (opt) {
+      sel.value = String(mm);
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    }
+    // Not in the list (e.g. 950 + 1230): show the custom box with the value and let the
+    // dimension handler's own input rule take it (config, 3D, price)
+    var wrap = sel.closest('.dimension-input-wrapper');
+    if (wrap) wrap.classList.add('custom-mode');
+    inp.style.display = 'block';
+    sel.value = 'custom';
+    inp.value = String(mm);
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
     return true;
   }
+  var lastTotal = null;                               // overall width at the last apply (detects the user editing it)
   // Keep the overall width sensible for the chosen unit count: n × 1000 when it is out of range
   // (a 1000 mm single-sash default would make 3 units of 333). Returns true when it changed it.
   function ensureWidthForUnits(n, softMin) {
@@ -200,7 +214,21 @@
     if (multi && overallWidth() < UNIT_MIN) return;
     if (multi) {
       var r = computeUnits();
-      // While the individual widths are wrong (typing, bad sum) keep the run alive with an
+      if (r.mode === 'individual') {
+        if (lastTotal !== null && r.total !== lastTotal) {
+          // The user changed the OVERALL width while in individual mode: start again from an
+          // equal split of the new width (the typed units no longer describe it).
+          renderIndividualInputs(r.n, equalUnits(r.total, r.n));
+          r = computeUnits();
+        } else if (!r.error && r.sum !== r.total) {
+          // The units were typed: the overall width follows their sum; apply() runs again
+          // after the width change (capture listener), with sum === total.
+          lastTotal = r.sum;
+          if (setOverallWidth(r.sum)) return;
+        }
+      }
+      lastTotal = r.total;
+      // While the individual widths are wrong (empty, out of range) keep the run alive with an
       // equal split, so the 3D and the price do not flip to a single window on every keystroke.
       units = r.error ? (r.total > 0 ? equalUnits(r.total, r.n) : null) : r.units;
       covers = checked('multi-covers') || 'both';
@@ -209,10 +237,12 @@
         if (r.error) { note.textContent = r.error + (units ? ' Showing an equal split until this is fixed.' : ''); note.style.color = '#b3261e'; }
         else {
           var joints = r.n - 1;
-          note.textContent = (r.mode === 'equal' ? 'Each unit ' + r.units[0] + ' mm wide · ' : '') + joints + (joints === 1 ? ' join' : ' joins') + ', each with a 100 × 17 mm cover strip.';
+          note.textContent = (r.mode === 'equal' ? 'Each unit ' + r.units[0] + ' mm wide · ' : 'Overall width ' + r.total + ' mm · ') + joints + (joints === 1 ? ' join' : ' joins') + ', each with a 100 × 17 mm cover strip.';
           note.style.color = '';
         }
       }
+    } else {
+      lastTotal = null;
     }
 
     // Nothing changed (e.g. a width edit on a single window): leave the 3D and the price
@@ -275,7 +305,11 @@
     var box = $('multi-unit-widths'); if (box) box.style.display = isEqual ? 'none' : '';
     setRadio('multi-covers', fc.multiCovers || 'both');
     var se = $('multi-sill-ext'); if (se) se.value = String(fc.multiSillExt || 0);
-    applyMode();                                   // sections, width list/max (before the width is restored), config
+    // The overall width is the units' sum: set it ourselves first (list extended for it), so the
+    // mode switch finds it in range and never re-splits the restored units.
+    extendWidthList(units.length * UNIT_MAX);
+    if (overallWidth() !== total) setOverallWidth(total);
+    applyMode();                                   // sections, width list/max, config
     // The saved split wins until the width is restored (edit-mode restores it right after this call)
     if (window.currentConfig) {
       window.currentConfig.multiUnits = units;
@@ -284,6 +318,7 @@
       window.currentConfig.windowLayout = 'multi-part';
     }
     lastKey = JSON.stringify([units, fc.multiCovers || 'both', fc.multiSillExt || 0]);
+    lastTotal = total;                              // the restored width equals the units' sum (edit-mode sets it next)
     if (typeof window.update3D === 'function') window.update3D({ multiUnits: units, multiCovers: fc.multiCovers || 'both', multiSillExt: fc.multiSillExt || 0 });
     refreshSpec(true, units, fc.multiCovers || 'both', fc.multiSillExt || 0);
   }

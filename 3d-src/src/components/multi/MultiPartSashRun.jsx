@@ -12,10 +12,14 @@
  * Widths. `multiUnits` holds the unit widths AS ENTERED by the customer (they sum to the
  * entered overall width). `extWidth` is the FRAME width of the run (brick-to-brick adds
  * 150 to the entered width, exactly as for a single sash), so the difference between
- * extWidth and the sum of the units is split equally between them first. A single sash's
- * ext width includes the two 52 mm cill horns (App: width = extWidth − 104), so each
- * unit's BOX is its frame share minus 104/N — the horns belong to the one continuous
- * cill, not to the units. Sum of boxes = extWidth − 104, the same as a single window.
+ * extWidth and the sum of the units is split equally between them first ("slots").
+ *
+ * A single sash's `width` prop is extWidth − 104 (App.jsx): its outer linings
+ * (ExternalBoxElement, 100 wide) sit 52 mm OUTSIDE ±width/2, so the unit's real outer
+ * extent is the full extWidth. In a run every unit therefore gets width = slot − 104 and
+ * is centred in its slot: the linings of neighbours then TOUCH (100 + 100) instead of
+ * overlapping (owner 01.10.2026: "2 × 100 nachodzą na siebie" — fixed). The run's outer
+ * extent is Σslots = extWidth, the same as a single window of that width.
  *
  * Geometry taken from ParametricSashWindow (do not re-derive): box depth 164 (exterior
  * face at +82), outer lining face width 100 (ExternalBoxElement), cill visible height
@@ -47,11 +51,9 @@ export function unitFrameWidths(units, extWidth) {
   return units.map((v) => v + extra);
 }
 
-/** Frame unit widths → box widths for the 3D (share minus the run's horn allowance). */
+/** Slot (frame) widths → the `width` prop of each unit (its outer linings add 52 each side). */
 export function unitBoxWidths(units) {
-  const n = units.length;
-  const hornShare = (2 * MULTI_GEO.sillHorn) / n;
-  return units.map((v) => Math.max(200, v - hornShare));
+  return units.map((v) => Math.max(200, v - 2 * MULTI_GEO.sillHorn));
 }
 
 function DimensionGuide({ from, to, label, offset = [0, 0, 0] }) {
@@ -96,16 +98,17 @@ export default function MultiPartSashRun(props) {
 
   const unitHeight = extHeight - G.headExtra;
   const h = mm(unitHeight);
-  const sumBox = boxes.reduce((a, b) => a + b, 0);
+  const sumSlots = units.reduce((a, b) => a + b, 0);   // = extWidth (frame width of the run)
 
-  // Unit centres and joint positions (mm, run centred on x = 0)
+  // Unit centres and joint positions from the SLOTS (mm, run centred on x = 0):
+  // neighbours' outer linings meet exactly at every joint.
   const centres = [];
   const joints = [];
-  let acc = -sumBox / 2;
-  boxes.forEach((b, i) => {
-    centres.push(acc + b / 2);
-    acc += b;
-    if (i < boxes.length - 1) joints.push(acc);
+  let acc = -sumSlots / 2;
+  units.forEach((u, i) => {
+    centres.push(acc + u / 2);
+    acc += u;
+    if (i < units.length - 1) joints.push(acc);
   });
 
   const cExt = woodColorExt || woodColor;
@@ -125,8 +128,8 @@ export default function MultiPartSashRun(props) {
   const showOut = multiCovers === 'both' || multiCovers === 'outside';
   const showIn = multiCovers === 'both' || multiCovers === 'inside';
 
-  // Continuous cill: TraditionalSill adds 52 at each end itself
-  const sillWidth = sumBox + 2 * (Number(multiSillExt) || 0);
+  // Continuous cill: TraditionalSill adds 52 at each end itself → total = extWidth + 2 × ext
+  const sillWidth = sumSlots - 2 * G.sillHorn + 2 * (Number(multiSillExt) || 0);
   const sillTotal = sillWidth + 2 * G.sillHorn;
 
   const guideY = -h / 2 - 0.16;
@@ -172,8 +175,8 @@ export default function MultiPartSashRun(props) {
           <DimensionGuide from={[guideX, -h / 2, 0]} to={[guideX, headTopY, 0]} label={`${Math.round(extHeight)} mm`} offset={[0.12, 0, 0]} />
           {units.map((v, i) => (
             <DimensionGuide key={`u-${i}`}
-              from={[mm(centres[i] - boxes[i] / 2), headTopY + 0.12, 0]}
-              to={[mm(centres[i] + boxes[i] / 2), headTopY + 0.12, 0]}
+              from={[mm(centres[i] - v / 2), headTopY + 0.12, 0]}
+              to={[mm(centres[i] + v / 2), headTopY + 0.12, 0]}
               label={`${Math.round(v)}`} offset={[0, 0.06, 0]} />
           ))}
         </group>
