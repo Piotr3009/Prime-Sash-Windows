@@ -146,7 +146,7 @@ const pricingConfig = {
   // extras only. Numbers are placeholders — TO CONFIRM by owner.
   multiPart: {
     surcharge: 0.15,            // owner 01.10.2026: +15% on the whole run (units + joins + cill extension)
-    jointPrice: 150,            // £ per join: 2 × cover strip 150 × 17 (full height), coupling, sealing
+    jointPrice: 150,            // £ per join: 2 × cover strip 100 × 17 (full height), coupling, sealing
     coverOneSideFactor: 0.6,    // join with a cover on one side only = 60% of jointPrice
     sillExtPerEnd: { '0': 0, '50': 25, '100': 50, '150': 75 }   // continuous cill extension, £ per end
   },

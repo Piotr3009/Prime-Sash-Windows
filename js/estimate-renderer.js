@@ -230,7 +230,7 @@ class EstimateRenderer {
             multiFrameUnits = multiUnits.map(u => Math.round(u + _mExtra));
             const _mCovers = multiCovers === 'both' ? 'inside & outside' : multiCovers === 'inside' ? 'inside only' : 'outside only';
             multiText = 'Multi-part run · ' + multiUnits.length + ' units (' + multiFrameUnits.join(' / ') + ' mm) · '
-                + (multiUnits.length - 1) + (multiUnits.length === 2 ? ' join' : ' joins') + ' with 150 × 17 mm cover strips ' + _mCovers
+                + (multiUnits.length - 1) + (multiUnits.length === 2 ? ' join' : ' joins') + ' with 100 × 17 mm cover strips ' + _mCovers
                 + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
         }
 
@@ -2370,7 +2370,7 @@ class EstimateRenderer {
 
     // ─── Multi-part sash run (owner, 01.10.2026): N double-hung units in one straight run ───
     // Same real-mm geometry as generateSashSVG, per unit: box jambs + head + cavity. The run
-    // then gets ONE continuous cill (optionally extended at each end) and a 150 mm cover strip
+    // then gets ONE continuous cill (optionally extended at each end) and a 100 mm cover strip
     // over every joint (box 100 + 100 under it). fc.multiUnits are the widths AS ENTERED; the
     // frame allowance (brick-to-brick +150) is shared equally so the units add up to fw.
     static generateMultiPartSVG(item, fc) {
@@ -2440,10 +2440,10 @@ class EstimateRenderer {
         svg += `<line x1="${ox + G.jambBot}" y1="${SY(G.sillWeatherbar)}" x2="${ox + fw - G.jambBot}" y2="${SY(G.sillWeatherbar)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
         svg += `<line x1="${ox + G.jambBot}" y1="${SY(G.sillDrip)}" x2="${ox + fw - G.jambBot}" y2="${SY(G.sillDrip)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
 
-        // ══ COVER STRIPS 150 wide over every joint (drawn on the face: cill top → head top) ══
+        // ══ COVER STRIPS 100 wide over every joint (drawn on the face: cill top → head top) ══
         if (covers !== 'none') {
             joints.forEach(jx => {
-                svg += `<rect x="${jx - 75}" y="${SY(fh)}" width="150" height="${SY(G.sillTop) - SY(fh)}" ${coverStyle}/>`;
+                svg += `<rect x="${jx - 50}" y="${SY(fh)}" width="100" height="${SY(G.sillTop) - SY(fh)}" ${coverStyle}/>`;
             });
         }
 

@@ -5,7 +5,7 @@
  *   currentConfig.multiUnits   — unit widths (mm) AS ENTERED, sum = the entered overall width;
  *                                null = single window. Brick-to-brick: the run's +150 frame
  *                                allowance is shared equally by the 3D, the price and the spec.
- *   currentConfig.multiCovers  — 'both' | 'outside' | 'inside'  (150 × 17 cover strips on the joins)
+ *   currentConfig.multiCovers  — 'both' | 'outside' | 'inside'  (100 × 17 cover strips on the joins)
  *   currentConfig.multiSillExt — continuous cill extension at each end (mm)
  *
  * Everything else about the run (glass, bars, colour, hardware, opening) is the ordinary
@@ -116,7 +116,7 @@
         if (r.error) { note.textContent = r.error + (units ? ' Showing an equal split until this is fixed.' : ''); note.style.color = '#b3261e'; }
         else {
           var joints = r.n - 1;
-          note.textContent = (r.mode === 'equal' ? 'Each unit ' + r.units[0] + ' mm wide · ' : '') + joints + (joints === 1 ? ' join' : ' joins') + ', each with a 150 × 17 mm cover strip.';
+          note.textContent = (r.mode === 'equal' ? 'Each unit ' + r.units[0] + ' mm wide · ' : '') + joints + (joints === 1 ? ' join' : ' joins') + ', each with a 100 × 17 mm cover strip.';
           note.style.color = '';
         }
       }

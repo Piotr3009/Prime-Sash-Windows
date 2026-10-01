@@ -4,8 +4,8 @@
  * The run is an ASSEMBLY of standard units, not a new window:
  *   · every unit is a full <ParametricSashWindow> (same options as a single sash),
  *   · the boxes touch (100 mm outer lining + 100 mm outer lining at every joint),
- *   · a cover strip 150 × 17 mm sits over every joint, inside and/or outside, so the
- *     joint is not seen (owner's spec: "box 100 + 100 + nakładka 150 × 17"),
+ *   · a cover strip 100 × 17 mm sits over every joint, inside and/or outside, so the
+ *     joint is not seen (owner's spec: "box 100 + 100 + nakładka"; width 100, 01.10.2026),
  *   · ONE continuous cill runs under all units (units draw none), with an optional
  *     extension at each end.
  *
@@ -33,7 +33,7 @@ export const MULTI_GEO = Object.freeze({
   headExtra: 87,         // ext height − 87 = unit height (App.jsx)
   sillVisibleHeight: 58.414,
   boxDepth: 164,         // exterior face at +82, interior face at −82
-  coverW: 150,           // cover strip width (owner, 01.10.2026)
+  coverW: 100,           // cover strip width (owner, 01.10.2026: 100, was 150)
   coverT: 17,            // cover strip thickness
   liningW: 100,          // outer lining face width — "box 100"
 });
@@ -148,7 +148,7 @@ export default function MultiPartSashRun(props) {
         materialInt={sillIntMaterial}
       />
 
-      {/* Cover strips over every joint — 150 wide, 17 thick */}
+      {/* Cover strips over every joint — 100 wide, 17 thick */}
       {joints.map((jx, i) => (
         <group key={`joint-${i}`} position={[mm(jx), coverY, 0]}>
           {showOut && (
