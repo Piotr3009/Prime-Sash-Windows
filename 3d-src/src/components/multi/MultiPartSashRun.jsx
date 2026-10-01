@@ -123,7 +123,11 @@ export default function MultiPartSashRun(props) {
   const headTopY = h / 2 + mm(G.headExtra);
   const coverH = headTopY - sillTopY;
   const coverY = (sillTopY + headTopY) / 2;
-  const coverZOut = mm(G.boxDepth / 2 + G.coverT / 2);
+  // ParametricSashWindow rotates its whole content by 180° (root <group rotation-y={π}>), so in
+  // WORLD space the exterior face is at −z (linings −82…−65) and the interior at +z. Everything
+  // drawn here sits outside that rotation: the cill is wrapped in the same rotation (its profile
+  // nose must face out), the covers use world signs directly (01.10.2026 fix: both were mirrored).
+  const coverZOut = -mm(G.boxDepth / 2 + G.coverT / 2);   // exterior = −z in world space
   const coverZIn = -coverZOut;
   const showOut = multiCovers === 'both' || multiCovers === 'outside';
   const showIn = multiCovers === 'both' || multiCovers === 'inside';
@@ -143,13 +147,15 @@ export default function MultiPartSashRun(props) {
         </group>
       ))}
 
-      {/* ONE continuous cill under the whole run */}
-      <TraditionalSill
-        width={sillWidth}
-        position={[0, -h / 2 + mm(G.sillVisibleHeight) / 2, 0]}
-        material={sillMaterial}
-        materialInt={sillIntMaterial}
-      />
+      {/* ONE continuous cill under the whole run — same 180° orientation as inside a unit */}
+      <group rotation={[0, Math.PI, 0]}>
+        <TraditionalSill
+          width={sillWidth}
+          position={[0, -h / 2 + mm(G.sillVisibleHeight) / 2, 0]}
+          material={sillMaterial}
+          materialInt={sillIntMaterial}
+        />
+      </group>
 
       {/* Cover strips over every joint — 100 wide, 17 thick */}
       {joints.map((jx, i) => (
