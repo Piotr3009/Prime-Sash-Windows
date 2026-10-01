@@ -693,7 +693,12 @@ class EstimateManager {
                 lowerHBars: cfg.lowerHBars !== undefined ? cfg.lowerHBars : null,
                 lowerVBars: cfg.lowerVBars !== undefined ? cfg.lowerVBars : null,
                 lowerMaxLift: cfg.lowerMaxLift || null,
-                
+
+                // ── MULTI-PART SASH RUN (owner, 01.10.2026) — unit widths as entered, null = single
+                multiUnits: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? cfg.multiUnits.slice() : null,
+                multiCovers: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? (cfg.multiCovers || 'both') : null,
+                multiSillExt: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? (cfg.multiSillExt || 0) : null,
+
                 // Detale (horns są w ironmongery)
                 horns: null,
                 

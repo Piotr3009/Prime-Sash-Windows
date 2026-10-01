@@ -120,7 +120,7 @@ function buildTopRailShape() {
 }
 
 // ═══ SashFrame ═══
-function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, vBars, archRise = 0 }) {
+function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars, hBarPositions = null, vBars, archRise = 0 }) {
   const W = mm(width);
   const H = mm(height);
 
@@ -253,7 +253,7 @@ function SashFrame({ width, height, mat, matInt, spacerColor, glassFinish, hBars
 
       {/* ─── Glazing ─── */}
       {glassW > 0 && glassH > 0 && (
-        <CasementGlazing width={glassW} height={glassH} hBars={hBars} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} archRise={archRise} position={[0, 0, 0]} />
+        <CasementGlazing width={glassW} height={glassH} hBars={hBars} hBarPositions={hBarPositions} vBars={vBars} barMaterial={mat} barMaterialInt={mi} spacerColor={spacerColor} glassFinish={glassFinish} archRise={archRise} position={[0, 0, 0]} />
       )}
       {spandrelShape && (
         <mesh castShadow receiveShadow position={[0, 0, -D / 2]}>
@@ -276,6 +276,7 @@ export default function CasementPanel({
   spacerColor = 'silver',
   glassFinish = 'clear',
   hBars = 0,
+  hBarPositions = null,   // mm from the glass centre (one grid for the window) — overrides the hBars split
   vBars = 0,
   archRise = 0,          // owner 07.09.2026: Glazing Arch
   ironmongery = 'brass',
@@ -329,7 +330,7 @@ export default function CasementPanel({
 
   const content = (
     <group>
-      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} vBars={vBars} archRise={archRise} />
+      <SashFrame width={width} height={height} mat={mat} matInt={materialInt} spacerColor={spacerColor} glassFinish={glassFinish} hBars={hBars} hBarPositions={hBarPositions} vBars={vBars} archRise={archRise} />
       {handlePos && hingeType !== 'fixed' && (
         <group position={handlePos} rotation={handleRot} scale={[handleScale, handleScale, handleScale]}>
           <WindowCasementHandle rotationDeg={hingeType === 'left' ? -handleDeg : handleDeg} metalColor={handleColors.metalColor} lockColor={handleColors.lockColor} />

@@ -216,6 +216,24 @@ class EstimateRenderer {
           height = originalHeight + 75;
         }
 
+        // ── MULTI-PART SASH RUN (owner, 01.10.2026) ──
+        // multiUnits = unit widths AS ENTERED (sum = entered overall); the frame allowance
+        // (brick-to-brick +150) is shared equally so the units add up to the frame width.
+        const multiUnits = (Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 2 && sashType !== 'arched')
+            ? fc.multiUnits.map(u => Number(u) || 0) : null;
+        const multiCovers = multiUnits ? (fc.multiCovers || 'both') : null;
+        const multiSillExt = multiUnits ? (parseInt(fc.multiSillExt) || 0) : 0;
+        let multiFrameUnits = null, multiText = '';
+        if (multiUnits) {
+            const _mSum = multiUnits.reduce((a, b) => a + b, 0);
+            const _mExtra = (_mSum > 0) ? (width - _mSum) / multiUnits.length : 0;
+            multiFrameUnits = multiUnits.map(u => Math.round(u + _mExtra));
+            const _mCovers = multiCovers === 'both' ? 'inside & outside' : multiCovers === 'inside' ? 'inside only' : 'outside only';
+            multiText = 'Multi-part run · ' + multiUnits.length + ' units (' + multiFrameUnits.join(' / ') + ' mm) · '
+                + (multiUnits.length - 1) + (multiUnits.length === 2 ? ' join' : ' joins') + ' with 150 × 17 mm cover strips ' + _mCovers
+                + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
+        }
+
         // FRAME
         const frameType = fc.frameType || item.frame_type || 'standard';
         // frameText will be updated after glassType is known (triple → 172mm)
@@ -573,6 +591,7 @@ class EstimateRenderer {
             archUpperMaxDrop, archUpperSashHeight, archBarPattern, archHBars, archVBars, archBarsText,
             archLowerMaxLift, archLowerBarsText,
             width, height, originalWidth, originalHeight, measurementType,
+            multiUnits, multiFrameUnits, multiCovers, multiSillExt, multiText,
             frameType, frameText,
             openingType, openingText,
             glassType, glassText, glassSpec, glassSpecText,
@@ -772,7 +791,8 @@ class EstimateRenderer {
                             ${p.sashType === 'arched' && p.archBarsText && p.archBarsText !== 'None' ? R.specRow('Upper sash bars', p.archBarsText) : ''}
                             ${p.sashType === 'arched' && p.archLowerBarsText && p.archLowerBarsText !== 'None' ? R.specRow('Lower sash bars', p.archLowerBarsText) : ''}
                             ${p.sashType === 'triple' ? R.specRow('Split Ratio', p.splitRatio) : ''}
-                            ${p.measurementType === 'brick-to-brick' 
+                            ${p.multiText ? R.specRow('Arrangement', p.multiText) : ''}
+                            ${p.measurementType === 'brick-to-brick'
                                 ? R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm') + R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')
                                 : R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')}
                             ${R.specRow('Frame', p.frameText)}
@@ -874,7 +894,7 @@ class EstimateRenderer {
                 : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                 : p.sashType === 'single' ? 'Single Sash'
                 : 'Sash';
-            const desc = `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+            const desc = `${typeShort}${p.multiUnits ? ' · Multi-part ×' + p.multiUnits.length : ''} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
             return `
                 <tr>
                     <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
@@ -2348,6 +2368,97 @@ class EstimateRenderer {
         return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
     }
 
+    // ─── Multi-part sash run (owner, 01.10.2026): N double-hung units in one straight run ───
+    // Same real-mm geometry as generateSashSVG, per unit: box jambs + head + cavity. The run
+    // then gets ONE continuous cill (optionally extended at each end) and a 150 mm cover strip
+    // over every joint (box 100 + 100 under it). fc.multiUnits are the widths AS ENTERED; the
+    // frame allowance (brick-to-brick +150) is shared equally so the units add up to fw.
+    static generateMultiPartSVG(item, fc) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+
+        const fw = fc.actualFrameWidth || item.width || 1000;
+        const fh = fc.actualFrameHeight || item.height || 1500;
+        const entered = fc.multiUnits.map(u => Number(u) || 0);
+        const enteredSum = entered.reduce((a, b) => a + b, 0);
+        const extraEach = enteredSum > 0 ? (fw - enteredSum) / entered.length : 0;
+        const units = entered.map(u => u + extraEach);
+        const covers = fc.multiCovers || 'both';
+        const sillExt = parseInt(fc.multiSillExt) || 0;
+
+        const headType = fc.headType || 'flat';
+        const openingType = fc.openingType || 'both';
+        const horns = fc.horns && fc.horns !== 'none';
+        const hornType = (typeof fc.horns === 'string' && fc.horns.length === 1) ? fc.horns.toUpperCase() : (fc.hornType || 'A');
+        const upperBars = fc.upperBars || 'none';
+        const lowerBars = fc.lowerBars || upperBars;
+        const upperCustom = fc.upperCustomBars || (fc.customBars && fc.customBars.upper ? [].concat((fc.customBars.upper.horizontal||[]),(fc.customBars.upper.vertical||[])) : []);
+        const lowerCustom = (fc.lowerCustomBars && fc.lowerCustomBars.length) ? fc.lowerCustomBars : ((fc.customBars && fc.customBars.lower) ? [].concat((fc.customBars.lower.horizontal||[]),(fc.customBars.lower.vertical||[])) : upperCustom);
+
+        // ── Layout (all mm) — two stacked width dimensions below (units, then total) ──
+        const M = Math.max(G.margin * 1.35, Math.max(fw, fh) * 0.085);
+        const DM = Math.max(G.dimOffset, Math.max(fw, fh) * 0.07);
+        const totalW = M + Math.max(sillExt, 0) + fw + Math.max(sillExt, 0) + DM + M;
+        const totalH = M + fh + DM * 1.45 + M * 0.4;
+        const ox = M + Math.max(sillExt, 0), oy = M;
+        const fs = 21 * (totalW / G.refW);
+
+        const SY = (y) => oy + (fh - y);
+        const frameStyle = `fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1.4" ${NS}`;
+        const coverStyle = `fill="rgba(10,22,40,0.11)" stroke="${G.navy}" stroke-width="1.1" ${NS}`;
+
+        let svg = '';
+        const joints = [];
+        let x0 = ox;
+        units.forEach((uw, i) => {
+            const archRise = headType === 'arch' ? Math.min(uw * 0.14, 150) : 0;
+            // Right jamb (with cill-junction curve)
+            svg += `<path d="M ${x0 + uw - G.jambBot} ${SY(0)} L ${x0 + uw - G.jambBot} ${SY(G.sillTop)} ${EstimateRenderer.sashBulgeArc(x0 + uw - G.jambBot, SY(G.sillTop), x0 + uw - G.jambTop, SY(G.sillCurveTop), G.bulge)} L ${x0 + uw - G.jambTop} ${SY(fh)} L ${x0 + uw} ${SY(fh)} L ${x0 + uw} ${SY(0)} Z" ${frameStyle}/>`;
+            // Left jamb (mirrored)
+            svg += `<path d="M ${x0 + G.jambBot} ${SY(0)} L ${x0 + G.jambBot} ${SY(G.sillTop)} ${EstimateRenderer.sashBulgeArc(x0 + G.jambBot, SY(G.sillTop), x0 + G.jambTop, SY(G.sillCurveTop), -G.bulge)} L ${x0 + G.jambTop} ${SY(fh)} L ${x0} ${SY(fh)} L ${x0} ${SY(0)} Z" ${frameStyle}/>`;
+            // Head (arch: curved underside)
+            if (archRise > 0) {
+                svg += `<path d="M ${x0 + G.jambTop} ${SY(fh)} L ${x0 + uw - G.jambTop} ${SY(fh)} L ${x0 + uw - G.jambTop} ${SY(fh - G.headH) + archRise} Q ${x0 + uw/2} ${SY(fh - G.headH) - archRise} ${x0 + G.jambTop} ${SY(fh - G.headH) + archRise} Z" ${frameStyle}/>`;
+            } else {
+                svg += `<path d="M ${x0 + G.jambTop} ${SY(fh)} L ${x0 + uw - G.jambTop} ${SY(fh)} L ${x0 + uw - G.jambTop} ${SY(fh - G.headH)} L ${x0 + G.jambTop} ${SY(fh - G.headH)} Z" ${frameStyle}/>`;
+            }
+            // Cavity — one double-hung unit
+            const cavTop = SY(fh - G.headH) + archRise;
+            const cavBot = SY(G.sillTop);
+            const u = EstimateRenderer.sashUnitSVG(x0 + G.jambTop, cavTop, uw - 2 * G.jambTop, cavBot - cavTop, {
+                upperBars, lowerBars, upperCustom, lowerCustom, horns, hornType, openingType, archRise
+            });
+            svg += u.svg;
+            if (i < units.length - 1) joints.push(x0 + uw);
+            x0 += uw;
+        });
+
+        // ══ ONE CONTINUOUS CILL under the whole run (+ extension beyond the frame at each end) ══
+        const sillL = ox + G.jambBot - (sillExt > 0 ? G.jambBot + sillExt : 0);
+        const sillR = ox + fw - G.jambBot + (sillExt > 0 ? G.jambBot + sillExt : 0);
+        svg += `<path d="M ${sillL} ${SY(0)} L ${sillR} ${SY(0)} L ${sillR} ${SY(G.sillNose)} L ${sillL} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
+        svg += `<line x1="${ox + G.jambBot}" y1="${SY(G.sillWeatherbar)}" x2="${ox + fw - G.jambBot}" y2="${SY(G.sillWeatherbar)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
+        svg += `<line x1="${ox + G.jambBot}" y1="${SY(G.sillDrip)}" x2="${ox + fw - G.jambBot}" y2="${SY(G.sillDrip)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
+
+        // ══ COVER STRIPS 150 wide over every joint (drawn on the face: cill top → head top) ══
+        if (covers !== 'none') {
+            joints.forEach(jx => {
+                svg += `<rect x="${jx - 75}" y="${SY(fh)}" width="150" height="${SY(G.sillTop) - SY(fh)}" ${coverStyle}/>`;
+            });
+        }
+
+        // ══ DIMENSIONS: unit widths (near), overall (far), height (right) ══
+        let ux = ox;
+        units.forEach((uw) => {
+            svg += EstimateRenderer.sashDimH(oy + fh + DM * 0.6, ux, ux + uw, oy + fh, `${Math.round(uw)}`, fs);
+            ux += uw;
+        });
+        svg += EstimateRenderer.sashDimH(oy + fh + DM * 1.2, ox, ox + fw, oy + fh, `${Math.round(fw)}`, fs);
+        svg += EstimateRenderer.sashDimV(ox + fw + Math.max(sillExt, 0) + DM * 0.75, oy, oy + fh, ox + fw, `${Math.round(fh)}`, fs);
+
+        return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════
     // ARCHED SASH — front elevation.
     //
@@ -2561,6 +2672,11 @@ class EstimateRenderer {
         // ═══ ARCHED SASH SVG ═══
         if ((fc.sashType || 'double') === 'arched') {
             return EstimateRenderer.generateArchedSashSVG(item, fc);
+        }
+
+        // ═══ MULTI-PART SASH RUN (owner, 01.10.2026) — double-hung units only ═══
+        if (Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 2 && (fc.sashType || 'double') === 'double') {
+            return EstimateRenderer.generateMultiPartSVG(item, fc);
         }
 
         // ═══ SASH SVG v2 — real-mm geometry ═══
@@ -4722,7 +4838,7 @@ class EstimateRenderer {
                     : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                     : p.sashType === 'single' ? 'Single Sash'
                     : 'Sash';
-                const desc = `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+                const desc = `${typeShort}${p.multiUnits ? ' · Multi-part ×' + p.multiUnits.length : ''} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
                 return `
                     <tr>
                         <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
@@ -5054,7 +5170,7 @@ class EstimateRenderer {
                         : 'Sash';
                     return [
                         it.window_number || String(idx + 1).padStart(2, '0'),
-                        `${typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`,
+                        `${typeShort}${p.multiUnits ? ' · Multi-part ×' + p.multiUnits.length : ''} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`,
                         String(p.quantity || 1),
                         '£' + R.formatPrice(it.total_price || 0)
                     ];
@@ -5222,6 +5338,7 @@ class EstimateRenderer {
             }
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
             if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
+            if (p.multiText) specs.push(['Arrangement', p.multiText]);
             if (p.measurementType === 'brick-to-brick') {
                 specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
                 specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);

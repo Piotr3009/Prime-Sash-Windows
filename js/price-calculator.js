@@ -57,6 +57,16 @@ class PriceCalculator {
 
     // Calculate area in m² using FRAME dimensions
     const sqm = (frameWidth / 1000) * (frameHeight / 1000);
+
+    // ═══ MULTI-PART SASH RUN (owner, 01.10.2026) ═══
+    // Several sash units in one straight run: each unit is priced as a standard sash of its
+    // own width (same options), plus the assembly extras (joins with cover strips, cill extension).
+    const isSashRun = (!configuration.windowType || configuration.windowType === 'sash')
+      && (configuration.sashType || 'double') === 'double'   // double-hung units only (this release)
+      && Array.isArray(configuration.multiUnits) && configuration.multiUnits.length >= 2;
+    if (isSashRun) {
+      return this.calculateMultiPart(configuration, frameWidth, frameHeight);
+    }
     // ═══ CASEMENT PRICING ═══
     if (configuration.windowType === 'casement' && this.pricing.casement) {
       // Arched casement uses separate pricing
@@ -181,6 +191,76 @@ class PriceCalculator {
     };
   }
 
+  // ── Multi-part sash run (owner, 01.10.2026) ──────────────────────────────
+  // unitPrice = Σ standard sash price(unit width × height) + joins + cill extension.
+  // Unit widths are the customer-facing shares that sum to the overall width, so a run
+  // of N equal units costs exactly N × one unit — plus the assembly extras.
+  calculateMultiPart(configuration, frameWidth, frameHeight) {
+    const mp = this.pricing.multiPart || { jointPrice: 0, coverOneSideFactor: 1, sillExtPerEnd: {} };
+    const entered = configuration.multiUnits.map(u => Math.max(0, Number(u) || 0));
+    // Units are entered in the customer's measurement (they sum to the entered overall
+    // width); frameWidth already carries the brick-to-brick allowance (+150) for the whole
+    // run, so share the difference equally — each unit is then priced as a FRAME width.
+    const enteredSum = entered.reduce((a, b) => a + b, 0);
+    const extraEach = (enteredSum > 0 && frameWidth > 0) ? (frameWidth - enteredSum) / entered.length : 0;
+    const units = entered.map(u => u + extraEach);
+    const measurementType = configuration.measurementType || 'box-to-box';
+    const unitResults = units.map(u => {
+      // frame dims go straight in (actualFrameWidth wins in calculate()), so the
+      // brick-to-brick allowance is not applied a second time.
+      const unitCfg = Object.assign({}, configuration, {
+        multiUnits: null, multiCovers: null, multiSillExt: 0, multiArrangement: 'single',
+        width: u, height: frameHeight,
+        actualFrameWidth: u, actualFrameHeight: frameHeight,
+        measurementType: measurementType === 'brick-to-brick' ? 'box-to-box' : measurementType,
+        quantity: 1
+      });
+      return this.calculate(unitCfg);
+    });
+    const unitsTotal = unitResults.reduce((a, r) => a + (Number(r.unitPrice) || 0), 0);
+
+    const joints = units.length - 1;
+    const covers = configuration.multiCovers || 'both';
+    const jointEach = (covers === 'both') ? mp.jointPrice : mp.jointPrice * (mp.coverOneSideFactor || 1);
+    const jointsPrice = joints * jointEach;
+
+    const sillExt = String(configuration.multiSillExt || 0);
+    const sillExtPrice = 2 * ((mp.sillExtPerEnd && mp.sillExtPerEnd[sillExt]) || 0);
+
+    const subtotal = unitsTotal + jointsPrice + sillExtPrice;
+    const quantity = configuration.quantity || 1;
+    const discount = this.getQuantityDiscount(quantity);
+    const discountAmount = subtotal * discount;
+    const unitPrice = subtotal - discountAmount;
+    const totalPrice = unitPrice * quantity;
+
+    const breakdown = {
+      multiPart: true,
+      frameWidth: frameWidth,
+      frameHeight: frameHeight,
+      units: entered,
+      unitFrameWidths: units.map(u => Math.round(u * 10) / 10),
+      unitPrices: unitResults.map(r => Number(r.unitPrice) || 0),
+      unitsTotal: unitsTotal.toFixed(2),
+      joints: joints,
+      jointsPrice: jointsPrice.toFixed(2),
+      sillExtPrice: sillExtPrice.toFixed(2),
+      subtotal: subtotal.toFixed(2),
+      quantity: quantity,
+      discount: (discount * 100) + '%',
+      discountAmount: discountAmount.toFixed(2),
+      unitPrice: unitPrice.toFixed(2),
+      totalPrice: totalPrice.toFixed(2),
+      vatAmount: (totalPrice * this.pricing.vatRate).toFixed(2),
+      totalWithVat: (totalPrice * (1 + this.pricing.vatRate)).toFixed(2)
+    };
+    return {
+      unitPrice: Math.round(unitPrice * 100) / 100,
+      totalPrice: Math.round(totalPrice * 100) / 100,
+      breakdown: breakdown
+    };
+  }
+
   // ── Sash base price: continuous curve (owner, 06.09.2026) ──────────────
   // firstSqm is charged in full for anything up to 1 m² (minimum price);
   // every m² above 1 adds perExtraSqm. Falls back to the legacy tiers if the
@@ -189,6 +269,10 @@ class PriceCalculator {
     const c = this.pricing.sashCurve;
     if (!c || !c.firstSqm) {
       return this.pricing.basePricePerSqm * sqm * this.getSizeMultiplier(sqm);
+    }
+    // Under 1 m²: continuous (owner 19.09.2026) — fixed share + per m², equals firstSqm at 1 m².
+    if (sqm < 1 && c.subSqmFixedShare != null) {
+      return c.firstSqm * (c.subSqmFixedShare + (1 - c.subSqmFixedShare) * sqm);
     }
     const largeFrom = c.largeFrom || Infinity;
     const perLarge = c.perLargeSqm || c.perExtraSqm;
@@ -325,7 +409,12 @@ class PriceCalculator {
     const layoutData = c.layouts[layout] || { mullions: 0, transoms: 0, sashes: 1 };
     
     // Base price: firstSqmPrice + (sqm - 1) * basePricePerSqm + mullions/transoms/sashes from pricing-config (single source of truth)
-    let basePrice = c.firstSqmPrice;
+    // Under 1 m²: continuous (owner 19.09.2026) — was a flat firstSqmPrice for any size,
+    // so 400×600 and 1000×1000 cost the same. At exactly 1 m² both give firstSqmPrice.
+    const subShare = (c.subSqmFixedShare != null) ? c.subSqmFixedShare : 1;
+    let basePrice = sqm < 1
+      ? c.firstSqmPrice * (subShare + (1 - subShare) * sqm)
+      : c.firstSqmPrice;
     if (sqm > 1) {
       const midSqm = Math.min(sqm, 3) - 1;              // sqm 1–3 at full rate
       basePrice += midSqm * c.basePricePerSqm;

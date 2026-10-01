@@ -17,6 +17,8 @@
   <style>
   /* 19.09.2026: Georgian bars are hidden via [hidden] while arched; must beat showCategory's inline display:block */
   #georgian-bars-section[hidden]{display:none !important;}
+  /* 01.10.2026: Arrangement (multi-part run) is hidden the same way for triple / arched sash */
+  #multi-part-section[hidden]{display:none !important;}
 
     html.psw-phone-block, html.psw-phone-block body { overflow: hidden !important; }
     #psw-phone-overlay {
@@ -2459,6 +2461,60 @@
         </div>
         
       </div>
+
+      <!-- ═══ MULTI-PART RUN (owner, 01.10.2026) — several sash units in one straight run ═══
+           Boxes touch (100 + 100), a 150 × 17 cover strip hides every joint, ONE continuous cill.
+           Lives inside Sash so every sash option (bars, glass, colour, hardware) applies to the whole run. -->
+      <div class="config-section" data-for="sash" data-category="dim-design" id="multi-part-section">
+        <h3>Arrangement</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option"><input type="radio" id="arr-single" name="sash-arrangement" value="single" checked><label for="arr-single" class="radio-label"><svg width="22" height="18" viewBox="0 0 28 22" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="3" y="2" width="22" height="18"/><line x1="3" y1="11" x2="25" y2="11"/></svg>Single window</label></div>
+            <div class="radio-option"><input type="radio" id="arr-multi" name="sash-arrangement" value="multi"><label for="arr-multi" class="radio-label"><svg width="30" height="18" viewBox="0 0 40 22" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="2" y="2" width="36" height="18"/><line x1="14" y1="2" x2="14" y2="20"/><line x1="26" y1="2" x2="26" y2="20"/><line x1="2" y1="11" x2="38" y2="11"/></svg>Multi-part run</label></div>
+          </div>
+          <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;">Several sash windows coupled in one straight run. The width above is the <strong>overall</strong> width; every unit shares all the options below.</p>
+        </div>
+
+        <div id="multi-part-options" style="display:none;">
+          <div class="input-group">
+            <label>Number of units:</label>
+            <div class="radio-group">
+              <div class="radio-option"><input type="radio" id="mu-2" name="multi-units" value="2" checked><label for="mu-2" class="radio-label">2</label></div>
+              <div class="radio-option"><input type="radio" id="mu-3" name="multi-units" value="3"><label for="mu-3" class="radio-label">3</label></div>
+              <div class="radio-option"><input type="radio" id="mu-4" name="multi-units" value="4"><label for="mu-4" class="radio-label">4</label></div>
+              <div class="radio-option"><input type="radio" id="mu-5" name="multi-units" value="5"><label for="mu-5" class="radio-label">5</label></div>
+              <div class="radio-option"><input type="radio" id="mu-6" name="multi-units" value="6"><label for="mu-6" class="radio-label">6</label></div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Unit widths:</label>
+            <div class="radio-group">
+              <div class="radio-option"><input type="radio" id="mw-equal" name="multi-widths" value="equal" checked><label for="mw-equal" class="radio-label">Equal</label></div>
+              <div class="radio-option"><input type="radio" id="mw-individual" name="multi-widths" value="individual"><label for="mw-individual" class="radio-label">Set individually</label></div>
+            </div>
+            <div id="multi-unit-widths" style="display:none;margin-top:8px;"></div>
+            <p id="multi-units-note" style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;"></p>
+          </div>
+          <div class="input-group">
+            <label>Cover strips on the joins (150 × 17 mm):</label>
+            <div class="radio-group">
+              <div class="radio-option"><input type="radio" id="mc-both" name="multi-covers" value="both" checked><label for="mc-both" class="radio-label">Inside &amp; outside</label></div>
+              <div class="radio-option"><input type="radio" id="mc-outside" name="multi-covers" value="outside"><label for="mc-outside" class="radio-label">Outside only</label></div>
+              <div class="radio-option"><input type="radio" id="mc-inside" name="multi-covers" value="inside"><label for="mc-inside" class="radio-label">Inside only</label></div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="multi-sill-ext">Continuous cill — extension at each end:</label>
+            <select id="multi-sill-ext" class="dimension-select" style="max-width:220px;">
+              <option value="0" selected>None</option>
+              <option value="50">50 mm</option>
+              <option value="100">100 mm</option>
+              <option value="150">150 mm</option>
+            </select>
+            <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;">One cill runs under the whole run; the extension adds to its standard 52 mm horn at each end.</p>
+          </div>
+        </div>
+      </div>
       
       <div class="config-section" data-for="sash" data-category="dim-design" id="georgian-bars-section">
         <h3>Step 2: Georgian Bars</h3>
@@ -4133,6 +4189,10 @@
             <span class="spec-label">Proportions:</span>
             <span class="spec-value" id="spec-split-ratio">-</span>
           </div>
+          <div class="spec-item" id="spec-multi-item" style="display: none;">
+            <span class="spec-label">Arrangement:</span>
+            <span class="spec-value" id="spec-multi">-</span>
+          </div>
         </div>
         <div class="spec-section" id="spec-dimensions" style="display: none;">
           <h4>Dimensions</h4>
@@ -4554,17 +4614,18 @@
 <!-- 2. Pricing config -->
 <script src="js/ironmongery-data.js?v=3"></script>
 <script src="js/ironmongery-gallery.js?v=4"></script>
-<script src="js/pricing-config.js?v=11"></script>
+<script src="js/pricing-config.js?v=13"></script>
 <script src="js/config.js?v=4"></script>
-<script src="js/price-calculator.js?v=19"></script>
+<script src="js/price-calculator.js?v=21"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=3"></script>
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=5"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=14"></script>
+<script src="js/specification-controller.js?v=15"></script>
 <script src="js/configurator-core.js?v=6"></script>
+<script src="js/multi-part-controller.js?v=1"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
 <script src="js/casement-controller.js?v=20"></script>
@@ -4585,10 +4646,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=13"></script>
-<script src="js/estimate-renderer.js?v=42"></script>
+<script src="js/estimate-renderer.js?v=43"></script>
 <script src="js/estimate-selector.js?v=3"></script>
-<script src="js/estimate-manager.js?v=9"></script>
-<script src="js/edit-mode.js?v=14"></script>
+<script src="js/estimate-manager.js?v=10"></script>
+<script src="js/edit-mode.js?v=15"></script>
 
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
@@ -4931,7 +4992,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=105";
+      psw3dScript.src = "3d/assets/window3d.js?v=107";
       document.head.appendChild(psw3dScript);
     }
   </script>

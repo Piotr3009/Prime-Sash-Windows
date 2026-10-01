@@ -28,6 +28,7 @@ export default function CasementGlazing({
   glassType = 'double',
   spacerColor = 'silver',
   hBars = 0,
+  hBarPositions = null,   // mm from the glass centre, y up — the window grid (CasementWindow); null → equal split (PC parity, 21.09.2026)
   vBars = 0,
   barMaterial,
   barMaterialInt,
@@ -145,9 +146,10 @@ export default function CasementGlazing({
   const barItems = useMemo(() => {
     const items = [];
     for (let i = 1; i <= (vBars||0); i++) items.push({ type:'v', x: -W/2 + (W/(vBars+1))*i, y: 0 });
-    for (let i = 1; i <= (hBars||0); i++) items.push({ type:'h', x: 0, y: -H/2 + (H/(hBars+1))*i });
+    if (Array.isArray(hBarPositions)) hBarPositions.forEach((yMm) => items.push({ type:'h', x: 0, y: mm(yMm) }));
+    else for (let i = 1; i <= (hBars||0); i++) items.push({ type:'h', x: 0, y: -H/2 + (H/(hBars+1))*i });
     return items;
-  }, [hBars, vBars, W, H]);
+  }, [hBars, hBarPositions, vBars, W, H]);
 
   const glassMat = useMemo(() => {
     if (glassFinish === 'frosted' && frostedTexture) {

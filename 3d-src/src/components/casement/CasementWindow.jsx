@@ -30,6 +30,7 @@ import * as THREE from 'three';
 import { Text, Line } from '@react-three/drei';
 import CasementFrame, { FRAME_FACE, EXT_FACE, FRAME_DEPTH, EXT_DEPTH, INT_DEPTH, REBATE_STEP, MULLION_W, BOTTOM_FACE, BOTTOM_EXT_OUTER, BOTTOM_INNER_FACE, GASKET_T, mm } from './CasementFrame';
 import CasementPanel, { SASH_RAIL } from './CasementPanel';
+import { alignMainBarLines } from './casementBarGrid';
 
 // ─── Layout definitions ───
 // Each layout = { panels: [...], mullions?: [...], transoms?: [...] }
@@ -638,9 +639,14 @@ export default function CasementWindow({
       // break on 3-tier layouts where the middle pane can be under 50% of innerH.
       if (def && def.panels) {
         const FAN2_CODES = ['013', '023'];
+        // 033 (3x3, 19.09.2026): the bottom ROW is the second fanlight tier. Decided by
+        // position, not hinge — its middle centre pane is 'fixed' too and must stay 'main'.
+        const bottomEdge = Math.min(...def.panels.map(q => q.y - q.h / 2));
         def.panels = def.panels.map(p => ({
           ...p,
-          _role: p.hinge === 'top' ? 'fan' : (FAN2_CODES.includes(layout) && p.hinge === 'fixed' ? 'fan2' : 'main')
+          _role: p.hinge === 'top' ? 'fan'
+               : (layout === '033' ? (Math.abs((p.y - p.h / 2) - bottomEdge) < 1 ? 'fan2' : 'main')
+               : (FAN2_CODES.includes(layout) && p.hinge === 'fixed' ? 'fan2' : 'main'))
         }));
       }
       // Clickable openers overlay — generic for every layout.
@@ -662,6 +668,27 @@ export default function CasementWindow({
     },
     [layout, innerW, innerH, height, fanlightRatio, fan2Ratio, casementHinges, middleSection]
   );
+
+  // ─── Horizontal glazing bars: ONE grid for the window (Piotr 21.09.2026) ───
+  // Ported 1:1 from Production Core's CasementWindow.jsx so PSW and PC draw the same
+  // bars. Every main light's bars sit on the lines of the tallest main light; a light
+  // under a fan shows the lines that cross its glass (a sliver lower than 1/3 of a pane
+  // drops the bar). Fans keep their own count. y up, mm.
+  const hBarPlan = useMemo(() => {
+    const leafGapPlan = 4;
+    const lights = (layoutDef.panels || []).map((p) => {
+      const glassH = (p.h + REBATE_STEP * 2 - leafGapPlan * 2) - SASH_RAIL * 2;
+      const lo = p.y - glassH / 2, hi = p.y + glassH / 2;
+      const n = p._role === 'fan' ? fanHBars : p._role === 'fan2' ? fan2HBars : hBars;
+      const lines = [];
+      for (let i = 1; i <= (n || 0); i++) lines.push(lo + (glassH / (n + 1)) * i);
+      return { role: p._role, lo, hi, lines };
+    });
+    return alignMainBarLines(lights, { barW: 22 }).map((a, i) => {
+      const c = (lights[i].lo + lights[i].hi) / 2;
+      return a.lines.map((y) => y - c);   // mm from the glass centre, y up
+    });
+  }, [layoutDef, hBars, fanHBars, fan2HBars]);
 
   const W = mm(width);
   const H = mm(height);
@@ -714,8 +741,12 @@ export default function CasementWindow({
             materialInt={intMaterial}
             spacerColor={spacerColor}
             glassFinish={glassFinish}
-            archRise={headType === 'arch' && topRowKeys.has(i) ? Math.min(80, Math.max(50, Math.round(p.w * 0.07))) : 0}
+            // Rise from the pane width (7%, 50–80 mm) but never more than 30% of the glass
+            // height — on a low fanlight the timber infill otherwise hides most of the glass
+            // (owner 19.09.2026).
+            archRise={headType === 'arch' && topRowKeys.has(i) ? Math.min(Math.min(80, Math.max(50, Math.round(p.w * 0.07))), Math.max(0, Math.round((leafH - SASH_RAIL * 2) * 0.3))) : 0}
             hBars={p._role === 'fan' ? fanHBars : p._role === 'fan2' ? fan2HBars : hBars}
+            hBarPositions={hBarPlan[i]}
             vBars={p._role === 'fan' ? fanVBars : p._role === 'fan2' ? fan2VBars : vBars}
             ironmongery={ironmongery}
             position={[mm(p.x), mm(p.y) + openingCenterY, leafZ]}

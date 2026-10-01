@@ -2030,6 +2030,7 @@ export default function ParametricSashWindow({
   fixUpperCustomBars = [],
   fixLowerCustomBars = [],
   headType = 'flat',
+  hideSill = false,      // multi-part run (01.10.2026): the run draws ONE continuous cill, units skip theirs
 }) {
   const cExt = woodColorExt || woodColor;
   const cInt = woodColorInt || woodColor;
@@ -2266,12 +2267,14 @@ export default function ParametricSashWindow({
         />
 
         {/* ═══ SILL ═══ */}
+        {!hideSill && (
         <TraditionalSill
           width={width}
           position={[0, -h / 2 + sillVisibleHeight / 2, 0]}
           material={sillMaterial}
           materialInt={sillIntMaterial}
         />
+        )}
 
         {/* ═══ EXTERNAL BOX ═══ */}
         <ExternalBoxElement
@@ -2818,12 +2821,14 @@ export default function ParametricSashWindow({
         showBead={true}
       />
 
+      {!hideSill && (
       <TraditionalSill
         width={width}
         position={[0, -h / 2 + sillVisibleHeight / 2, 0]}
         material={sillMaterial}
         materialInt={sillIntMaterial}
       />
+      )}
 
       <ExternalBoxElement
         height={h + mm(52)}

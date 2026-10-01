@@ -9,7 +9,8 @@ const pricingConfig = {
   // above it is charged at perExtraSqm. The old tiers produced cliffs of
   // -£338 at 1.0 m² and -£381 at 3.0 m² (a bigger window got cheaper).
   sashCurve: {
-    firstSqm: 850,       // £ for the first m² (also the minimum price)
+    firstSqm: 850,       // £ at exactly 1 m²
+    subSqmFixedShare: 0.5, // owner 19.09.2026: under 1 m² → £425 + £425 × m² (continuous, every mm counts)
     perExtraSqm: 645,    // £ per m² between 1.0 and largeFrom
     largeFrom: 3.0,      // m² threshold for the large-window rate
     perLargeSqm: 420     // £ per m² above largeFrom
@@ -121,7 +122,7 @@ const pricingConfig = {
       '60': 65,
       '85': 85
     },
-    
+
     // Security
     pas24: {
       'no': 0,
@@ -139,13 +140,25 @@ const pricingConfig = {
   
   // VAT
   vatRate: 0.20,  // 20% VAT
-  
+
+  // ═══ MULTI-PART SASH RUN (owner, 01.10.2026) ═══
+  // Units are priced as standard sashes (sashCurve etc.); these are the ASSEMBLY
+  // extras only. Numbers are placeholders — TO CONFIRM by owner.
+  multiPart: {
+    jointPrice: 150,            // £ per join: 2 × cover strip 150 × 17 (full height), coupling, sealing
+    coverOneSideFactor: 0.6,    // join with a cover on one side only = 60% of jointPrice
+    sillExtPerEnd: { '0': 0, '50': 25, '100': 50, '150': 75 }   // continuous cill extension, £ per end
+  },
+
   // ═══ CASEMENT PRICING ═══
   casement: {
     basePriceMin: 300,         // minimum £300 (0.5 sqm)
     basePricePerSqm: 300,      // £300 per additional sqm above 1
     largeSqmFactor: 0.8,       // sqm above 3 charged at basePricePerSqm * 0.8 (volume discount, no price cliff)
     firstSqmPrice: 500,        // first sqm = £500
+    // owner 19.09.2026: below 1 m² the price is continuous — fixed share + the rest per m²,
+    // so every millimetre counts and 1 m² still lands exactly on firstSqmPrice.
+    subSqmFixedShare: 0.5,     // 0.5 → £250 + £250 × m² under 1 m²
     mullionPrice: 150,         // per mullion
     transomPrice: 150,         // per transom
     sashPrice: 50,             // per opening sash (operable panel)

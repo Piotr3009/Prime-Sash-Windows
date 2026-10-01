@@ -216,6 +216,11 @@
       // Set measurement-type BEFORE dimensions so handler knows context
       setRadio('measurement-type', fc.measurementType);
 
+      // Multi-part run (owner, 01.10.2026): restore the arrangement BEFORE the width —
+      // it lifts the #width max to the run limit and seeds currentConfig.multiUnits,
+      // so the dimension restore below prices and renders the run, not a single sash.
+      if (typeof window.applyMultiPartFromConfig === 'function') window.applyMultiPartFromConfig(fc);
+
       // Dimensions via DimensionHandler (triggers 3D + display + config)
       setDimensionSash('width', w);
       setDimensionSash('height', h);
