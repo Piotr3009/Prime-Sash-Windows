@@ -141,16 +141,18 @@ const pricingConfig = {
   // VAT
   vatRate: 0.20,  // 20% VAT
 
-  // ═══ MULTI-PART SASH RUN (owner, 01.10.2026) ═══
-  // Units are priced as standard sashes (sashCurve etc.); these are the ASSEMBLY
-  // extras only. Numbers are placeholders — TO CONFIRM by owner.
+  // ═══ MULTI-PART SASH RUN — Special Layout Windows (owner, 01.10.2026) ═══
+  // Units are priced as standard sashes (sashCurve etc.). Owner 01.10.2026 (19:38):
+  // "nie dodajemy prawie nic — tylko po £60 za nakładki": the only extra is £60 per cover
+  // strip (a join with covers both sides = 2 strips = £120, one side = £60). No percentage
+  // surcharge. Cill extension: to be priced when the owner decides (0 for now).
   multiPart: {
-    surcharge: 0.15,            // owner 01.10.2026: +15% on the whole run (units + joins + cill extension)
-    jointPrice: 150,            // £ per join: 2 × cover strip 100 × 17 (full height), coupling, sealing
-    coverOneSideFactor: 0.6,    // join with a cover on one side only = 60% of jointPrice
-    sillExtPerEnd: { '0': 0, '50': 25, '100': 50, '150': 75 }   // continuous cill extension, £ per end
+    surcharge: 0,               // no % surcharge (owner, 01.10.2026 — the 15% idea was dropped)
+    coverStripPrice: 60,        // £ per cover strip 100 × 17 (full height) — per join: 2 both sides / 1 one side
+    jointPrice: 0,              // £ fixed per join on top of the strips (coupling, sealing) — 0
+    sillExtPerEnd: { '0': 0, '50': 0, '100': 0, '150': 0 }   // continuous cill extension, £ per end — to be set by owner
   },
-
+  
   // ═══ CASEMENT PRICING ═══
   casement: {
     basePriceMin: 300,         // minimum £300 (0.5 sqm)

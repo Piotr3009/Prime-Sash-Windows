@@ -197,7 +197,7 @@ class PriceCalculator {
   // Unit widths are the customer-facing shares that sum to the overall width, so a run
   // of N equal units costs exactly N × one unit — plus the assembly extras.
   calculateMultiPart(configuration, frameWidth, frameHeight) {
-    const mp = this.pricing.multiPart || { jointPrice: 0, coverOneSideFactor: 1, sillExtPerEnd: {} };
+    const mp = this.pricing.multiPart || { surcharge: 0, coverStripPrice: 0, jointPrice: 0, sillExtPerEnd: {} };
     const entered = configuration.multiUnits.map(u => Math.max(0, Number(u) || 0));
     // Units are entered in the customer's measurement (they sum to the entered overall
     // width); frameWidth already carries the brick-to-brick allowance (+150) for the whole
@@ -222,7 +222,9 @@ class PriceCalculator {
 
     const joints = units.length - 1;
     const covers = configuration.multiCovers || 'both';
-    const jointEach = (covers === 'both') ? mp.jointPrice : mp.jointPrice * (mp.coverOneSideFactor || 1);
+    // £ per cover strip (both sides = 2 strips, one side = 1) + any fixed per-join amount
+    const stripsPerJoin = (covers === 'both') ? 2 : (covers === 'none' ? 0 : 1);
+    const jointEach = stripsPerJoin * (Number(mp.coverStripPrice) || 0) + (Number(mp.jointPrice) || 0);
     const jointsPrice = joints * jointEach;
 
     const sillExt = String(configuration.multiSillExt || 0);
@@ -248,6 +250,7 @@ class PriceCalculator {
       unitPrices: unitResults.map(r => Number(r.unitPrice) || 0),
       unitsTotal: unitsTotal.toFixed(2),
       joints: joints,
+      coverStrips: joints * stripsPerJoin,
       jointsPrice: jointsPrice.toFixed(2),
       sillExtPrice: sillExtPrice.toFixed(2),
       runSubtotal: runSubtotal.toFixed(2),
