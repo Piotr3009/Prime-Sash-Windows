@@ -781,6 +781,7 @@ class EstimateRenderer {
                             ${R.specRow('Trickle Vent', p.trickleText)}
                             ${p.isSlidingOrBifold && p.sillExtension !== 'none' ? R.specRow('Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')) : ''}
                             ` : `
+                            ${p.multiUnits ? R.specRow('Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)') : ''}
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' && p.sashType !== 'arched' ? R.specRow('Head Type', 'Glazing Arch') : ''}
                             ${p.sashType === 'arched' ? R.specRow('Sash Type', p.archTypeLabel) : ''}
@@ -894,7 +895,7 @@ class EstimateRenderer {
                 : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                 : p.sashType === 'single' ? 'Single Sash'
                 : 'Sash';
-            const desc = `${typeShort}${p.multiUnits ? ' · Multi-part ×' + p.multiUnits.length : ''} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+            const desc = `${p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
             return `
                 <tr>
                     <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
@@ -4838,7 +4839,7 @@ class EstimateRenderer {
                     : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                     : p.sashType === 'single' ? 'Single Sash'
                     : 'Sash';
-                const desc = `${typeShort}${p.multiUnits ? ' · Multi-part ×' + p.multiUnits.length : ''} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+                const desc = `${p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
                 return `
                     <tr>
                         <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
@@ -5170,7 +5171,7 @@ class EstimateRenderer {
                         : 'Sash';
                     return [
                         it.window_number || String(idx + 1).padStart(2, '0'),
-                        `${typeShort}${p.multiUnits ? ' · Multi-part ×' + p.multiUnits.length : ''} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`,
+                        `${p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`,
                         String(p.quantity || 1),
                         '£' + R.formatPrice(it.total_price || 0)
                     ];
@@ -5327,6 +5328,7 @@ class EstimateRenderer {
                 specs.push(['Trickle Vent', p.trickleText]);
                 if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
             } else {
+            if (p.multiUnits) specs.push(['Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)']);
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.sashType === 'arched') {
                 if (p.archRise) specs.push(['Arch rise', p.archRise + 'mm']);

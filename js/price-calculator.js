@@ -62,6 +62,7 @@ class PriceCalculator {
     // Several sash units in one straight run: each unit is priced as a standard sash of its
     // own width (same options), plus the assembly extras (joins with cover strips, cill extension).
     const isSashRun = (!configuration.windowType || configuration.windowType === 'sash')
+      && configuration.productType !== 'door' && configuration.windowCategory !== 'door'
       && (configuration.sashType || 'double') === 'double'   // double-hung units only (this release)
       && Array.isArray(configuration.multiUnits) && configuration.multiUnits.length >= 2;
     if (isSashRun) {

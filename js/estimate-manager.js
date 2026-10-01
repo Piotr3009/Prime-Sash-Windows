@@ -698,6 +698,7 @@ class EstimateManager {
                 multiUnits: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? cfg.multiUnits.slice() : null,
                 multiCovers: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? (cfg.multiCovers || 'both') : null,
                 multiSillExt: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? (cfg.multiSillExt || 0) : null,
+                windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? 'multi-part' : null,   // Special Layout Windows
 
                 // Detale (horns są w ironmongery)
                 horns: null,

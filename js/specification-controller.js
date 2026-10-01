@@ -682,8 +682,8 @@ class SpecificationController {
     if (specWindowType) specWindowType.style.display = 'block';
     let typeLabel = sashTypeVal === 'triple' ? 'Triple Sash' : 'Double Hung Sash';
     if (headTypeVal === 'arch') typeLabel += ' — Glazing Arch';
-    // Multi-part run (owner, 01.10.2026): N standard units coupled in one straight run
-    if (window.currentConfig && Array.isArray(window.currentConfig.multiUnits) && window.currentConfig.multiUnits.length >= 2) typeLabel += ' · Multi-part run × ' + window.currentConfig.multiUnits.length;
+    // Special Layout Windows (owner, 01.10.2026): N standard double-hung units coupled in one straight run
+    if (window.currentConfig && Array.isArray(window.currentConfig.multiUnits) && window.currentConfig.multiUnits.length >= 2) typeLabel = 'Special Layout — Multi-part run × ' + window.currentConfig.multiUnits.length + ' (double-hung sash units)' + (headTypeVal === 'arch' ? ' — Glazing Arch' : '');
     if (specSashType) specSashType.textContent = typeLabel;
 
     // Arched sash label: 'Arched Sash — Semicircular' etc. Written after the

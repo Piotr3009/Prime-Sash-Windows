@@ -17,8 +17,10 @@
   <style>
   /* 19.09.2026: Georgian bars are hidden via [hidden] while arched; must beat showCategory's inline display:block */
   #georgian-bars-section[hidden]{display:none !important;}
-  /* 01.10.2026: Arrangement (multi-part run) is hidden the same way for triple / arched sash */
-  #multi-part-section[hidden]{display:none !important;}
+  /* 01.10.2026: Special Layout Windows — these sections show only while #type-special is selected */
+  #multi-part-section[hidden], #special-layout-section[hidden]{display:none !important;}
+  /* Special = double-hung units: the Sash Type radios and triple options go, Head Type (glazing arch) stays */
+  #sash-type-section.psw-special > h3, #sash-type-section.psw-special > div.input-group:first-of-type, #sash-type-section.psw-special #triple-options{display:none !important;}
 
     html.psw-phone-block, html.psw-phone-block body { overflow: hidden !important; }
     #psw-phone-overlay {
@@ -398,7 +400,36 @@
               <input type="radio" id="type-fix" name="window-type" value="fix-only">
               <label for="type-fix" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="2" y="2" width="24" height="32"/><rect x="6.5" y="6.5" width="15" height="23"/></svg>Fix Frame Only</label>
             </div>
+            <!-- Special Layout Windows (owner, 01.10.2026): a run of standard sash units (bay / square bay to follow).
+                 Internally a SASH (value "sash") so every sash flow — price, 3D, spec, save, edit — is reused unchanged;
+                 js/multi-part-controller.js reads #type-special to switch the layout UI on. -->
+            <div class="radio-option">
+              <input type="radio" id="type-special" name="window-type" value="sash" data-layout="special">
+              <label for="type-special" class="radio-label"><svg width="34" height="26" viewBox="0 0 48 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="2" y="4" width="44" height="28"/><line x1="16" y1="4" x2="16" y2="32"/><line x1="32" y1="4" x2="32" y2="32"/><line x1="2" y1="17" x2="46" y2="17"/><line x1="2" y1="20" x2="46" y2="20"/></svg>Special Layout Windows</label>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Special Layout — layout choice (owner, 01.10.2026). Shown only while #type-special is selected. -->
+      <div class="config-section" data-category="product-range" data-for="sash" id="special-layout-section" hidden>
+        <h3>Layout</h3>
+        <div class="input-group">
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="sl-multi" name="special-layout" value="multi" checked>
+              <label for="sl-multi" class="radio-label"><svg width="34" height="22" viewBox="0 0 96 40" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="3" y="6" width="90" height="28"/><line x1="33" y1="6" x2="33" y2="34"/><line x1="63" y1="6" x2="63" y2="34"/><line x1="3" y1="19" x2="93" y2="19"/><line x1="3" y1="22" x2="93" y2="22"/></svg>Multi-part run</label>
+            </div>
+            <div class="radio-option" style="opacity:.5;" title="Coming soon">
+              <input type="radio" id="sl-bay" name="special-layout" value="bay" disabled>
+              <label for="sl-bay" class="radio-label"><svg width="34" height="22" viewBox="0 0 96 40" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M4 8 L24 32 L72 32 L92 8"/><line x1="4" y1="8" x2="92" y2="8" stroke-dasharray="4 3" stroke-width="1.5"/></svg>Bay <span style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;">— coming soon</span></label>
+            </div>
+            <div class="radio-option" style="opacity:.5;" title="Coming soon">
+              <input type="radio" id="sl-square-bay" name="special-layout" value="square-bay" disabled>
+              <label for="sl-square-bay" class="radio-label"><svg width="34" height="22" viewBox="0 0 96 40" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M14 8 L14 32 L82 32 L82 8"/><line x1="4" y1="8" x2="92" y2="8" stroke-dasharray="4 3" stroke-width="1.5"/></svg>Square bay <span style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;">— coming soon</span></label>
+            </div>
+          </div>
+          <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;">Several standard double-hung sash units (each up to 1500 mm wide) coupled in one straight run: boxes 100 + 100 at every join, a 100 × 17 mm cover strip over each join, one continuous cill. Glass, bars, colour and hardware you pick in the next steps apply to the whole run.</p>
         </div>
       </div>
 
@@ -2462,20 +2493,14 @@
         
       </div>
 
-      <!-- ═══ MULTI-PART RUN (owner, 01.10.2026) — several sash units in one straight run ═══
+      <!-- ═══ MULTI-PART RUN (owner, 01.10.2026) — the run options of Special Layout Windows ═══
            Boxes touch (100 + 100), a 100 × 17 cover strip hides every joint, ONE continuous cill.
-           Lives inside Sash so every sash option (bars, glass, colour, hardware) applies to the whole run. -->
-      <div class="config-section" data-for="sash" data-category="dim-design" id="multi-part-section">
-        <h3>Arrangement</h3>
-        <div class="input-group">
-          <div class="radio-group">
-            <div class="radio-option"><input type="radio" id="arr-single" name="sash-arrangement" value="single" checked><label for="arr-single" class="radio-label"><svg width="22" height="18" viewBox="0 0 28 22" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="3" y="2" width="22" height="18"/><line x1="3" y1="11" x2="25" y2="11"/></svg>Single window</label></div>
-            <div class="radio-option"><input type="radio" id="arr-multi" name="sash-arrangement" value="multi"><label for="arr-multi" class="radio-label"><svg width="30" height="18" viewBox="0 0 40 22" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="2" y="2" width="36" height="18"/><line x1="14" y1="2" x2="14" y2="20"/><line x1="26" y1="2" x2="26" y2="20"/><line x1="2" y1="11" x2="38" y2="11"/></svg>Multi-part run</label></div>
-          </div>
-          <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;">Several sash windows coupled in one straight run. The width above is the <strong>overall</strong> width (each unit up to 1500 mm, so 6 units allow 9000 mm — pick <strong>Custom size</strong> in the width list for more than 3000 mm); every unit shares all the options below.</p>
-        </div>
-
-        <div id="multi-part-options" style="display:none;">
+           Internally a sash, so every sash option (bars, glass, colour, hardware) applies to the whole run.
+           Shown only while #type-special (Product Range) is selected — see js/multi-part-controller.js. -->
+      <div class="config-section" data-for="sash" data-category="dim-design" id="multi-part-section" hidden>
+        <h3>Multi-part run</h3>
+        <div id="multi-part-options">
+          <p style="font-size:.72rem;color:var(--secondary-color);margin:0 0 10px;">The width above is the <strong>overall</strong> width of the run — the list reaches <span id="multi-width-max-note">3000</span> mm for the number of units chosen (1500 mm per unit).</p>
           <div class="input-group">
             <label>Number of units:</label>
             <div class="radio-group">
@@ -4616,16 +4641,16 @@
 <script src="js/ironmongery-gallery.js?v=4"></script>
 <script src="js/pricing-config.js?v=13"></script>
 <script src="js/config.js?v=4"></script>
-<script src="js/price-calculator.js?v=21"></script>
+<script src="js/price-calculator.js?v=22"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=4"></script>
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=5"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=15"></script>
+<script src="js/specification-controller.js?v=16"></script>
 <script src="js/configurator-core.js?v=6"></script>
-<script src="js/multi-part-controller.js?v=4"></script>
+<script src="js/multi-part-controller.js?v=5"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
 <script src="js/casement-controller.js?v=20"></script>
@@ -4646,9 +4671,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=13"></script>
-<script src="js/estimate-renderer.js?v=44"></script>
+<script src="js/estimate-renderer.js?v=45"></script>
 <script src="js/estimate-selector.js?v=3"></script>
-<script src="js/estimate-manager.js?v=10"></script>
+<script src="js/estimate-manager.js?v=11"></script>
 <script src="js/edit-mode.js?v=15"></script>
 
 <!-- Ironmongery Gallery Overlay -->
