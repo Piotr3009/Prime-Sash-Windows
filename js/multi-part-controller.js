@@ -20,8 +20,8 @@
   'use strict';
 
   var SINGLE_WIDTH_MAX = 3000;   // #width max for a single sash (HTML attribute)
-  var MULTI_WIDTH_MAX = 6000;    // overall width of a run
-  var UNIT_MIN = 400, UNIT_MAX = 3000;   // one unit = one standard sash
+  var UNIT_MIN = 400, UNIT_MAX = 1500;   // one unit = one standard sash, max 1500 wide (owner, 01.10.2026)
+  function multiWidthMax() { return unitCount() * UNIT_MAX; }   // overall max grows with the count: 6 units → 6 × 1500
   var lastKey = null;                    // last applied [units, covers, sillExt] — skips no-op re-applies
 
   function $(id) { return document.getElementById(id); }
@@ -86,7 +86,7 @@
       else if (sum !== total) err = 'Unit widths add up to ' + sum + ' mm — they must equal the overall width of ' + total + ' mm.';
     }
     var bad = units.filter(function (u) { return u > 0 && (u < UNIT_MIN || u > UNIT_MAX); });
-    if (!err && bad.length) err = 'Each unit must be between ' + UNIT_MIN + ' and ' + UNIT_MAX + ' mm (a standard sash). Change the overall width or the number of units.';
+    if (!err && bad.length) err = 'Each unit must be between ' + UNIT_MIN + ' and ' + UNIT_MAX + ' mm (a standard sash) — ' + n + ' units allow up to ' + (n * UNIT_MAX) + ' mm overall. Change the overall width or the number of units.';
     return { units: units, error: err, total: total, n: n, mode: mode };
   }
 
@@ -98,7 +98,7 @@
     if (section) section.hidden = !runCapable();       // triple / arched sash cannot be a run (this release)
     var multi = isMulti();
     if (options) options.style.display = multi ? '' : 'none';
-    if (widthInp) widthInp.max = String(multi ? MULTI_WIDTH_MAX : SINGLE_WIDTH_MAX);
+    if (widthInp) widthInp.max = String(multi ? multiWidthMax() : SINGLE_WIDTH_MAX);
 
     var note = $('multi-units-note');
     var units = null, covers = 'both', sillExt = 0;
@@ -176,7 +176,7 @@
       var box = $('multi-unit-widths'); if (box) box.style.display = isEqual ? 'none' : '';
       setRadio('multi-covers', fc.multiCovers || 'both');
       var se = $('multi-sill-ext'); if (se) se.value = String(fc.multiSillExt || 0);
-      var w = $('width'); if (w) w.max = String(MULTI_WIDTH_MAX);   // before the width is restored
+      var w = $('width'); if (w) w.max = String(units.length * UNIT_MAX);   // before the width is restored
       if (window.currentConfig) {
         window.currentConfig.multiUnits = units;
         window.currentConfig.multiCovers = fc.multiCovers || 'both';

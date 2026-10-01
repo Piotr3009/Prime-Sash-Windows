@@ -227,7 +227,11 @@ class PriceCalculator {
     const sillExt = String(configuration.multiSillExt || 0);
     const sillExtPrice = 2 * ((mp.sillExtPerEnd && mp.sillExtPerEnd[sillExt]) || 0);
 
-    const subtotal = unitsTotal + jointsPrice + sillExtPrice;
+    // Multi-part surcharge (owner 01.10.2026): +15% on the whole run, before the quantity discount
+    const runSubtotal = unitsTotal + jointsPrice + sillExtPrice;
+    const surchargePct = Number(mp.surcharge) || 0;
+    const surcharge = runSubtotal * surchargePct;
+    const subtotal = runSubtotal + surcharge;
     const quantity = configuration.quantity || 1;
     const discount = this.getQuantityDiscount(quantity);
     const discountAmount = subtotal * discount;
@@ -245,6 +249,9 @@ class PriceCalculator {
       joints: joints,
       jointsPrice: jointsPrice.toFixed(2),
       sillExtPrice: sillExtPrice.toFixed(2),
+      runSubtotal: runSubtotal.toFixed(2),
+      multiSurcharge: (surchargePct * 100) + '%',
+      multiSurchargeAmount: surcharge.toFixed(2),
       subtotal: subtotal.toFixed(2),
       quantity: quantity,
       discount: (discount * 100) + '%',
