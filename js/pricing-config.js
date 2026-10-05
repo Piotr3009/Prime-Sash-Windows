@@ -152,6 +152,14 @@ const pricingConfig = {
     jointPrice: 0,              // £ fixed per join on top of the strips (coupling, sealing) — 0
     sillExtPerEnd: { '0': 0, '50': 0, '100': 0, '150': 0 }   // continuous cill extension, £ per end — to be set by owner
   },
+
+  // ═══ SQUARE BAY — Special Layout Windows (owner, 02.10.2026) ═══
+  // Front units + 2 side units priced as standard sashes (+ front cover strips as above).
+  // Corner extras are 0 until the owner prices them ("nie dodajemy prawie nic").
+  squareBay: {
+    cornerPostPrice: 0,         // £ per timber corner post (2 per bay)
+    pierTrimPrice: 0            // £ per L-shaped trim at a masonry pier (2 per bay, when chosen)
+  },
   
   // ═══ CASEMENT PRICING ═══
   casement: {

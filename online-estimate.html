@@ -424,12 +424,12 @@
               <input type="radio" id="sl-bay" name="special-layout" value="bay" disabled>
               <label for="sl-bay" class="radio-label"><svg width="34" height="22" viewBox="0 0 96 40" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M4 8 L24 32 L72 32 L92 8"/><line x1="4" y1="8" x2="92" y2="8" stroke-dasharray="4 3" stroke-width="1.5"/></svg>Bay <span style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;">— coming soon</span></label>
             </div>
-            <div class="radio-option" style="opacity:.5;" title="Coming soon">
-              <input type="radio" id="sl-square-bay" name="special-layout" value="square-bay" disabled>
-              <label for="sl-square-bay" class="radio-label"><svg width="34" height="22" viewBox="0 0 96 40" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M14 8 L14 32 L82 32 L82 8"/><line x1="4" y1="8" x2="92" y2="8" stroke-dasharray="4 3" stroke-width="1.5"/></svg>Square bay <span style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;">— coming soon</span></label>
+            <div class="radio-option">
+              <input type="radio" id="sl-square-bay" name="special-layout" value="square-bay">
+              <label for="sl-square-bay" class="radio-label"><svg width="34" height="22" viewBox="0 0 96 40" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M14 8 L14 32 L82 32 L82 8"/><line x1="4" y1="8" x2="92" y2="8" stroke-dasharray="4 3" stroke-width="1.5"/></svg>Square bay</label>
             </div>
           </div>
-          <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;">Several standard double-hung sash units (each up to 1500 mm wide) coupled in one straight run: boxes 100 + 100 at every join, a 100 × 17 mm cover strip over each join, one continuous cill. Glass, bars, colour and hardware you pick in the next steps apply to the whole run.</p>
+          <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;"><strong>Multi-part run:</strong> standard double-hung sash units (each up to 1500 mm wide) coupled in one straight run — boxes 100 + 100 at every join, a 100 × 17 mm cover strip over each join, one continuous cill. <strong>Square bay:</strong> a front run of 1–4 units plus one unit on each side at 90°, on timber corner posts or set behind masonry piers. Glass, bars, colour and hardware you pick in the next steps apply to every unit.</p>
         </div>
       </div>
 
@@ -2498,17 +2498,52 @@
            Internally a sash, so every sash option (bars, glass, colour, hardware) applies to the whole run.
            Shown only while #type-special (Product Range) is selected — see js/multi-part-controller.js. -->
       <div class="config-section" data-for="sash" data-category="dim-design" id="multi-part-section" hidden>
-        <h3>Multi-part run</h3>
+        <h3 id="multi-part-title">Multi-part run</h3>
         <div id="multi-part-options">
-          <p style="font-size:.72rem;color:var(--secondary-color);margin:0 0 10px;">The width above is the <strong>overall</strong> width of the run — the list reaches <span id="multi-width-max-note">3000</span> mm for the number of units chosen (1500 mm per unit).</p>
+          <p style="font-size:.72rem;color:var(--secondary-color);margin:0 0 10px;">The width above is the <strong>overall</strong> width of the <span id="multi-run-word">run</span> — the list reaches <span id="multi-width-max-note">3000</span> mm for the number of units chosen (1500 mm per unit).</p>
           <div class="input-group">
-            <label>Number of units:</label>
+            <label><span id="multi-units-label">Number of units</span>:</label>
             <div class="radio-group">
+              <div class="radio-option" id="mu-1-option" style="display:none;"><input type="radio" id="mu-1" name="multi-units" value="1"><label for="mu-1" class="radio-label">1</label></div>
               <div class="radio-option"><input type="radio" id="mu-2" name="multi-units" value="2" checked><label for="mu-2" class="radio-label">2</label></div>
               <div class="radio-option"><input type="radio" id="mu-3" name="multi-units" value="3"><label for="mu-3" class="radio-label">3</label></div>
               <div class="radio-option"><input type="radio" id="mu-4" name="multi-units" value="4"><label for="mu-4" class="radio-label">4</label></div>
-              <div class="radio-option"><input type="radio" id="mu-5" name="multi-units" value="5"><label for="mu-5" class="radio-label">5</label></div>
-              <div class="radio-option"><input type="radio" id="mu-6" name="multi-units" value="6"><label for="mu-6" class="radio-label">6</label></div>
+              <div class="radio-option" id="mu-5-option"><input type="radio" id="mu-5" name="multi-units" value="5"><label for="mu-5" class="radio-label">5</label></div>
+              <div class="radio-option" id="mu-6-option"><input type="radio" id="mu-6" name="multi-units" value="6"><label for="mu-6" class="radio-label">6</label></div>
+            </div>
+          </div>
+          <!-- Square bay only (owner, 02.10.2026): sides + corners -->
+          <div id="square-bay-options" style="display:none;">
+            <div class="input-group">
+              <label for="bay-side-width">Side window width (each side, frame size):</label>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input type="number" id="bay-side-width" min="400" max="1500" step="10" value="700" style="width:120px;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-size:.9rem;">
+                <span style="font-size:.72rem;color:var(--secondary-color);">mm · projection from the wall ≈ side + 164 mm (box depth)</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Corners:</label>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" id="bc-posts" name="bay-corners" value="posts" checked><label for="bc-posts" class="radio-label">Timber corner posts</label></div>
+                <div class="radio-option"><input type="radio" id="bc-piers" name="bay-corners" value="piers"><label for="bc-piers" class="radio-label">Masonry piers</label></div>
+              </div>
+              <p id="bay-corners-note" style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;">Posts: 120 mm timber posts at both front corners, the front run sits between them. Piers: the windows are set behind the piers, in the brickwork.</p>
+            </div>
+            <div id="bay-pier-options" style="display:none;">
+              <div class="input-group">
+                <label for="bay-pier-width">Pier width (set by our surveyor on site):</label>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <input type="number" id="bay-pier-width" min="100" max="450" step="10" value="150" style="width:120px;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-size:.9rem;">
+                  <span style="font-size:.72rem;color:var(--secondary-color);">mm</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>L-shaped trims inside, at the piers:</label>
+                <div class="radio-group">
+                  <div class="radio-option"><input type="radio" id="bt-yes" name="bay-ltrims" value="yes" checked><label for="bt-yes" class="radio-label">Yes</label></div>
+                  <div class="radio-option"><input type="radio" id="bt-no" name="bay-ltrims" value="no"><label for="bt-no" class="radio-label">No</label></div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="input-group">
@@ -2521,7 +2556,7 @@
             <p id="multi-units-note" style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;"></p>
           </div>
           <div class="input-group">
-            <label>Cover strips on the joins (100 × 17 mm):</label>
+            <label>Cover strips on the <span id="multi-joins-word">joins</span> (100 × 17 mm):</label>
             <div class="radio-group">
               <div class="radio-option"><input type="radio" id="mc-both" name="multi-covers" value="both" checked><label for="mc-both" class="radio-label">Inside &amp; outside</label></div>
               <div class="radio-option"><input type="radio" id="mc-outside" name="multi-covers" value="outside"><label for="mc-outside" class="radio-label">Outside only</label></div>
@@ -4639,18 +4674,18 @@
 <!-- 2. Pricing config -->
 <script src="js/ironmongery-data.js?v=3"></script>
 <script src="js/ironmongery-gallery.js?v=4"></script>
-<script src="js/pricing-config.js?v=15"></script>
+<script src="js/pricing-config.js?v=16"></script>
 <script src="js/config.js?v=4"></script>
-<script src="js/price-calculator.js?v=23"></script>
+<script src="js/price-calculator.js?v=24"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=4"></script>
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=5"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=16"></script>
+<script src="js/specification-controller.js?v=17"></script>
 <script src="js/configurator-core.js?v=6"></script>
-<script src="js/multi-part-controller.js?v=6"></script>
+<script src="js/multi-part-controller.js?v=7"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
 <script src="js/casement-controller.js?v=20"></script>
@@ -4671,9 +4706,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=13"></script>
-<script src="js/estimate-renderer.js?v=45"></script>
+<script src="js/estimate-renderer.js?v=46"></script>
 <script src="js/estimate-selector.js?v=3"></script>
-<script src="js/estimate-manager.js?v=11"></script>
+<script src="js/estimate-manager.js?v=12"></script>
 <script src="js/edit-mode.js?v=15"></script>
 
 <!-- Ironmongery Gallery Overlay -->
@@ -5017,7 +5052,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=110";
+      psw3dScript.src = "3d/assets/window3d.js?v=111";
       document.head.appendChild(psw3dScript);
     }
   </script>

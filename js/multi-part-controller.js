@@ -6,10 +6,15 @@
  * (price, 3D, spec, save, edit) is reused unchanged; only this file knows the tile is special.
  *
  * Owns:
- *   · #special-layout-section (Product Range): Multi-part run · Bay · Square bay (bays disabled
- *     until built). While special: the Sash Type radios are hidden (double-hung forced), Head Type
- *     (glazing arch) stays available.
- *   · #multi-part-section (Dimensions): number of units, unit widths, cover strips, continuous cill.
+ *   · #special-layout-section (Product Range): Multi-part run · Bay (canted — not built yet) ·
+ *     Square bay (02.10.2026). While special: the Sash Type radios are hidden (double-hung
+ *     forced), Head Type (glazing arch) stays available.
+ *   · #multi-part-section (Dimensions): number of units (run 2–6, bay front 1–4), unit widths,
+ *     cover strips, continuous cill; for the square bay also #square-bay-options: side window
+ *     width (each side, frame size), corners (timber posts 120 / masonry piers of the owner's
+ *     width, windows set behind them, optional L-trims inside).
+ *   · config keys for the bay: windowLayout 'square-bay', baySideWidth, bayCorners
+ *     ('posts'|'piers'), bayPierWidth, bayLTrims — null for a run / a single window.
  *   · the width list / max while a run is active: N × 1500 (one unit = one standard sash, max 1500).
  *   · three config keys:
  *       currentConfig.multiUnits   — unit widths (mm) AS ENTERED, sum = the entered overall width;
@@ -47,13 +52,20 @@
   function isWindows() { return (checked('product-range') || 'windows') !== 'doors'; }
   function isSpecial() { var t = $('type-special'); return isWindows() && !!(t && t.checked); }
   function layout() { return checked('special-layout') || 'multi'; }
+  function isBay() { return layout() === 'square-bay'; }
   // Double-hung only (this release): the Sash Type radios are hidden while special, double is forced.
-  function isMulti() { return isSpecial() && layout() === 'multi' && (checked('sash-type') || 'double') === 'double'; }
-  function unitCount() { return Math.min(6, Math.max(2, parseInt(checked('multi-units'), 10) || 2)); }
+  // Both layouts (multi-part run, square bay) are "multi": a run of units — the bay adds two sides.
+  function isMulti() { return isSpecial() && (layout() === 'multi' || layout() === 'square-bay') && (checked('sash-type') || 'double') === 'double'; }
+  function unitMin() { return isBay() ? 1 : 2; }
+  function unitMaxCount() { return isBay() ? 4 : 6; }
+  function unitCount() { return Math.min(unitMaxCount(), Math.max(unitMin(), parseInt(checked('multi-units'), 10) || unitMin())); }
   function multiWidthMax() { return unitCount() * UNIT_MAX; }   // 6 units → 6 × 1500 = 9000
+  function sideWidth() { var v = parseInt(($('bay-side-width') || {}).value, 10); return Math.min(UNIT_MAX, Math.max(UNIT_MIN, v || 700)); }
+  function pierWidth() { var v = parseInt(($('bay-pier-width') || {}).value, 10); return Math.min(450, Math.max(100, v || 150)); }
 
   // Equal split that still sums exactly to the overall width (last unit takes the remainder)
   function equalUnits(total, n) {
+    if (n <= 1) return [total];
     var base = Math.floor(total / n), out = [], acc = 0;
     for (var i = 0; i < n - 1; i++) { out.push(base); acc += base; }
     out.push(total - acc);
@@ -89,7 +101,7 @@
   function computeUnits() {
     var total = overallWidth(), n = unitCount();
     if (!(total > 0)) return { units: null, error: 'Enter the overall width first.' };
-    var mode = checked('multi-widths') || 'equal';
+    var mode = (n <= 1) ? 'equal' : (checked('multi-widths') || 'equal');
     var units = (mode === 'individual') ? readIndividual(n) : equalUnits(total, n);
     var sum = units.reduce(function (a, b) { return a + b; }, 0);
     var err = null;
@@ -176,11 +188,28 @@
   }
 
   // ── Mode: the Special tile switches the layout UI on; the Sash Type radios hide (double forced) ──
+  function applyLayoutUi() {
+    var bay = isSpecial() && isBay();
+    var t = $('multi-part-title'); if (t) t.textContent = bay ? 'Square bay — front and sides' : 'Multi-part run';
+    var rw = $('multi-run-word'); if (rw) rw.textContent = bay ? 'front' : 'run';
+    var ul = $('multi-units-label'); if (ul) ul.textContent = bay ? 'Front units' : 'Number of units';
+    var jw = $('multi-joins-word'); if (jw) jw.textContent = bay ? 'front joins' : 'joins';
+    var o1 = $('mu-1-option'); if (o1) o1.style.display = bay ? '' : 'none';
+    var o5 = $('mu-5-option'); if (o5) o5.style.display = bay ? 'none' : '';
+    var o6 = $('mu-6-option'); if (o6) o6.style.display = bay ? 'none' : '';
+    var n = parseInt(checked('multi-units'), 10) || 2;
+    if (bay && n > 4) setRadio('multi-units', '4');
+    if (!bay && n < 2) setRadio('multi-units', '2');
+    var bo = $('square-bay-options'); if (bo) bo.style.display = bay ? '' : 'none';
+    var po = $('bay-pier-options'); if (po) po.style.display = (bay && checked('bay-corners') === 'piers') ? '' : 'none';
+  }
+
   function applyMode() {
     var special = isSpecial();
     var ls = $('special-layout-section'), sts = $('sash-type-section');
     if (ls) ls.hidden = !special;
     if (sts) sts.classList.toggle('psw-special', special);
+    applyLayoutUi();
     if (special) {
       var dbl = $('sash-double');
       if (dbl && !dbl.checked) {            // triple / arched → double: the sash-type handler sets limits + 3D
@@ -205,7 +234,8 @@
     if (multi) extendWidthList(multiWidthMax()); else restoreWidthList();
     if (multi && overallWidth() >= UNIT_MIN && ensureWidthForUnits(unitCount())) return;   // out of range for this count → n × 1000, apply() follows
     var hint = $('hint-product-range');
-    if (hint && isSpecial()) hint.textContent = 'Special Layout · Multi-part run';
+    if (hint && isSpecial()) hint.textContent = isBay() ? 'Special Layout · Square bay' : 'Special Layout · Multi-part run';
+    applyLayoutUi();
 
     var note = $('multi-units-note');
     var units = null, covers = 'both', sillExt = 0;
@@ -247,21 +277,30 @@
 
     // Nothing changed (e.g. a width edit on a single window): leave the 3D and the price
     // alone — the dimension handler already recalculates, a second pass would only add churn.
-    var key = JSON.stringify([units, multi ? covers : null, multi ? sillExt : 0]);
+    var bay = multi && isBay();
+    var layoutKey = multi ? (bay ? 'square-bay' : 'multi-part') : null;
+    var bayKeys = bay ? { baySideWidth: sideWidth(), bayCorners: checked('bay-corners') || 'posts', bayPierWidth: pierWidth(), bayLTrims: (checked('bay-ltrims') || 'yes') === 'yes' }
+                      : { baySideWidth: null, bayCorners: null, bayPierWidth: null, bayLTrims: null };
+    var key = JSON.stringify([units, multi ? covers : null, multi ? sillExt : 0, layoutKey, bayKeys]);
     var changed = (key !== lastKey) || (cfg && JSON.stringify(cfg.multiUnits || null) !== JSON.stringify(units));
     lastKey = key;
     if (cfg) {
       cfg.multiUnits = units;
       cfg.multiCovers = multi ? covers : null;
       cfg.multiSillExt = multi ? sillExt : 0;
-      cfg.windowLayout = multi ? 'multi-part' : null;
+      cfg.windowLayout = layoutKey;
+      cfg.baySideWidth = bayKeys.baySideWidth;
+      cfg.bayCorners = bayKeys.bayCorners;
+      cfg.bayPierWidth = bayKeys.bayPierWidth;
+      cfg.bayLTrims = bayKeys.bayLTrims;
     }
     refreshSpec(multi, units, covers, sillExt);
     if (!changed) return;
 
-    // 3D — the run renders when multiUnits has 2+ entries, a single window otherwise
+    // 3D — the run / bay renders from multiUnits (+ layout), a single window otherwise
     if (typeof window.update3D === 'function') {
-      window.update3D({ multiUnits: units, multiCovers: covers, multiSillExt: sillExt });
+      window.update3D({ multiUnits: units, multiCovers: covers, multiSillExt: sillExt, windowLayout: layoutKey,
+        baySideWidth: bayKeys.baySideWidth || 700, bayCorners: bayKeys.bayCorners || 'posts', bayPierWidth: bayKeys.bayPierWidth || 150, bayLTrims: bayKeys.bayLTrims === null ? true : bayKeys.bayLTrims });
     }
     if (!opts.silentPrice) {
       if (window.configuratorCore && window.configuratorCore.isInitialized && typeof window.configuratorCore.updateAll === 'function') window.configuratorCore.updateAll();
@@ -281,22 +320,38 @@
     if (!item || !val) return;
     if (!multi || !units) { item.style.display = 'none'; return; }
     var coversTxt = covers === 'both' ? 'inside & outside' : covers === 'inside' ? 'inside only' : 'outside only';
-    val.textContent = 'Multi-part run · ' + units.length + ' units (' + frameUnits(units).join(' / ') + ' mm) · cover strips ' + coversTxt
-      + ' · continuous cill' + (sillExt ? ' +' + sillExt + ' mm each end' : '');
+    if (isBay()) {
+      var corners = (checked('bay-corners') || 'posts') === 'piers'
+        ? 'masonry piers ' + pierWidth() + ' mm (windows set behind)' + (((checked('bay-ltrims') || 'yes') === 'yes') ? ', L-trims inside' : '')
+        : 'timber corner posts 120 mm';
+      val.textContent = 'Square bay 90° · front ' + units.length + (units.length === 1 ? ' unit' : ' units') + ' (' + frameUnits(units).join(' / ') + ' mm) + 1 each side ' + sideWidth() + ' mm · '
+        + corners + (units.length > 1 ? ' · front cover strips ' + coversTxt : '') + ' · continuous cill' + (sillExt ? ' +' + sillExt + ' mm each end' : '');
+    } else {
+      val.textContent = 'Multi-part run · ' + units.length + ' units (' + frameUnits(units).join(' / ') + ' mm) · cover strips ' + coversTxt
+        + ' · continuous cill' + (sillExt ? ' +' + sillExt + ' mm each end' : '');
+    }
     item.style.display = '';
   }
 
   // ── Restore from a saved config (edit-mode, localStorage) ──────────────────
   function applyFromConfig(fc) {
     fc = fc || window.currentConfig || {};
-    var units = Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 2 ? fc.multiUnits.slice() : null;
+    var isBayCfg = fc.windowLayout === 'square-bay';
+    var units = Array.isArray(fc.multiUnits) && fc.multiUnits.length >= (isBayCfg ? 1 : 2) ? fc.multiUnits.slice() : null;
     if (!units) {                                   // a plain sash: back to the Sash tile (same value, no page handler needed)
       var plain = $('type-sash'); if (plain && isSpecial()) plain.checked = true;
       applyMode(); return;
     }
     var tile = $('type-special'); if (tile) tile.checked = true;   // same value ("sash") as the tile edit-mode set — no change event needed
-    setRadio('special-layout', 'multi');
-    setRadio('multi-units', String(Math.min(6, Math.max(2, units.length))));
+    setRadio('special-layout', isBayCfg ? 'square-bay' : 'multi');
+    if (isBayCfg) {
+      var sw = $('bay-side-width'); if (sw) sw.value = String(fc.baySideWidth || 700);
+      setRadio('bay-corners', fc.bayCorners === 'piers' ? 'piers' : 'posts');
+      var pw = $('bay-pier-width'); if (pw) pw.value = String(fc.bayPierWidth || 150);
+      setRadio('bay-ltrims', fc.bayLTrims === false ? 'no' : 'yes');
+    }
+    applyLayoutUi();
+    setRadio('multi-units', String(Math.min(isBayCfg ? 4 : 6, Math.max(isBayCfg ? 1 : 2, units.length))));
     var total = units.reduce(function (a, b) { return a + b; }, 0);
     var eq = equalUnits(total, units.length);
     var isEqual = units.every(function (u, i) { return u === eq[i]; });
@@ -315,17 +370,19 @@
       window.currentConfig.multiUnits = units;
       window.currentConfig.multiCovers = fc.multiCovers || 'both';
       window.currentConfig.multiSillExt = fc.multiSillExt || 0;
-      window.currentConfig.windowLayout = 'multi-part';
+      window.currentConfig.windowLayout = isBayCfg ? 'square-bay' : 'multi-part';
     }
-    lastKey = JSON.stringify([units, fc.multiCovers || 'both', fc.multiSillExt || 0]);
+    lastKey = null;                                 // the next apply() re-pushes the full state (bay keys included)
     lastTotal = total;                              // the restored width equals the units' sum (edit-mode sets it next)
-    if (typeof window.update3D === 'function') window.update3D({ multiUnits: units, multiCovers: fc.multiCovers || 'both', multiSillExt: fc.multiSillExt || 0 });
+    if (typeof window.update3D === 'function') window.update3D({ multiUnits: units, multiCovers: fc.multiCovers || 'both', multiSillExt: fc.multiSillExt || 0, windowLayout: isBayCfg ? 'square-bay' : 'multi-part',
+      baySideWidth: fc.baySideWidth || 700, bayCorners: fc.bayCorners || 'posts', bayPierWidth: fc.bayPierWidth || 150, bayLTrims: fc.bayLTrims !== false });
     refreshSpec(true, units, fc.multiCovers || 'both', fc.multiSillExt || 0);
   }
   window.applyMultiPartFromConfig = applyFromConfig;
   window.getMultiPartConfig = function () {
     var c = window.currentConfig || {};
-    return { multiUnits: c.multiUnits || null, multiCovers: c.multiCovers || null, multiSillExt: c.multiSillExt || 0 };
+    return { multiUnits: c.multiUnits || null, multiCovers: c.multiCovers || null, multiSillExt: c.multiSillExt || 0, windowLayout: c.windowLayout || null,
+      baySideWidth: c.baySideWidth || null, bayCorners: c.bayCorners || null, bayPierWidth: c.bayPierWidth || null, bayLTrims: c.bayLTrims == null ? null : c.bayLTrims };
   };
 
   // ── Wiring ─────────────────────────────────────────────────────────────────
@@ -356,6 +413,10 @@
     var box = $('multi-unit-widths');
     if (box) box.addEventListener('input', function () { schedule(apply); });
     var se = $('multi-sill-ext'); if (se) se.addEventListener('change', apply);
+    // Square bay inputs
+    document.querySelectorAll('input[name="bay-corners"], input[name="bay-ltrims"]').forEach(function (r) { r.addEventListener('change', apply); });
+    var bsw = $('bay-side-width'); if (bsw) { bsw.addEventListener('input', function () { schedule(apply); }); bsw.addEventListener('change', apply); }
+    var bpw = $('bay-pier-width'); if (bpw) { bpw.addEventListener('input', function () { schedule(apply); }); bpw.addEventListener('change', apply); }
 
     // Window type (the Special tile included) switches the mode — after the page's own
     // window-type handlers have run (capture + delay). Overall width changes re-split the
@@ -370,7 +431,7 @@
     // Restore a run saved in this browser (configurator-core restores currentConfig first)
     setTimeout(function () {
       var c = window.currentConfig;
-      if (c && Array.isArray(c.multiUnits) && c.multiUnits.length >= 2) applyFromConfig(c);
+      if (c && Array.isArray(c.multiUnits) && c.multiUnits.length >= (c.windowLayout === 'square-bay' ? 1 : 2)) applyFromConfig(c);
     }, 300);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

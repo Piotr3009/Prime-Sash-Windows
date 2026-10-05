@@ -64,7 +64,8 @@ class PriceCalculator {
     const isSashRun = (!configuration.windowType || configuration.windowType === 'sash')
       && configuration.productType !== 'door' && configuration.windowCategory !== 'door'
       && (configuration.sashType || 'double') === 'double'   // double-hung units only (this release)
-      && Array.isArray(configuration.multiUnits) && configuration.multiUnits.length >= 2;
+      && Array.isArray(configuration.multiUnits)
+      && (configuration.multiUnits.length >= 2 || (configuration.windowLayout === 'square-bay' && configuration.multiUnits.length >= 1));
     if (isSashRun) {
       return this.calculateMultiPart(configuration, frameWidth, frameHeight);
     }
@@ -192,7 +193,24 @@ class PriceCalculator {
     };
   }
 
-  // ── Multi-part sash run (owner, 01.10.2026) ──────────────────────────────
+  // One standard double-hung sash of the given FRAME size, with every option of the
+  // configuration (glass, bars, colour, hardware…) — used for the units of a run / bay.
+  // Frame dims go straight in (actualFrameWidth wins in calculate()), so the
+  // brick-to-brick allowance is never applied a second time.
+  priceStandardUnit(configuration, frameW, frameH) {
+    const measurementType = configuration.measurementType || 'box-to-box';
+    const unitCfg = Object.assign({}, configuration, {
+      multiUnits: null, multiCovers: null, multiSillExt: 0, multiArrangement: 'single', windowLayout: null,
+      baySideWidth: null, bayCorners: null, bayPierWidth: null, bayLTrims: null,
+      width: frameW, height: frameH,
+      actualFrameWidth: frameW, actualFrameHeight: frameH,
+      measurementType: measurementType === 'brick-to-brick' ? 'box-to-box' : measurementType,
+      quantity: 1
+    });
+    return this.calculate(unitCfg);
+  }
+
+  // ── Multi-part sash run (owner, 01.10.2026) / square bay (02.10.2026) ────
   // unitPrice = Σ standard sash price(unit width × height) + joins + cill extension.
   // Unit widths are the customer-facing shares that sum to the overall width, so a run
   // of N equal units costs exactly N × one unit — plus the assembly extras.
@@ -205,19 +223,7 @@ class PriceCalculator {
     const enteredSum = entered.reduce((a, b) => a + b, 0);
     const extraEach = (enteredSum > 0 && frameWidth > 0) ? (frameWidth - enteredSum) / entered.length : 0;
     const units = entered.map(u => u + extraEach);
-    const measurementType = configuration.measurementType || 'box-to-box';
-    const unitResults = units.map(u => {
-      // frame dims go straight in (actualFrameWidth wins in calculate()), so the
-      // brick-to-brick allowance is not applied a second time.
-      const unitCfg = Object.assign({}, configuration, {
-        multiUnits: null, multiCovers: null, multiSillExt: 0, multiArrangement: 'single',
-        width: u, height: frameHeight,
-        actualFrameWidth: u, actualFrameHeight: frameHeight,
-        measurementType: measurementType === 'brick-to-brick' ? 'box-to-box' : measurementType,
-        quantity: 1
-      });
-      return this.calculate(unitCfg);
-    });
+    const unitResults = units.map(u => this.priceStandardUnit(configuration, u, frameHeight));
     const unitsTotal = unitResults.reduce((a, r) => a + (Number(r.unitPrice) || 0), 0);
 
     const joints = units.length - 1;
@@ -230,8 +236,20 @@ class PriceCalculator {
     const sillExt = String(configuration.multiSillExt || 0);
     const sillExtPrice = 2 * ((mp.sillExtPerEnd && mp.sillExtPerEnd[sillExt]) || 0);
 
-    // Multi-part surcharge (owner 01.10.2026): +15% on the whole run, before the quantity discount
-    const runSubtotal = unitsTotal + jointsPrice + sillExtPrice;
+    // ── Square bay (owner, 02.10.2026): + one standard unit on each side + the corners ──
+    const isBay = configuration.windowLayout === 'square-bay';
+    const bay = this.pricing.squareBay || { cornerPostPrice: 0, pierTrimPrice: 0 };
+    let sideResults = [], sidesTotal = 0, cornersPrice = 0, sideWidth = 0;
+    if (isBay) {
+      sideWidth = Math.max(200, Number(configuration.baySideWidth) || 700);
+      sideResults = [0, 1].map(() => this.priceStandardUnit(configuration, sideWidth, frameHeight));
+      sidesTotal = sideResults.reduce((a, r) => a + (Number(r.unitPrice) || 0), 0);
+      const piers = configuration.bayCorners === 'piers';
+      cornersPrice = 2 * (piers ? ((configuration.bayLTrims === false) ? 0 : (Number(bay.pierTrimPrice) || 0)) : (Number(bay.cornerPostPrice) || 0));
+    }
+
+    // Surcharge (0 since 01.10.2026 — owner: only the cover strips are charged), before the quantity discount
+    const runSubtotal = unitsTotal + jointsPrice + sillExtPrice + sidesTotal + cornersPrice;
     const surchargePct = Number(mp.surcharge) || 0;
     const surcharge = runSubtotal * surchargePct;
     const subtotal = runSubtotal + surcharge;
@@ -253,6 +271,11 @@ class PriceCalculator {
       coverStrips: joints * stripsPerJoin,
       jointsPrice: jointsPrice.toFixed(2),
       sillExtPrice: sillExtPrice.toFixed(2),
+      squareBay: isBay,
+      sideWidth: isBay ? sideWidth : null,
+      sidePrices: sideResults.map(r => Number(r.unitPrice) || 0),
+      sidesTotal: sidesTotal.toFixed(2),
+      cornersPrice: cornersPrice.toFixed(2),
       runSubtotal: runSubtotal.toFixed(2),
       multiSurcharge: (surchargePct * 100) + '%',
       multiSurchargeAmount: surcharge.toFixed(2),

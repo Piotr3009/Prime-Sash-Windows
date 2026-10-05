@@ -695,10 +695,15 @@ class EstimateManager {
                 lowerMaxLift: cfg.lowerMaxLift || null,
 
                 // ── MULTI-PART SASH RUN (owner, 01.10.2026) — unit widths as entered, null = single
-                multiUnits: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? cfg.multiUnits.slice() : null,
-                multiCovers: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? (cfg.multiCovers || 'both') : null,
-                multiSillExt: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? (cfg.multiSillExt || 0) : null,
-                windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? 'multi-part' : null,   // Special Layout Windows
+                multiUnits: (Array.isArray(cfg.multiUnits) && (cfg.multiUnits.length >= 2 || (cfg.windowLayout === 'square-bay' && cfg.multiUnits.length >= 1))) ? cfg.multiUnits.slice() : null,
+                multiCovers: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiCovers || 'both') : null,
+                multiSillExt: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiSillExt || 0) : null,
+                windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && (cfg.windowLayout === 'square-bay' || cfg.multiUnits.length >= 2)) ? (cfg.windowLayout || 'multi-part') : null,   // Special Layout Windows
+                // Square bay (02.10.2026): sides + corners
+                baySideWidth: cfg.windowLayout === 'square-bay' ? (cfg.baySideWidth || null) : null,
+                bayCorners: cfg.windowLayout === 'square-bay' ? (cfg.bayCorners || 'posts') : null,
+                bayPierWidth: cfg.windowLayout === 'square-bay' && cfg.bayCorners === 'piers' ? (cfg.bayPierWidth || 150) : null,
+                bayLTrims: cfg.windowLayout === 'square-bay' && cfg.bayCorners === 'piers' ? (cfg.bayLTrims !== false) : null,
 
                 // Detale (horns są w ironmongery)
                 horns: null,
