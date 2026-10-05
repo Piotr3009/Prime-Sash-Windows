@@ -225,9 +225,10 @@ class EstimateRenderer {
         const multiCovers = multiUnits ? (fc.multiCovers || 'both') : null;
         const multiSillExt = multiUnits ? (parseInt(fc.multiSillExt) || 0) : 0;
         const baySideWidth = isSquareBay ? (parseInt(fc.baySideWidth) || 700) : null;
-        const bayCorners = isSquareBay ? (fc.bayCorners === 'piers' ? 'piers' : 'posts') : null;
-        const bayPierWidth = isSquareBay && bayCorners === 'piers' ? (parseInt(fc.bayPierWidth) || 150) : null;
-        const bayLTrims = isSquareBay && bayCorners === 'piers' ? (fc.bayLTrims !== false) : null;
+        // Timber corner posts, width × depth (owner 05.10.2026: piers removed, size set by the owner;
+        // 164 × 164 = the box depth, also for a bay saved before the size could be set)
+        const bayPostWidth = isSquareBay ? EstimateRenderer.bayPostSize(fc.bayPostWidth) : null;
+        const bayPostDepth = isSquareBay ? EstimateRenderer.bayPostSize(fc.bayPostDepth) : null;
         let multiFrameUnits = null, multiText = '', bayText = '';
         if (multiUnits) {
             const _mSum = multiUnits.reduce((a, b) => a + b, 0);
@@ -237,13 +238,11 @@ class EstimateRenderer {
             const _joins = multiUnits.length - 1;
             const _joinsTxt = _joins > 0 ? _joins + (_joins === 1 ? ' join' : ' joins') + ' with 100 × 17 mm cover strips ' + _mCovers : 'no joins';
             if (isSquareBay) {
-                const _corners = bayCorners === 'piers'
-                    ? 'masonry piers ' + bayPierWidth + ' mm — windows set behind the piers' + (bayLTrims ? ', L-shaped trims inside' : '')
-                    : 'timber corner posts 120 mm';
-                const _frontOverall = bayCorners === 'piers' ? width : width + 240;
+                const _frontOverall = width + 2 * bayPostWidth;
                 bayText = 'Square bay 90° · front ' + multiUnits.length + (multiUnits.length === 1 ? ' unit' : ' units') + ' (' + multiFrameUnits.join(' / ') + ' mm)'
-                    + ' + 1 each side ' + baySideWidth + ' mm · ' + _corners + ' · front overall ' + _frontOverall + ' mm · projection ≈ ' + (baySideWidth + 164) + ' mm';
-                multiText = bayText + ' · front ' + _joinsTxt + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
+                    + ' + 1 each side ' + baySideWidth + ' mm · timber corner posts ' + bayPostWidth + ' × ' + bayPostDepth + ' mm · front overall ' + _frontOverall + ' mm · projection ' + (baySideWidth + bayPostDepth) + ' mm';
+                multiText = bayText + ' · 100 × 17 mm cover strips ' + _mCovers + ' on the ' + (_joins > 0 ? _joins + (_joins === 1 ? ' front join' : ' front joins') + ' and the ' : '') + 'corner posts'
+                    + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
             } else {
                 multiText = 'Multi-part run · ' + multiUnits.length + ' units (' + multiFrameUnits.join(' / ') + ' mm) · '
                     + _joinsTxt + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
@@ -608,7 +607,7 @@ class EstimateRenderer {
             archLowerMaxLift, archLowerBarsText,
             width, height, originalWidth, originalHeight, measurementType,
             multiUnits, multiFrameUnits, multiCovers, multiSillExt, multiText,
-            isSquareBay, baySideWidth, bayCorners, bayPierWidth, bayLTrims, bayText,
+            isSquareBay, baySideWidth, bayPostWidth, bayPostDepth, bayText,
             frameType, frameText,
             openingType, openingText,
             glassType, glassText, glassSpec, glassSpecText,
@@ -2421,9 +2420,20 @@ class EstimateRenderer {
         return svg;
     }
 
-    // ─── Square bay (owner, 02.10.2026): unfolded elevation — side · corner · front run · corner · side ───
-    // Front units as in the multi-part run (continuous cill, cover strips on the joins), one unit per
-    // side turned flat beside it, corner members drawn as posts (timber) or piers (masonry, hatched).
+    // Corner post size of a square bay as used by the 3D and the calculator: whole mm, 164…400,
+    // 164 (the box depth) when missing — e.g. a bay saved before the size could be set.
+    static bayPostSize(v) {
+        const n = Math.round(Number(v));
+        if (!Number.isFinite(n) || n <= 0) return 164;
+        return Math.min(400, Math.max(164, n));
+    }
+
+    // ─── Square bay (owner, 02.10.2026): unfolded elevation ───
+    // 05.10.2026 (owner): timber corner posts only (masonry piers removed), post size W × D from the
+    // config, cover strips at the posts as on the joins. The bay is unwrapped at both outer corners:
+    //   side window S · post side-face D ‖ post front-face W · front run · post front-face W ‖ post side-face D · side window S
+    // (‖ = the fold at the outer corner, drawn as a small gap). Front units as in the multi-part run
+    // (continuous cill, cover strips on the joins); each side has its own cill.
     static generateSquareBaySVG(item, fc) {
         const G = EstimateRenderer.SASH_GEO;
         const NS = 'vector-effect="non-scaling-stroke"';
@@ -2435,41 +2445,53 @@ class EstimateRenderer {
         const extraEach = enteredSum > 0 ? (fw - enteredSum) / entered.length : 0;
         const units = entered.map(u => u + extraEach);
         const S = Math.max(200, parseInt(fc.baySideWidth) || 700);
-        const piers = fc.bayCorners === 'piers';
-        const cornerW = piers ? Math.max(100, parseInt(fc.bayPierWidth) || 150) : 120;
+        const W = EstimateRenderer.bayPostSize(fc.bayPostWidth);       // post face seen from the front
+        const D = EstimateRenderer.bayPostSize(fc.bayPostDepth);       // post face seen from the side
         const covers = fc.multiCovers || 'both';
         const sillExt = parseInt(fc.multiSillExt) || 0;
         const headType = fc.headType || 'flat';
 
-        // Unfolded strip: side S | corner | front fw | corner | side S  (a small gap marks each fold).
-        // Posts sit BETWEEN the side and the front (the run is between the posts); piers stand IN FRONT
-        // of the windows, so they are drawn over the ends of the front run and take no extra width.
-        const GAP = 40;
-        const slotW = piers ? 0 : cornerW;
-        const totalRun = S + GAP + slotW + fw + slotW + GAP + S;
+        // The fold gap also has to hold the cill horn when the cill is extended past the corner
+        const GAP = Math.max(40, sillExt > 0 ? sillExt + 30 : 0);
+        const totalRun = S + D + GAP + W + fw + W + GAP + D + S;
         const M = Math.max(G.margin * 1.35, Math.max(totalRun, fh) * 0.07);
         const DM = Math.max(G.dimOffset, Math.max(totalRun, fh) * 0.055);
         const totalW = M + totalRun + DM + M;
-        const totalH = M + fh + DM * 1.6 + M * 0.4;
-        const ox = M, oy = M;
         const fs = 21 * (totalW / G.refW);
+        // Two dimension tiers under the drawing, spaced by the text size so the labels never overlap
+        const ox = M, oy = M;
+        const nearY = oy + fh + fs * 1.75;
+        const farY = nearY + fs * 1.75;
+        const totalH = farY + fs * 0.9 + M * 0.3;
         const SY = (y) => oy + (fh - y);
         const frameStyle = `fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1.4" ${NS}`;
         const coverStyle = `fill="rgba(10,22,40,0.11)" stroke="${G.navy}" stroke-width="1.1" ${NS}`;
         const postStyle = `fill="rgba(10,22,40,0.16)" stroke="${G.navy}" stroke-width="1.2" ${NS}`;
-        const pierStyle = `fill="url(#bayBrick)" stroke="${G.navy}" stroke-width="1.2" ${NS}`;
         const archFor = (uw) => headType === 'arch' ? Math.min(uw * 0.14, 150) : 0;
+        const postH = SY(0) - SY(fh);                                   // full height: cill bottom → head top
+        const coverH = SY(G.sillTop) - SY(fh);                          // cill top → head top
+        const coverAt = (jx) => `<rect x="${jx - 50}" y="${SY(fh)}" width="100" height="${coverH}" ${coverStyle}/>`;
+        const ownCill = (x0) => `<path d="M ${x0 + G.jambBot} ${SY(0)} L ${x0 + S - G.jambBot} ${SY(0)} L ${x0 + S - G.jambBot} ${SY(G.sillNose)} L ${x0 + G.jambBot} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
 
-        let svg = `<defs><pattern id="bayBrick" width="60" height="30" patternUnits="userSpaceOnUse"><rect width="60" height="30" fill="rgba(156,107,82,0.22)"/><path d="M0 15 H60 M30 0 V15 M0 15 V30 M60 15 V30" stroke="rgba(10,22,40,0.45)" stroke-width="1.2" fill="none"/></pattern></defs>`;
+        let svg = '';
+        const postJoints = [];                                          // post ↔ window joints (4)
 
-        // LEFT side (own cill)
+        // LEFT side window (own cill) + the post's side face
         let x = ox;
-        svg += EstimateRenderer.sashBoxUnitSVG(x, S, fh, SY, fc, archFor(S));
-        svg += `<path d="M ${x + G.jambBot} ${SY(0)} L ${x + S - G.jambBot} ${SY(0)} L ${x + S - G.jambBot} ${SY(G.sillNose)} L ${x + G.jambBot} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
         const leftX0 = x, leftX1 = x + S;
-        x += S + GAP;
-        // LEFT corner post (full height: cill bottom → head top) — piers are drawn after the run, over its ends
-        if (!piers) { svg += `<rect x="${x}" y="${SY(fh)}" width="${cornerW}" height="${SY(0) - SY(fh)}" ${postStyle}/>`; x += cornerW; }
+        svg += EstimateRenderer.sashBoxUnitSVG(x, S, fh, SY, fc, archFor(S));
+        svg += ownCill(x);
+        x += S;
+        postJoints.push(x);
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${D}" height="${postH}" ${postStyle}/>`;
+        x += D;
+        const foldL = x + GAP / 2;
+        x += GAP;
+        // LEFT post, front face
+        const overallX0 = x;
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${W}" height="${postH}" ${postStyle}/>`;
+        x += W;
+        postJoints.push(x);
         // FRONT run
         const frontX0 = x;
         const joints = [];
@@ -2479,41 +2501,50 @@ class EstimateRenderer {
             x += uw;
         });
         const frontX1 = x;
-        // one continuous cill under the front (through the posts: ext = cornerW; piers: run width)
-        const sillL = frontX0 + G.jambBot - (piers ? 0 : (G.jambBot + cornerW)) - (sillExt > 0 ? sillExt : 0);
-        const sillR = frontX1 - G.jambBot + (piers ? 0 : (G.jambBot + cornerW)) + (sillExt > 0 ? sillExt : 0);
-        svg += `<path d="M ${sillL} ${SY(0)} L ${sillR} ${SY(0)} L ${sillR} ${SY(G.sillNose)} L ${sillL} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
+        postJoints.push(x);
+        // one continuous cill under the front run (it runs on under the posts, which hide it there)
+        svg += `<path d="M ${frontX0 + G.jambBot} ${SY(0)} L ${frontX1 - G.jambBot} ${SY(0)} L ${frontX1 - G.jambBot} ${SY(G.sillNose)} L ${frontX0 + G.jambBot} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
         svg += `<line x1="${frontX0 + G.jambBot}" y1="${SY(G.sillWeatherbar)}" x2="${frontX1 - G.jambBot}" y2="${SY(G.sillWeatherbar)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
         svg += `<line x1="${frontX0 + G.jambBot}" y1="${SY(G.sillDrip)}" x2="${frontX1 - G.jambBot}" y2="${SY(G.sillDrip)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
-        if (covers !== 'none') joints.forEach(jx => { svg += `<rect x="${jx - 50}" y="${SY(fh)}" width="100" height="${SY(G.sillTop) - SY(fh)}" ${coverStyle}/>`; });
-        // RIGHT corner post, or both piers over the ends of the run
-        if (!piers) { svg += `<rect x="${x}" y="${SY(fh)}" width="${cornerW}" height="${SY(0) - SY(fh)}" ${postStyle}/>`; x += cornerW; }
-        else {
-            svg += `<rect x="${frontX0}" y="${SY(fh) - 40}" width="${cornerW}" height="${SY(0) - SY(fh) + 80}" ${pierStyle}/>`;
-            svg += `<rect x="${frontX1 - cornerW}" y="${SY(fh) - 40}" width="${cornerW}" height="${SY(0) - SY(fh) + 80}" ${pierStyle}/>`;
+        // RIGHT post, front face
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${W}" height="${postH}" ${postStyle}/>`;
+        x += W;
+        const overallX1 = x;
+        // extended cill: its horns project past both outer corners
+        if (sillExt > 0) {
+            svg += `<rect x="${overallX0 - sillExt}" y="${SY(G.sillNose)}" width="${sillExt}" height="${SY(0) - SY(G.sillNose)}" ${frameStyle}/>`;
+            svg += `<rect x="${overallX1}" y="${SY(G.sillNose)}" width="${sillExt}" height="${SY(0) - SY(G.sillNose)}" ${frameStyle}/>`;
         }
+        const foldR = x + GAP / 2;
         x += GAP;
-        // RIGHT side
-        svg += EstimateRenderer.sashBoxUnitSVG(x, S, fh, SY, fc, archFor(S));
-        svg += `<path d="M ${x + G.jambBot} ${SY(0)} L ${x + S - G.jambBot} ${SY(0)} L ${x + S - G.jambBot} ${SY(G.sillNose)} L ${x + G.jambBot} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
+        // RIGHT post, side face + the side window (own cill)
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${D}" height="${postH}" ${postStyle}/>`;
+        x += D;
+        postJoints.push(x);
         const rightX0 = x, rightX1 = x + S;
+        svg += EstimateRenderer.sashBoxUnitSVG(x, S, fh, SY, fc, archFor(S));
+        svg += ownCill(x);
+
+        // Cover strips 100 mm: over every front join and over every post ↔ window joint
+        if (covers !== 'none') {
+            joints.forEach(jx => { svg += coverAt(jx); });
+            postJoints.forEach(jx => { svg += coverAt(jx); });
+        }
 
         // Labels on the parts
         const lbl = `fill="${G.navy}" opacity="0.5" font-family="Jost,sans-serif" font-size="${fs * 0.9}" text-anchor="middle" letter-spacing="3"`;
         svg += `<text x="${(leftX0 + leftX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>SIDE</text>`;
         svg += `<text x="${(frontX0 + frontX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>FRONT</text>`;
         svg += `<text x="${(rightX0 + rightX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>SIDE</text>`;
-        const cL = piers ? frontX0 + cornerW / 2 : frontX0 - cornerW / 2, cR = piers ? frontX1 - cornerW / 2 : frontX1 + cornerW / 2;
-        svg += `<text x="${cL}" y="${SY(fh / 2)}" ${lbl} transform="rotate(-90,${cL},${SY(fh / 2)})">${piers ? 'PIER' : 'POST'}</text>`;
-        svg += `<text x="${cR}" y="${SY(fh / 2)}" ${lbl} transform="rotate(-90,${cR},${SY(fh / 2)})">${piers ? 'PIER' : 'POST'}</text>`;
+        const plbl = `fill="${G.navy}" opacity="0.6" font-family="Jost,sans-serif" font-size="${fs * 0.7}" text-anchor="middle" letter-spacing="3"`;
+        [foldL, foldR].forEach(cx => { svg += `<text x="${cx}" y="${SY(fh / 2)}" dy="0.35em" ${plbl} transform="rotate(-90,${cx},${SY(fh / 2)})">POST ${W} × ${D}</text>`; });
 
-        // Dimensions: units (near) · side / front overall (far) · height (right)
+        // Dimensions: near tier — side · front units · side; far tier — front overall (posts included); height on the right
+        svg += EstimateRenderer.sashDimH(nearY, leftX0, leftX1, oy + fh, `${Math.round(S)}`, fs);
         let ux = frontX0;
-        if (units.length > 1) units.forEach((uw) => { svg += EstimateRenderer.sashDimH(oy + fh + DM * 0.6, ux, ux + uw, oy + fh, `${Math.round(uw)}`, fs); ux += uw; });
-        const farY = oy + fh + DM * (units.length > 1 ? 1.35 : 0.75);
-        svg += EstimateRenderer.sashDimH(farY, leftX0, leftX1, oy + fh, `${Math.round(S)} side`, fs);
-        svg += EstimateRenderer.sashDimH(farY, frontX0 - slotW, frontX1 + slotW, oy + fh, `${Math.round(fw + 2 * slotW)} front overall`, fs);
-        svg += EstimateRenderer.sashDimH(farY, rightX0, rightX1, oy + fh, `${Math.round(S)} side`, fs);
+        units.forEach((uw) => { svg += EstimateRenderer.sashDimH(nearY, ux, ux + uw, oy + fh, `${Math.round(uw)}`, fs); ux += uw; });
+        svg += EstimateRenderer.sashDimH(nearY, rightX0, rightX1, oy + fh, `${Math.round(S)}`, fs);
+        svg += EstimateRenderer.sashDimH(farY, overallX0, overallX1, oy + fh, `${Math.round(fw + 2 * W)} front overall`, fs);
         svg += EstimateRenderer.sashDimV(ox + totalRun + DM * 0.75, oy, oy + fh, ox + totalRun, `${Math.round(fh)}`, fs);
 
         return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;

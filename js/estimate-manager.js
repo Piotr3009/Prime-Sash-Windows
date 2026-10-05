@@ -699,11 +699,10 @@ class EstimateManager {
                 multiCovers: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiCovers || 'both') : null,
                 multiSillExt: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiSillExt || 0) : null,
                 windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && (cfg.windowLayout === 'square-bay' || cfg.multiUnits.length >= 2)) ? (cfg.windowLayout || 'multi-part') : null,   // Special Layout Windows
-                // Square bay (02.10.2026): sides + corners
+                // Square bay (02.10.2026): sides + timber corner posts (05.10.2026: post size, piers removed)
                 baySideWidth: cfg.windowLayout === 'square-bay' ? (cfg.baySideWidth || null) : null,
-                bayCorners: cfg.windowLayout === 'square-bay' ? (cfg.bayCorners || 'posts') : null,
-                bayPierWidth: cfg.windowLayout === 'square-bay' && cfg.bayCorners === 'piers' ? (cfg.bayPierWidth || 150) : null,
-                bayLTrims: cfg.windowLayout === 'square-bay' && cfg.bayCorners === 'piers' ? (cfg.bayLTrims !== false) : null,
+                bayPostWidth: cfg.windowLayout === 'square-bay' ? (cfg.bayPostWidth || 164) : null,
+                bayPostDepth: cfg.windowLayout === 'square-bay' ? (cfg.bayPostDepth || 164) : null,
 
                 // Detale (horns są w ironmongery)
                 horns: null,

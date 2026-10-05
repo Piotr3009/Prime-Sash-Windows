@@ -155,10 +155,13 @@ const pricingConfig = {
 
   // ═══ SQUARE BAY — Special Layout Windows (owner, 02.10.2026) ═══
   // Front units + 2 side units priced as standard sashes (+ front cover strips as above).
-  // Corner extras are 0 until the owner prices them ("nie dodajemy prawie nic").
+  // Corner posts themselves are 0 until the owner prices them ("nie dodajemy prawie nic").
+  // 05.10.2026 (owner): masonry piers removed; cover strips at the posts "as on the joins" —
+  // a bay has 4 post/window joints (each post: front face + side face), each priced like a
+  // join: 2 strips inside & outside / 1 one side → 8 or 4 strips per bay.
   squareBay: {
-    cornerPostPrice: 0,         // £ per timber corner post (2 per bay)
-    pierTrimPrice: 0            // £ per L-shaped trim at a masonry pier (2 per bay, when chosen)
+    cornerPostPrice: 0,         // £ per timber corner post (2 per bay), any size — to be set by owner
+    postCoverStripPrice: 60     // £ per cover strip at a corner post (same as multiPart.coverStripPrice)
   },
   
   // ═══ CASEMENT PRICING ═══
