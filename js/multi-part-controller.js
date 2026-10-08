@@ -18,7 +18,8 @@
  *     way: the front list stops at 7000 − 2 × side, the side stops at (7000 − front) / 2.
  *   · config keys for the bay: windowLayout 'square-bay', baySideWidth, bayPostWidth,
  *     bayPostDepth — null for a run / a single window.
- *   · the width list / max while a run is active: N × 1500 (one unit = one standard sash, max 1500).
+ *   · the width list / max while a run is active: N × 2000 (one unit = one sash, max 2000 — owner,
+ *     08.10.2026: was 1500, the standard single double-hung limit; raised for runs and bays).
  *   · three config keys:
  *       currentConfig.multiUnits   — unit widths (mm) AS ENTERED, sum = the entered overall width;
  *                                    null = single window. Brick-to-brick: the run's +150 allowance
@@ -34,7 +35,7 @@
 (function () {
   'use strict';
 
-  var UNIT_MIN = 400, UNIT_MAX = 1500;   // one unit = one standard double-hung sash
+  var UNIT_MIN = 400, UNIT_MAX = 2000;   // one unit = one double-hung sash; max 2000 in runs and bays (owner, 08.10.2026 — was 1500)
   var UNIT_COUNT_MAX = 6;                // run 2–6 units; square-bay front 1–6 (+ 1 each side = 8 windows)
   var BAY_TOTAL_MAX = 7000;              // square bay: front + both sides, mm — the corner posts are extra
   var POST_MIN = 164, POST_MAX = 400, POST_DEFAULT = 164;   // corner post, mm: the box depth as standard, never smaller
@@ -67,7 +68,7 @@
   function unitMin() { return isBay() ? 1 : 2; }
   function unitMaxCount() { return UNIT_COUNT_MAX; }
   function unitCount() { return Math.min(unitMaxCount(), Math.max(unitMin(), parseInt(checked('multi-units'), 10) || unitMin())); }
-  // Square bay — side window: a standard sash (400–1500) that also fits in what the accepted
+  // Square bay — side window: a sash of 400–2000 (UNIT_MAX) that also fits in what the accepted
   // front leaves of the 7 m. Before a front is accepted (entering the layout) the field rules.
   function sideCap() {
     if (bayFront === null) return UNIT_MAX;
@@ -79,7 +80,7 @@
   function postSize(id) { var v = parseInt(($(id) || {}).value, 10); return Math.min(POST_MAX, Math.max(POST_MIN, (v > 0) ? v : POST_DEFAULT)); }
   function postWidth() { return postSize('bay-post-width'); }
   function postDepth() { return postSize('bay-post-depth'); }
-  // Overall-width limit: N × 1500 (6 units → 9000); square-bay front: also what the sides leave of the 7 m
+  // Overall-width limit: N × 2000 (6 units → 12 000); square-bay front: also what the sides leave of the 7 m
   function widthMaxFor(n) {
     var m = n * UNIT_MAX;
     return isBay() ? Math.min(m, BAY_TOTAL_MAX - 2 * sideWidth()) : m;
@@ -140,7 +141,7 @@
     return { units: units, error: err, total: total, sum: sum, n: n, mode: mode };
   }
 
-  // ── Width list / max: extended to N × 1500 while a run is active, restored after ──
+  // ── Width list / max: extended to N × 2000 while a run is active, restored after ──
   function extendWidthList(maxW) {
     var sel = $('width-select'), inp = $('width');
     if (!sel || !inp) return;
@@ -226,8 +227,8 @@
     var t = $('multi-part-title'); if (t) t.textContent = bay ? 'Square bay — front and sides' : 'Multi-part run';
     var rw = $('multi-run-word'); if (rw) rw.textContent = bay ? 'front' : 'run';
     var wr = $('multi-width-rule'); if (wr) wr.textContent = bay
-      ? '(1500 mm per unit; front + both sides up to ' + BAY_TOTAL_MAX + ' mm — the corner posts are extra)'
-      : 'for the number of units chosen (1500 mm per unit)';
+      ? '(' + UNIT_MAX + ' mm per unit; front + both sides up to ' + BAY_TOTAL_MAX + ' mm — the corner posts are extra)'
+      : 'for the number of units chosen (' + UNIT_MAX + ' mm per unit)';
     var ul = $('multi-units-label'); if (ul) ul.textContent = bay ? 'Front units' : 'Number of units';
     var jw = $('multi-joins-word'); if (jw) jw.textContent = bay ? 'joins and corner posts' : 'joins';
     var o1 = $('mu-1-option'); if (o1) o1.style.display = bay ? '' : 'none';
@@ -250,7 +251,7 @@
     if (tn) {
       var cap = sideCap();
       var limited = sideTyped() > S;                 // the typed side does not fit beside this front
-      // Whenever the front leaves less than a full 1500 for each side, say how much it leaves —
+      // Whenever the front leaves less than a full UNIT_MAX for each side, say how much it leaves —
       // so a side that was cut back on leaving the field is explained (red while it is being typed)
       tn.textContent = 'Front ' + front + ' + sides 2 × ' + S + ' = ' + (front + 2 * S) + ' mm — up to ' + BAY_TOTAL_MAX + ' mm, the corner posts are extra.'
         + (cap < UNIT_MAX ? ' With this front the sides can be up to ' + cap + ' mm (reduce the front first for wider sides).' : '');
@@ -478,7 +479,7 @@
     if (box) box.addEventListener('input', function () { schedule(apply); });
     var se = $('multi-sill-ext'); if (se) se.addEventListener('change', apply);
     // Square bay inputs: live while typing; on leaving the field it shows the value actually used
-    // (side: 400–1500 and what the front leaves of the 7 m; posts: 164–400)
+    // (side: 400–2000 and what the front leaves of the 7 m; posts: 164–400)
     var bsw = $('bay-side-width');
     if (bsw) {
       bsw.addEventListener('input', function () { schedule(apply); });
