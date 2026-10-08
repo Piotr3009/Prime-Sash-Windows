@@ -66,7 +66,7 @@ ${withRenderer ? `
   ${bodyHtml}
 ${withRenderer ? `
 <script>window.__SHARED_ESTIMATE__ = ${estimateJson};</script>
-<script src="/js/viewer3d-modal.js?v=9"></script>
+<script src="/js/viewer3d-modal.js?v=10"></script>
 <script src="/js/estimate-renderer.js?v=${RENDERER_VERSION}"></script>
 <script>
   (function () {

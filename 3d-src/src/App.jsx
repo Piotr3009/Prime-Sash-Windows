@@ -10,7 +10,7 @@ import FixFrameWindow from './components/fix-frame/FixFrameWindow';
 import DoorWindow from './components/door/DoorWindow';
 import ArchedSashWindow, { archedSashMetrics } from './components/ArchedSashWindow';
 import MultiPartSashRun from './components/multi/MultiPartSashRun';
-import SquareBayWindow from './components/multi/SquareBayWindow';
+import SquareBayWindow, { bayPostSize } from './components/multi/SquareBayWindow';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -25,15 +25,38 @@ function fitDistance(widthMm, heightMm, fovDeg = 45, aspect = 1.78, margin = 1.7
   return Math.max(distH, distW) * margin;
 }
 
+// Square bay (owner, 08.10.2026): the side windows come toward the camera, so a fit from the
+// front width and the height alone cuts the near side off in wide views (the shared-link page,
+// the estimate's "View in 3D"). This is the distance at which every corner of the bay's box
+// (mm, relative to the window centre) is inside the view, for the current camera direction.
+function boxFitDistance(box, direction, target, fovDeg, aspect, margin = 1.15) {
+  const view = direction.clone().negate();
+  const right = new THREE.Vector3().crossVectors(view, new THREE.Vector3(0, 1, 0)).normalize();
+  const up = new THREE.Vector3().crossVectors(right, view).normalize();
+  const ty = Math.tan((fovDeg * Math.PI) / 360) / margin;
+  const tx = ty * aspect;
+  let need = 0;
+  const p = new THREE.Vector3();
+  for (const x of [box.x0, box.x1]) for (const y of [box.y0, box.y1]) for (const z of [box.z0, box.z1]) {
+    p.set(x / 1000, y / 1000, z / 1000).sub(target);
+    const along = p.dot(direction);
+    need = Math.max(need, along + Math.max(Math.abs(p.dot(right)) / tx, Math.abs(p.dot(up)) / ty));
+  }
+  return need;
+}
+
 // Auto-zoom camera when window dimensions change (keeps angle, only adjusts distance)
-function AutoZoom({ width, height }) {
+function AutoZoom({ width, height, bayBox = null }) {
   const camera = useThree(s => s.camera);
   const controls = useThree(s => s.controls);
+  const size = useThree(s => s.size);
+  // a bay re-fits when the view is resized (its fit depends on the shape of the view)
+  const bayKey = bayBox ? [bayBox.x0, bayBox.x1, bayBox.y0, bayBox.y1, bayBox.z0, bayBox.z1, size.width, size.height].join(',') : '';
 
   useEffect(() => {
     if (!width || !height) return;
     const aspect = camera.aspect || 1.78;
-    const dist = fitDistance(width, height, camera.fov, aspect);
+    let dist = fitDistance(width, height, camera.fov, aspect);
 
     const target = new THREE.Vector3(0, 0.18, 0);
     const direction = new THREE.Vector3().subVectors(camera.position, target);
@@ -42,12 +65,14 @@ function AutoZoom({ width, height }) {
       direction.set(1.4, 0.52, 1.6);
     }
     direction.normalize();
+    // never closer than before — only further back when the bay would not fit
+    if (bayBox) dist = Math.max(dist, boxFitDistance(bayBox, direction, target, camera.fov, aspect));
 
     camera.position.copy(target).addScaledVector(direction, dist);
     camera.updateProjectionMatrix();
 
     if (controls && controls.update) controls.update();
-  }, [width, height, camera, controls]);
+  }, [width, height, camera, controls, bayKey]);
 
   return null;
 }
@@ -664,12 +689,24 @@ function Scene({ config, isMobile }) {
     return clamp(maxDimension * 0.9, 1.2, 3.2);
   }, [config.width, config.height]);
 
+  // Square bay: its whole box (mm, window centre = 0) for the camera fit — same geometry as
+  // SquareBayWindow: posts outside the front, sides from the back of the posts to the wall.
+  const isSquareBay = config.windowCategory === 'sash' && (config.sashType || 'double') === 'double'
+    && config.windowLayout === 'square-bay' && Array.isArray(config.multiUnits) && config.multiUnits.length >= 1;
+  const bayFitBox = useMemo(() => {
+    if (!isSquareBay) return null;
+    const overall = (Number(config.extWidth) || 0) + 2 * bayPostSize(config.bayPostWidth);
+    const unitH = (Number(config.extHeight) || 0) - 87;
+    const wallZ = -82 + bayPostSize(config.bayPostDepth) + Math.max(200, Number(config.baySideWidth) || 700);
+    return { x0: -overall / 2 - 17, x1: overall / 2 + 17, y0: -unitH / 2, y1: unitH / 2 + 87, z0: -99, z1: wallZ };
+  }, [isSquareBay, config.extWidth, config.extHeight, config.bayPostWidth, config.bayPostDepth, config.baySideWidth]);
+
   return (
     <>
 
       <PerspectiveCamera makeDefault position={[1.4, 0.7, 1.6]} fov={45} />
 
-      <AutoZoom width={config.width} height={config.height} />
+      <AutoZoom width={config.width} height={config.height} bayBox={bayFitBox} />
 
       {/* Ambient */}
       <ambientLight intensity={0.56 * b} />

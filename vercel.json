@@ -21,6 +21,10 @@
       "destination": "/api/passport?token=:token"
     },
     {
+      "source": "/d/:code",
+      "destination": "/api/design-view?code=:code"
+    },
+    {
       "source": "/q/:code",
       "destination": "/api/passport?plate=:code"
     }
