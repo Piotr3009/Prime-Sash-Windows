@@ -123,6 +123,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css?v=8">
   <link rel="stylesheet" href="css/configurator.css?v=2">
+  <link rel="stylesheet" href="css/share-design.css?v=1">
   <style>
 .login-button-top {
     position: fixed;
@@ -424,12 +425,12 @@
               <input type="radio" id="sl-bay" name="special-layout" value="bay" disabled>
               <label for="sl-bay" class="radio-label"><svg width="34" height="22" viewBox="0 0 96 40" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M4 8 L24 32 L72 32 L92 8"/><line x1="4" y1="8" x2="92" y2="8" stroke-dasharray="4 3" stroke-width="1.5"/></svg>Bay <span style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;">— coming soon</span></label>
             </div>
-            <div class="radio-option" style="opacity:.5;" title="Coming soon">
-              <input type="radio" id="sl-square-bay" name="special-layout" value="square-bay" disabled>
-              <label for="sl-square-bay" class="radio-label"><svg width="34" height="22" viewBox="0 0 96 40" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M14 8 L14 32 L82 32 L82 8"/><line x1="4" y1="8" x2="92" y2="8" stroke-dasharray="4 3" stroke-width="1.5"/></svg>Square bay <span style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;">— coming soon</span></label>
+            <div class="radio-option">
+              <input type="radio" id="sl-square-bay" name="special-layout" value="square-bay">
+              <label for="sl-square-bay" class="radio-label"><svg width="34" height="22" viewBox="0 0 96 40" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><path d="M14 8 L14 32 L82 32 L82 8"/><line x1="4" y1="8" x2="92" y2="8" stroke-dasharray="4 3" stroke-width="1.5"/></svg>Square bay</label>
             </div>
           </div>
-          <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;">Several standard double-hung sash units (each up to 1500 mm wide) coupled in one straight run: boxes 100 + 100 at every join, a 100 × 17 mm cover strip over each join, one continuous cill. Glass, bars, colour and hardware you pick in the next steps apply to the whole run.</p>
+          <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;"><strong>Multi-part run:</strong> standard double-hung sash units (each up to 2000 mm wide) coupled in one straight run — boxes 100 + 100 at every join, a 100 × 17 mm cover strip over each join, one continuous cill. <strong>Square bay:</strong> a front run of 1–6 units plus one unit on each side at 90° (up to 8 windows, front + both sides up to 7 m), on timber corner posts — 164 × 164 mm as standard — with cover strips at the posts as on the joins. Glass, bars, colour and hardware you pick in the next steps apply to every unit.</p>
         </div>
       </div>
 
@@ -2498,17 +2499,45 @@
            Internally a sash, so every sash option (bars, glass, colour, hardware) applies to the whole run.
            Shown only while #type-special (Product Range) is selected — see js/multi-part-controller.js. -->
       <div class="config-section" data-for="sash" data-category="dim-design" id="multi-part-section" hidden>
-        <h3>Multi-part run</h3>
+        <h3 id="multi-part-title">Multi-part run</h3>
         <div id="multi-part-options">
-          <p style="font-size:.72rem;color:var(--secondary-color);margin:0 0 10px;">The width above is the <strong>overall</strong> width of the run — the list reaches <span id="multi-width-max-note">3000</span> mm for the number of units chosen (1500 mm per unit).</p>
+          <p style="font-size:.72rem;color:var(--secondary-color);margin:0 0 10px;">The width above is the <strong>overall</strong> width of the <span id="multi-run-word">run</span> — the list reaches <span id="multi-width-max-note">3000</span> mm <span id="multi-width-rule">for the number of units chosen (2000 mm per unit)</span>.</p>
           <div class="input-group">
-            <label>Number of units:</label>
+            <label><span id="multi-units-label">Number of units</span>:</label>
             <div class="radio-group">
+              <div class="radio-option" id="mu-1-option" style="display:none;"><input type="radio" id="mu-1" name="multi-units" value="1"><label for="mu-1" class="radio-label">1</label></div>
               <div class="radio-option"><input type="radio" id="mu-2" name="multi-units" value="2" checked><label for="mu-2" class="radio-label">2</label></div>
               <div class="radio-option"><input type="radio" id="mu-3" name="multi-units" value="3"><label for="mu-3" class="radio-label">3</label></div>
               <div class="radio-option"><input type="radio" id="mu-4" name="multi-units" value="4"><label for="mu-4" class="radio-label">4</label></div>
-              <div class="radio-option"><input type="radio" id="mu-5" name="multi-units" value="5"><label for="mu-5" class="radio-label">5</label></div>
-              <div class="radio-option"><input type="radio" id="mu-6" name="multi-units" value="6"><label for="mu-6" class="radio-label">6</label></div>
+              <div class="radio-option" id="mu-5-option"><input type="radio" id="mu-5" name="multi-units" value="5"><label for="mu-5" class="radio-label">5</label></div>
+              <div class="radio-option" id="mu-6-option"><input type="radio" id="mu-6" name="multi-units" value="6"><label for="mu-6" class="radio-label">6</label></div>
+            </div>
+          </div>
+          <!-- Square bay only (owner, 02.10.2026; rev. 05.10.2026: timber corner posts only — masonry piers
+               removed —, post size set here, front + both sides up to 7 m with the posts on top) -->
+          <div id="square-bay-options" style="display:none;">
+            <div class="input-group">
+              <label for="bay-side-width">Side window width (each side, frame size):</label>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input type="number" id="bay-side-width" min="400" max="2000" step="10" value="700" style="width:120px;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-size:.9rem;">
+                <span style="font-size:.72rem;color:var(--secondary-color);">mm · projection from the wall = post depth + side = <span id="bay-projection-note">864</span> mm</span>
+              </div>
+              <p id="bay-total-note" style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;"></p>
+            </div>
+            <div class="input-group">
+              <label>Timber corner posts (one at each front corner):</label>
+              <div style="display:grid;grid-template-columns:minmax(0,110px) auto minmax(0,110px);gap:8px;align-items:end;">
+                <div>
+                  <label for="bay-post-width" style="display:block;font-size:.72rem;margin:0 0 4px;">Width (mm)</label>
+                  <input type="number" id="bay-post-width" min="164" max="400" step="1" value="164" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-size:.9rem;">
+                </div>
+                <span style="padding-bottom:9px;font-size:.9rem;color:var(--secondary-color);">×</span>
+                <div>
+                  <label for="bay-post-depth" style="display:block;font-size:.72rem;margin:0 0 4px;">Depth (mm)</label>
+                  <input type="number" id="bay-post-depth" min="164" max="400" step="1" value="164" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #ccc;border-radius:3px;font-size:.9rem;">
+                </div>
+              </div>
+              <p id="bay-corners-note" style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;">Standard 164 × 164 mm — the box depth, flush with the frames inside and outside. Width is the post face seen from the front, depth the face seen from the side (164–400 mm). The outside faces always stay flush with the windows; a larger post takes the extra on the room side. Overall front = front + 2 × post width = <span id="bay-front-overall-note">3328</span> mm.</p>
             </div>
           </div>
           <div class="input-group">
@@ -2521,7 +2550,7 @@
             <p id="multi-units-note" style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;"></p>
           </div>
           <div class="input-group">
-            <label>Cover strips on the joins (100 × 17 mm):</label>
+            <label>Cover strips on the <span id="multi-joins-word">joins</span> (100 × 17 mm):</label>
             <div class="radio-group">
               <div class="radio-option"><input type="radio" id="mc-both" name="multi-covers" value="both" checked><label for="mc-both" class="radio-label">Inside &amp; outside</label></div>
               <div class="radio-option"><input type="radio" id="mc-outside" name="multi-covers" value="outside"><label for="mc-outside" class="radio-label">Outside only</label></div>
@@ -4194,6 +4223,14 @@
       <button class="btn" id="add-to-estimate">Create New Estimate</button>
       <button class="btn btn-secondary" id="preview-estimate" style="width:100%;margin-top:8px;">Preview Estimate</button>
       <button class="btn btn-secondary" id="view-my-estimates" style="width:100%;margin-top:8px;">Go to My Estimate</button>
+      <!-- Share 3D link (owner, 08.10.2026): a link to a page with this window in 3D — no estimate, no prices.
+           For every visitor. js/share-design.js · api/design-view.js · db/shared-designs.sql -->
+      <div class="share3d-block" id="share3d-block">
+        <div class="share3d-or"><span>or share without an estimate</span></div>
+        <button type="button" class="share3d-btn" id="share3d-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg><span class="share3d-btn-text">Share 3D link</span></button>
+        <p class="share3d-help">Send this window to anyone — they can view it in 3D: rotate it, zoom in, open the sashes. No prices are shown.</p>
+        <p class="share3d-error" id="share3d-error" role="alert" hidden></p>
+      </div>
       </div>
     </div>
     
@@ -4639,18 +4676,18 @@
 <!-- 2. Pricing config -->
 <script src="js/ironmongery-data.js?v=3"></script>
 <script src="js/ironmongery-gallery.js?v=4"></script>
-<script src="js/pricing-config.js?v=15"></script>
+<script src="js/pricing-config.js?v=17"></script>
 <script src="js/config.js?v=4"></script>
-<script src="js/price-calculator.js?v=23"></script>
+<script src="js/price-calculator.js?v=25"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=4"></script>
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=5"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=16"></script>
+<script src="js/specification-controller.js?v=17"></script>
 <script src="js/configurator-core.js?v=6"></script>
-<script src="js/multi-part-controller.js?v=6"></script>
+<script src="js/multi-part-controller.js?v=9"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
 <script src="js/casement-controller.js?v=20"></script>
@@ -4671,9 +4708,29 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=13"></script>
-<script src="js/estimate-renderer.js?v=45"></script>
+<script src="js/estimate-renderer.js?v=47"></script>
 <script src="js/estimate-selector.js?v=3"></script>
-<script src="js/estimate-manager.js?v=11"></script>
+<script src="js/estimate-manager.js?v=13"></script>
+<!-- Share 3D link popup (owner, 08.10.2026) — js/share-design.js -->
+<div class="share3d-overlay" id="share3d-overlay" hidden>
+  <div class="share3d-panel" role="dialog" aria-modal="true" aria-labelledby="share3d-title">
+    <div class="share3d-head">
+      <h3 id="share3d-title">Link ready</h3>
+      <button type="button" class="share3d-close" id="share3d-close" aria-label="Close">&times;</button>
+    </div>
+    <p class="share3d-text">Anyone with this link can view this window in 3D — rotate it, zoom in, open the sashes. Prices are not shown.</p>
+    <label class="share3d-label" for="share3d-url">Link</label>
+    <input type="text" class="share3d-url" id="share3d-url" readonly>
+    <div class="share3d-actions">
+      <button type="button" class="share3d-copy" id="share3d-copy">Copy link</button>
+      <a class="share3d-alt" id="share3d-whatsapp" href="#" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="share3d-alt" id="share3d-email" href="#">Email</a>
+    </div>
+    <p class="share3d-expiry" id="share3d-expiry"></p>
+    <a class="share3d-open" id="share3d-open" href="#" target="_blank" rel="noopener">Open the page <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+<script src="js/share-design.js?v=1"></script>
 <script src="js/edit-mode.js?v=15"></script>
 
 <!-- Ironmongery Gallery Overlay -->
@@ -5017,7 +5074,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=110";
+      psw3dScript.src = "3d/assets/window3d.js?v=113";
       document.head.appendChild(psw3dScript);
     }
   </script>

@@ -695,10 +695,14 @@ class EstimateManager {
                 lowerMaxLift: cfg.lowerMaxLift || null,
 
                 // ── MULTI-PART SASH RUN (owner, 01.10.2026) — unit widths as entered, null = single
-                multiUnits: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? cfg.multiUnits.slice() : null,
-                multiCovers: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? (cfg.multiCovers || 'both') : null,
-                multiSillExt: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? (cfg.multiSillExt || 0) : null,
-                windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 2) ? 'multi-part' : null,   // Special Layout Windows
+                multiUnits: (Array.isArray(cfg.multiUnits) && (cfg.multiUnits.length >= 2 || (cfg.windowLayout === 'square-bay' && cfg.multiUnits.length >= 1))) ? cfg.multiUnits.slice() : null,
+                multiCovers: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiCovers || 'both') : null,
+                multiSillExt: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiSillExt || 0) : null,
+                windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && (cfg.windowLayout === 'square-bay' || cfg.multiUnits.length >= 2)) ? (cfg.windowLayout || 'multi-part') : null,   // Special Layout Windows
+                // Square bay (02.10.2026): sides + timber corner posts (05.10.2026: post size, piers removed)
+                baySideWidth: cfg.windowLayout === 'square-bay' ? (cfg.baySideWidth || null) : null,
+                bayPostWidth: cfg.windowLayout === 'square-bay' ? (cfg.bayPostWidth || 164) : null,
+                bayPostDepth: cfg.windowLayout === 'square-bay' ? (cfg.bayPostDepth || 164) : null,
 
                 // Detale (horns są w ironmongery)
                 horns: null,

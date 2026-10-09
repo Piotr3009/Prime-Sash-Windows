@@ -1,0 +1,71 @@
+/* ============================================================
+   Share 3D link (owner, 08.10.2026) — Finalise step button + popup.
+   Logic: js/share-design.js · page: api/design-view.js · DB: db/shared-designs.sql
+   ============================================================ */
+
+.share3d-block { margin-top: 18px; }
+.share3d-or { display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; }
+.share3d-or::before,
+.share3d-or::after { content: ''; flex: 1; height: 1px; background: #E5E2DA; }
+.share3d-or span { font-family: 'Jost', sans-serif; font-size: .62rem; letter-spacing: .22em; text-transform: uppercase; color: #6b7280; white-space: nowrap; }
+
+.share3d-btn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: .85rem 1rem;
+  background: #FAFAF8; color: #0A1628;
+  border: 1px solid #0A1628; border-radius: 0;
+  font-family: 'Jost', sans-serif; font-size: .72rem; font-weight: 400;
+  letter-spacing: .3em; text-transform: uppercase;
+  cursor: pointer; transition: background .2s, color .2s;
+}
+.share3d-btn:hover { background: #0A1628; color: #fff; }
+.share3d-btn:disabled { opacity: .6; cursor: wait; }
+.share3d-btn svg { flex: 0 0 auto; }
+.share3d-help { font-size: .75rem; line-height: 1.5; color: #4b5563; margin-top: 8px; }
+.share3d-error { font-size: .75rem; line-height: 1.5; color: #b3261e; margin-top: 6px; }
+.share3d-error[hidden] { display: none; }
+
+.share3d-overlay {
+  position: fixed; inset: 0; z-index: 100000;
+  background: rgba(10, 22, 40, .55);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.share3d-overlay[hidden] { display: none; }
+.share3d-panel {
+  background: #fff; width: min(470px, 100%); box-sizing: border-box;
+  border-radius: 6px; padding: 22px 26px 24px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .3);
+  font-family: 'Jost', sans-serif; color: #1f2733;
+}
+.share3d-head { display: flex; align-items: center; justify-content: space-between; }
+.share3d-head h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.75rem; font-weight: 600;
+  color: #0A1628; margin: 0; letter-spacing: 0; text-transform: none;
+}
+.share3d-close {
+  width: 44px; height: 44px; margin-right: -10px;
+  border: none; background: transparent; color: #4b5563;
+  font-size: 1.7rem; line-height: 1; cursor: pointer;
+}
+.share3d-close:hover { color: #0A1628; }
+.share3d-text { font-size: .82rem; line-height: 1.55; color: #374151; margin: 8px 0 14px; }
+.share3d-label { display: block; font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; color: #6b7280; margin-bottom: 6px; }
+.share3d-url {
+  width: 100%; box-sizing: border-box; height: 44px;
+  border: 1px solid #d1d5db; border-radius: 3px; padding: 0 12px;
+  font-family: 'Jost', sans-serif; font-size: .9rem; color: #0A1628; background: #FAFAF8;
+}
+.share3d-actions { display: flex; gap: 10px; margin-top: 12px; }
+.share3d-actions > * {
+  flex: 1; min-height: 46px; box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 2px; font-family: 'Jost', sans-serif; font-size: .8rem; letter-spacing: .06em;
+  text-decoration: none; cursor: pointer;
+}
+.share3d-copy { background: #0A1628; color: #fff; border: 1px solid #0A1628; }
+.share3d-copy:hover { background: #132441; }
+.share3d-alt { background: #fff; color: #1f2733; border: 1px solid #c9ccd3; }
+.share3d-alt:hover { border-color: #0A1628; color: #0A1628; }
+.share3d-expiry { font-size: .75rem; color: #4b5563; margin-top: 12px; }
+.share3d-open { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: #0A1628; margin-top: 6px; }

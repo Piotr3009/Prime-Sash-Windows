@@ -6,16 +6,26 @@
  * (price, 3D, spec, save, edit) is reused unchanged; only this file knows the tile is special.
  *
  * Owns:
- *   · #special-layout-section (Product Range): Multi-part run · Bay · Square bay (bays disabled
- *     until built). While special: the Sash Type radios are hidden (double-hung forced), Head Type
- *     (glazing arch) stays available.
- *   · #multi-part-section (Dimensions): number of units, unit widths, cover strips, continuous cill.
- *   · the width list / max while a run is active: N × 1500 (one unit = one standard sash, max 1500).
+ *   · #special-layout-section (Product Range): Multi-part run · Bay (canted — not built yet) ·
+ *     Square bay (02.10.2026). While special: the Sash Type radios are hidden (double-hung
+ *     forced), Head Type (glazing arch) stays available.
+ *   · #multi-part-section (Dimensions): number of units (run 2–6, bay front 1–6), unit widths,
+ *     cover strips, continuous cill; for the square bay also #square-bay-options: side window
+ *     width (each side, frame size) and the timber corner posts — width × depth, 164 × 164 (the
+ *     box depth) as standard, 164–400 mm (owner, 05.10.2026: masonry piers removed).
+ *   · square bay limits (owner, 05.10.2026): up to 6 front units + 1 each side (8 windows);
+ *     front + both sides ≤ 7000 mm, the corner posts come on top. The field being edited gives
+ *     way: the front list stops at 7000 − 2 × side, the side stops at (7000 − front) / 2.
+ *   · config keys for the bay: windowLayout 'square-bay', baySideWidth, bayPostWidth,
+ *     bayPostDepth — null for a run / a single window.
+ *   · the width list / max while a run is active: N × 2000 (one unit = one sash, max 2000 — owner,
+ *     08.10.2026: was 1500, the standard single double-hung limit; raised for runs and bays).
  *   · three config keys:
  *       currentConfig.multiUnits   — unit widths (mm) AS ENTERED, sum = the entered overall width;
  *                                    null = single window. Brick-to-brick: the run's +150 allowance
  *                                    is shared equally by the 3D, the price and the spec.
- *       currentConfig.multiCovers  — 'both' | 'outside' | 'inside'  (100 × 17 cover strips on the joins)
+ *       currentConfig.multiCovers  — 'both' | 'outside' | 'inside'  (100 × 17 cover strips on the
+ *                                    joins and, in a square bay, at the corner posts)
  *       currentConfig.multiSillExt — continuous cill extension at each end (mm)
  *
  * It never touches other controllers' fields except the width list/max (restored on leaving).
@@ -25,11 +35,15 @@
 (function () {
   'use strict';
 
-  var UNIT_MIN = 400, UNIT_MAX = 1500;   // one unit = one standard double-hung sash
+  var UNIT_MIN = 400, UNIT_MAX = 2000;   // one unit = one double-hung sash; max 2000 in runs and bays (owner, 08.10.2026 — was 1500)
+  var UNIT_COUNT_MAX = 6;                // run 2–6 units; square-bay front 1–6 (+ 1 each side = 8 windows)
+  var BAY_TOTAL_MAX = 7000;              // square bay: front + both sides, mm — the corner posts are extra
+  var POST_MIN = 164, POST_MAX = 400, POST_DEFAULT = 164;   // corner post, mm: the box depth as standard, never smaller
   var LIST_STEP = 50;                    // extra width-list entries above 3000 (owner: pick from the list)
   var lastKey = null;                    // last applied [units, covers, sillExt] — skips no-op re-applies
   var runActive = false;                 // width list/max currently extended for a run
   var savedMax = null;                   // #width max before the run extended it
+  var bayFront = null;                   // square bay: the front width last accepted — the sides get what it leaves of the 7 m
 
   function $(id) { return document.getElementById(id); }
   function checked(name) { var r = document.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : null; }
@@ -47,13 +61,35 @@
   function isWindows() { return (checked('product-range') || 'windows') !== 'doors'; }
   function isSpecial() { var t = $('type-special'); return isWindows() && !!(t && t.checked); }
   function layout() { return checked('special-layout') || 'multi'; }
+  function isBay() { return layout() === 'square-bay'; }
   // Double-hung only (this release): the Sash Type radios are hidden while special, double is forced.
-  function isMulti() { return isSpecial() && layout() === 'multi' && (checked('sash-type') || 'double') === 'double'; }
-  function unitCount() { return Math.min(6, Math.max(2, parseInt(checked('multi-units'), 10) || 2)); }
-  function multiWidthMax() { return unitCount() * UNIT_MAX; }   // 6 units → 6 × 1500 = 9000
+  // Both layouts (multi-part run, square bay) are "multi": a run of units — the bay adds two sides.
+  function isMulti() { return isSpecial() && (layout() === 'multi' || layout() === 'square-bay') && (checked('sash-type') || 'double') === 'double'; }
+  function unitMin() { return isBay() ? 1 : 2; }
+  function unitMaxCount() { return UNIT_COUNT_MAX; }
+  function unitCount() { return Math.min(unitMaxCount(), Math.max(unitMin(), parseInt(checked('multi-units'), 10) || unitMin())); }
+  // Square bay — side window: a sash of 400–2000 (UNIT_MAX) that also fits in what the accepted
+  // front leaves of the 7 m. Before a front is accepted (entering the layout) the field rules.
+  function sideCap() {
+    if (bayFront === null) return UNIT_MAX;
+    return Math.max(UNIT_MIN, Math.min(UNIT_MAX, Math.floor((BAY_TOTAL_MAX - bayFront) / 2)));
+  }
+  function sideTyped() { var v = parseInt(($('bay-side-width') || {}).value, 10); return (v > 0) ? v : 700; }
+  function sideWidth() { return Math.min(sideCap(), Math.max(UNIT_MIN, sideTyped())); }
+  // Square bay — timber corner posts: width (along the front) × depth (front to back)
+  function postSize(id) { var v = parseInt(($(id) || {}).value, 10); return Math.min(POST_MAX, Math.max(POST_MIN, (v > 0) ? v : POST_DEFAULT)); }
+  function postWidth() { return postSize('bay-post-width'); }
+  function postDepth() { return postSize('bay-post-depth'); }
+  // Overall-width limit: N × 2000 (6 units → 12 000); square-bay front: also what the sides leave of the 7 m
+  function widthMaxFor(n) {
+    var m = n * UNIT_MAX;
+    return isBay() ? Math.min(m, BAY_TOTAL_MAX - 2 * sideWidth()) : m;
+  }
+  function multiWidthMax() { return widthMaxFor(unitCount()); }
 
   // Equal split that still sums exactly to the overall width (last unit takes the remainder)
   function equalUnits(total, n) {
+    if (n <= 1) return [total];
     var base = Math.floor(total / n), out = [], acc = 0;
     for (var i = 0; i < n - 1; i++) { out.push(base); acc += base; }
     out.push(total - acc);
@@ -89,7 +125,7 @@
   function computeUnits() {
     var total = overallWidth(), n = unitCount();
     if (!(total > 0)) return { units: null, error: 'Enter the overall width first.' };
-    var mode = checked('multi-widths') || 'equal';
+    var mode = (n <= 1) ? 'equal' : (checked('multi-widths') || 'equal');
     var units = (mode === 'individual') ? readIndividual(n) : equalUnits(total, n);
     var sum = units.reduce(function (a, b) { return a + b; }, 0);
     var err = null;
@@ -98,10 +134,14 @@
     if (!err && bad.length) err = (mode === 'individual')
       ? 'Each unit must be between ' + UNIT_MIN + ' and ' + UNIT_MAX + ' mm (a standard sash).'
       : 'Each unit must be between ' + UNIT_MIN + ' and ' + UNIT_MAX + ' mm (a standard sash) — ' + n + ' units allow up to ' + (n * UNIT_MAX) + ' mm overall. Change the overall width or the number of units.';
+    // Square bay: the typed units may not take the front past what the sides leave of the 7 m
+    if (!err && mode === 'individual' && isBay() && sum > widthMaxFor(n)) {
+      err = 'Front ' + sum + ' mm + both sides (2 × ' + sideWidth() + ' mm) is over ' + BAY_TOTAL_MAX + ' mm — with these sides the front can be up to ' + widthMaxFor(n) + ' mm.';
+    }
     return { units: units, error: err, total: total, sum: sum, n: n, mode: mode };
   }
 
-  // ── Width list / max: extended to N × 1500 while a run is active, restored after ──
+  // ── Width list / max: extended to N × 2000 while a run is active, restored after ──
   function extendWidthList(maxW) {
     var sel = $('width-select'), inp = $('width');
     if (!sel || !inp) return;
@@ -111,7 +151,7 @@
     var have = sel.querySelectorAll('option[data-multi]').length;
     if (!have) {
       var frag = document.createDocumentFragment();
-      for (var v = 3000 + LIST_STEP; v <= 6 * UNIT_MAX; v += LIST_STEP) {
+      for (var v = 3000 + LIST_STEP; v <= UNIT_COUNT_MAX * UNIT_MAX; v += LIST_STEP) {
         var o = document.createElement('option');
         o.value = String(v); o.textContent = v + ' mm'; o.setAttribute('data-multi', '1');
         frag.appendChild(o);
@@ -168,19 +208,65 @@
   var lastTotal = null;                               // overall width at the last apply (detects the user editing it)
   // Keep the overall width sensible for the chosen unit count: n × 1000 when it is out of range
   // (a 1000 mm single-sash default would make 3 units of 333). Returns true when it changed it.
+  // Square bay: the range also ends at what the sides leave of the 7 m (see widthMaxFor).
   function ensureWidthForUnits(n, softMin) {
     var total = overallWidth();
-    var lo = n * (softMin || UNIT_MIN), hi = n * UNIT_MAX;
+    var hi = widthMaxFor(n);
+    var lo = Math.min(hi, n * (softMin || UNIT_MIN));
     if (total >= lo && total <= hi) return false;
-    return setOverallWidth(n * 1000);
+    // A bay front that suits the unit count but not the 7 m: keep as much of it as the sides allow
+    if (isBay() && total > hi && total <= n * UNIT_MAX) return setOverallWidth(Math.floor(hi / LIST_STEP) * LIST_STEP);
+    var target = n * 1000;
+    if (target > hi) target = Math.floor(hi / (n * LIST_STEP)) * n * LIST_STEP;   // bay: the widest n × (multiple of 50) that fits
+    return setOverallWidth(target);
   }
 
   // ── Mode: the Special tile switches the layout UI on; the Sash Type radios hide (double forced) ──
-  function applyMode() {
+  function applyLayoutUi() {
+    var bay = isSpecial() && isBay();
+    var t = $('multi-part-title'); if (t) t.textContent = bay ? 'Square bay — front and sides' : 'Multi-part run';
+    var rw = $('multi-run-word'); if (rw) rw.textContent = bay ? 'front' : 'run';
+    var wr = $('multi-width-rule'); if (wr) wr.textContent = bay
+      ? '(' + UNIT_MAX + ' mm per unit; front + both sides up to ' + BAY_TOTAL_MAX + ' mm — the corner posts are extra)'
+      : 'for the number of units chosen (' + UNIT_MAX + ' mm per unit)';
+    var ul = $('multi-units-label'); if (ul) ul.textContent = bay ? 'Front units' : 'Number of units';
+    var jw = $('multi-joins-word'); if (jw) jw.textContent = bay ? 'joins and corner posts' : 'joins';
+    var o1 = $('mu-1-option'); if (o1) o1.style.display = bay ? '' : 'none';
+    // 5 and 6 units: both layouts (owner, 05.10.2026 — the bay front was 1–4)
+    var o5 = $('mu-5-option'); if (o5) o5.style.display = '';
+    var o6 = $('mu-6-option'); if (o6) o6.style.display = '';
+    var n = parseInt(checked('multi-units'), 10) || 2;
+    if (!bay && n < 2) setRadio('multi-units', '2');
+    var bo = $('square-bay-options'); if (bo) bo.style.display = bay ? '' : 'none';
+  }
+
+  // Square bay notes: projection, overall front (frame size, posts included), the 7 m check
+  function refreshBayNotes(front) {
+    var S = sideWidth(), W = postWidth(), D = postDepth();
+    var b2b = checked('measurement-type') === 'brick-to-brick';
+    var pn = $('bay-projection-note'); if (pn) pn.textContent = String(D + S);
+    var fo = $('bay-front-overall-note'); if (fo) fo.textContent = String(front + (b2b ? 150 : 0) + 2 * W);
+    var bsw = $('bay-side-width'); if (bsw) bsw.max = String(sideCap());
+    var tn = $('bay-total-note');
+    if (tn) {
+      var cap = sideCap();
+      var limited = sideTyped() > S;                 // the typed side does not fit beside this front
+      // Whenever the front leaves less than a full UNIT_MAX for each side, say how much it leaves —
+      // so a side that was cut back on leaving the field is explained (red while it is being typed)
+      tn.textContent = 'Front ' + front + ' + sides 2 × ' + S + ' = ' + (front + 2 * S) + ' mm — up to ' + BAY_TOTAL_MAX + ' mm, the corner posts are extra.'
+        + (cap < UNIT_MAX ? ' With this front the sides can be up to ' + cap + ' mm (reduce the front first for wider sides).' : '');
+      tn.style.color = limited ? '#b3261e' : '';
+    }
+  }
+
+  // restoring === true: a saved run / bay is being put back (applyFromConfig) — its width is kept
+  // as saved; the "start at n × 1000" nudge is only for someone entering the layout by hand.
+  function applyMode(restoring) {
     var special = isSpecial();
     var ls = $('special-layout-section'), sts = $('sash-type-section');
     if (ls) ls.hidden = !special;
     if (sts) sts.classList.toggle('psw-special', special);
+    applyLayoutUi();
     if (special) {
       var dbl = $('sash-double');
       if (dbl && !dbl.checked) {            // triple / arched → double: the sash-type handler sets limits + 3D
@@ -189,7 +275,7 @@
       }
       if (isMulti()) {
         extendWidthList(multiWidthMax());   // the n × 1000 entry must be in the list before it is picked
-        if (ensureWidthForUnits(unitCount(), 800)) return;   // entering: a run of 2 × 1000, not 2 × 500 — apply() follows the width change
+        if (ensureWidthForUnits(unitCount(), restoring === true ? UNIT_MIN : 800)) return;   // entering: a run of 2 × 1000, not 2 × 500 — apply() follows the width change
       }
     }
     apply();
@@ -201,11 +287,13 @@
     var cfg = window.currentConfig;
     var section = $('multi-part-section');
     var multi = isMulti();
+    if (!(multi && isBay())) bayFront = null;        // not a bay (any more): the side field rules again
     if (section) section.hidden = !multi;
     if (multi) extendWidthList(multiWidthMax()); else restoreWidthList();
     if (multi && overallWidth() >= UNIT_MIN && ensureWidthForUnits(unitCount())) return;   // out of range for this count → n × 1000, apply() follows
     var hint = $('hint-product-range');
-    if (hint && isSpecial()) hint.textContent = 'Special Layout · Multi-part run';
+    if (hint && isSpecial()) hint.textContent = isBay() ? 'Special Layout · Square bay' : 'Special Layout · Multi-part run';
+    applyLayoutUi();
 
     var note = $('multi-units-note');
     var units = null, covers = 'both', sillExt = 0;
@@ -228,6 +316,7 @@
         }
       }
       lastTotal = r.total;
+      if (isBay()) bayFront = r.total;               // accepted (in range): the sides get what is left of the 7 m
       // While the individual widths are wrong (empty, out of range) keep the run alive with an
       // equal split, so the 3D and the price do not flip to a single window on every keystroke.
       units = r.error ? (r.total > 0 ? equalUnits(r.total, r.n) : null) : r.units;
@@ -237,31 +326,47 @@
         if (r.error) { note.textContent = r.error + (units ? ' Showing an equal split until this is fixed.' : ''); note.style.color = '#b3261e'; }
         else {
           var joints = r.n - 1;
-          note.textContent = (r.mode === 'equal' ? 'Each unit ' + r.units[0] + ' mm wide · ' : 'Overall width ' + r.total + ' mm · ') + joints + (joints === 1 ? ' join' : ' joins') + ', each with a 100 × 17 mm cover strip.';
+          var lead = (r.mode === 'equal')
+            ? (r.n === 1 ? 'One unit ' : 'Each unit ') + r.units[0] + ' mm wide · '
+            : 'Overall width ' + r.total + ' mm · ';
+          note.textContent = isBay()
+            ? lead + (joints ? joints + (joints === 1 ? ' join' : ' joins') + ' and ' : '') + '2 corner posts, each with 100 × 17 mm cover strips.'
+            : lead + joints + (joints === 1 ? ' join' : ' joins') + ', each with a 100 × 17 mm cover strip.';
           note.style.color = '';
         }
       }
+      if (isBay()) refreshBayNotes(r.total);
     } else {
       lastTotal = null;
     }
 
     // Nothing changed (e.g. a width edit on a single window): leave the 3D and the price
     // alone — the dimension handler already recalculates, a second pass would only add churn.
-    var key = JSON.stringify([units, multi ? covers : null, multi ? sillExt : 0]);
+    var bay = multi && isBay();
+    var layoutKey = multi ? (bay ? 'square-bay' : 'multi-part') : null;
+    var bayKeys = bay ? { baySideWidth: sideWidth(), bayPostWidth: postWidth(), bayPostDepth: postDepth() }
+                      : { baySideWidth: null, bayPostWidth: null, bayPostDepth: null };
+    var key = JSON.stringify([units, multi ? covers : null, multi ? sillExt : 0, layoutKey, bayKeys]);
     var changed = (key !== lastKey) || (cfg && JSON.stringify(cfg.multiUnits || null) !== JSON.stringify(units));
     lastKey = key;
     if (cfg) {
       cfg.multiUnits = units;
       cfg.multiCovers = multi ? covers : null;
       cfg.multiSillExt = multi ? sillExt : 0;
-      cfg.windowLayout = multi ? 'multi-part' : null;
+      cfg.windowLayout = layoutKey;
+      cfg.baySideWidth = bayKeys.baySideWidth;
+      cfg.bayPostWidth = bayKeys.bayPostWidth;
+      cfg.bayPostDepth = bayKeys.bayPostDepth;
+      // masonry piers were removed (owner, 05.10.2026): drop their keys from a config restored from an older session
+      delete cfg.bayCorners; delete cfg.bayPierWidth; delete cfg.bayLTrims;
     }
     refreshSpec(multi, units, covers, sillExt);
     if (!changed) return;
 
-    // 3D — the run renders when multiUnits has 2+ entries, a single window otherwise
+    // 3D — the run / bay renders from multiUnits (+ layout), a single window otherwise
     if (typeof window.update3D === 'function') {
-      window.update3D({ multiUnits: units, multiCovers: covers, multiSillExt: sillExt });
+      window.update3D({ multiUnits: units, multiCovers: covers, multiSillExt: sillExt, windowLayout: layoutKey,
+        baySideWidth: bayKeys.baySideWidth || 700, bayPostWidth: bayKeys.bayPostWidth || POST_DEFAULT, bayPostDepth: bayKeys.bayPostDepth || POST_DEFAULT });
     }
     if (!opts.silentPrice) {
       if (window.configuratorCore && window.configuratorCore.isInitialized && typeof window.configuratorCore.updateAll === 'function') window.configuratorCore.updateAll();
@@ -281,23 +386,38 @@
     if (!item || !val) return;
     if (!multi || !units) { item.style.display = 'none'; return; }
     var coversTxt = covers === 'both' ? 'inside & outside' : covers === 'inside' ? 'inside only' : 'outside only';
-    val.textContent = 'Multi-part run · ' + units.length + ' units (' + frameUnits(units).join(' / ') + ' mm) · cover strips ' + coversTxt
-      + ' · continuous cill' + (sillExt ? ' +' + sillExt + ' mm each end' : '');
+    if (isBay()) {
+      val.textContent = 'Square bay 90° · front ' + units.length + (units.length === 1 ? ' unit' : ' units') + ' (' + frameUnits(units).join(' / ') + ' mm) + 1 each side ' + sideWidth() + ' mm · '
+        + 'timber corner posts ' + postWidth() + ' × ' + postDepth() + ' mm · cover strips ' + coversTxt + ' on the ' + (units.length > 1 ? 'joins and ' : '') + 'posts'
+        + ' · continuous cill' + (sillExt ? ' +' + sillExt + ' mm each end' : '');
+    } else {
+      val.textContent = 'Multi-part run · ' + units.length + ' units (' + frameUnits(units).join(' / ') + ' mm) · cover strips ' + coversTxt
+        + ' · continuous cill' + (sillExt ? ' +' + sillExt + ' mm each end' : '');
+    }
     item.style.display = '';
   }
 
   // ── Restore from a saved config (edit-mode, localStorage) ──────────────────
   function applyFromConfig(fc) {
     fc = fc || window.currentConfig || {};
-    var units = Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 2 ? fc.multiUnits.slice() : null;
+    var isBayCfg = fc.windowLayout === 'square-bay';
+    var units = Array.isArray(fc.multiUnits) && fc.multiUnits.length >= (isBayCfg ? 1 : 2) ? fc.multiUnits.slice() : null;
     if (!units) {                                   // a plain sash: back to the Sash tile (same value, no page handler needed)
       var plain = $('type-sash'); if (plain && isSpecial()) plain.checked = true;
       applyMode(); return;
     }
     var tile = $('type-special'); if (tile) tile.checked = true;   // same value ("sash") as the tile edit-mode set — no change event needed
-    setRadio('special-layout', 'multi');
-    setRadio('multi-units', String(Math.min(6, Math.max(2, units.length))));
+    setRadio('special-layout', isBayCfg ? 'square-bay' : 'multi');
     var total = units.reduce(function (a, b) { return a + b; }, 0);
+    bayFront = null;                                // the saved side width is taken as saved (capped again once the front is in)
+    if (isBayCfg) {
+      var sw = $('bay-side-width'); if (sw) sw.value = String(fc.baySideWidth || 700);
+      // post size: saved value, 164 × 164 for a bay saved before the size could be set
+      var pw = $('bay-post-width'); if (pw) pw.value = String(fc.bayPostWidth || POST_DEFAULT);
+      var pd = $('bay-post-depth'); if (pd) pd.value = String(fc.bayPostDepth || POST_DEFAULT);
+    }
+    applyLayoutUi();
+    setRadio('multi-units', String(Math.min(UNIT_COUNT_MAX, Math.max(isBayCfg ? 1 : 2, units.length))));
     var eq = equalUnits(total, units.length);
     var isEqual = units.every(function (u, i) { return u === eq[i]; });
     setRadio('multi-widths', isEqual ? 'equal' : 'individual');
@@ -307,25 +427,27 @@
     var se = $('multi-sill-ext'); if (se) se.value = String(fc.multiSillExt || 0);
     // The overall width is the units' sum: set it ourselves first (list extended for it), so the
     // mode switch finds it in range and never re-splits the restored units.
-    extendWidthList(units.length * UNIT_MAX);
+    extendWidthList(multiWidthMax());
     if (overallWidth() !== total) setOverallWidth(total);
-    applyMode();                                   // sections, width list/max, config
+    applyMode(true);                               // sections, width list/max, config — the saved width stays
     // The saved split wins until the width is restored (edit-mode restores it right after this call)
     if (window.currentConfig) {
       window.currentConfig.multiUnits = units;
       window.currentConfig.multiCovers = fc.multiCovers || 'both';
       window.currentConfig.multiSillExt = fc.multiSillExt || 0;
-      window.currentConfig.windowLayout = 'multi-part';
+      window.currentConfig.windowLayout = isBayCfg ? 'square-bay' : 'multi-part';
     }
-    lastKey = JSON.stringify([units, fc.multiCovers || 'both', fc.multiSillExt || 0]);
+    lastKey = null;                                 // the next apply() re-pushes the full state (bay keys included)
     lastTotal = total;                              // the restored width equals the units' sum (edit-mode sets it next)
-    if (typeof window.update3D === 'function') window.update3D({ multiUnits: units, multiCovers: fc.multiCovers || 'both', multiSillExt: fc.multiSillExt || 0 });
+    if (typeof window.update3D === 'function') window.update3D({ multiUnits: units, multiCovers: fc.multiCovers || 'both', multiSillExt: fc.multiSillExt || 0, windowLayout: isBayCfg ? 'square-bay' : 'multi-part',
+      baySideWidth: isBayCfg ? sideWidth() : 700, bayPostWidth: isBayCfg ? postWidth() : POST_DEFAULT, bayPostDepth: isBayCfg ? postDepth() : POST_DEFAULT });
     refreshSpec(true, units, fc.multiCovers || 'both', fc.multiSillExt || 0);
   }
   window.applyMultiPartFromConfig = applyFromConfig;
   window.getMultiPartConfig = function () {
     var c = window.currentConfig || {};
-    return { multiUnits: c.multiUnits || null, multiCovers: c.multiCovers || null, multiSillExt: c.multiSillExt || 0 };
+    return { multiUnits: c.multiUnits || null, multiCovers: c.multiCovers || null, multiSillExt: c.multiSillExt || 0, windowLayout: c.windowLayout || null,
+      baySideWidth: c.baySideWidth || null, bayPostWidth: c.bayPostWidth || null, bayPostDepth: c.bayPostDepth || null };
   };
 
   // ── Wiring ─────────────────────────────────────────────────────────────────
@@ -356,6 +478,18 @@
     var box = $('multi-unit-widths');
     if (box) box.addEventListener('input', function () { schedule(apply); });
     var se = $('multi-sill-ext'); if (se) se.addEventListener('change', apply);
+    // Square bay inputs: live while typing; on leaving the field it shows the value actually used
+    // (side: 400–2000 and what the front leaves of the 7 m; posts: 164–400)
+    var bsw = $('bay-side-width');
+    if (bsw) {
+      bsw.addEventListener('input', function () { schedule(apply); });
+      bsw.addEventListener('change', function () { bsw.value = String(sideWidth()); apply(); });
+    }
+    ['bay-post-width', 'bay-post-depth'].forEach(function (id) {
+      var el = $(id); if (!el) return;
+      el.addEventListener('input', function () { schedule(apply); });
+      el.addEventListener('change', function () { el.value = String(postSize(id)); apply(); });
+    });
 
     // Window type (the Special tile included) switches the mode — after the page's own
     // window-type handlers have run (capture + delay). Overall width changes re-split the
@@ -370,7 +504,7 @@
     // Restore a run saved in this browser (configurator-core restores currentConfig first)
     setTimeout(function () {
       var c = window.currentConfig;
-      if (c && Array.isArray(c.multiUnits) && c.multiUnits.length >= 2) applyFromConfig(c);
+      if (c && Array.isArray(c.multiUnits) && c.multiUnits.length >= (c.windowLayout === 'square-bay' ? 1 : 2)) applyFromConfig(c);
     }, 300);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

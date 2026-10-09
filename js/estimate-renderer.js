@@ -219,19 +219,34 @@ class EstimateRenderer {
         // ── MULTI-PART SASH RUN (owner, 01.10.2026) ──
         // multiUnits = unit widths AS ENTERED (sum = entered overall); the frame allowance
         // (brick-to-brick +150) is shared equally so the units add up to the frame width.
-        const multiUnits = (Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 2 && sashType !== 'arched')
+        const isSquareBay = fc.windowLayout === 'square-bay' && sashType !== 'arched' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1;
+        const multiUnits = (Array.isArray(fc.multiUnits) && (fc.multiUnits.length >= 2 || isSquareBay) && sashType !== 'arched')
             ? fc.multiUnits.map(u => Number(u) || 0) : null;
         const multiCovers = multiUnits ? (fc.multiCovers || 'both') : null;
         const multiSillExt = multiUnits ? (parseInt(fc.multiSillExt) || 0) : 0;
-        let multiFrameUnits = null, multiText = '';
+        const baySideWidth = isSquareBay ? (parseInt(fc.baySideWidth) || 700) : null;
+        // Timber corner posts, width × depth (owner 05.10.2026: piers removed, size set by the owner;
+        // 164 × 164 = the box depth, also for a bay saved before the size could be set)
+        const bayPostWidth = isSquareBay ? EstimateRenderer.bayPostSize(fc.bayPostWidth) : null;
+        const bayPostDepth = isSquareBay ? EstimateRenderer.bayPostSize(fc.bayPostDepth) : null;
+        let multiFrameUnits = null, multiText = '', bayText = '';
         if (multiUnits) {
             const _mSum = multiUnits.reduce((a, b) => a + b, 0);
             const _mExtra = (_mSum > 0) ? (width - _mSum) / multiUnits.length : 0;
             multiFrameUnits = multiUnits.map(u => Math.round(u + _mExtra));
             const _mCovers = multiCovers === 'both' ? 'inside & outside' : multiCovers === 'inside' ? 'inside only' : 'outside only';
-            multiText = 'Multi-part run · ' + multiUnits.length + ' units (' + multiFrameUnits.join(' / ') + ' mm) · '
-                + (multiUnits.length - 1) + (multiUnits.length === 2 ? ' join' : ' joins') + ' with 100 × 17 mm cover strips ' + _mCovers
-                + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
+            const _joins = multiUnits.length - 1;
+            const _joinsTxt = _joins > 0 ? _joins + (_joins === 1 ? ' join' : ' joins') + ' with 100 × 17 mm cover strips ' + _mCovers : 'no joins';
+            if (isSquareBay) {
+                const _frontOverall = width + 2 * bayPostWidth;
+                bayText = 'Square bay 90° · front ' + multiUnits.length + (multiUnits.length === 1 ? ' unit' : ' units') + ' (' + multiFrameUnits.join(' / ') + ' mm)'
+                    + ' + 1 each side ' + baySideWidth + ' mm · timber corner posts ' + bayPostWidth + ' × ' + bayPostDepth + ' mm · front overall ' + _frontOverall + ' mm · projection ' + (baySideWidth + bayPostDepth) + ' mm';
+                multiText = bayText + ' · 100 × 17 mm cover strips ' + _mCovers + ' on the ' + (_joins > 0 ? _joins + (_joins === 1 ? ' front join' : ' front joins') + ' and the ' : '') + 'corner posts'
+                    + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
+            } else {
+                multiText = 'Multi-part run · ' + multiUnits.length + ' units (' + multiFrameUnits.join(' / ') + ' mm) · '
+                    + _joinsTxt + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
+            }
         }
 
         // FRAME
@@ -592,6 +607,7 @@ class EstimateRenderer {
             archLowerMaxLift, archLowerBarsText,
             width, height, originalWidth, originalHeight, measurementType,
             multiUnits, multiFrameUnits, multiCovers, multiSillExt, multiText,
+            isSquareBay, baySideWidth, bayPostWidth, bayPostDepth, bayText,
             frameType, frameText,
             openingType, openingText,
             glassType, glassText, glassSpec, glassSpecText,
@@ -701,8 +717,13 @@ class EstimateRenderer {
 
                 <div style="padding:1.25rem;">
                 ${(() => {
-                    const _lblIn = p.windowType === 'door' ? 'Exterior View' : 'Interior View';
-                    const _lblEx = p.windowType === 'door' ? 'Interior View' : 'Exterior View';
+                    // Stored key names come from the capture (App.jsx ScreenshotHelper): `interior` is the
+                    // first shot, `exterior` the second. Doors were already captioned the other way round;
+                    // for sash windows the first shot shows the OUTSIDE too (outer linings, cill nose) and
+                    // the second the inside (lifts, fitch) — measured in the scene 01.10.2026. Owner
+                    // 02.10.2026: caption by what the picture shows, for every product.
+                    const _lblIn = 'Exterior View';
+                    const _lblEx = 'Interior View';
                     const _boxes = [];
                     const _v3dBtn = R.viewer3dButton(item, p);
                     if (screenshots?.interior) _boxes.push(`<div style="min-width:0;">${R.visualBox(_lblIn, R.visualImage(screenshots.interior))}${_v3dBtn}</div>`);
@@ -781,7 +802,7 @@ class EstimateRenderer {
                             ${R.specRow('Trickle Vent', p.trickleText)}
                             ${p.isSlidingOrBifold && p.sillExtension !== 'none' ? R.specRow('Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')) : ''}
                             ` : `
-                            ${p.multiUnits ? R.specRow('Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)') : ''}
+                            ${p.isSquareBay ? R.specRow('Window Type', 'Special Layout — Square bay 90° · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)') : p.multiUnits ? R.specRow('Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)') : ''}
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' && p.sashType !== 'arched' ? R.specRow('Head Type', 'Glazing Arch') : ''}
                             ${p.sashType === 'arched' ? R.specRow('Sash Type', p.archTypeLabel) : ''}
@@ -895,7 +916,7 @@ class EstimateRenderer {
                 : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                 : p.sashType === 'single' ? 'Single Sash'
                 : 'Sash';
-            const desc = `${p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+            const desc = `${p.isSquareBay ? 'Special Layout · Square bay ' + p.multiUnits.length + '+2' : p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
             return `
                 <tr>
                     <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
@@ -2369,6 +2390,166 @@ class EstimateRenderer {
         return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
     }
 
+    // ─── One box-sash unit (jambs, head, cavity) at x0, width uw — shared by the square-bay drawing ───
+    static sashBoxUnitSVG(x0, uw, fh, SY, fc, archRise) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+        const frameStyle = `fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1.4" ${NS}`;
+        const openingType = fc.openingType || 'both';
+        const horns = fc.horns && fc.horns !== 'none';
+        const hornType = (typeof fc.horns === 'string' && fc.horns.length === 1) ? fc.horns.toUpperCase() : (fc.hornType || 'A');
+        const upperBars = fc.upperBars || 'none';
+        const lowerBars = fc.lowerBars || upperBars;
+        const upperCustom = fc.upperCustomBars || (fc.customBars && fc.customBars.upper ? [].concat((fc.customBars.upper.horizontal||[]),(fc.customBars.upper.vertical||[])) : []);
+        const lowerCustom = (fc.lowerCustomBars && fc.lowerCustomBars.length) ? fc.lowerCustomBars : ((fc.customBars && fc.customBars.lower) ? [].concat((fc.customBars.lower.horizontal||[]),(fc.customBars.lower.vertical||[])) : upperCustom);
+        let svg = '';
+        svg += `<path d="M ${x0 + uw - G.jambBot} ${SY(0)} L ${x0 + uw - G.jambBot} ${SY(G.sillTop)} ${EstimateRenderer.sashBulgeArc(x0 + uw - G.jambBot, SY(G.sillTop), x0 + uw - G.jambTop, SY(G.sillCurveTop), G.bulge)} L ${x0 + uw - G.jambTop} ${SY(fh)} L ${x0 + uw} ${SY(fh)} L ${x0 + uw} ${SY(0)} Z" ${frameStyle}/>`;
+        svg += `<path d="M ${x0 + G.jambBot} ${SY(0)} L ${x0 + G.jambBot} ${SY(G.sillTop)} ${EstimateRenderer.sashBulgeArc(x0 + G.jambBot, SY(G.sillTop), x0 + G.jambTop, SY(G.sillCurveTop), -G.bulge)} L ${x0 + G.jambTop} ${SY(fh)} L ${x0} ${SY(fh)} L ${x0} ${SY(0)} Z" ${frameStyle}/>`;
+        if (archRise > 0) {
+            svg += `<path d="M ${x0 + G.jambTop} ${SY(fh)} L ${x0 + uw - G.jambTop} ${SY(fh)} L ${x0 + uw - G.jambTop} ${SY(fh - G.headH) + archRise} Q ${x0 + uw/2} ${SY(fh - G.headH) - archRise} ${x0 + G.jambTop} ${SY(fh - G.headH) + archRise} Z" ${frameStyle}/>`;
+        } else {
+            svg += `<path d="M ${x0 + G.jambTop} ${SY(fh)} L ${x0 + uw - G.jambTop} ${SY(fh)} L ${x0 + uw - G.jambTop} ${SY(fh - G.headH)} L ${x0 + G.jambTop} ${SY(fh - G.headH)} Z" ${frameStyle}/>`;
+        }
+        // own cill band (sides); the front run gets one continuous cill drawn by the caller
+        const cavTop = SY(fh - G.headH) + archRise;
+        const cavBot = SY(G.sillTop);
+        const u = EstimateRenderer.sashUnitSVG(x0 + G.jambTop, cavTop, uw - 2 * G.jambTop, cavBot - cavTop, {
+            upperBars, lowerBars, upperCustom, lowerCustom, horns, hornType, openingType, archRise
+        });
+        svg += u.svg;
+        return svg;
+    }
+
+    // Corner post size of a square bay as used by the 3D and the calculator: whole mm, 164…400,
+    // 164 (the box depth) when missing — e.g. a bay saved before the size could be set.
+    static bayPostSize(v) {
+        const n = Math.round(Number(v));
+        if (!Number.isFinite(n) || n <= 0) return 164;
+        return Math.min(400, Math.max(164, n));
+    }
+
+    // ─── Square bay (owner, 02.10.2026): unfolded elevation ───
+    // 05.10.2026 (owner): timber corner posts only (masonry piers removed), post size W × D from the
+    // config, cover strips at the posts as on the joins. The bay is unwrapped at both outer corners:
+    //   side window S · post side-face D ‖ post front-face W · front run · post front-face W ‖ post side-face D · side window S
+    // (‖ = the fold at the outer corner, drawn as a small gap). Front units as in the multi-part run
+    // (continuous cill, cover strips on the joins); each side has its own cill.
+    static generateSquareBaySVG(item, fc) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+
+        const fw = fc.actualFrameWidth || item.width || 1000;          // FRONT run frame width
+        const fh = fc.actualFrameHeight || item.height || 1500;
+        const entered = fc.multiUnits.map(u => Number(u) || 0);
+        const enteredSum = entered.reduce((a, b) => a + b, 0);
+        const extraEach = enteredSum > 0 ? (fw - enteredSum) / entered.length : 0;
+        const units = entered.map(u => u + extraEach);
+        const S = Math.max(200, parseInt(fc.baySideWidth) || 700);
+        const W = EstimateRenderer.bayPostSize(fc.bayPostWidth);       // post face seen from the front
+        const D = EstimateRenderer.bayPostSize(fc.bayPostDepth);       // post face seen from the side
+        const covers = fc.multiCovers || 'both';
+        const sillExt = parseInt(fc.multiSillExt) || 0;
+        const headType = fc.headType || 'flat';
+
+        // The fold gap also has to hold the cill horn when the cill is extended past the corner
+        const GAP = Math.max(40, sillExt > 0 ? sillExt + 30 : 0);
+        const totalRun = S + D + GAP + W + fw + W + GAP + D + S;
+        const M = Math.max(G.margin * 1.35, Math.max(totalRun, fh) * 0.07);
+        const DM = Math.max(G.dimOffset, Math.max(totalRun, fh) * 0.055);
+        const totalW = M + totalRun + DM + M;
+        const fs = 21 * (totalW / G.refW);
+        // Two dimension tiers under the drawing, spaced by the text size so the labels never overlap
+        const ox = M, oy = M;
+        const nearY = oy + fh + fs * 1.75;
+        const farY = nearY + fs * 1.75;
+        const totalH = farY + fs * 0.9 + M * 0.3;
+        const SY = (y) => oy + (fh - y);
+        const frameStyle = `fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1.4" ${NS}`;
+        const coverStyle = `fill="rgba(10,22,40,0.11)" stroke="${G.navy}" stroke-width="1.1" ${NS}`;
+        const postStyle = `fill="rgba(10,22,40,0.16)" stroke="${G.navy}" stroke-width="1.2" ${NS}`;
+        const archFor = (uw) => headType === 'arch' ? Math.min(uw * 0.14, 150) : 0;
+        const postH = SY(0) - SY(fh);                                   // full height: cill bottom → head top
+        const coverH = SY(G.sillTop) - SY(fh);                          // cill top → head top
+        const coverAt = (jx) => `<rect x="${jx - 50}" y="${SY(fh)}" width="100" height="${coverH}" ${coverStyle}/>`;
+        const ownCill = (x0) => `<path d="M ${x0 + G.jambBot} ${SY(0)} L ${x0 + S - G.jambBot} ${SY(0)} L ${x0 + S - G.jambBot} ${SY(G.sillNose)} L ${x0 + G.jambBot} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
+
+        let svg = '';
+        const postJoints = [];                                          // post ↔ window joints (4)
+
+        // LEFT side window (own cill) + the post's side face
+        let x = ox;
+        const leftX0 = x, leftX1 = x + S;
+        svg += EstimateRenderer.sashBoxUnitSVG(x, S, fh, SY, fc, archFor(S));
+        svg += ownCill(x);
+        x += S;
+        postJoints.push(x);
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${D}" height="${postH}" ${postStyle}/>`;
+        x += D;
+        const foldL = x + GAP / 2;
+        x += GAP;
+        // LEFT post, front face
+        const overallX0 = x;
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${W}" height="${postH}" ${postStyle}/>`;
+        x += W;
+        postJoints.push(x);
+        // FRONT run
+        const frontX0 = x;
+        const joints = [];
+        units.forEach((uw, i) => {
+            svg += EstimateRenderer.sashBoxUnitSVG(x, uw, fh, SY, fc, archFor(uw));
+            if (i < units.length - 1) joints.push(x + uw);
+            x += uw;
+        });
+        const frontX1 = x;
+        postJoints.push(x);
+        // one continuous cill under the front run (it runs on under the posts, which hide it there)
+        svg += `<path d="M ${frontX0 + G.jambBot} ${SY(0)} L ${frontX1 - G.jambBot} ${SY(0)} L ${frontX1 - G.jambBot} ${SY(G.sillNose)} L ${frontX0 + G.jambBot} ${SY(G.sillNose)} Z" ${frameStyle}/>`;
+        svg += `<line x1="${frontX0 + G.jambBot}" y1="${SY(G.sillWeatherbar)}" x2="${frontX1 - G.jambBot}" y2="${SY(G.sillWeatherbar)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
+        svg += `<line x1="${frontX0 + G.jambBot}" y1="${SY(G.sillDrip)}" x2="${frontX1 - G.jambBot}" y2="${SY(G.sillDrip)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
+        // RIGHT post, front face
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${W}" height="${postH}" ${postStyle}/>`;
+        x += W;
+        const overallX1 = x;
+        // extended cill: its horns project past both outer corners
+        if (sillExt > 0) {
+            svg += `<rect x="${overallX0 - sillExt}" y="${SY(G.sillNose)}" width="${sillExt}" height="${SY(0) - SY(G.sillNose)}" ${frameStyle}/>`;
+            svg += `<rect x="${overallX1}" y="${SY(G.sillNose)}" width="${sillExt}" height="${SY(0) - SY(G.sillNose)}" ${frameStyle}/>`;
+        }
+        const foldR = x + GAP / 2;
+        x += GAP;
+        // RIGHT post, side face + the side window (own cill)
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${D}" height="${postH}" ${postStyle}/>`;
+        x += D;
+        postJoints.push(x);
+        const rightX0 = x, rightX1 = x + S;
+        svg += EstimateRenderer.sashBoxUnitSVG(x, S, fh, SY, fc, archFor(S));
+        svg += ownCill(x);
+
+        // Cover strips 100 mm: over every front join and over every post ↔ window joint
+        if (covers !== 'none') {
+            joints.forEach(jx => { svg += coverAt(jx); });
+            postJoints.forEach(jx => { svg += coverAt(jx); });
+        }
+
+        // Labels on the parts
+        const lbl = `fill="${G.navy}" opacity="0.5" font-family="Jost,sans-serif" font-size="${fs * 0.9}" text-anchor="middle" letter-spacing="3"`;
+        svg += `<text x="${(leftX0 + leftX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>SIDE</text>`;
+        svg += `<text x="${(frontX0 + frontX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>FRONT</text>`;
+        svg += `<text x="${(rightX0 + rightX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>SIDE</text>`;
+        const plbl = `fill="${G.navy}" opacity="0.6" font-family="Jost,sans-serif" font-size="${fs * 0.7}" text-anchor="middle" letter-spacing="3"`;
+        [foldL, foldR].forEach(cx => { svg += `<text x="${cx}" y="${SY(fh / 2)}" dy="0.35em" ${plbl} transform="rotate(-90,${cx},${SY(fh / 2)})">POST ${W} × ${D}</text>`; });
+
+        // Dimensions: near tier — side · front units · side; far tier — front overall (posts included); height on the right
+        svg += EstimateRenderer.sashDimH(nearY, leftX0, leftX1, oy + fh, `${Math.round(S)}`, fs);
+        let ux = frontX0;
+        units.forEach((uw) => { svg += EstimateRenderer.sashDimH(nearY, ux, ux + uw, oy + fh, `${Math.round(uw)}`, fs); ux += uw; });
+        svg += EstimateRenderer.sashDimH(nearY, rightX0, rightX1, oy + fh, `${Math.round(S)}`, fs);
+        svg += EstimateRenderer.sashDimH(farY, overallX0, overallX1, oy + fh, `${Math.round(fw + 2 * W)} front overall`, fs);
+        svg += EstimateRenderer.sashDimV(ox + totalRun + DM * 0.75, oy, oy + fh, ox + totalRun, `${Math.round(fh)}`, fs);
+
+        return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
+    }
+
     // ─── Multi-part sash run (owner, 01.10.2026): N double-hung units in one straight run ───
     // Same real-mm geometry as generateSashSVG, per unit: box jambs + head + cavity. The run
     // then gets ONE continuous cill (optionally extended at each end) and a 100 mm cover strip
@@ -2675,7 +2856,10 @@ class EstimateRenderer {
             return EstimateRenderer.generateArchedSashSVG(item, fc);
         }
 
-        // ═══ MULTI-PART SASH RUN (owner, 01.10.2026) — double-hung units only ═══
+        // ═══ SPECIAL LAYOUT (owner, 01–02.10.2026) — double-hung units only ═══
+        if (fc.windowLayout === 'square-bay' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1 && (fc.sashType || 'double') === 'double') {
+            return EstimateRenderer.generateSquareBaySVG(item, fc);
+        }
         if (Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 2 && (fc.sashType || 'double') === 'double') {
             return EstimateRenderer.generateMultiPartSVG(item, fc);
         }
@@ -4839,7 +5023,7 @@ class EstimateRenderer {
                     : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                     : p.sashType === 'single' ? 'Single Sash'
                     : 'Sash';
-                const desc = `${p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+                const desc = `${p.isSquareBay ? 'Special Layout · Square bay ' + p.multiUnits.length + '+2' : p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
                 return `
                     <tr>
                         <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
@@ -5171,7 +5355,7 @@ class EstimateRenderer {
                         : 'Sash';
                     return [
                         it.window_number || String(idx + 1).padStart(2, '0'),
-                        `${p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`,
+                        `${p.isSquareBay ? 'Special Layout · Square bay ' + p.multiUnits.length + '+2' : p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`,
                         String(p.quantity || 1),
                         '£' + R.formatPrice(it.total_price || 0)
                     ];
@@ -5328,7 +5512,8 @@ class EstimateRenderer {
                 specs.push(['Trickle Vent', p.trickleText]);
                 if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
             } else {
-            if (p.multiUnits) specs.push(['Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)']);
+            if (p.isSquareBay) specs.push(['Window Type', 'Special Layout — Square bay 90° · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)']);
+            else if (p.multiUnits) specs.push(['Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)']);
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.sashType === 'arched') {
                 if (p.archRise) specs.push(['Arch rise', p.archRise + 'mm']);
