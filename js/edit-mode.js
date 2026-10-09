@@ -232,6 +232,11 @@
         window.applyArchedSash();
       }
 
+      // Sash Proportions (09.10.2026): after the dimensions, so the 900 mm rule sees the restored
+      // height. Records saved before the option existed are standard.
+      setRadio('sash-proportion', fc.sashProportion || 'standard');
+      if (typeof window.applySashProportionRules === 'function') window.applySashProportionRules();
+
       // Glass
       setRadio('frame-type', fc.frameType);
       setRadio('glass-type', fc.glassType);

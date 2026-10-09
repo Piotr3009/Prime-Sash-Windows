@@ -170,6 +170,10 @@ class EstimateRenderer {
         const sashType = fc.sashType || 'double';
         const headType = fc.headType || 'flat';
         const splitRatio = fc.splitRatio || '1/4-1/2-1/4';
+        // Sash Proportions (owner, 09.10.2026): double / triple only; missing = standard
+        const sashProportionTexts = { 'cottage-40-60': 'Cottage 40/60 (top sash 40%)', 'cottage-1-3': 'Cottage 1/3–2/3 (top sash 1/3)' };
+        const sashProportion = ((sashType === 'double' || sashType === 'triple') && sashProportionTexts[fc.sashProportion]) ? fc.sashProportion : 'standard';
+        const sashProportionText = sashProportionTexts[sashProportion] || 'Standard';
 
         // ── ARCHED SASH (sashType 'arched') ──
         // One shape dictionary across the app: the same ids as casArchShape / fixShape.
@@ -601,7 +605,7 @@ class EstimateRenderer {
         if (doorSillWider) doorThresholdText += ' (wider)';
 
         return {
-            fc, spec, windowType, sashType, headType, splitRatio,
+            fc, spec, windowType, sashType, headType, splitRatio, sashProportion, sashProportionText,
             archShape, archShapeName, archTypeLabel, archRise, archStraightHeight,
             archUpperMaxDrop, archUpperSashHeight, archBarPattern, archHBars, archVBars, archBarsText,
             archLowerMaxLift, archLowerBarsText,
@@ -805,6 +809,7 @@ class EstimateRenderer {
                             ${p.isSquareBay ? R.specRow('Window Type', 'Special Layout — Square bay 90° · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)') : p.multiUnits ? R.specRow('Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)') : ''}
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' && p.sashType !== 'arched' ? R.specRow('Head Type', 'Glazing Arch') : ''}
+                            ${p.sashProportion !== 'standard' ? R.specRow('Sash Proportions', p.sashProportionText) : ''}
                             ${p.sashType === 'arched' ? R.specRow('Sash Type', p.archTypeLabel) : ''}
                             ${p.sashType === 'arched' && p.archRise ? R.specRow('Arch rise', p.archRise + 'mm') : ''}
                             ${p.sashType === 'arched' && p.archStraightHeight ? R.specRow('Straight height', p.archStraightHeight + 'mm') : ''}
@@ -1476,8 +1481,11 @@ class EstimateRenderer {
         // Sash sizes derived from cavity (cavity ≈ frame inner light)
         const sashW = cavW;
         const totalSashH = cavH + G.meetRail;           // overlap at meeting rail
-        const topSashH = (totalSashH - G.sashHDiff) / 2;
-        const botSashH = topSashH + G.sashHDiff;
+        // Sash Proportions (owner, 09.10.2026): cottage = a share of the total sash height, standard =
+        // equal glass (bottom sash + sashHDiff) as before — the Production Core rule.
+        const cottageShare = ({ 'cottage-40-60': 0.4, 'cottage-1-3': 1 / 3 })[opts.sashProportion];
+        const topSashH = cottageShare ? totalSashH * cottageShare : (totalSashH - G.sashHDiff) / 2;
+        const botSashH = totalSashH - topSashH;
 
         const sashX = cavX;
         const upperY = cavY;
@@ -2346,7 +2354,7 @@ class EstimateRenderer {
             // Center: full double-hung
             const c = EstimateRenderer.sashUnitSVG(cX, cavTop, centerW, cavBot - cavTop, {
                 upperBars, lowerBars, upperCustom, lowerCustom,
-                horns, hornType, openingType, archRise
+                horns, hornType, openingType, archRise, sashProportion: fc.sashProportion
             });
             svg += c.svg;
 
@@ -2378,7 +2386,7 @@ class EstimateRenderer {
             const cavW = fw - 2 * G.jambTop;
             const u = EstimateRenderer.sashUnitSVG(cavX, cavTop, cavW, cavBot - cavTop, {
                 upperBars, lowerBars, upperCustom, lowerCustom,
-                horns, hornType, openingType, archRise
+                horns, hornType, openingType, archRise, sashProportion: fc.sashProportion
             });
             svg += u.svg;
         }
@@ -2414,7 +2422,7 @@ class EstimateRenderer {
         const cavTop = SY(fh - G.headH) + archRise;
         const cavBot = SY(G.sillTop);
         const u = EstimateRenderer.sashUnitSVG(x0 + G.jambTop, cavTop, uw - 2 * G.jambTop, cavBot - cavTop, {
-            upperBars, lowerBars, upperCustom, lowerCustom, horns, hornType, openingType, archRise
+            upperBars, lowerBars, upperCustom, lowerCustom, horns, hornType, openingType, archRise, sashProportion: fc.sashProportion
         });
         svg += u.svg;
         return svg;
@@ -2608,7 +2616,7 @@ class EstimateRenderer {
             const cavTop = SY(fh - G.headH) + archRise;
             const cavBot = SY(G.sillTop);
             const u = EstimateRenderer.sashUnitSVG(x0 + G.jambTop, cavTop, uw - 2 * G.jambTop, cavBot - cavTop, {
-                upperBars, lowerBars, upperCustom, lowerCustom, horns, hornType, openingType, archRise
+                upperBars, lowerBars, upperCustom, lowerCustom, horns, hornType, openingType, archRise, sashProportion: fc.sashProportion
             });
             svg += u.svg;
             if (i < units.length - 1) joints.push(x0 + uw);
@@ -4917,6 +4925,7 @@ class EstimateRenderer {
                     if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
                 } else {
                     if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
+                    if (p.sashProportion !== 'standard') specs.push(['Sash Proportions', p.sashProportionText]);
                     if (p.measurementType === 'brick-to-brick') {
                         specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
                         specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);
@@ -5524,6 +5533,7 @@ class EstimateRenderer {
                 if (p.archLowerBarsText && p.archLowerBarsText !== 'None') specs.push(['Lower sash bars', p.archLowerBarsText]);
             }
             if (p.headType === 'arch') specs.push(['Head Type', 'Glazing Arch']);
+            if (p.sashProportion !== 'standard') specs.push(['Sash Proportions', p.sashProportionText]);
             if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
             if (p.multiText) specs.push(['Arrangement', p.multiText]);
             if (p.measurementType === 'brick-to-brick') {

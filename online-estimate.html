@@ -480,6 +480,29 @@
               </div>
             </div>
           </div>
+
+          <!-- Sash Proportions (owner, 09.10.2026) — double + triple only (lives inside #head-type-options,
+               so it hides with it for arched sashes). Logic: js/sash-proportions.js. Same field and formula
+               as Production Core: sashProportion = standard | cottage-40-60 | cottage-1-3. -->
+          <div class="input-group" id="sash-proportion-group" style="margin-top:14px;">
+            <label>Sash Proportions:</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" id="sash-prop-standard" name="sash-proportion" value="standard" checked>
+                <label for="sash-prop-standard" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="2" y="2" width="24" height="32"/><line x1="2" y1="18" x2="26" y2="18"/></svg>Standard</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="sash-prop-cottage-40" name="sash-proportion" value="cottage-40-60">
+                <label for="sash-prop-cottage-40" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="2" y="2" width="24" height="32"/><line x1="2" y1="14.8" x2="26" y2="14.8"/></svg>Cottage 40/60</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="sash-prop-cottage-third" name="sash-proportion" value="cottage-1-3">
+                <label for="sash-prop-cottage-third" class="radio-label"><svg width="20" height="26" viewBox="0 0 28 36" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin:-3px 8px -3px 0" aria-hidden="true"><rect x="2" y="2" width="24" height="32"/><line x1="2" y1="12.7" x2="26" y2="12.7"/></svg>Cottage 1/3–2/3</label>
+              </div>
+            </div>
+            <p style="font-size:.72rem;color:var(--secondary-color);margin-top:6px;"><strong>Cottage:</strong> a shorter top sash and a taller bottom sash (top 40% or one third of the sash height), so the meeting rail sits higher and the view through the lower sash is clearer.</p>
+            <p id="sash-proportion-note" style="font-size:.72rem;color:#b3261e;margin-top:4px;" hidden>Cottage proportions need a window at least 900&nbsp;mm high.</p>
+          </div>
         </div>
 
         <!-- Arched types — visible only for arched-group -->
@@ -4251,6 +4274,10 @@
             <span class="spec-label">Proportions:</span>
             <span class="spec-value" id="spec-split-ratio">-</span>
           </div>
+          <div class="spec-item" id="spec-sash-proportion-item" style="display: none;">
+            <span class="spec-label">Sash Proportions:</span>
+            <span class="spec-value" id="spec-sash-proportion">-</span>
+          </div>
           <div class="spec-item" id="spec-multi-item" style="display: none;">
             <span class="spec-label">Arrangement:</span>
             <span class="spec-value" id="spec-multi">-</span>
@@ -4676,17 +4703,17 @@
 <!-- 2. Pricing config -->
 <script src="js/ironmongery-data.js?v=3"></script>
 <script src="js/ironmongery-gallery.js?v=4"></script>
-<script src="js/pricing-config.js?v=17"></script>
+<script src="js/pricing-config.js?v=18"></script>
 <script src="js/config.js?v=4"></script>
-<script src="js/price-calculator.js?v=25"></script>
+<script src="js/price-calculator.js?v=26"></script>
 <script src="js/storage-manager.js?v=3"></script>
 <script src="js/form-handler.js?v=4"></script>
 <script src="js/dimension-handler.js?v=4"></script>
 <script src="js/visualization-manager.js?v=3"></script>
 <script src="js/bars-unified.js?v=5"></script>
 <script src="js/details-controller.js?v=3"></script>
-<script src="js/specification-controller.js?v=17"></script>
-<script src="js/configurator-core.js?v=6"></script>
+<script src="js/specification-controller.js?v=18"></script>
+<script src="js/configurator-core.js?v=7"></script>
 <script src="js/multi-part-controller.js?v=9"></script>
 <script src="js/color-config.js?v=2"></script>
 <script src="js/color-module.js?v=5"></script>
@@ -4708,9 +4735,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="js/estimate-extras.js?v=13"></script>
-<script src="js/estimate-renderer.js?v=47"></script>
+<script src="js/estimate-renderer.js?v=48"></script>
 <script src="js/estimate-selector.js?v=3"></script>
-<script src="js/estimate-manager.js?v=13"></script>
+<script src="js/estimate-manager.js?v=14"></script>
 <!-- Share 3D link popup (owner, 08.10.2026) — js/share-design.js -->
 <div class="share3d-overlay" id="share3d-overlay" hidden>
   <div class="share3d-panel" role="dialog" aria-modal="true" aria-labelledby="share3d-title">
@@ -4731,7 +4758,9 @@
   </div>
 </div>
 <script src="js/share-design.js?v=1"></script>
-<script src="js/edit-mode.js?v=15"></script>
+<!-- Sash Proportions (owner, 09.10.2026): standard / cottage 40/60 / cottage 1/3–2/3 -->
+<script src="js/sash-proportions.js?v=1"></script>
+<script src="js/edit-mode.js?v=16"></script>
 
 <!-- Ironmongery Gallery Overlay -->
 <div id="ironmongeryOverlay" class="ironmongery-overlay">
@@ -5074,7 +5103,7 @@
     if (!window.__PSW_isPhone) {
       var psw3dScript = document.createElement("script");
       psw3dScript.type = "module";
-      psw3dScript.src = "3d/assets/window3d.js?v=113";
+      psw3dScript.src = "3d/assets/window3d.js?v=114";
       document.head.appendChild(psw3dScript);
     }
   </script>
@@ -5142,7 +5171,7 @@
           var sameType = bars.slice(0, i).filter(function(b){ return b.type === bar.type; });
           var idx = sameType.length;
           var label = (bar.type === 'v' ? 'Vertical' : 'Horizontal') + ' — ' + fromLabel(bar.type, idx);
-          var maxVal = bar.type === 'v' ? getWidth() - 10 : Math.floor(getHeight() / 2) - 10;
+          var maxVal = bar.type === 'v' ? getWidth() - 10 : Math.floor(getHeight() * ((window.SashProportions && window.SashProportions.heightShare) ? window.SashProportions.heightShare(/lower/.test(container.id || '')) : 0.5)) - 10;   // sash share of H (standard 0.5, as before)
 
           var row = document.createElement('div');
           row.className = 'custom-bar-row';
@@ -5260,6 +5289,19 @@
         updateAddBtns();
         liveUpdate();
       };
+
+      // Sash Proportions (09.10.2026): a new top / bottom sash split changes the horizontal bar limits —
+      // redraw both lists (a bar beyond its new limit moves to it) and push the bars once.
+      document.addEventListener('sashproportionchange', function() {
+        var moved = false;
+        [['upper-custom-list', upperCustom, function(b){upperCustom=b;}], ['lower-custom-list', lowerCustom, function(b){lowerCustom=b;}]].forEach(function(t) {
+          var el = document.getElementById(t[0]); if (!el || !t[1].length) return;
+          var lim = Math.floor(getHeight() * window.SashProportions.heightShare(/lower/.test(t[0]))) - 10;
+          t[1].forEach(function(b) { if (b.type === 'h' && b.mm > lim) { b.mm = lim; moved = true; } });
+          renderList(t[1], el, t[2]);
+        });
+        if (moved) liveUpdate();
+      });
 
       togglePanels();
     })();
@@ -5563,6 +5605,8 @@
               if (!isNaN(_h)) window.currentConfig.height = _h;
               window.currentConfig.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
               window.currentConfig.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+              // Sash Proportions (09.10.2026): the effective value ('standard' when a rule says no)
+              window.currentConfig.sashProportion = (typeof window.getSashProportion === 'function') ? window.getSashProportion() : 'standard';
               // The arched radio value is 'arched-group'; everything downstream
               // (pricing, spec, CSV, 3D) speaks 'arched'. headType is ignored for
               // arched — Glazing Arch is a separate product for double/triple.
@@ -5687,6 +5731,7 @@
             if (!isNaN(_vh)) m.height = _vh;
             m.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
             m.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+            m.sashProportion = (typeof window.getSashProportion === 'function') ? window.getSashProportion() : 'standard';
             if (m.sashType === 'arched-group') {
               // Canon for the arched product — same normalisation as syncActiveProduct.
               m.sashType = 'arched';
@@ -7375,7 +7420,7 @@
           var sameType = bars.slice(0, i).filter(function(b){ return b.type === bar.type; });
           var idx = sameType.length;
           var label = (bar.type === 'v' ? 'Vertical' : 'Horizontal') + ' — ' + fromLabel(bar.type, idx);
-          var maxVal = bar.type === 'v' ? getWidth() - 10 : Math.floor(getHeight() / 2) - 10;
+          var maxVal = bar.type === 'v' ? getWidth() - 10 : Math.floor(getHeight() * ((window.SashProportions && window.SashProportions.heightShare) ? window.SashProportions.heightShare(/lower/.test(container.id || '')) : 0.5)) - 10;   // sash share of H (standard 0.5, as before)
 
           var row = document.createElement('div');
           row.className = 'custom-bar-row';
@@ -7496,6 +7541,19 @@
             : (fixLowerSel.value === 'custom' ? fixLowerCustom.map(function(b){return {type:b.type, mm:b.mm};}) : [])
         };
       };
+
+      // Sash Proportions (09.10.2026): a new top / bottom sash split changes the horizontal bar limits —
+      // redraw both lists (a bar beyond its new limit moves to it) and push the bars once.
+      document.addEventListener('sashproportionchange', function() {
+        var moved = false;
+        [['fix-upper-custom-list', fixUpperCustom, function(b){fixUpperCustom=b;}], ['fix-lower-custom-list', fixLowerCustom, function(b){fixLowerCustom=b;}]].forEach(function(t) {
+          var el = document.getElementById(t[0]); if (!el || !t[1].length) return;
+          var lim = Math.floor(getHeight() * window.SashProportions.heightShare(/lower/.test(t[0]))) - 10;
+          t[1].forEach(function(b) { if (b.type === 'h' && b.mm > lim) { b.mm = lim; moved = true; } });
+          fixRenderList(t[1], el, t[2]);
+        });
+        if (moved) fixLiveUpdate();
+      });
 
       fixTogglePanels();
 

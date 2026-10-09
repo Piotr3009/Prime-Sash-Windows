@@ -624,6 +624,9 @@ class EstimateManager {
         // currentConfig.sashType from the radio on every updateAll(), so
         // normalise here — at the two points that actually leave the page.
             if (cfg.sashType === 'arched-group') cfg.sashType = 'arched';
+            // Sash Proportions (09.10.2026): refresh from the live controls right before the window
+            // leaves the page ('standard' whenever the option does not apply)
+            if (typeof window.getSashProportion === 'function') cfg.sashProportion = window.getSashProportion();
             const isCasement = cfg.windowType === 'casement' || cfg.windowCategory === 'casement';
             const isFixOnly = cfg.windowType === 'fix-only';
 
@@ -693,6 +696,10 @@ class EstimateManager {
                 lowerHBars: cfg.lowerHBars !== undefined ? cfg.lowerHBars : null,
                 lowerVBars: cfg.lowerVBars !== undefined ? cfg.lowerVBars : null,
                 lowerMaxLift: cfg.lowerMaxLift || null,
+
+                // ── SASH PROPORTIONS (owner, 09.10.2026) — standard | cottage-40-60 | cottage-1-3,
+                // the same field Production Core reads (fullConfig carries it too)
+                sashProportion: (!isCasement && !isFixOnly) ? (cfg.sashProportion || 'standard') : null,
 
                 // ── MULTI-PART SASH RUN (owner, 01.10.2026) — unit widths as entered, null = single
                 multiUnits: (Array.isArray(cfg.multiUnits) && (cfg.multiUnits.length >= 2 || (cfg.windowLayout === 'square-bay' && cfg.multiUnits.length >= 1))) ? cfg.multiUnits.slice() : null,

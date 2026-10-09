@@ -711,7 +711,9 @@ class SpecificationController {
       window.currentConfig.sashType = document.querySelector('input[name="sash-type"]:checked')?.value || 'double';
       window.currentConfig.splitRatio = document.getElementById('split-ratio')?.value || '1/4-1/2-1/4';
       window.currentConfig.headType = document.querySelector('input[name="head-type"]:checked')?.value || 'flat';
-      
+      // Sash Proportions (09.10.2026): effective value ('standard' when not applicable)
+      window.currentConfig.sashProportion = (typeof window.getSashProportion === 'function') ? window.getSashProportion() : 'standard';
+
       // Trigger price recalculation
       if (window.configuratorCore && window.configuratorCore.isInitialized) {
         window.configuratorCore.updateAll();
@@ -899,11 +901,15 @@ class SpecificationController {
     const frameWidth = parseInt(document.getElementById('width')?.value) || (isTriple ? 1500 : 1000);
     const frameHeight = parseInt(document.getElementById('height')?.value) || (isTriple ? 1200 : 1500);
 
+    // Sash Proportions (09.10.2026): effective value ('standard' when not applicable)
+    const sashProportion = (typeof window.getSashProportion === 'function') ? window.getSashProportion() : 'standard';
+
     // Update currentConfig
     if (window.currentConfig) {
       window.currentConfig.sashType = sashType;
       window.currentConfig.splitRatio = splitRatio;
       window.currentConfig.headType = headType;
+      window.currentConfig.sashProportion = sashProportion;
       window.currentConfig.actualFrameWidth = frameWidth;
       window.currentConfig.actualFrameHeight = frameHeight;
     }
@@ -914,6 +920,7 @@ class SpecificationController {
         sashType: sashType,
         headType: headType,
         splitRatio: splitRatio,
+        sashProportion: sashProportion,
         extWidth: frameWidth,
         extHeight: frameHeight
       });

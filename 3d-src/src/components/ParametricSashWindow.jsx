@@ -1999,6 +1999,24 @@ function MullionPost({ height, position, material, materialInt, beadMaterial, be
   );
 }
 
+// ── Sash Proportions (owner, 09.10.2026) ─────────────────────────────────────────
+// The meeting rail sits where production puts it (Production Core, workshop profile):
+//   total sash height T = frame H − 135 + 43; standard: bottom = (T − 33) / 2 + 33 (equal glass);
+//   cottage-40-60: bottom = 0.6 T; cottage-1-3: bottom = 2/3 T.
+// The 3D keeps its own frame geometry and puts the meeting line at the same fraction of the
+// opening as production: f = (bottom − 43/2) / (T − 43), measured from the bottom.
+// Same formula as js/sash-proportions.js (PSW) and Production Core.
+const SASH_PROD = { openingDeduct: 135, meet: 43, diff: 33 };
+const COTTAGE_TOP_SHARE = { 'cottage-40-60': 0.4, 'cottage-1-3': 1 / 3 };
+export function sashMeetingFraction(frameH, proportion) {
+  const T = Number(frameH) - SASH_PROD.openingDeduct + SASH_PROD.meet;
+  if (!(T > SASH_PROD.meet * 3)) return 0.5;
+  const share = COTTAGE_TOP_SHARE[proportion];
+  const bottom = share ? T * (1 - share) : (T - SASH_PROD.diff) / 2 + SASH_PROD.diff;
+  const f = (bottom - SASH_PROD.meet / 2) / (T - SASH_PROD.meet);
+  return (f > 0.05 && f < 0.95) ? f : 0.5;
+}
+
 export default function ParametricSashWindow({
   width = 1200,
   height = 1800,
@@ -2031,6 +2049,8 @@ export default function ParametricSashWindow({
   fixLowerCustomBars = [],
   headType = 'flat',
   hideSill = false,      // multi-part run (01.10.2026): the run draws ONE continuous cill, units skip theirs
+  extHeight = null,      // frame height (mm) — the meeting line follows the production rule on it
+  sashProportion = 'standard',   // owner 09.10.2026: 'standard' | 'cottage-40-60' | 'cottage-1-3'
 }) {
   const cExt = woodColorExt || woodColor;
   const cInt = woodColorInt || woodColor;
@@ -2141,7 +2161,10 @@ export default function ParametricSashWindow({
   const lowerVisibleBottomY = sillTopY + mm(config.bottomGap);
 
   const availableHeight = upperVisibleTopY - lowerVisibleBottomY;
-  const meetingY = lowerVisibleBottomY + availableHeight / 2;
+  // Meeting line at the production fraction (09.10.2026; was availableHeight / 2). Frame H = extHeight,
+  // or the unit height + 87 (App.jsx / the runs pass height = extHeight − 87).
+  const meetFraction = sashMeetingFraction(Number(extHeight) > 0 ? Number(extHeight) : height + 87, sashProportion);
+  const meetingY = lowerVisibleBottomY + availableHeight * meetFraction;
 
   const upperSashHeight = (upperVisibleTopY - meetingY) * 1000 + config.upperMeetingRail / 2;
   const lowerSashHeight = (meetingY - lowerVisibleBottomY) * 1000 + config.lowerMeetingRail / 2;
@@ -2152,9 +2175,12 @@ export default function ParametricSashWindow({
   const yTopClosed = upperVisibleTopY - upperH / 2;
   const yBottomClosed = lowerVisibleBottomY + lowerH / 2;
 
-  const maxLift = Math.max(0, (meetingY - lowerVisibleBottomY) * 1000 - 120);
+  // Two travel limits (09.10.2026): the lower sash rises into the upper part, the upper sash drops into
+  // the lower part — equal with equal parts, as before; the 120 mm margin is unchanged.
+  const maxLift = Math.max(0, (upperVisibleTopY - meetingY) * 1000 - 120);
+  const maxDrop = Math.max(0, (meetingY - lowerVisibleBottomY) * 1000 - 120);
   const lowerOpeningLift = Math.min(opening, maxLift);
-  const upperOpeningDrop = Math.min(upperOpening, maxLift);
+  const upperOpeningDrop = Math.min(upperOpening, maxDrop);
 
   const sashCenterOffset = mm((sashDepth + config.interSashGap) / 2);
   const trackFrontZ = -sashCenterOffset;

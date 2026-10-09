@@ -143,6 +143,17 @@ class PriceCalculator {
       subtotal += archedSurcharge;
     }
 
+    // SASH PROPORTIONS (owner, 09.10.2026): cottage 40/60 or 1/3–2/3 → +5% on subtotal, after the
+    // glazing arch and before the colour (Production Core applies it at the same point). The arched
+    // sash returned above, so only double / triple get here.
+    let cottageSurcharge = 0;
+    if (configuration.sashProportion === 'cottage-40-60' || configuration.sashProportion === 'cottage-1-3') {
+      const sp = this.pricing.sashProportions;
+      const pct = (sp && sp.cottageSurcharge != null) ? Number(sp.cottageSurcharge) || 0 : 0.05;
+      cottageSurcharge = subtotal * pct;
+      subtotal += cottageSurcharge;
+    }
+
     // KOLOR: liczone od czystego subtotal (single white = baza)
     if (configuration.colorType === 'dual') {
       // Dual color: +15% od subtotal single white
@@ -175,6 +186,8 @@ class PriceCalculator {
       barsPrice: barsPrice,
       fixBarsPrice: fixBarsPrice,
       sashType: configuration.sashType || 'double',
+      sashProportion: configuration.sashProportion || 'standard',
+      cottageSurcharge: cottageSurcharge.toFixed(2),
       additionalOptions: additionalPrice,
       subtotal: subtotal.toFixed(2),
       quantity: quantity,

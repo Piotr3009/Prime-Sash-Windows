@@ -163,6 +163,13 @@ const pricingConfig = {
     cornerPostPrice: 0,         // £ per timber corner post (2 per bay), any size — to be set by owner
     postCoverStripPrice: 60     // £ per cover strip at a corner post (same as multiPart.coverStripPrice)
   },
+
+  // ═══ SASH PROPORTIONS (owner, 09.10.2026) ═══
+  // Cottage 40/60 and 1/3–2/3: + this fraction of the sash subtotal (after the glazing arch,
+  // before the colour). Runs and bays: per unit (each unit is priced as a standard sash).
+  sashProportions: {
+    cottageSurcharge: 0.05
+  },
   
   // ═══ CASEMENT PRICING ═══
   casement: {

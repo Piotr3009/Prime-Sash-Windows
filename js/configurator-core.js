@@ -783,6 +783,8 @@ class ConfiguratorCore {
       if (!isNaN(_liveH)) window.currentConfig.height = _liveH;
       window.currentConfig.sashType = (document.querySelector('input[name="sash-type"]:checked') || {}).value || 'double';
       window.currentConfig.headType = (document.querySelector('input[name="head-type"]:checked') || {}).value || 'flat';
+      // Sash Proportions (09.10.2026): effective value from js/sash-proportions.js ('standard' when not applicable)
+      window.currentConfig.sashProportion = (typeof window.getSashProportion === 'function') ? window.getSashProportion() : 'standard';
       delete window.currentConfig.actualFrameWidth;
       delete window.currentConfig.actualFrameHeight;
     }

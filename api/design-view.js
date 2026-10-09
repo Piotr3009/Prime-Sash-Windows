@@ -18,7 +18,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://rfelsfwjszjdtzuovlal.s
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmZWxzZndqc3pqZHR6dW92bGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Nzc1MTgsImV4cCI6MjA5MDA1MzUxOH0.Ut9EtffoU-L1g6IKiqcaVaoA2sEDoc0so821L1Uxn_A';
 
 // Keep in sync with the ?v= of 3d/assets/window3d.js used by online-estimate.html
-const BUNDLE_URL = '/3d/assets/window3d.js?v=113';
+const BUNDLE_URL = '/3d/assets/window3d.js?v=114';
 
 // Links on the page point at our own site only — never at whatever Host header arrived.
 const OUR_HOSTS = ['primesashwindows.co.uk', 'www.primesashwindows.co.uk', 'sashwindowsquote.co.uk', 'www.sashwindowsquote.co.uk'];
