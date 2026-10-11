@@ -36,6 +36,11 @@
  *     side. The left wall's cill carries the customer's extension at its free (left) end and runs
  *     on under the post; the right wall's cill has a standard horn at the post (hidden in it) and
  *     the extension at its free end.
+ *   · CANTED BAY (`windowLayout === 'canted-bay'`, `bayAngle` 30 / 45 / 60): the square bay with each
+ *     side turned by the bay angle instead of 90°. The post's front face is still W along the front and
+ *     its side face D along the side; the solid between them is the convex hull (a pentagon in plan,
+ *     its inside face square to the bisector). Side position, the strips at the post and the side
+ *     guides follow the side direction u = (cos θ, sin θ) and its inward normal n = (−sin θ, cos θ).
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
@@ -65,6 +70,12 @@ export function bayPostSize(v) {
   return Math.min(BAY_GEO.postMax, Math.max(BAY_GEO.postMin, n));
 }
 
+/** Bay angle (each side to the front) in degrees: 20…90, 90 = square bay (the default for anything else). */
+export function bayAngleDeg(v) {
+  const n = Math.round(Number(v));
+  return (Number.isFinite(n) && n >= 20 && n <= 90) ? n : 90;
+}
+
 // Dimension line with a label that always faces the camera (readable from inside AND outside)
 function DimensionGuide({ from, to, label, offset = [0, 0, 0] }) {
   const mid = [(from[0] + to[0]) / 2 + offset[0], (from[1] + to[1]) / 2 + offset[1], (from[2] + to[2]) / 2 + offset[2]];
@@ -91,7 +102,8 @@ export default function SquareBayWindow(props) {
     baySideWidth = 700,          // frame width of each side window
     bayPostWidth = BAY_GEO.postDefault,   // corner post: along the front
     bayPostDepth = BAY_GEO.postDefault,   // corner post: front to back
-    windowLayout = 'square-bay',          // 'square-bay' | 'corner'
+    windowLayout = 'square-bay',          // 'square-bay' | 'canted-bay' | 'corner'
+    bayAngle = 90,                        // canted bay: each side to the front (30 / 45 / 60); 90 = square bay
     cornerUnits = null,                   // corner window: the right wall's units AS ENTERED
     cornerExtWidth = 0,                   // corner window: the right wall's frame width
     woodColor = '#F6F6F6',
@@ -119,12 +131,21 @@ export default function SquareBayWindow(props) {
   const xJoint = xCorner - mm(W);                // front run ↔ post (|x|)
   const postBackZ = -half + mm(D);               // back face of the post = post ↔ side window
 
-  // Side windows: turned 90°, exterior face flush with the outer corner, from the back of the
-  // post to the wall
-  const sideCentreX = xCorner - half;
-  const sideCentreZ = postBackZ + mm(S) / 2;
-  const wallZ = postBackZ + mm(S);
-  const insideX = xCorner - mm(G.boxDepth);      // interior face of a side window (|x|)
+  // Side windows: turned by the bay angle (90° = square bay, corner window), exterior face flush with
+  // the outer corner, from the end of the post's side face (D along the side) to the wall.
+  // Right side: direction u = (cos θ, sin θ) from the post corner, inward normal n = (−sin θ, cos θ);
+  // the left side mirrors x. Side centre = corner + (D + S/2)·u + half·n.
+  const theta = isCorner ? 90 : (windowLayout === 'canted-bay' ? bayAngleDeg(bayAngle) : 90);
+  const isCanted = theta < 90;
+  const th = theta * Math.PI / 180;
+  const ux = Math.cos(th), uz = Math.sin(th), nx = -Math.sin(th), nz = Math.cos(th);
+  const sideCentreX = xCorner + mm(D + S / 2) * ux + half * nx;
+  const sideCentreZ = -half + mm(D + S / 2) * uz + half * nz;
+  const wallZ = -half + mm(D + S) * uz;
+  const insideX = xCorner - mm(G.boxDepth);      // interior face of a side window (|x|), square bay
+  // a point at d along the side's exterior line, then k inward — right post corner as origin (|x| side)
+  const alongSide = (s, d, k) => [s * (xCorner + mm(d) * ux + mm(k) * nx), -half + mm(d) * uz + mm(k) * nz];
+  const sideRotY = (s) => -s * th;               // right side turned −θ, left side +θ (±90° for the square bay)
 
   const cExt = woodColorExt || woodColor;
   const cInt = woodColorInt || woodColor;
@@ -141,6 +162,23 @@ export default function SquareBayWindow(props) {
   const memberH = topY - bottomY;
   const memberY = (bottomY + topY) / 2;
 
+  // Angled post (canted bay), in plan relative to the post's outer corner, (x along the front
+  // toward the centre = −, z into the room = +) for the RIGHT post; the left one is mirrored.
+  // Extruded along −y from topY (ExtrudeGeometry runs along its local +z = world −y after the
+  // +90° turn about x; the shape's y is world z).
+  const postShapes = useMemo(() => {
+    if (!isCanted) return null;
+    const pts = [[0, 0], [-mm(W), 0], [-mm(W), mm(D)], [mm(D) * ux + mm(W) * nx, mm(D) * uz + mm(W) * nz], [mm(D) * ux, mm(D) * uz]];
+    const make = (s) => { const shape = new THREE.Shape(); const seq = s > 0 ? pts : pts.slice().reverse(); seq.forEach(([x, z], i) => { if (i === 0) shape.moveTo(s * x, z); else shape.lineTo(s * x, z); }); shape.closePath(); return shape; };
+    return [make(-1), make(1)];
+  }, [isCanted, W, D, ux, uz, nx, nz]);
+  const innerFace = useMemo(() => {
+    if (!isCanted) return null;
+    const a = [-mm(W), mm(D)], b = [mm(D) * ux + mm(W) * nx, mm(D) * uz + mm(W) * nz];   // the inside edge, right post
+    const dx = b[0] - a[0], dz = b[1] - a[1];
+    return { cx: (a[0] + b[0]) / 2, cz: (a[1] + b[1]) / 2, len: Math.hypot(dx, dz), rot: -Math.atan2(dz, dx) };
+  }, [isCanted, W, D, ux, uz, nx, nz]);
+
   // Cover strips at the posts: cill top → head top, like the strips on the joins
   const showOut = multiCovers === 'both' || multiCovers === 'outside';
   const showIn = multiCovers === 'both' || multiCovers === 'inside';
@@ -150,8 +188,8 @@ export default function SquareBayWindow(props) {
   const coverH = topY - sillTopY;
   const coverY = (sillTopY + topY) / 2;
   // Inside: the half over the post exists only where the post is flush with that frame and showing
-  const postHalfFront = (D === G.boxDepth) ? mm(Math.min(G.coverW / 2, Math.max(0, W - G.boxDepth))) : 0;
-  const postHalfSide = (W === G.boxDepth) ? mm(Math.min(G.coverW / 2, Math.max(0, D - G.boxDepth))) : 0;
+  const postHalfFront = (!isCanted && D === G.boxDepth) ? mm(Math.min(G.coverW / 2, Math.max(0, W - G.boxDepth))) : 0;
+  const postHalfSide = (!isCanted && W === G.boxDepth) ? mm(Math.min(G.coverW / 2, Math.max(0, D - G.boxDepth))) : 0;
   const inFrontW = cw / 2 + postHalfFront;       // along x
   const inSideW = cw / 2 + postHalfSide;         // along z
 
@@ -210,14 +248,14 @@ export default function SquareBayWindow(props) {
       {/* SIDES — left faces −x, right faces +x (the unit's exterior is world −z before the turn).
           Corner window: only the right side, as a run (or one unit with the extension at its free end). */}
       {!isCorner && (
-        <group position={[-sideCentreX, 0, sideCentreZ]} rotation={[0, Math.PI / 2, 0]}>
+        <group position={[-sideCentreX, 0, sideCentreZ]} rotation={[0, sideRotY(-1), 0]}>
           <group position={[-sideShift, 0, 0]}>
             <ParametricSashWindow {...sidePropsLeft} />
           </group>
         </group>
       )}
       {!isCorner && (
-        <group position={[sideCentreX, 0, sideCentreZ]} rotation={[0, -Math.PI / 2, 0]}>
+        <group position={[sideCentreX, 0, sideCentreZ]} rotation={[0, sideRotY(1), 0]}>
           <group position={[sideShift, 0, 0]}>
             <ParametricSashWindow {...sidePropsRight} />
           </group>
@@ -251,9 +289,22 @@ export default function SquareBayWindow(props) {
       {/* CORNER POSTS + their cover strips (corner window: the right post only) */}
       {(isCorner ? [1] : [-1, 1]).map((s) => (
         <group key={`corner-${s}`}>
-          <mesh name="bay-post" position={[s * (xCorner - mm(W) / 2), memberY, -half + mm(D) / 2]} material={s > 0 ? postMatRight : postMatLeft} castShadow receiveShadow>
-            <boxGeometry args={[mm(W), memberH, mm(D)]} />
-          </mesh>
+          {isCanted ? (
+            <>
+              {/* angled post: the convex hull of the front face (W, D deep) and the side face (D along the side, W deep) */}
+              <mesh name="bay-post" position={[s * xCorner, topY, -half]} rotation={[Math.PI / 2, 0, 0]} material={extMat} castShadow receiveShadow>
+                <extrudeGeometry args={[postShapes[s > 0 ? 1 : 0], { depth: memberH, bevelEnabled: false, steps: 1 }]} />
+              </mesh>
+              {/* its inside face (square to the bisector) in the interior colour */}
+              <mesh name="bay-post-inside" position={[s * (xCorner + innerFace.cx), memberY, -half + innerFace.cz]} rotation={[0, s * innerFace.rot, 0]} material={intMat}>
+                <boxGeometry args={[innerFace.len, memberH, 0.002]} />
+              </mesh>
+            </>
+          ) : (
+            <mesh name="bay-post" position={[s * (xCorner - mm(W) / 2), memberY, -half + mm(D) / 2]} material={s > 0 ? postMatRight : postMatLeft} castShadow receiveShadow>
+              <boxGeometry args={[mm(W), memberH, mm(D)]} />
+            </mesh>
+          )}
 
           {showOut && (
             <>
@@ -261,10 +312,16 @@ export default function SquareBayWindow(props) {
               <mesh name="bay-cover-out-front" position={[s * xJoint, coverY, -half - ct / 2]} material={extMat} castShadow receiveShadow>
                 <boxGeometry args={[cw, coverH, ct]} />
               </mesh>
-              {/* outside, side face: over the post ↔ side window joint */}
-              <mesh name="bay-cover-out-side" position={[s * (xCorner + ct / 2), coverY, postBackZ]} material={extMat} castShadow receiveShadow>
-                <boxGeometry args={[ct, coverH, cw]} />
-              </mesh>
+              {/* outside, side face: over the post ↔ side window joint (centred on the joint, 17 proud of the face) */}
+              {isCanted ? (
+                <mesh name="bay-cover-out-side" position={[alongSide(s, D, -G.coverT / 2)[0], coverY, alongSide(s, D, -G.coverT / 2)[1]]} rotation={[0, sideRotY(s), 0]} material={extMat} castShadow receiveShadow>
+                  <boxGeometry args={[cw, coverH, ct]} />
+                </mesh>
+              ) : (
+                <mesh name="bay-cover-out-side" position={[s * (xCorner + ct / 2), coverY, postBackZ]} material={extMat} castShadow receiveShadow>
+                  <boxGeometry args={[ct, coverH, cw]} />
+                </mesh>
+              )}
             </>
           )}
 
@@ -274,10 +331,16 @@ export default function SquareBayWindow(props) {
               <mesh name="bay-cover-in-front" position={[s * (xJoint - cw / 2 + inFrontW / 2), coverY, half + ct / 2]} material={intMat} castShadow receiveShadow>
                 <boxGeometry args={[inFrontW, coverH, ct]} />
               </mesh>
-              {/* inside, on the side window's lining (and on the post where it is flush) */}
-              <mesh name="bay-cover-in-side" position={[s * (insideX - ct / 2), coverY, postBackZ + cw / 2 - inSideW / 2]} material={intMat} castShadow receiveShadow>
-                <boxGeometry args={[ct, coverH, inSideW]} />
-              </mesh>
+              {/* inside, on the side window's lining (and on the post where it is flush): the half strip from the joint toward the wall */}
+              {isCanted ? (
+                <mesh name="bay-cover-in-side" position={[alongSide(s, D + G.coverW / 4, G.boxDepth + G.coverT / 2)[0], coverY, alongSide(s, D + G.coverW / 4, G.boxDepth + G.coverT / 2)[1]]} rotation={[0, sideRotY(s), 0]} material={intMat} castShadow receiveShadow>
+                  <boxGeometry args={[cw / 2, coverH, ct]} />
+                </mesh>
+              ) : (
+                <mesh name="bay-cover-in-side" position={[s * (insideX - ct / 2), coverY, postBackZ + cw / 2 - inSideW / 2]} material={intMat} castShadow receiveShadow>
+                  <boxGeometry args={[ct, coverH, inSideW]} />
+                </mesh>
+              )}
             </>
           )}
         </group>
@@ -290,12 +353,16 @@ export default function SquareBayWindow(props) {
           {/* height */}
           <DimensionGuide from={[sideGuideX, bottomY, -half]} to={[sideGuideX, topY, -half]} label={`${Math.round(extHeight)} mm`} offset={[0.12, 0, 0]} />
           {/* BOTH sides: post depth + side window (owner 05.10.2026: was on one side only); corner: the right wall */}
-          {(isCorner ? [1] : [-1, 1]).map((s) => (
-            <group key={`side-guides-${s}`}>
-              <DimensionGuide from={[s * sideGuideX, guideY, -half]} to={[s * sideGuideX, guideY, postBackZ]} label={`${Math.round(D)}`} offset={[s * 0.12, 0.06, 0]} />
-              <DimensionGuide from={[s * sideGuideX, guideY, postBackZ]} to={[s * sideGuideX, guideY, wallZ]} label={isCorner ? `${Math.round(S)} mm right wall` : `${Math.round(S)} side`} offset={[s * 0.14, -0.07, 0]} />
-            </group>
-          ))}
+          {(isCorner ? [1] : [-1, 1]).map((s) => {
+            // along the side's exterior line, 160 mm outside it (the square bay: x = ±(xCorner + 0.16), as before)
+            const g0 = alongSide(s, 0, -160), g1 = alongSide(s, D, -160), g2 = alongSide(s, D + S, -160);
+            return (
+              <group key={`side-guides-${s}`}>
+                <DimensionGuide from={[g0[0], guideY, g0[1]]} to={[g1[0], guideY, g1[1]]} label={`${Math.round(D)}`} offset={[s * 0.12 * uz, 0.06, -0.12 * ux]} />
+                <DimensionGuide from={[g1[0], guideY, g1[1]]} to={[g2[0], guideY, g2[1]]} label={isCorner ? `${Math.round(S)} mm right wall` : isCanted ? `${Math.round(S)} side · ${theta}°` : `${Math.round(S)} side`} offset={[s * 0.14 * uz, -0.07, -0.14 * ux]} />
+              </group>
+            );
+          })}
           {/* along the head: post · front units · post (corner window: no left post) */}
           {!isCorner && <DimensionGuide from={[-xCorner, chainY, -half]} to={[-xJoint, chainY, -half]} label={`${Math.round(W)}`} offset={[0, 0.06, 0]} />}
           {(() => {

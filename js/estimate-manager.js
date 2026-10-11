@@ -702,15 +702,17 @@ class EstimateManager {
                 sashProportion: (!isCasement && !isFixOnly) ? (cfg.sashProportion || 'standard') : null,
 
                 // ── MULTI-PART SASH RUN (owner, 01.10.2026) — unit widths as entered, null = single
-                multiUnits: (Array.isArray(cfg.multiUnits) && (cfg.multiUnits.length >= 2 || ((cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'corner') && cfg.multiUnits.length >= 1))) ? cfg.multiUnits.slice() : null,
+                multiUnits: (Array.isArray(cfg.multiUnits) && (cfg.multiUnits.length >= 2 || ((cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'canted-bay' || cfg.windowLayout === 'corner') && cfg.multiUnits.length >= 1))) ? cfg.multiUnits.slice() : null,
                 multiCovers: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiCovers || 'both') : null,
                 multiSillExt: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiSillExt || 0) : null,
-                windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'corner' || cfg.multiUnits.length >= 2)) ? (cfg.windowLayout || 'multi-part') : null,   // Special Layout Windows
+                windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'canted-bay' || cfg.windowLayout === 'corner' || cfg.multiUnits.length >= 2)) ? (cfg.windowLayout || 'multi-part') : null,   // Special Layout Windows
                 // Square bay (02.10.2026): sides + timber corner posts (05.10.2026: post size, piers removed; 11.10.2026: 147 standard)
                 // Corner window (11.10.2026): the right wall's units (as entered) + its frame width, one post
-                baySideWidth: cfg.windowLayout === 'square-bay' ? (cfg.baySideWidth || null) : null,
-                bayPostWidth: (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'corner') ? (cfg.bayPostWidth || 147) : null,
-                bayPostDepth: (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'corner') ? (cfg.bayPostDepth || 147) : null,
+                // Canted bay (11.10.2026): the square bay's keys + the angle of the sides to the front (90 = square)
+                baySideWidth: (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'canted-bay') ? (cfg.baySideWidth || null) : null,
+                bayPostWidth: (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'canted-bay' || cfg.windowLayout === 'corner') ? (cfg.bayPostWidth || 147) : null,
+                bayPostDepth: (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'canted-bay' || cfg.windowLayout === 'corner') ? (cfg.bayPostDepth || 147) : null,
+                bayAngle: cfg.windowLayout === 'canted-bay' ? (Number(cfg.bayAngle) || 45) : cfg.windowLayout === 'square-bay' ? 90 : null,
                 cornerUnits: (cfg.windowLayout === 'corner' && Array.isArray(cfg.cornerUnits) && cfg.cornerUnits.length >= 1) ? cfg.cornerUnits.slice() : null,
                 cornerExtWidth: (cfg.windowLayout === 'corner' && Array.isArray(cfg.cornerUnits) && cfg.cornerUnits.length >= 1) ? (cfg.cornerExtWidth || null) : null,
                 // The assembly extras as priced NOW (cover strips, posts, corner covers) — listed on the estimate

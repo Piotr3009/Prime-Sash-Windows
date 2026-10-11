@@ -223,7 +223,10 @@ class EstimateRenderer {
         // ── MULTI-PART SASH RUN (owner, 01.10.2026) ──
         // multiUnits = unit widths AS ENTERED (sum = entered overall); the frame allowance
         // (brick-to-brick +150) is shared equally so the units add up to the frame width.
-        const isSquareBay = fc.windowLayout === 'square-bay' && sashType !== 'arched' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1;
+        // Square bay and, since 11.10.2026, the canted bay (the same bay with the sides at 30/45/60° to the front)
+        const isCantedBay = fc.windowLayout === 'canted-bay' && sashType !== 'arched' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1;
+        const isSquareBay = (fc.windowLayout === 'square-bay' && sashType !== 'arched' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1) || isCantedBay;
+        const bayAngle = isCantedBay ? ([30, 45, 60].indexOf(parseInt(fc.bayAngle)) > -1 ? parseInt(fc.bayAngle) : 45) : (isSquareBay ? 90 : null);
         // Corner window (owner, 11.10.2026): the left wall = multiUnits / width, the right wall = cornerUnits (as
         // entered) with its own frame width cornerExtWidth; one timber corner post
         const isCorner = fc.windowLayout === 'corner' && sashType !== 'arched' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1
@@ -254,8 +257,13 @@ class EstimateRenderer {
             const _joinsTxt = _joins > 0 ? _joins + (_joins === 1 ? ' join' : ' joins') + ' with 100 × 17 mm cover strips ' + _mCovers : 'no joins';
             if (isSquareBay) {
                 const _frontOverall = width + 2 * bayPostWidth;
-                bayText = 'Square bay 90° · front ' + multiUnits.length + (multiUnits.length === 1 ? ' unit' : ' units') + ' (' + multiFrameUnits.join(' / ') + ' mm)'
-                    + ' + 1 each side ' + baySideWidth + ' mm · timber corner posts ' + bayPostWidth + ' × ' + bayPostDepth + ' mm · front overall ' + _frontOverall + ' mm · projection ' + (baySideWidth + bayPostDepth) + ' mm';
+                // plan geometry on the outside line: the side starts at the end of the post's side face (D) and runs to the wall at the bay angle
+                const _th = bayAngle * Math.PI / 180;
+                const _proj = Math.round((bayPostDepth + baySideWidth) * Math.sin(_th) + 1e-6);   // +1e-6: sin 30° = 0.4999…, a .5 rounds up as on paper
+                const _wallOpening = Math.round(_frontOverall + 2 * (bayPostDepth + baySideWidth) * Math.cos(_th) + 1e-6);
+                bayText = (isCantedBay ? 'Canted bay ' + bayAngle + '° (' + (180 - bayAngle) + '° inside)' : 'Square bay 90°') + ' · front ' + multiUnits.length + (multiUnits.length === 1 ? ' unit' : ' units') + ' (' + multiFrameUnits.join(' / ') + ' mm)'
+                    + ' + 1 each side ' + baySideWidth + ' mm · ' + (isCantedBay ? 'angled timber corner posts ' : 'timber corner posts ') + bayPostWidth + ' × ' + bayPostDepth + ' mm · front overall ' + _frontOverall + ' mm · projection ' + _proj + ' mm'
+                    + (isCantedBay ? ' · ' + _wallOpening + ' mm at the wall (outside line)' : '');
                 multiText = bayText + ' · 100 × 17 mm cover strips ' + _mCovers + ' on the ' + (_joins > 0 ? _joins + (_joins === 1 ? ' front join' : ' front joins') + ' and the ' : '') + 'corner posts'
                     + ' · slim linings (90 + 90) at the joins and the posts · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
             } else if (isCorner) {
@@ -629,7 +637,7 @@ class EstimateRenderer {
             archLowerMaxLift, archLowerBarsText,
             width, height, originalWidth, originalHeight, measurementType,
             multiUnits, multiFrameUnits, multiCovers, multiSillExt, multiText,
-            isSquareBay, baySideWidth, bayPostWidth, bayPostDepth, bayText,
+            isSquareBay, isCantedBay, bayAngle, baySideWidth, bayPostWidth, bayPostDepth, bayText,
             isCorner, cornerUnits, cornerFrameUnits, cornerExtWidth, cornerText, assemblyExtras, extrasText,
             frameType, frameText,
             openingType, openingText,
@@ -825,7 +833,7 @@ class EstimateRenderer {
                             ${R.specRow('Trickle Vent', p.trickleText)}
                             ${p.isSlidingOrBifold && p.sillExtension !== 'none' ? R.specRow('Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')) : ''}
                             ` : `
-                            ${p.isSquareBay ? R.specRow('Window Type', 'Special Layout — Square bay 90° · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)') : p.isCorner ? R.specRow('Window Type', 'Special Layout — Corner window 90° · ' + p.multiUnits.length + ' + ' + p.cornerUnits.length + ' (double-hung sash units)') : p.multiUnits ? R.specRow('Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)') : ''}
+                            ${p.isSquareBay ? R.specRow('Window Type', 'Special Layout — ' + (p.isCantedBay ? 'Canted bay ' + p.bayAngle + '°' : 'Square bay 90°') + ' · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)') : p.isCorner ? R.specRow('Window Type', 'Special Layout — Corner window 90° · ' + p.multiUnits.length + ' + ' + p.cornerUnits.length + ' (double-hung sash units)') : p.multiUnits ? R.specRow('Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)') : ''}
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' && p.sashType !== 'arched' ? R.specRow('Head Type', 'Glazing Arch') : ''}
                             ${p.sashProportion !== 'standard' ? R.specRow('Sash Proportions', p.sashProportionText) : ''}
@@ -941,7 +949,7 @@ class EstimateRenderer {
                 : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                 : p.sashType === 'single' ? 'Single Sash'
                 : 'Sash';
-            const desc = `${p.isSquareBay ? 'Special Layout · Square bay ' + p.multiUnits.length + '+2' : p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+            const desc = `${p.isSquareBay ? 'Special Layout · ' + (p.isCantedBay ? 'Canted bay ' + p.bayAngle + '° ' : 'Square bay ') + p.multiUnits.length + '+2' : p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
             return `
                 <tr>
                     <td style="padding:.6rem 1rem;border-bottom:1px solid ${BORDER};">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
@@ -2565,7 +2573,10 @@ class EstimateRenderer {
         svg += `<text x="${(frontX0 + frontX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>FRONT</text>`;
         svg += `<text x="${(rightX0 + rightX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>SIDE</text>`;
         const plbl = `fill="${G.navy}" opacity="0.6" font-family="Jost,sans-serif" font-size="${fs * 0.7}" text-anchor="middle" letter-spacing="3"`;
-        [foldL, foldR].forEach(cx => { svg += `<text x="${cx}" y="${SY(fh / 2)}" dy="0.35em" ${plbl} transform="rotate(-90,${cx},${SY(fh / 2)})">POST ${W} × ${D}</text>`; });
+        // Canted bay (11.10.2026): the same unfolded elevation — the angle goes on the post labels
+        const _canted = fc.windowLayout === 'canted-bay';
+        const _angle = _canted ? ([30, 45, 60].indexOf(parseInt(fc.bayAngle)) > -1 ? parseInt(fc.bayAngle) : 45) : 90;
+        [foldL, foldR].forEach(cx => { svg += `<text x="${cx}" y="${SY(fh / 2)}" dy="0.35em" ${plbl} transform="rotate(-90,${cx},${SY(fh / 2)})">POST ${W} × ${D}${_canted ? ' · ' + _angle + '°' : ''}</text>`; });
 
         // Dimensions: near tier — side · front units · side; far tier — front overall (posts included); height on the right
         svg += EstimateRenderer.sashDimH(nearY, leftX0, leftX1, oy + fh, `${Math.round(S)}`, fs);
@@ -2993,8 +3004,8 @@ class EstimateRenderer {
         }
 
         // ═══ SPECIAL LAYOUT (owner, 01–02.10.2026) — double-hung units only ═══
-        if (fc.windowLayout === 'square-bay' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1 && (fc.sashType || 'double') === 'double') {
-            return EstimateRenderer.generateSquareBaySVG(item, fc);
+        if ((fc.windowLayout === 'square-bay' || fc.windowLayout === 'canted-bay') && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1 && (fc.sashType || 'double') === 'double') {
+            return EstimateRenderer.generateSquareBaySVG(item, fc);   // unfolded elevation — the same for a canted bay (the angle is on the post labels)
         }
         if (fc.windowLayout === 'corner' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1 && Array.isArray(fc.cornerUnits) && fc.cornerUnits.length >= 1 && (fc.sashType || 'double') === 'double') {
             return EstimateRenderer.generateCornerSVG(item, fc);
@@ -5163,7 +5174,7 @@ class EstimateRenderer {
                     : p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash'
                     : p.sashType === 'single' ? 'Single Sash'
                     : 'Sash';
-                const desc = `${p.isSquareBay ? 'Special Layout · Square bay ' + p.multiUnits.length + '+2' : p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
+                const desc = `${p.isSquareBay ? 'Special Layout · ' + (p.isCantedBay ? 'Canted bay ' + p.bayAngle + '° ' : 'Square bay ') + p.multiUnits.length + '+2' : p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`;
                 return `
                     <tr>
                         <td style="padding:3.5mm 5mm;border-bottom:1px solid #e5e4dd;">${it.window_number || String(idx + 1).padStart(2, '0')}</td>
@@ -5495,7 +5506,7 @@ class EstimateRenderer {
                         : 'Sash';
                     return [
                         it.window_number || String(idx + 1).padStart(2, '0'),
-                        `${p.isSquareBay ? 'Special Layout · Square bay ' + p.multiUnits.length + '+2' : p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`,
+                        `${p.isSquareBay ? 'Special Layout · ' + (p.isCantedBay ? 'Canted bay ' + p.bayAngle + '° ' : 'Square bay ') + p.multiUnits.length + '+2' : p.multiUnits ? 'Special Layout · Multi-part ×' + p.multiUnits.length : typeShort} · ${p.width}×${p.height}mm · ${p.colorDisplay || '-'}`,
                         String(p.quantity || 1),
                         '£' + R.formatPrice(it.total_price || 0)
                     ];
@@ -5652,7 +5663,7 @@ class EstimateRenderer {
                 specs.push(['Trickle Vent', p.trickleText]);
                 if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
             } else {
-            if (p.isSquareBay) specs.push(['Window Type', 'Special Layout — Square bay 90° · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)']);
+            if (p.isSquareBay) specs.push(['Window Type', 'Special Layout — ' + (p.isCantedBay ? 'Canted bay ' + p.bayAngle + '°' : 'Square bay 90°') + ' · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)']);
             else if (p.isCorner) specs.push(['Window Type', 'Special Layout — Corner window 90° · ' + p.multiUnits.length + ' + ' + p.cornerUnits.length + ' (double-hung sash units)']);
             else if (p.multiUnits) specs.push(['Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)']);
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);

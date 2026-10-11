@@ -20,6 +20,8 @@
  *     bayPostDepth — null for a run / a single window.
  *   · CORNER WINDOW (owner, 11.10.2026): two runs meeting at ONE timber corner post at 90° —
  *     windowLayout 'corner'; multiUnits / the width field = the LEFT wall (as a run), #corner-options
+ *   · canted bay (11.10.2026): the square bay with the sides at 30° / 45° / 60° to the front —
+ *     windowLayout 'canted-bay' + bayAngle, angled posts; everything else as the square bay
  *     = the right wall: cornerUnits (1–6 equal units AS ENTERED) and cornerExtWidth (its frame width,
  *     +150 for brick-to-brick like the left wall); bayPostWidth / bayPostDepth = the one post.
  *     Both walls together ≤ 7000 mm of windows, the post extra (the field being edited gives way).
@@ -47,6 +49,7 @@
   var BAY_TOTAL_MAX = 7000;              // square bay: front + both sides, mm — the corner posts are extra
   var POST_MIN = 147, POST_MAX = 400, POST_DEFAULT = 147;   // corner post, mm (owner, 11.10.2026: 147 = box 164 − the 17 mm inner lining, mitred at the corner)
   var CORNER_DEFAULT_W = 2000;           // corner window: right wall default width
+  var BAY_ANGLES = [30, 45, 60], BAY_ANGLE_DEFAULT = 45;   // canted bay: each side to the front (owner, 11.10.2026: from a list; 90° = square bay)
   var LIST_STEP = 50;                    // extra width-list entries above 3000 (owner: pick from the list)
   var lastKey = null;                    // last applied [units, covers, sillExt] — skips no-op re-applies
   var runActive = false;                 // width list/max currently extended for a run
@@ -69,13 +72,16 @@
   function isWindows() { return (checked('product-range') || 'windows') !== 'doors'; }
   function isSpecial() { var t = $('type-special'); return isWindows() && !!(t && t.checked); }
   function layout() { return checked('special-layout') || 'multi'; }
-  function isBay() { return layout() === 'square-bay'; }
+  // Square bay and canted bay share everything (front run, sides, posts, 7 m) — only the angle differs
+  function isBay() { return layout() === 'square-bay' || layout() === 'canted-bay'; }
+  function isCanted() { return layout() === 'canted-bay'; }
+  function bayAngle() { if (!isCanted()) return 90; var v = parseInt(checked('bay-angle'), 10); return BAY_ANGLES.indexOf(v) > -1 ? v : BAY_ANGLE_DEFAULT; }
   function isCorner() { return layout() === 'corner'; }
   function hasPosts() { return isBay() || isCorner(); }
   // Double-hung only (this release): the Sash Type radios are hidden while special, double is forced.
   // All three layouts (run, square bay, corner window) are "multi": a run of units — the bay adds
   // two sides, the corner window a second run.
-  function isMulti() { return isSpecial() && (layout() === 'multi' || layout() === 'square-bay' || layout() === 'corner') && (checked('sash-type') || 'double') === 'double'; }
+  function isMulti() { return isSpecial() && (layout() === 'multi' || layout() === 'square-bay' || layout() === 'canted-bay' || layout() === 'corner') && (checked('sash-type') || 'double') === 'double'; }
   function unitMin() { return hasPosts() ? 1 : 2; }
   function unitMaxCount() { return UNIT_COUNT_MAX; }
   function unitCount() { return Math.min(unitMaxCount(), Math.max(unitMin(), parseInt(checked('multi-units'), 10) || unitMin())); }
@@ -253,7 +259,8 @@
   function applyLayoutUi() {
     var bay = isSpecial() && isBay();
     var corner = isSpecial() && isCorner();
-    var t = $('multi-part-title'); if (t) t.textContent = bay ? 'Square bay — front and sides' : corner ? 'Corner window — two walls, one post' : 'Multi-part run';
+    var canted = bay && isCanted();
+    var t = $('multi-part-title'); if (t) t.textContent = canted ? 'Canted bay — front and angled sides' : bay ? 'Square bay — front and sides' : corner ? 'Corner window — two walls, one post' : 'Multi-part run';
     var rw = $('multi-run-word'); if (rw) rw.textContent = bay ? 'front' : corner ? 'left wall' : 'run';
     var wr = $('multi-width-rule'); if (wr) wr.textContent = bay
       ? '(' + UNIT_MAX + ' mm per unit; front + both sides up to ' + BAY_TOTAL_MAX + ' mm — the corner posts are extra)'
@@ -268,9 +275,11 @@
     var n = parseInt(checked('multi-units'), 10) || 2;
     if (!(bay || corner) && n < 2) setRadio('multi-units', '2');
     var bo = $('square-bay-options'); if (bo) bo.style.display = bay ? '' : 'none';
+    var ca = $('canted-options'); if (ca) ca.style.display = canted ? '' : 'none';
+    var pt = $('bay-projection-text'); if (pt) pt.textContent = canted ? 'projection from the wall = (post depth + side) × sin ' + bayAngle() + '° = ' : 'projection from the wall = post depth + side = ';
     var co = $('corner-options'); if (co) co.style.display = corner ? '' : 'none';
     var po = $('post-options'); if (po) po.style.display = (bay || corner) ? '' : 'none';
-    var pl = $('post-label'); if (pl) pl.textContent = corner ? 'Timber corner post (between the two walls)' : 'Timber corner posts (one at each front corner)';
+    var pl = $('post-label'); if (pl) pl.textContent = corner ? 'Timber corner post (between the two walls)' : canted ? 'Angled timber corner posts (one at each front corner)' : 'Timber corner posts (one at each front corner)';
     var pon = $('post-overall-note'); if (pon) pon.style.display = bay ? '' : 'none';
   }
 
@@ -290,11 +299,18 @@
     }
   }
 
+  // Bay plan geometry (outside line): the post's front face is W wide, its side face D long; the side
+  // window starts at the end of that face and runs to the wall at the bay angle. 90° = square bay.
+  function bayGeometry(frontOverall, S, W, D, angle) {
+    var th = (angle || 90) * Math.PI / 180;
+    return { projection: Math.round((D + S) * Math.sin(th) + 1e-6), wallOpening: Math.round(frontOverall + 2 * W + 2 * (D + S) * Math.cos(th) + 1e-6) };   // +1e-6: sin 30° = 0.4999…, so a .5 rounds up as on paper
+  }
   // Square bay notes: projection, overall front (frame size, posts included), the 7 m check
   function refreshBayNotes(front) {
     var S = sideWidth(), W = postWidth(), D = postDepth();
     var b2b = checked('measurement-type') === 'brick-to-brick';
-    var pn = $('bay-projection-note'); if (pn) pn.textContent = String(D + S);
+    var g = bayGeometry(front + (b2b ? 150 : 0), S, W, D, bayAngle());
+    var pn = $('bay-projection-note'); if (pn) pn.textContent = String(g.projection);
     var fo = $('bay-front-overall-note'); if (fo) fo.textContent = String(front + (b2b ? 150 : 0) + 2 * W);
     var bsw = $('bay-side-width'); if (bsw) bsw.max = String(sideCap());
     var tn = $('bay-total-note');
@@ -304,6 +320,7 @@
       // Whenever the front leaves less than a full UNIT_MAX for each side, say how much it leaves —
       // so a side that was cut back on leaving the field is explained (red while it is being typed)
       tn.textContent = 'Front ' + front + ' + sides 2 × ' + S + ' = ' + (front + 2 * S) + ' mm — up to ' + BAY_TOTAL_MAX + ' mm, the corner posts are extra.'
+        + (isCanted() ? ' At ' + bayAngle() + '° the bay opens ' + g.wallOpening + ' mm at the wall (outside line) and projects ' + g.projection + ' mm — measure your opening; if it differs, change the angle or the sides.' : '')
         + (cap < UNIT_MAX ? ' With this front the sides can be up to ' + cap + ' mm (reduce the front first for wider sides).' : '');
       tn.style.color = limited ? '#b3261e' : '';
     }
@@ -342,7 +359,7 @@
     if (multi) extendWidthList(multiWidthMax()); else restoreWidthList();
     if (multi && overallWidth() >= UNIT_MIN && ensureWidthForUnits(unitCount())) return;   // out of range for this count → n × 1000, apply() follows
     var hint = $('hint-product-range');
-    if (hint && isSpecial()) hint.textContent = isBay() ? 'Special Layout · Square bay' : isCorner() ? 'Special Layout · Corner window' : 'Special Layout · Multi-part run';
+    if (hint && isSpecial()) hint.textContent = isCanted() ? 'Special Layout · Canted bay ' + bayAngle() + '°' : isBay() ? 'Special Layout · Square bay' : isCorner() ? 'Special Layout · Corner window' : 'Special Layout · Multi-part run';
     applyLayoutUi();
 
     var note = $('multi-units-note');
@@ -381,7 +398,7 @@
             : 'Overall width ' + r.total + ' mm · ';
           var rj = isCorner() ? cornerCount() - 1 : 0;
           note.textContent = isBay()
-            ? lead + (joints ? joints + (joints === 1 ? ' join' : ' joins') + ' and ' : '') + '2 corner posts, each with 100 × 17 mm cover strips. Slim linings (90 + 90) at every join and at the posts.'
+            ? lead + (joints ? joints + (joints === 1 ? ' join' : ' joins') + ' and ' : '') + (isCanted() ? '2 angled corner posts (' + bayAngle() + '°)' : '2 corner posts') + ', each with 100 × 17 mm cover strips. Slim linings (90 + 90) at every join and at the posts.'
             : isCorner()
             ? lead + (joints + rj) + ((joints + rj) === 1 ? ' join' : ' joins') + ' on the two walls and 1 corner post ' + postWidth() + ' × ' + postDepth() + ' mm, with 100 × 17 mm cover strips. Slim linings (90 + 90) at every join and at the post.'
             : lead + joints + (joints === 1 ? ' join' : ' joins') + ', each with a 100 × 17 mm cover strip (slim linings 90 + 90 at the join).';
@@ -398,10 +415,10 @@
     // alone — the dimension handler already recalculates, a second pass would only add churn.
     var bay = multi && isBay();
     var corner = multi && isCorner();
-    var layoutKey = multi ? (bay ? 'square-bay' : corner ? 'corner' : 'multi-part') : null;
-    var bayKeys = (bay || corner) ? { baySideWidth: bay ? sideWidth() : null, bayPostWidth: postWidth(), bayPostDepth: postDepth(),
+    var layoutKey = multi ? (bay ? (isCanted() ? 'canted-bay' : 'square-bay') : corner ? 'corner' : 'multi-part') : null;
+    var bayKeys = (bay || corner) ? { baySideWidth: bay ? sideWidth() : null, bayPostWidth: postWidth(), bayPostDepth: postDepth(), bayAngle: bay ? bayAngle() : null,
                                       cornerUnits: corner ? cornerUnits() : null, cornerExtWidth: corner ? cornerExtWidth() : null }
-                                  : { baySideWidth: null, bayPostWidth: null, bayPostDepth: null, cornerUnits: null, cornerExtWidth: null };
+                                  : { baySideWidth: null, bayPostWidth: null, bayPostDepth: null, bayAngle: null, cornerUnits: null, cornerExtWidth: null };
     var key = JSON.stringify([units, multi ? covers : null, multi ? sillExt : 0, layoutKey, bayKeys]);
     var changed = (key !== lastKey) || (cfg && JSON.stringify(cfg.multiUnits || null) !== JSON.stringify(units));
     lastKey = key;
@@ -413,6 +430,7 @@
       cfg.baySideWidth = bayKeys.baySideWidth;
       cfg.bayPostWidth = bayKeys.bayPostWidth;
       cfg.bayPostDepth = bayKeys.bayPostDepth;
+      cfg.bayAngle = bayKeys.bayAngle;
       cfg.cornerUnits = bayKeys.cornerUnits;
       cfg.cornerExtWidth = bayKeys.cornerExtWidth;
       // masonry piers were removed (owner, 05.10.2026): drop their keys from a config restored from an older session
@@ -424,7 +442,7 @@
     // 3D — the run / bay / corner renders from multiUnits (+ layout), a single window otherwise
     if (typeof window.update3D === 'function') {
       window.update3D({ multiUnits: units, multiCovers: covers, multiSillExt: sillExt, windowLayout: layoutKey,
-        baySideWidth: bayKeys.baySideWidth || 700, bayPostWidth: bayKeys.bayPostWidth || POST_DEFAULT, bayPostDepth: bayKeys.bayPostDepth || POST_DEFAULT,
+        baySideWidth: bayKeys.baySideWidth || 700, bayPostWidth: bayKeys.bayPostWidth || POST_DEFAULT, bayPostDepth: bayKeys.bayPostDepth || POST_DEFAULT, bayAngle: bayKeys.bayAngle || 90,
         cornerUnits: bayKeys.cornerUnits, cornerExtWidth: bayKeys.cornerExtWidth || 0 });
     }
     if (!opts.silentPrice) {
@@ -446,8 +464,9 @@
     if (!multi || !units) { item.style.display = 'none'; return; }
     var coversTxt = covers === 'both' ? 'inside & outside' : covers === 'inside' ? 'inside only' : 'outside only';
     if (isBay()) {
-      val.textContent = 'Square bay 90° · front ' + units.length + (units.length === 1 ? ' unit' : ' units') + ' (' + frameUnits(units).join(' / ') + ' mm) + 1 each side ' + sideWidth() + ' mm · '
-        + 'timber corner posts ' + postWidth() + ' × ' + postDepth() + ' mm · cover strips ' + coversTxt + ' on the ' + (units.length > 1 ? 'joins and ' : '') + 'posts'
+      var gs = bayGeometry(units.reduce(function (a, b) { return a + b; }, 0) + (checked('measurement-type') === 'brick-to-brick' ? 150 : 0), sideWidth(), postWidth(), postDepth(), bayAngle());
+      val.textContent = (isCanted() ? 'Canted bay ' + bayAngle() + '° (' + (180 - bayAngle()) + '° inside)' : 'Square bay 90°') + ' · front ' + units.length + (units.length === 1 ? ' unit' : ' units') + ' (' + frameUnits(units).join(' / ') + ' mm) + 1 each side ' + sideWidth() + ' mm · '
+        + (isCanted() ? 'angled timber corner posts ' : 'timber corner posts ') + postWidth() + ' × ' + postDepth() + ' mm · ' + (isCanted() ? 'projection ' + gs.projection + ' mm, ' + gs.wallOpening + ' mm at the wall · ' : '') + 'cover strips ' + coversTxt + ' on the ' + (units.length > 1 ? 'joins and ' : '') + 'posts'
         + ' · slim linings at the joins · continuous cill' + (sillExt ? ' +' + sillExt + ' mm each end' : '');
     } else if (isCorner()) {
       var cu = cornerUnits();
@@ -464,7 +483,8 @@
   // ── Restore from a saved config (edit-mode, localStorage) ──────────────────
   function applyFromConfig(fc) {
     fc = fc || window.currentConfig || {};
-    var isBayCfg = fc.windowLayout === 'square-bay';
+    var isBayCfg = fc.windowLayout === 'square-bay' || fc.windowLayout === 'canted-bay';
+    var isCantedCfg = fc.windowLayout === 'canted-bay';
     var isCornerCfg = fc.windowLayout === 'corner' && Array.isArray(fc.cornerUnits) && fc.cornerUnits.length >= 1;
     var units = Array.isArray(fc.multiUnits) && fc.multiUnits.length >= ((isBayCfg || isCornerCfg) ? 1 : 2) ? fc.multiUnits.slice() : null;
     if (!units) {                                   // a plain sash: back to the Sash tile (same value, no page handler needed)
@@ -472,7 +492,8 @@
       applyMode(); return;
     }
     var tile = $('type-special'); if (tile) tile.checked = true;   // same value ("sash") as the tile edit-mode set — no change event needed
-    setRadio('special-layout', isBayCfg ? 'square-bay' : isCornerCfg ? 'corner' : 'multi');
+    setRadio('special-layout', isCantedCfg ? 'canted-bay' : isBayCfg ? 'square-bay' : isCornerCfg ? 'corner' : 'multi');
+    if (isCantedCfg) setRadio('bay-angle', String(BAY_ANGLES.indexOf(parseInt(fc.bayAngle, 10)) > -1 ? parseInt(fc.bayAngle, 10) : BAY_ANGLE_DEFAULT));
     var total = units.reduce(function (a, b) { return a + b; }, 0);
     bayFront = null;                                // the saved side width / right wall is taken as saved (capped again once the front is in)
     if (isBayCfg) {
@@ -503,7 +524,7 @@
     if (overallWidth() !== total) setOverallWidth(total);
     applyMode(true);                               // sections, width list/max, config — the saved width stays
     // The saved split wins until the width is restored (edit-mode restores it right after this call)
-    var layoutKey = isBayCfg ? 'square-bay' : isCornerCfg ? 'corner' : 'multi-part';
+    var layoutKey = isCantedCfg ? 'canted-bay' : isBayCfg ? 'square-bay' : isCornerCfg ? 'corner' : 'multi-part';
     if (window.currentConfig) {
       window.currentConfig.multiUnits = units;
       window.currentConfig.multiCovers = fc.multiCovers || 'both';
@@ -514,7 +535,7 @@
     lastKey = null;                                 // the next apply() re-pushes the full state (bay / corner keys included)
     lastTotal = total;                              // the restored width equals the units' sum (edit-mode sets it next)
     if (typeof window.update3D === 'function') window.update3D({ multiUnits: units, multiCovers: fc.multiCovers || 'both', multiSillExt: fc.multiSillExt || 0, windowLayout: layoutKey,
-      baySideWidth: isBayCfg ? sideWidth() : 700, bayPostWidth: (isBayCfg || isCornerCfg) ? postWidth() : POST_DEFAULT, bayPostDepth: (isBayCfg || isCornerCfg) ? postDepth() : POST_DEFAULT,
+      baySideWidth: isBayCfg ? sideWidth() : 700, bayPostWidth: (isBayCfg || isCornerCfg) ? postWidth() : POST_DEFAULT, bayPostDepth: (isBayCfg || isCornerCfg) ? postDepth() : POST_DEFAULT, bayAngle: isBayCfg ? bayAngle() : 90,
       cornerUnits: isCornerCfg ? cornerUnits() : null, cornerExtWidth: isCornerCfg ? cornerExtWidth() : 0 });
     refreshSpec(true, units, fc.multiCovers || 'both', fc.multiSillExt || 0);
   }
@@ -522,7 +543,7 @@
   window.getMultiPartConfig = function () {
     var c = window.currentConfig || {};
     return { multiUnits: c.multiUnits || null, multiCovers: c.multiCovers || null, multiSillExt: c.multiSillExt || 0, windowLayout: c.windowLayout || null,
-      baySideWidth: c.baySideWidth || null, bayPostWidth: c.bayPostWidth || null, bayPostDepth: c.bayPostDepth || null,
+      baySideWidth: c.baySideWidth || null, bayPostWidth: c.bayPostWidth || null, bayPostDepth: c.bayPostDepth || null, bayAngle: c.bayAngle || null,
       cornerUnits: c.cornerUnits || null, cornerExtWidth: c.cornerExtWidth || null };
   };
 
@@ -532,7 +553,7 @@
 
   function init() {
     if (!$('multi-part-section') || !$('type-special')) return;
-    document.querySelectorAll('input[name="multi-covers"], input[name="special-layout"]').forEach(function (r) {
+    document.querySelectorAll('input[name="multi-covers"], input[name="special-layout"], input[name="bay-angle"]').forEach(function (r) {
       r.addEventListener('change', apply);
     });
     document.querySelectorAll('input[name="multi-units"]').forEach(function (r) {
@@ -587,7 +608,7 @@
     // Restore a run saved in this browser (configurator-core restores currentConfig first)
     setTimeout(function () {
       var c = window.currentConfig;
-      if (c && Array.isArray(c.multiUnits) && c.multiUnits.length >= ((c.windowLayout === 'square-bay' || c.windowLayout === 'corner') ? 1 : 2)) applyFromConfig(c);
+      if (c && Array.isArray(c.multiUnits) && c.multiUnits.length >= ((c.windowLayout === 'square-bay' || c.windowLayout === 'canted-bay' || c.windowLayout === 'corner') ? 1 : 2)) applyFromConfig(c);
     }, 300);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

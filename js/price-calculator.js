@@ -66,7 +66,7 @@ class PriceCalculator {
       && (configuration.sashType || 'double') === 'double'   // double-hung units only (this release)
       && Array.isArray(configuration.multiUnits)
       && (configuration.multiUnits.length >= 2
-          || (configuration.windowLayout === 'square-bay' && configuration.multiUnits.length >= 1)
+          || ((configuration.windowLayout === 'square-bay' || configuration.windowLayout === 'canted-bay') && configuration.multiUnits.length >= 1)
           || (configuration.windowLayout === 'corner' && configuration.multiUnits.length >= 1 && Array.isArray(configuration.cornerUnits) && configuration.cornerUnits.length >= 1));
     if (isSashRun) {
       return this.calculateMultiPart(configuration, frameWidth, frameHeight);
@@ -216,7 +216,7 @@ class PriceCalculator {
     const measurementType = configuration.measurementType || 'box-to-box';
     const unitCfg = Object.assign({}, configuration, {
       multiUnits: null, multiCovers: null, multiSillExt: 0, multiArrangement: 'single', windowLayout: null,
-      baySideWidth: null, bayPostWidth: null, bayPostDepth: null, cornerUnits: null, cornerExtWidth: null,
+      baySideWidth: null, bayPostWidth: null, bayPostDepth: null, bayAngle: null, cornerUnits: null, cornerExtWidth: null,
       width: frameW, height: frameH,
       actualFrameWidth: frameW, actualFrameHeight: frameH,
       measurementType: measurementType === 'brick-to-brick' ? 'box-to-box' : measurementType,
@@ -254,7 +254,9 @@ class PriceCalculator {
     // ── Corner window (owner, 11.10.2026): + the right wall, its own run, + 1 corner post ──
     // Per post (owner, 11.10.2026): the post £50 and ONE corner cover-strip charge £120, whatever
     // sides the strips are on. Slim linings (90 + 90 at every join and at the posts) are free.
-    const isBay = configuration.windowLayout === 'square-bay';
+    const isBay = configuration.windowLayout === 'square-bay' || configuration.windowLayout === 'canted-bay';   // canted bay (11.10.2026): same parts, angled posts
+    const isCanted = configuration.windowLayout === 'canted-bay';
+    const bayAngle = isCanted ? (Number(configuration.bayAngle) || 45) : (isBay ? 90 : null);
     const isCorner = configuration.windowLayout === 'corner' && Array.isArray(configuration.cornerUnits) && configuration.cornerUnits.length >= 1;
     const bay = this.pricing.squareBay || { cornerPostPrice: 0, cornerCoverPrice: 0 };
     let sideResults = [], sidesTotal = 0, sideWidth = 0;
@@ -284,7 +286,7 @@ class PriceCalculator {
     const extras = [];
     if (joints > 0 && stripsPerJoin > 0) extras.push({ key: 'joinCovers', label: 'Cover strips at the joins (100 × 17 mm, ' + (covers === 'both' ? 'inside & outside' : covers + ' only') + ')', qty: joints * stripsPerJoin, each: stripPrice, total: joints * stripsPerJoin * stripPrice });
     if (joints > 0 && (Number(mp.jointPrice) || 0) > 0) extras.push({ key: 'joints', label: 'Joins', qty: joints, each: Number(mp.jointPrice), total: joints * Number(mp.jointPrice) });
-    if (posts > 0) extras.push({ key: 'posts', label: 'Timber corner post' + (posts > 1 ? 's' : '') + ' ' + (Number(configuration.bayPostWidth) || 147) + ' × ' + (Number(configuration.bayPostDepth) || 147) + ' mm', qty: posts, each: Number(bay.cornerPostPrice) || 0, total: postsPrice });
+    if (posts > 0) extras.push({ key: 'posts', label: (isCanted ? 'Angled timber corner posts (' + bayAngle + '°) ' : 'Timber corner post' + (posts > 1 ? 's' : '') + ' ') + (Number(configuration.bayPostWidth) || 147) + ' × ' + (Number(configuration.bayPostDepth) || 147) + ' mm', qty: posts, each: Number(bay.cornerPostPrice) || 0, total: postsPrice });
     if (posts > 0 && cornerCoverEach > 0) extras.push({ key: 'cornerCovers', label: 'Corner cover strips (per post)', qty: posts, each: cornerCoverEach, total: cornerCoversPrice });
     if (sillExtPrice > 0) extras.push({ key: 'sillExt', label: 'Continuous cill extension ' + sillExt + ' mm (2 ends)', qty: 2, each: sillExtPrice / 2, total: sillExtPrice });
 
@@ -301,7 +303,8 @@ class PriceCalculator {
 
     const breakdown = {
       multiPart: true,
-      layout: isBay ? 'square-bay' : isCorner ? 'corner' : 'multi-part',
+      layout: isCanted ? 'canted-bay' : isBay ? 'square-bay' : isCorner ? 'corner' : 'multi-part',
+      bayAngle: bayAngle,
       frameWidth: frameWidth,
       frameHeight: frameHeight,
       units: entered,
