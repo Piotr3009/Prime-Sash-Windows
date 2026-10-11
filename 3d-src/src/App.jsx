@@ -556,10 +556,20 @@ function ScreenshotHelper({ config }) {
           box.expandByObject(obj);
         });
 
+        // Square bay / corner window (owner, 11.10.2026): shot from the diagonal so the corner post
+        // (corner) or the sides (bay) actually show — the near-frontal 8° view sees them edge-on.
+        const layout = config?.windowLayout;
+        const oblique = !box.isEmpty() && (layout === 'corner' || layout === 'square-bay');
+
         let distance;
         if (box.isEmpty()) {
           const distMult = isDoor ? 0.58 : 0.65;
           distance = fitDistance(config?.width, config?.height, 45, 1) * distMult;
+        } else if (oblique) {
+          // Aim at the centre of the whole assembly (it is off-centre in x and z); the distance
+          // is fitted per view direction below, from the box corners.
+          target.copy(box.getCenter(new THREE.Vector3()));
+          distance = 0;
         } else {
           const size = box.getSize(new THREE.Vector3());
           const bH = size.y;
@@ -571,6 +581,20 @@ function ScreenshotHelper({ config }) {
           const c = box.getCenter(new THREE.Vector3());
           target.set(0, c.y, 0);
         }
+
+        // Oblique fit: the distance along `dir` (unit, target → camera, level) at which all 8 box
+        // corners sit inside the frame with the MARGIN — exact for a level camera looking at the target.
+        const fitOblique = (dir) => {
+          const tanV = Math.tan(fovRad / 2), tanH = tanV * aspect;
+          const right = new THREE.Vector3(dir.z, 0, -dir.x);   // camera right axis for a level view along -dir
+          let d = 0;
+          for (let i = 0; i < 8; i++) {
+            const p = new THREE.Vector3((i & 1) ? box.max.x : box.min.x, (i & 2) ? box.max.y : box.min.y, (i & 4) ? box.max.z : box.min.z).sub(target);
+            const a = p.dot(dir);                                 // towards the camera
+            d = Math.max(d, a + MARGIN * Math.abs(p.dot(right)) / tanH, a + MARGIN * Math.abs(p.y) / tanV);
+          }
+          return d;
+        };
 
         // Save current camera state
         const savedPos = camera.position.clone();
@@ -641,7 +665,16 @@ function ScreenshotHelper({ config }) {
         const zSign = isDoor ? 1 : -1;
         const xSign = isDoor ? 1 : -1;
         const camY = target.y; // keep the shot level: camera height tracks the model centre
-        const backPos = new THREE.Vector3(xSign * Math.sin(angleRad) * distance, camY, zSign * Math.cos(angleRad) * distance);
+        // Bay / corner (owner, 11.10.2026): the first shot (−z side = the sash exterior, see the renderer's
+        // captions) from the outside diagonal — corner: 45°, the post face-on between the two walls;
+        // bay: 30° off the front so the side windows read. The second shot from the opposite diagonal
+        // (inside the room). Each distance fitted to the whole assembly, nothing clipped.
+        const azRad = (layout === 'corner' ? 45 : 30) * Math.PI / 180;
+        const dirOut = new THREE.Vector3(Math.sin(azRad), 0, -Math.cos(azRad));   // target → camera, outside
+        const dirIn = dirOut.clone().negate();                                      // target → camera, inside
+        const backPos = oblique
+          ? target.clone().addScaledVector(dirOut, fitOblique(dirOut))
+          : new THREE.Vector3(xSign * Math.sin(angleRad) * distance, camY, zSign * Math.cos(angleRad) * distance);
         // backPos: windows -> interior side, doors -> exterior side (see zSign above)
         const sameCol = config?.sameColor !== false;
         const colExt = sameCol ? (config?.woodColor || '#F6F6F6') : (config?.woodColorExt || config?.woodColor || '#F6F6F6');
@@ -652,7 +685,9 @@ function ScreenshotHelper({ config }) {
 
         // Capture BOTH sides for EVERY window (single colour included): the exterior
         // view shows the sill, weather bar and outside hardware the interior can't.
-        const frontPos = new THREE.Vector3(-xSign * Math.sin(angleRad) * distance, camY, -zSign * Math.cos(angleRad) * distance);
+        const frontPos = oblique
+          ? target.clone().addScaledVector(dirIn, fitOblique(dirIn))
+          : new THREE.Vector3(-xSign * Math.sin(angleRad) * distance, camY, -zSign * Math.cos(angleRad) * distance);
         const frontRaw = capture(frontPos, bgFront);
 
         // Restore camera
@@ -675,7 +710,7 @@ function ScreenshotHelper({ config }) {
     };
 
     return () => { delete window.captureWindowScreenshots; };
-  }, [gl, scene, camera, config?.width, config?.height, config?.windowCategory, config?.sameColor, config?.woodColor, config?.woodColorExt, config?.woodColorInt]);
+  }, [gl, scene, camera, config?.width, config?.height, config?.windowCategory, config?.windowLayout, config?.sameColor, config?.woodColor, config?.woodColorExt, config?.woodColorInt]);
 
   return null;
 }
