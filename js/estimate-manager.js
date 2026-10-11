@@ -702,14 +702,27 @@ class EstimateManager {
                 sashProportion: (!isCasement && !isFixOnly) ? (cfg.sashProportion || 'standard') : null,
 
                 // ── MULTI-PART SASH RUN (owner, 01.10.2026) — unit widths as entered, null = single
-                multiUnits: (Array.isArray(cfg.multiUnits) && (cfg.multiUnits.length >= 2 || (cfg.windowLayout === 'square-bay' && cfg.multiUnits.length >= 1))) ? cfg.multiUnits.slice() : null,
+                multiUnits: (Array.isArray(cfg.multiUnits) && (cfg.multiUnits.length >= 2 || ((cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'corner') && cfg.multiUnits.length >= 1))) ? cfg.multiUnits.slice() : null,
                 multiCovers: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiCovers || 'both') : null,
                 multiSillExt: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && cfg.windowLayout) ? (cfg.multiSillExt || 0) : null,
-                windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && (cfg.windowLayout === 'square-bay' || cfg.multiUnits.length >= 2)) ? (cfg.windowLayout || 'multi-part') : null,   // Special Layout Windows
-                // Square bay (02.10.2026): sides + timber corner posts (05.10.2026: post size, piers removed)
+                windowLayout: (Array.isArray(cfg.multiUnits) && cfg.multiUnits.length >= 1 && (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'corner' || cfg.multiUnits.length >= 2)) ? (cfg.windowLayout || 'multi-part') : null,   // Special Layout Windows
+                // Square bay (02.10.2026): sides + timber corner posts (05.10.2026: post size, piers removed; 11.10.2026: 147 standard)
+                // Corner window (11.10.2026): the right wall's units (as entered) + its frame width, one post
                 baySideWidth: cfg.windowLayout === 'square-bay' ? (cfg.baySideWidth || null) : null,
-                bayPostWidth: cfg.windowLayout === 'square-bay' ? (cfg.bayPostWidth || 164) : null,
-                bayPostDepth: cfg.windowLayout === 'square-bay' ? (cfg.bayPostDepth || 164) : null,
+                bayPostWidth: (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'corner') ? (cfg.bayPostWidth || 147) : null,
+                bayPostDepth: (cfg.windowLayout === 'square-bay' || cfg.windowLayout === 'corner') ? (cfg.bayPostDepth || 147) : null,
+                cornerUnits: (cfg.windowLayout === 'corner' && Array.isArray(cfg.cornerUnits) && cfg.cornerUnits.length >= 1) ? cfg.cornerUnits.slice() : null,
+                cornerExtWidth: (cfg.windowLayout === 'corner' && Array.isArray(cfg.cornerUnits) && cfg.cornerUnits.length >= 1) ? (cfg.cornerExtWidth || null) : null,
+                // The assembly extras as priced NOW (cover strips, posts, corner covers) — listed on the estimate
+                // next to the spec; frozen here so the lines always match the saved price (owner, 11.10.2026)
+                assemblyExtras: (() => {
+                    try {
+                        if (!Array.isArray(cfg.multiUnits) || !cfg.multiUnits.length || typeof window.calculatePrice !== 'function') return null;
+                        const pd = window.calculatePrice(Object.assign({}, cfg));
+                        const ex = pd && pd.breakdown && Array.isArray(pd.breakdown.extras) ? pd.breakdown.extras : null;
+                        return (ex && ex.length) ? ex.map(e => ({ label: e.label, qty: e.qty, each: e.each, total: e.total })) : null;
+                    } catch (e) { return null; }
+                })(),
 
                 // Detale (horns są w ironmongery)
                 horns: null,

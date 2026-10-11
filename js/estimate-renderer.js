@@ -224,16 +224,27 @@ class EstimateRenderer {
         // multiUnits = unit widths AS ENTERED (sum = entered overall); the frame allowance
         // (brick-to-brick +150) is shared equally so the units add up to the frame width.
         const isSquareBay = fc.windowLayout === 'square-bay' && sashType !== 'arched' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1;
-        const multiUnits = (Array.isArray(fc.multiUnits) && (fc.multiUnits.length >= 2 || isSquareBay) && sashType !== 'arched')
+        // Corner window (owner, 11.10.2026): the left wall = multiUnits / width, the right wall = cornerUnits (as
+        // entered) with its own frame width cornerExtWidth; one timber corner post
+        const isCorner = fc.windowLayout === 'corner' && sashType !== 'arched' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1
+            && Array.isArray(fc.cornerUnits) && fc.cornerUnits.length >= 1;
+        const multiUnits = (Array.isArray(fc.multiUnits) && (fc.multiUnits.length >= 2 || isSquareBay || isCorner) && sashType !== 'arched')
             ? fc.multiUnits.map(u => Number(u) || 0) : null;
+        const cornerUnits = isCorner ? fc.cornerUnits.map(u => Number(u) || 0) : null;
+        const cornerExtWidth = isCorner ? (parseInt(fc.cornerExtWidth) || cornerUnits.reduce((a, b) => a + b, 0)) : null;
+        const cornerFrameUnits = isCorner ? (() => { const sum = cornerUnits.reduce((a, b) => a + b, 0); const ex = sum > 0 ? (cornerExtWidth - sum) / cornerUnits.length : 0; return cornerUnits.map(u => Math.round(u + ex)); })() : null;
+        // The extras as priced when the window was saved (cover strips, posts, corner covers)
+        const assemblyExtras = (Array.isArray(spec.assemblyExtras) && spec.assemblyExtras.length) ? spec.assemblyExtras
+            : (Array.isArray(fc.assemblyExtras) && fc.assemblyExtras.length) ? fc.assemblyExtras : null;
+        const extrasText = assemblyExtras ? assemblyExtras.map(e => e.label + ' × ' + e.qty + ' @ £' + Number(e.each).toFixed(0) + ' = £' + Number(e.total).toFixed(0)).join(' · ') : '';
         const multiCovers = multiUnits ? (fc.multiCovers || 'both') : null;
         const multiSillExt = multiUnits ? (parseInt(fc.multiSillExt) || 0) : 0;
         const baySideWidth = isSquareBay ? (parseInt(fc.baySideWidth) || 700) : null;
         // Timber corner posts, width × depth (owner 05.10.2026: piers removed, size set by the owner;
         // 164 × 164 = the box depth, also for a bay saved before the size could be set)
-        const bayPostWidth = isSquareBay ? EstimateRenderer.bayPostSize(fc.bayPostWidth) : null;
-        const bayPostDepth = isSquareBay ? EstimateRenderer.bayPostSize(fc.bayPostDepth) : null;
-        let multiFrameUnits = null, multiText = '', bayText = '';
+        const bayPostWidth = (isSquareBay || isCorner) ? EstimateRenderer.bayPostSize(fc.bayPostWidth) : null;
+        const bayPostDepth = (isSquareBay || isCorner) ? EstimateRenderer.bayPostSize(fc.bayPostDepth) : null;
+        let multiFrameUnits = null, multiText = '', bayText = '', cornerText = '';
         if (multiUnits) {
             const _mSum = multiUnits.reduce((a, b) => a + b, 0);
             const _mExtra = (_mSum > 0) ? (width - _mSum) / multiUnits.length : 0;
@@ -246,7 +257,14 @@ class EstimateRenderer {
                 bayText = 'Square bay 90° · front ' + multiUnits.length + (multiUnits.length === 1 ? ' unit' : ' units') + ' (' + multiFrameUnits.join(' / ') + ' mm)'
                     + ' + 1 each side ' + baySideWidth + ' mm · timber corner posts ' + bayPostWidth + ' × ' + bayPostDepth + ' mm · front overall ' + _frontOverall + ' mm · projection ' + (baySideWidth + bayPostDepth) + ' mm';
                 multiText = bayText + ' · 100 × 17 mm cover strips ' + _mCovers + ' on the ' + (_joins > 0 ? _joins + (_joins === 1 ? ' front join' : ' front joins') + ' and the ' : '') + 'corner posts'
-                    + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
+                    + ' · slim linings (90 + 90) at the joins and the posts · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
+            } else if (isCorner) {
+                const _rj = cornerUnits.length - 1;
+                cornerText = 'Corner window 90° · left wall ' + multiUnits.length + (multiUnits.length === 1 ? ' unit' : ' units') + ' (' + multiFrameUnits.join(' / ') + ' mm)'
+                    + ' + right wall ' + cornerUnits.length + (cornerUnits.length === 1 ? ' unit' : ' units') + ' (' + cornerFrameUnits.join(' / ') + ' mm) · timber corner post ' + bayPostWidth + ' × ' + bayPostDepth + ' mm'
+                    + ' · overall left ' + (width + bayPostWidth) + ' mm, right ' + (cornerExtWidth + bayPostWidth) + ' mm with the post';
+                multiText = cornerText + ' · 100 × 17 mm cover strips ' + _mCovers + ' on the ' + ((_joins + _rj) > 0 ? (_joins + _rj) + ((_joins + _rj) === 1 ? ' join' : ' joins') + ' and the ' : '') + 'corner post'
+                    + ' · slim linings (90 + 90) at the joins and the post · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm at the free ends' : '');
             } else {
                 multiText = 'Multi-part run · ' + multiUnits.length + ' units (' + multiFrameUnits.join(' / ') + ' mm) · '
                     + _joinsTxt + ' · continuous cill' + (multiSillExt ? ' +' + multiSillExt + ' mm each end' : '');
@@ -612,6 +630,7 @@ class EstimateRenderer {
             width, height, originalWidth, originalHeight, measurementType,
             multiUnits, multiFrameUnits, multiCovers, multiSillExt, multiText,
             isSquareBay, baySideWidth, bayPostWidth, bayPostDepth, bayText,
+            isCorner, cornerUnits, cornerFrameUnits, cornerExtWidth, cornerText, assemblyExtras, extrasText,
             frameType, frameText,
             openingType, openingText,
             glassType, glassText, glassSpec, glassSpecText,
@@ -806,7 +825,7 @@ class EstimateRenderer {
                             ${R.specRow('Trickle Vent', p.trickleText)}
                             ${p.isSlidingOrBifold && p.sillExtension !== 'none' ? R.specRow('Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')) : ''}
                             ` : `
-                            ${p.isSquareBay ? R.specRow('Window Type', 'Special Layout — Square bay 90° · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)') : p.multiUnits ? R.specRow('Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)') : ''}
+                            ${p.isSquareBay ? R.specRow('Window Type', 'Special Layout — Square bay 90° · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)') : p.isCorner ? R.specRow('Window Type', 'Special Layout — Corner window 90° · ' + p.multiUnits.length + ' + ' + p.cornerUnits.length + ' (double-hung sash units)') : p.multiUnits ? R.specRow('Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)') : ''}
                             ${p.sashType !== 'double' ? R.specRow('Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType) : ''}
                             ${p.headType === 'arch' && p.sashType !== 'arched' ? R.specRow('Head Type', 'Glazing Arch') : ''}
                             ${p.sashProportion !== 'standard' ? R.specRow('Sash Proportions', p.sashProportionText) : ''}
@@ -819,6 +838,7 @@ class EstimateRenderer {
                             ${p.sashType === 'arched' && p.archLowerBarsText && p.archLowerBarsText !== 'None' ? R.specRow('Lower sash bars', p.archLowerBarsText) : ''}
                             ${p.sashType === 'triple' ? R.specRow('Split Ratio', p.splitRatio) : ''}
                             ${p.multiText ? R.specRow('Arrangement', p.multiText) : ''}
+                            ${p.extrasText ? R.specRow('Assembly extras (in the price)', p.extrasText) : ''}
                             ${p.measurementType === 'brick-to-brick'
                                 ? R.specRow('Structural Opening', p.originalWidth + 'mm × ' + p.originalHeight + 'mm') + R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')
                                 : R.specRow('Window Size (Frame)', p.width + 'mm × ' + p.height + 'mm')}
@@ -2432,8 +2452,8 @@ class EstimateRenderer {
     // 164 (the box depth) when missing — e.g. a bay saved before the size could be set.
     static bayPostSize(v) {
         const n = Math.round(Number(v));
-        if (!Number.isFinite(n) || n <= 0) return 164;
-        return Math.min(400, Math.max(164, n));
+        if (!Number.isFinite(n) || n <= 0) return 147;        // 147 × 147 standard since 11.10.2026 (was 164)
+        return Math.min(400, Math.max(147, n));
     }
 
     // ─── Square bay (owner, 02.10.2026): unfolded elevation ───
@@ -2553,6 +2573,114 @@ class EstimateRenderer {
         units.forEach((uw) => { svg += EstimateRenderer.sashDimH(nearY, ux, ux + uw, oy + fh, `${Math.round(uw)}`, fs); ux += uw; });
         svg += EstimateRenderer.sashDimH(nearY, rightX0, rightX1, oy + fh, `${Math.round(S)}`, fs);
         svg += EstimateRenderer.sashDimH(farY, overallX0, overallX1, oy + fh, `${Math.round(fw + 2 * W)} front overall`, fs);
+        svg += EstimateRenderer.sashDimV(ox + totalRun + DM * 0.75, oy, oy + fh, ox + totalRun, `${Math.round(fh)}`, fs);
+
+        return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
+    }
+
+    // ─── Corner window (owner, 11.10.2026): unfolded elevation ───
+    // Two runs meeting at ONE timber corner post at 90°, unwrapped at the outer corner:
+    //   left wall run · post front-face W ‖ post side-face D · right wall run
+    // (‖ = the fold at the outer corner, drawn as a small gap). Each wall is a run as in the
+    // multi-part drawing (continuous cill, cover strips on the joins); the cill runs on under
+    // the post on the left wall; the extension (if any) sits at the two free ends.
+    static generateCornerSVG(item, fc) {
+        const G = EstimateRenderer.SASH_GEO;
+        const NS = 'vector-effect="non-scaling-stroke"';
+
+        const fw = fc.actualFrameWidth || item.width || 1000;          // LEFT wall frame width
+        const fh = fc.actualFrameHeight || item.height || 1500;
+        const share = (entered, frame) => {
+            const sum = entered.reduce((a, b) => a + b, 0);
+            const ex = sum > 0 ? (frame - sum) / entered.length : 0;
+            return entered.map(u => u + ex);
+        };
+        const leftUnits = share(fc.multiUnits.map(u => Number(u) || 0), fw);
+        const rEntered = fc.cornerUnits.map(u => Number(u) || 0);
+        const rw = parseInt(fc.cornerExtWidth) || rEntered.reduce((a, b) => a + b, 0);   // RIGHT wall frame width
+        const rightUnits = share(rEntered, rw);
+        const W = EstimateRenderer.bayPostSize(fc.bayPostWidth);       // post face seen from the left wall
+        const D = EstimateRenderer.bayPostSize(fc.bayPostDepth);       // post face seen from the right wall
+        const covers = fc.multiCovers || 'both';
+        const sillExt = parseInt(fc.multiSillExt) || 0;
+        const headType = fc.headType || 'flat';
+
+        const GAP = 40;
+        const totalRun = sillExt + fw + W + GAP + D + rw + sillExt;
+        const M = Math.max(G.margin * 1.35, Math.max(totalRun, fh) * 0.07);
+        const DM = Math.max(G.dimOffset, Math.max(totalRun, fh) * 0.055);
+        const totalW = M + totalRun + DM + M;
+        const fs = 21 * (totalW / G.refW);
+        const ox = M, oy = M;
+        const nearY = oy + fh + fs * 1.75;
+        const farY = nearY + fs * 1.75;
+        const totalH = farY + fs * 0.9 + M * 0.3;
+        const SY = (y) => oy + (fh - y);
+        const frameStyle = `fill="${G.frameFill}" stroke="${G.navy}" stroke-width="1.4" ${NS}`;
+        const coverStyle = `fill="rgba(10,22,40,0.11)" stroke="${G.navy}" stroke-width="1.1" ${NS}`;
+        const postStyle = `fill="rgba(10,22,40,0.16)" stroke="${G.navy}" stroke-width="1.2" ${NS}`;
+        const archFor = (uw) => headType === 'arch' ? Math.min(uw * 0.14, 150) : 0;
+        const postH = SY(0) - SY(fh);
+        const coverH = SY(G.sillTop) - SY(fh);
+        const coverAt = (jx) => `<rect x="${jx - 50}" y="${SY(fh)}" width="100" height="${coverH}" ${coverStyle}/>`;
+        const cillUnder = (x0, x1) => `<path d="M ${x0 + G.jambBot} ${SY(0)} L ${x1 - G.jambBot} ${SY(0)} L ${x1 - G.jambBot} ${SY(G.sillNose)} L ${x0 + G.jambBot} ${SY(G.sillNose)} Z" ${frameStyle}/>`
+            + `<line x1="${x0 + G.jambBot}" y1="${SY(G.sillWeatherbar)}" x2="${x1 - G.jambBot}" y2="${SY(G.sillWeatherbar)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`
+            + `<line x1="${x0 + G.jambBot}" y1="${SY(G.sillDrip)}" x2="${x1 - G.jambBot}" y2="${SY(G.sillDrip)}" stroke="${G.navy}" stroke-width="0.6" opacity="0.55" ${NS}/>`;
+        const hornAt = (x0, w) => `<rect x="${x0}" y="${SY(G.sillNose)}" width="${w}" height="${SY(0) - SY(G.sillNose)}" ${frameStyle}/>`;
+
+        let svg = '';
+        const joints = [], postJoints = [];
+        let x = ox + sillExt;
+        // LEFT wall run
+        const leftX0 = x;
+        leftUnits.forEach((uw, i) => {
+            svg += EstimateRenderer.sashBoxUnitSVG(x, uw, fh, SY, fc, archFor(uw));
+            if (i < leftUnits.length - 1) joints.push(x + uw);
+            x += uw;
+        });
+        const leftX1 = x;
+        postJoints.push(x);
+        svg += cillUnder(leftX0, leftX1);
+        if (sillExt > 0) svg += hornAt(leftX0 - sillExt, sillExt);
+        // the post, front face (the left wall's cill runs on under it — hidden there)
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${W}" height="${postH}" ${postStyle}/>`;
+        x += W;
+        const overallLeftX1 = x;
+        const fold = x + GAP / 2;
+        x += GAP;
+        // the post, side face + the RIGHT wall run
+        const overallRightX0 = x;
+        svg += `<rect x="${x}" y="${SY(fh)}" width="${D}" height="${postH}" ${postStyle}/>`;
+        x += D;
+        postJoints.push(x);
+        const rightX0 = x;
+        rightUnits.forEach((uw, i) => {
+            svg += EstimateRenderer.sashBoxUnitSVG(x, uw, fh, SY, fc, archFor(uw));
+            if (i < rightUnits.length - 1) joints.push(x + uw);
+            x += uw;
+        });
+        const rightX1 = x;
+        svg += cillUnder(rightX0, rightX1);
+        if (sillExt > 0) svg += hornAt(rightX1, sillExt);
+
+        if (covers !== 'none') {
+            joints.forEach(jx => { svg += coverAt(jx); });
+            postJoints.forEach(jx => { svg += coverAt(jx); });
+        }
+
+        const lbl = `fill="${G.navy}" opacity="0.5" font-family="Jost,sans-serif" font-size="${fs * 0.9}" text-anchor="middle" letter-spacing="3"`;
+        svg += `<text x="${(leftX0 + leftX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>LEFT WALL</text>`;
+        svg += `<text x="${(rightX0 + rightX1) / 2}" y="${SY(fh) - fs * 0.6}" ${lbl}>RIGHT WALL</text>`;
+        const plbl = `fill="${G.navy}" opacity="0.6" font-family="Jost,sans-serif" font-size="${fs * 0.7}" text-anchor="middle" letter-spacing="3"`;
+        svg += `<text x="${fold}" y="${SY(fh / 2)}" dy="0.35em" ${plbl} transform="rotate(-90,${fold},${SY(fh / 2)})">POST ${W} × ${D}</text>`;
+
+        // Dimensions: near tier — the units; far tier — each wall overall with the post; height on the right
+        let ux = leftX0;
+        leftUnits.forEach((uw) => { svg += EstimateRenderer.sashDimH(nearY, ux, ux + uw, oy + fh, `${Math.round(uw)}`, fs); ux += uw; });
+        ux = rightX0;
+        rightUnits.forEach((uw) => { svg += EstimateRenderer.sashDimH(nearY, ux, ux + uw, oy + fh, `${Math.round(uw)}`, fs); ux += uw; });
+        svg += EstimateRenderer.sashDimH(farY, leftX0, overallLeftX1, oy + fh, `${Math.round(fw + W)} left overall`, fs);
+        svg += EstimateRenderer.sashDimH(farY, overallRightX0, rightX1, oy + fh, `${Math.round(rw + D)} right overall`, fs);
         svg += EstimateRenderer.sashDimV(ox + totalRun + DM * 0.75, oy, oy + fh, ox + totalRun, `${Math.round(fh)}`, fs);
 
         return `<svg viewBox="0 0 ${totalW} ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:340px;max-height:100%;display:block;margin:0 auto;">${svg}</svg>`;
@@ -2867,6 +2995,9 @@ class EstimateRenderer {
         // ═══ SPECIAL LAYOUT (owner, 01–02.10.2026) — double-hung units only ═══
         if (fc.windowLayout === 'square-bay' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1 && (fc.sashType || 'double') === 'double') {
             return EstimateRenderer.generateSquareBaySVG(item, fc);
+        }
+        if (fc.windowLayout === 'corner' && Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 1 && Array.isArray(fc.cornerUnits) && fc.cornerUnits.length >= 1 && (fc.sashType || 'double') === 'double') {
+            return EstimateRenderer.generateCornerSVG(item, fc);
         }
         if (Array.isArray(fc.multiUnits) && fc.multiUnits.length >= 2 && (fc.sashType || 'double') === 'double') {
             return EstimateRenderer.generateMultiPartSVG(item, fc);
@@ -5522,6 +5653,7 @@ class EstimateRenderer {
                 if (p.isSlidingOrBifold && p.sillExtension !== 'none') specs.push(['Sill Extension', p.sillText + (p.doorSillWider ? ' (wider)' : '')]);
             } else {
             if (p.isSquareBay) specs.push(['Window Type', 'Special Layout — Square bay 90° · ' + p.multiUnits.length + ' front + 1 each side (double-hung sash units)']);
+            else if (p.isCorner) specs.push(['Window Type', 'Special Layout — Corner window 90° · ' + p.multiUnits.length + ' + ' + p.cornerUnits.length + ' (double-hung sash units)']);
             else if (p.multiUnits) specs.push(['Window Type', 'Special Layout — Multi-part run × ' + p.multiUnits.length + ' (double-hung sash units)']);
             if (p.sashType !== 'double') specs.push(['Window Type', p.sashType === 'arched' ? p.archTypeLabel : p.sashType === 'triple' ? 'Triple Sash' : p.sashType]);
             if (p.sashType === 'arched') {
@@ -5536,6 +5668,7 @@ class EstimateRenderer {
             if (p.sashProportion !== 'standard') specs.push(['Sash Proportions', p.sashProportionText]);
             if (p.sashType === 'triple') specs.push(['Split Ratio', p.splitRatio]);
             if (p.multiText) specs.push(['Arrangement', p.multiText]);
+            if (p.extrasText) specs.push(['Assembly extras (in the price)', p.extrasText]);
             if (p.measurementType === 'brick-to-brick') {
                 specs.push(['Structural Opening', `${p.originalWidth}mm × ${p.originalHeight}mm`]);
                 specs.push(['Window Size (Frame)', `${p.width}mm × ${p.height}mm`]);

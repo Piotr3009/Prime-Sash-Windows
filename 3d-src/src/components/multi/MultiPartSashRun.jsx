@@ -24,6 +24,14 @@
  * Geometry taken from ParametricSashWindow (do not re-derive): box depth 164 (exterior
  * face at +82), outer lining face width 100 (ExternalBoxElement), cill visible height
  * 58.414, head above h: 87 (height = extHeight − 87), cill horn 52 each end.
+ *
+ * SLIM LININGS (owner, 11.10.2026): where two units meet, each box's outer lining is 90, not
+ * 100 (90 + 90 = 180 under the cover strip). A lining projects (lining − 48) past the unit's
+ * carcass, so a unit's carcass = slot − projL − projR (52 standard, 42 slim) and the joint
+ * positions (the slots) do not move. `slimLeftEnd` / `slimRightEnd`: the run's outer ends are
+ * slim too where they meet a corner post (square bay, corner window); free ends keep 100.
+ * `sillExtLeft` / `sillExtRight` override `multiSillExt` per end (a wall whose cill runs on
+ * under a post at one end and carries the customer's extension at the other).
  */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
@@ -40,6 +48,7 @@ export const MULTI_GEO = Object.freeze({
   coverW: 100,           // cover strip width (owner, 01.10.2026: 100, was 150)
   coverT: 17,            // cover strip thickness
   liningW: 100,          // outer lining face width — "box 100"
+  liningSlim: 90,        // outer lining where two units meet, or a unit meets a corner post (owner, 11.10.2026)
 });
 
 /** Entered unit widths → FRAME unit widths (the frame allowance, e.g. +150 for
@@ -51,9 +60,20 @@ export function unitFrameWidths(units, extWidth) {
   return units.map((v) => v + extra);
 }
 
-/** Slot (frame) widths → the `width` prop of each unit (its outer linings add 52 each side). */
-export function unitBoxWidths(units) {
-  return units.map((v) => Math.max(200, v - 2 * MULTI_GEO.sillHorn));
+/** Slot (frame) widths → the `width` prop of each unit: its outer linings add (lining − 48) each
+ *  side — 52 standard, 42 slim. slimEnds = [leftEnd, rightEnd] for the run's outer ends. */
+export function unitBoxWidths(units, slimEnds = [false, false]) {
+  const n = units.length;
+  return units.map((v, i) => {
+    const l = (i > 0 || slimEnds[0]) ? MULTI_GEO.liningSlim : MULTI_GEO.liningW;
+    const r = (i < n - 1 || slimEnds[1]) ? MULTI_GEO.liningSlim : MULTI_GEO.liningW;
+    return Math.max(200, v - (l - 48) - (r - 48));
+  });
+}
+/** Lining widths [left, right] of unit i in a run of n (slim where it meets a neighbour or a post). */
+export function unitLinings(i, n, slimEnds = [false, false]) {
+  return [(i > 0 || slimEnds[0]) ? MULTI_GEO.liningSlim : MULTI_GEO.liningW,
+          (i < n - 1 || slimEnds[1]) ? MULTI_GEO.liningSlim : MULTI_GEO.liningW];
 }
 
 function DimensionGuide({ from, to, label, offset = [0, 0, 0] }) {
@@ -81,6 +101,10 @@ export default function MultiPartSashRun(props) {
     multiUnits = null,
     multiCovers = 'both',        // 'inside' | 'outside' | 'both' | 'none'
     multiSillExt = 0,            // mm, each end
+    sillExtLeft = null,          // mm, overrides multiSillExt at the left end (null = multiSillExt)
+    sillExtRight = null,         // mm, overrides multiSillExt at the right end
+    slimLeftEnd = false,         // the run's left end meets a corner post: slim lining there
+    slimRightEnd = false,
     woodColor = '#F6F6F6',
     woodColorExt = null,
     woodColorInt = null,
@@ -94,7 +118,8 @@ export default function MultiPartSashRun(props) {
       : [extWidth / 2, extWidth / 2];
     return unitFrameWidths(entered, extWidth);     // frame shares, sum = extWidth
   }, [multiUnits, extWidth]);
-  const boxes = useMemo(() => unitBoxWidths(units), [units]);
+  const slimEnds = useMemo(() => [!!slimLeftEnd, !!slimRightEnd], [slimLeftEnd, slimRightEnd]);
+  const boxes = useMemo(() => unitBoxWidths(units, slimEnds), [units, slimEnds]);
 
   const unitHeight = extHeight - G.headExtra;
   const h = mm(unitHeight);
@@ -132,26 +157,36 @@ export default function MultiPartSashRun(props) {
   const showOut = multiCovers === 'both' || multiCovers === 'outside';
   const showIn = multiCovers === 'both' || multiCovers === 'inside';
 
-  // Continuous cill: TraditionalSill adds 52 at each end itself → total = extWidth + 2 × ext
-  const sillWidth = sumSlots - 2 * G.sillHorn + 2 * (Number(multiSillExt) || 0);
+  // Continuous cill: TraditionalSill adds 52 at each end itself → total = extWidth + extL + extR
+  const extL = (sillExtLeft === null || sillExtLeft === undefined) ? (Number(multiSillExt) || 0) : (Number(sillExtLeft) || 0);
+  const extR = (sillExtRight === null || sillExtRight === undefined) ? (Number(multiSillExt) || 0) : (Number(sillExtRight) || 0);
+  const sillWidth = sumSlots - 2 * G.sillHorn + extL + extR;
   const sillTotal = sillWidth + 2 * G.sillHorn;
+  // the cill is centred on itself: shift it so the run's slots stay centred on x = 0 (world x = −local x
+  // under the π rotation below, hence the sign)
+  const sillShift = (extL - extR) / 2;
 
   const guideY = -h / 2 - 0.16;
   const guideX = mm(sillTotal / 2) + 0.16;
 
   return (
     <group>
-      {boxes.map((b, i) => (
-        <group key={`unit-${i}`} position={[mm(centres[i]), 0, 0]}>
-          <ParametricSashWindow {...props} width={b} height={unitHeight} showGuides={false} hideSill />
-        </group>
-      ))}
+      {boxes.map((b, i) => {
+        const [lw, rw] = unitLinings(i, boxes.length, slimEnds);
+        // the carcass sits so that the LININGS fill the slot: centre = slot centre + (projR − projL)/2 offset, mirrored by the unit's own π rotation
+        const cx = centres[i] + ((lw - 48) - (rw - 48)) / 2;
+        return (
+          <group key={`unit-${i}`} position={[mm(cx), 0, 0]}>
+            <ParametricSashWindow {...props} width={b} height={unitHeight} showGuides={false} hideSill liningL={rw} liningR={lw} />
+          </group>
+        );
+      })}
 
       {/* ONE continuous cill under the whole run — same 180° orientation as inside a unit */}
       <group rotation={[0, Math.PI, 0]}>
         <TraditionalSill
           width={sillWidth}
-          position={[0, -h / 2 + mm(G.sillVisibleHeight) / 2, 0]}
+          position={[mm(sillShift), -h / 2 + mm(G.sillVisibleHeight) / 2, 0]}
           material={sillMaterial}
           materialInt={sillIntMaterial}
         />

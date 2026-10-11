@@ -691,15 +691,25 @@ function Scene({ config, isMobile }) {
 
   // Square bay: its whole box (mm, window centre = 0) for the camera fit — same geometry as
   // SquareBayWindow: posts outside the front, sides from the back of the posts to the wall.
-  const isSquareBay = config.windowCategory === 'sash' && (config.sashType || 'double') === 'double'
-    && config.windowLayout === 'square-bay' && Array.isArray(config.multiUnits) && config.multiUnits.length >= 1;
+  const isCornerWin = config.windowCategory === 'sash' && (config.sashType || 'double') === 'double'
+    && config.windowLayout === 'corner' && Array.isArray(config.multiUnits) && config.multiUnits.length >= 1
+    && Array.isArray(config.cornerUnits) && config.cornerUnits.length >= 1;
+  const isSquareBay = (config.windowCategory === 'sash' && (config.sashType || 'double') === 'double'
+    && config.windowLayout === 'square-bay' && Array.isArray(config.multiUnits) && config.multiUnits.length >= 1) || isCornerWin;
   const bayFitBox = useMemo(() => {
     if (!isSquareBay) return null;
-    const overall = (Number(config.extWidth) || 0) + 2 * bayPostSize(config.bayPostWidth);
+    const W = bayPostSize(config.bayPostWidth);
+    const ext = Number(config.extWidth) || 0;
     const unitH = (Number(config.extHeight) || 0) - 87;
+    if (isCornerWin) {
+      // corner window: the left wall + one post on the right, the right wall behind it
+      const rightW = Math.max(200, Number(config.cornerExtWidth) || 0);
+      return { x0: -ext / 2 - 17, x1: ext / 2 + W + 17, y0: -unitH / 2, y1: unitH / 2 + 87, z0: -99, z1: -82 + bayPostSize(config.bayPostDepth) + rightW };
+    }
+    const overall = ext + 2 * W;
     const wallZ = -82 + bayPostSize(config.bayPostDepth) + Math.max(200, Number(config.baySideWidth) || 700);
     return { x0: -overall / 2 - 17, x1: overall / 2 + 17, y0: -unitH / 2, y1: unitH / 2 + 87, z0: -99, z1: wallZ };
-  }, [isSquareBay, config.extWidth, config.extHeight, config.bayPostWidth, config.bayPostDepth, config.baySideWidth]);
+  }, [isSquareBay, isCornerWin, config.extWidth, config.extHeight, config.bayPostWidth, config.bayPostDepth, config.baySideWidth, config.cornerExtWidth]);
 
   return (
     <>
@@ -884,7 +894,7 @@ function Scene({ config, isMobile }) {
                 trickleVent={config.trickleVent || 'none'}
                 trickleColour={config.trickleColour || 'white'}
               />
-            ) : config.windowCategory === 'sash' && (config.sashType || 'double') === 'double' && config.windowLayout === 'square-bay' && Array.isArray(config.multiUnits) && config.multiUnits.length >= 1 ? (
+            ) : isSquareBay ? (
               <SquareBayWindow {...config} />
             ) : config.windowCategory === 'sash' && (config.sashType || 'double') === 'double' && Array.isArray(config.multiUnits) && config.multiUnits.length >= 2 ? (
               <MultiPartSashRun {...config} />
@@ -1010,8 +1020,11 @@ export default function App() {
   // Special Layout Windows (owner, 02.10.2026): 'multi-part' | 'square-bay' | null; square-bay extras
   const [windowLayout, setWindowLayout] = useState(null);
   const [baySideWidth, setBaySideWidth] = useState(700);
-  const [bayPostWidth, setBayPostWidth] = useState(164);   // corner post, along the front (owner 05.10.2026: piers removed)
-  const [bayPostDepth, setBayPostDepth] = useState(164);   // corner post, front to back
+  const [bayPostWidth, setBayPostWidth] = useState(147);   // corner post, along the front (owner 05.10.2026: piers removed; 11.10.2026: 147)
+  const [bayPostDepth, setBayPostDepth] = useState(147);   // corner post, front to back (147 standard since 11.10.2026)
+  // Corner window (owner, 11.10.2026): the right wall's units (as entered) + its frame width
+  const [cornerUnits, setCornerUnits] = useState(null);
+  const [cornerExtWidth, setCornerExtWidth] = useState(0);
   // Sash Proportions (owner, 09.10.2026): 'standard' | 'cottage-40-60' | 'cottage-1-3' — meeting rail line
   const [sashProportion, setSashProportion] = useState('standard');
   const [sealColour, setSealColour] = useState('black');
@@ -1065,7 +1078,7 @@ export default function App() {
   const buckets = useRef({});
 
   const BUCKET_DEFAULTS = {
-    sash: { extWidth: 1000, extHeight: 1500, woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', glassType: 'double', casementHinges: null, showHorns: true, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], archShape: 'semi-circle', archBarPattern: 'none', archHBars: 0, archVBars: 0, upperMaxDrop: 0, archProfile: 'equilateral', lowerHBars: 0, casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3, casementFan2Ratio: 0.3, casementHBars: 0, casementVBars: 0, casementFanHBars: 0, casementFanVBars: 0, casementFan2HBars: 0, casementFan2VBars: 0, casementMiddleWidth: null, multiUnits: null, multiCovers: 'both', multiSillExt: 0, windowLayout: null, baySideWidth: 700, bayPostWidth: 164, bayPostDepth: 164, sashProportion: 'standard' },
+    sash: { extWidth: 1000, extHeight: 1500, woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', glassType: 'double', casementHinges: null, showHorns: true, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], archShape: 'semi-circle', archBarPattern: 'none', archHBars: 0, archVBars: 0, upperMaxDrop: 0, archProfile: 'equilateral', lowerHBars: 0, casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3, casementFan2Ratio: 0.3, casementHBars: 0, casementVBars: 0, casementFanHBars: 0, casementFanVBars: 0, casementFan2HBars: 0, casementFan2VBars: 0, casementMiddleWidth: null, multiUnits: null, multiCovers: 'both', multiSillExt: 0, windowLayout: null, baySideWidth: 700, bayPostWidth: 147, bayPostDepth: 147, sashProportion: 'standard', cornerUnits: null, cornerExtWidth: 0 },
     casement: { extWidth: 800, extHeight: 1500, glassFinish: 'clear', trickleVent: 'none', trickleColour: 'white', sillExtension: 0, sillWider: false, sealColour: 'black', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'both', boxType: 'standard', glassType: 'double', casementHinges: null, showHorns: false, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '040L', casementOpening: 0, fanlightRatio: 0.3, casementFan2Ratio: 0.3, casementHBars: 0, casementVBars: 0, casementFanHBars: 0, casementFanVBars: 0, casementFan2HBars: 0, casementFan2VBars: 0, casementMiddleWidth: null },
     'fix-only': { extWidth: 1000, extHeight: 1500, glassFinish: 'clear', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', opening: 0, upperOpening: 0, openingType: 'fixed', boxType: 'standard', glassType: 'double', casementHinges: null, showHorns: false, hornType: 'A', ironmongery: 'brass', upperGlass: 'clear', lowerGlass: 'clear', upperBars: 'none', lowerBars: 'none', sameBars: true, upperCustomBars: [], lowerCustomBars: [], sashType: 'double', splitRatio: '1/4-1/2-1/4', headType: 'flat', fixUpperBars: 'none', fixLowerBars: 'none', fixUpperCustomBars: [], fixLowerCustomBars: [], casementLayout: '010', casementOpening: 0, fanlightRatio: 0.3, casementFan2Ratio: 0.3, casementHBars: 0, casementVBars: 0, casementFanHBars: 0, casementFanVBars: 0, casementFan2HBars: 0, casementFan2VBars: 0, casementMiddleWidth: null },
     door: { extWidth: 900, extHeight: 2100, glassType: 'double', glassFinish: 'clear', woodColor: '#F6F6F6', woodColorExt: '#F6F6F6', woodColorInt: '#F6F6F6', sameColor: true, spacerColor: 'silver', doorType: 'single-external', frontDoorLeaves: 1, doorShape: 'standard', doorStyle: 'full-glass', doorHinge: 'left', doorHBars: 0, doorVBars: 0, centerMullion: false, paneling: 'flat', sidePanels: 'none', sideLeftWidth: 500, sideRightWidth: 500, sideHBars: 0, sideVBars: 0, sideStyle: 'full-glass', thresholdType: 'standard', thresholdExtension: 0, doorOpening: 0, doorOpenDirection: 'outward', panelCount: 2, slideDirection: 'left-to-right', extraWidth: false, glassWidth: 0, panelDepth: 57, frameDepth: 93, foldDirection: 'left', trafficDoor: 'no', bifoldOpenDirection: 'outward', transomType: 'none', transomHeight: 450, transomBars: 'none' },
@@ -1073,7 +1086,7 @@ export default function App() {
 
   // Capture current state snapshot
   function captureState() {
-    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, glassType, casementHinges, casementFan2Ratio, casementFanHBars, casementFanVBars, casementFan2HBars, casementFan2VBars, casementMiddleWidth, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, archShape, archBarPattern, archHBars, archVBars, upperMaxDrop, archProfile, lowerHBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge, doorType, frontDoorLeaves, doorShape, doorStyle, doorHinge, doorHBars, doorVBars, centerMullion, paneling, panelGrid, furniture, fanBarPattern, sidePanels, sideLeftWidth, sideRightWidth, sideHBars, sideVBars, sideStyle, thresholdType, thresholdExtension, doorOpening, doorOpenDirection, panelCount, slideDirection, extraWidth, glassWidth, panelDepth, frameDepth, foldDirection, trafficDoor, bifoldOpenDirection, transomType, transomHeight, transomBars, multiUnits, multiCovers, multiSillExt, windowLayout, baySideWidth, bayPostWidth, bayPostDepth, sashProportion };
+    return { extWidth, extHeight, woodColor, woodColorExt, woodColorInt, sameColor, spacerColor, opening, upperOpening, openingType, boxType, glassType, casementHinges, casementFan2Ratio, casementFanHBars, casementFanVBars, casementFan2HBars, casementFan2VBars, casementMiddleWidth, showHorns, hornType, ironmongery, upperGlass, lowerGlass, upperBars, lowerBars, sameBars, upperCustomBars, lowerCustomBars, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, archShape, archBarPattern, archHBars, archVBars, upperMaxDrop, archProfile, lowerHBars, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge, doorType, frontDoorLeaves, doorShape, doorStyle, doorHinge, doorHBars, doorVBars, centerMullion, paneling, panelGrid, furniture, fanBarPattern, sidePanels, sideLeftWidth, sideRightWidth, sideHBars, sideVBars, sideStyle, thresholdType, thresholdExtension, doorOpening, doorOpenDirection, panelCount, slideDirection, extraWidth, glassWidth, panelDepth, frameDepth, foldDirection, trafficDoor, bifoldOpenDirection, transomType, transomHeight, transomBars, multiUnits, multiCovers, multiSillExt, windowLayout, baySideWidth, bayPostWidth, bayPostDepth, sashProportion, cornerUnits, cornerExtWidth };
   }
 
   // Restore state from bucket
@@ -1140,6 +1153,8 @@ export default function App() {
     if (s.bayPostWidth !== undefined) setBayPostWidth(s.bayPostWidth);
     if (s.bayPostDepth !== undefined) setBayPostDepth(s.bayPostDepth);
     if (s.sashProportion !== undefined) setSashProportion(s.sashProportion);
+    if (s.cornerUnits !== undefined) setCornerUnits(s.cornerUnits);
+    if (s.cornerExtWidth !== undefined) setCornerExtWidth(s.cornerExtWidth);
     if (s.sealColour !== undefined) setSealColour(s.sealColour);
     if (s.fixShape !== undefined) setFixShape(s.fixShape);
     if (s.fixType !== undefined) setFixType(s.fixType);
@@ -1280,6 +1295,8 @@ export default function App() {
       if (cfg.bayPostWidth !== undefined) setBayPostWidth(cfg.bayPostWidth);
       if (cfg.bayPostDepth !== undefined) setBayPostDepth(cfg.bayPostDepth);
       if (cfg.sashProportion !== undefined) setSashProportion(cfg.sashProportion || 'standard');
+      if (cfg.cornerUnits !== undefined) setCornerUnits(Array.isArray(cfg.cornerUnits) && cfg.cornerUnits.length ? cfg.cornerUnits : null);
+      if (cfg.cornerExtWidth !== undefined) setCornerExtWidth(Number(cfg.cornerExtWidth) || 0);
       if (cfg.sealColour !== undefined) setSealColour(cfg.sealColour);
       if (cfg.fixShape !== undefined) setFixShape(cfg.fixShape);
       if (cfg.fixType !== undefined) setFixType(cfg.fixType);
@@ -1417,6 +1434,8 @@ export default function App() {
       bayPostWidth,
       bayPostDepth,
       sashProportion,
+      cornerUnits,
+      cornerExtWidth,
       sealColour,
       fixShape,
       fixType,
@@ -1463,7 +1482,7 @@ export default function App() {
       transomHeight,
       transomBars,
     }),
-    [width, height, extWidth, extHeight, opening, upperOpening, openingType, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, glassType, casementHinges, casementFan2Ratio, casementFanHBars, casementFanVBars, casementFan2HBars, casementFan2VBars, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, archShape, archBarPattern, archHBars, archVBars, upperMaxDrop, archProfile, lowerHBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge, doorType, frontDoorLeaves, doorShape, doorStyle, doorHinge, doorHBars, doorVBars, centerMullion, paneling, panelGrid, furniture, fanBarPattern, sidePanels, sideLeftWidth, sideRightWidth, sideHBars, sideVBars, sideStyle, thresholdType, thresholdExtension, doorOpening, doorOpenDirection, panelCount, slideDirection, extraWidth, glassWidth, panelDepth, frameDepth, foldDirection, trafficDoor, bifoldOpenDirection, transomType, transomHeight, transomBars, casementMiddleWidth, multiUnits, multiCovers, multiSillExt, windowLayout, baySideWidth, bayPostWidth, bayPostDepth, sashProportion],
+    [width, height, extWidth, extHeight, opening, upperOpening, openingType, autoRotate, showGuides, showHorns, hornType, ironmongery, upperGlass, lowerGlass, doubleGlazing, spacerColor, brightness, boxType, glassType, casementHinges, casementFan2Ratio, casementFanHBars, casementFanVBars, casementFan2HBars, casementFan2VBars, upperBars, lowerBars, upperCustomBars, lowerCustomBars, woodColor, woodColorExt, woodColorInt, sameColor, sashType, splitRatio, headType, fixUpperBars, fixLowerBars, fixUpperCustomBars, fixLowerCustomBars, archShape, archBarPattern, archHBars, archVBars, upperMaxDrop, archProfile, lowerHBars, windowCategory, casementLayout, casementOpening, fanlightRatio, casementHBars, casementVBars, glassFinish, trickleVent, trickleColour, sillExtension, sillWider, sealColour, fixShape, fixType, fixArchRise, fixGothicBars, fixCircleBarPattern, fixCircleBarOffset, fixSemiBarPattern, casementType, casArchShape, casArchHinge, doorType, frontDoorLeaves, doorShape, doorStyle, doorHinge, doorHBars, doorVBars, centerMullion, paneling, panelGrid, furniture, fanBarPattern, sidePanels, sideLeftWidth, sideRightWidth, sideHBars, sideVBars, sideStyle, thresholdType, thresholdExtension, doorOpening, doorOpenDirection, panelCount, slideDirection, extraWidth, glassWidth, panelDepth, frameDepth, foldDirection, trafficDoor, bifoldOpenDirection, transomType, transomHeight, transomBars, casementMiddleWidth, multiUnits, multiCovers, multiSillExt, windowLayout, baySideWidth, bayPostWidth, bayPostDepth, sashProportion, cornerUnits, cornerExtWidth],
   );
 
   // Expose the live 3D config so the estimate can store it verbatim.

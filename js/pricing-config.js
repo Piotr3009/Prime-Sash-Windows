@@ -143,25 +143,23 @@ const pricingConfig = {
 
   // ═══ MULTI-PART SASH RUN — Special Layout Windows (owner, 01.10.2026) ═══
   // Units are priced as standard sashes (sashCurve etc.). Owner 01.10.2026 (19:38):
-  // "nie dodajemy prawie nic — tylko po £60 za nakładki": the only extra is £60 per cover
-  // strip (a join with covers both sides = 2 strips = £120, one side = £60). No percentage
-  // surcharge. Cill extension: to be priced when the owner decides (0 for now).
+  // Owner, 11.10.2026 (was £60 a strip — "za wysoka"): £45 per cover strip 100 × 17, so a join
+  // with strips both sides = £90, one side = £45. No percentage surcharge. Slim linings (90 + 90
+  // at every join) are not charged. Cill extension: to be priced when the owner decides (0 for now).
   multiPart: {
     surcharge: 0,               // no % surcharge (owner, 01.10.2026 — the 15% idea was dropped)
-    coverStripPrice: 60,        // £ per cover strip 100 × 17 (full height) — per join: 2 both sides / 1 one side
+    coverStripPrice: 45,        // £ per cover strip 100 × 17 (full height) — per join: 2 both sides / 1 one side
     jointPrice: 0,              // £ fixed per join on top of the strips (coupling, sealing) — 0
     sillExtPerEnd: { '0': 0, '50': 0, '100': 0, '150': 0 }   // continuous cill extension, £ per end — to be set by owner
   },
 
-  // ═══ SQUARE BAY — Special Layout Windows (owner, 02.10.2026) ═══
-  // Front units + 2 side units priced as standard sashes (+ front cover strips as above).
-  // Corner posts themselves are 0 until the owner prices them ("nie dodajemy prawie nic").
-  // 05.10.2026 (owner): masonry piers removed; cover strips at the posts "as on the joins" —
-  // a bay has 4 post/window joints (each post: front face + side face), each priced like a
-  // join: 2 strips inside & outside / 1 one side → 8 or 4 strips per bay.
+  // ═══ SQUARE BAY + CORNER WINDOW — Special Layout Windows (owner, 02.10 / 11.10.2026) ═══
+  // Every unit is priced as a standard sash (+ the join cover strips as above). Per timber corner
+  // post (2 in a square bay, 1 in a corner window): the post itself and ONE corner cover-strip
+  // charge that covers the strips at that post (inside, outside or both — the same £120).
   squareBay: {
-    cornerPostPrice: 0,         // £ per timber corner post (2 per bay), any size — to be set by owner
-    postCoverStripPrice: 60     // £ per cover strip at a corner post (same as multiPart.coverStripPrice)
+    cornerPostPrice: 50,        // £ per timber corner post, any size 147–400 (owner, 11.10.2026)
+    cornerCoverPrice: 120       // £ per post for its cover strips (owner, 11.10.2026: "nakładka corner 120 na każdy słupek")
   },
 
   // ═══ SASH PROPORTIONS (owner, 09.10.2026) ═══

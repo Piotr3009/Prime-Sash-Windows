@@ -684,6 +684,8 @@ class SpecificationController {
     if (headTypeVal === 'arch') typeLabel += ' — Glazing Arch';
     // Special Layout Windows (owner, 01.10.2026): N standard double-hung units coupled in one straight run
     if (window.currentConfig && Array.isArray(window.currentConfig.multiUnits) && window.currentConfig.windowLayout === 'square-bay' && window.currentConfig.multiUnits.length >= 1) typeLabel = 'Special Layout — Square bay 90° · ' + window.currentConfig.multiUnits.length + ' front + 1 each side (double-hung sash units)' + (headTypeVal === 'arch' ? ' — Glazing Arch' : '');
+    // Corner window (owner, 11.10.2026): left wall (multiUnits) + right wall (cornerUnits) meeting at one timber post
+    else if (window.currentConfig && Array.isArray(window.currentConfig.multiUnits) && window.currentConfig.windowLayout === 'corner' && window.currentConfig.multiUnits.length >= 1) typeLabel = 'Special Layout — Corner window 90° · ' + window.currentConfig.multiUnits.length + ' left + ' + (Array.isArray(window.currentConfig.cornerUnits) ? window.currentConfig.cornerUnits.length : 1) + ' right (double-hung sash units)' + (headTypeVal === 'arch' ? ' — Glazing Arch' : '');
     else if (window.currentConfig && Array.isArray(window.currentConfig.multiUnits) && window.currentConfig.multiUnits.length >= 2) typeLabel = 'Special Layout — Multi-part run × ' + window.currentConfig.multiUnits.length + ' (double-hung sash units)' + (headTypeVal === 'arch' ? ' — Glazing Arch' : '');
     if (specSashType) specSashType.textContent = typeLabel;
 

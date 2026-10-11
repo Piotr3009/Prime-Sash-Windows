@@ -1716,15 +1716,16 @@ function JambWithPartingBead({
   );
 }
 
-function ExternalBoxElement({ height, side = 'right', position, color = '#f0e6d3' }) {
+function ExternalBoxElement({ height, side = 'right', position, color = '#f0e6d3', width = 100 }) {
+  // width: the lining face, 100 as standard; 90 where two coupled units meet (slim linings, owner 11.10.2026)
   const geometry = useMemo(() => {
     const shape = new THREE.Shape();
     shape.moveTo(mm(20), 0);
     shape.lineTo(mm(20), mm(60));
     shape.absarc(mm(0), mm(60), mm(20), 0, Math.PI / 2, false);
     shape.lineTo(0, height);
-    shape.lineTo(mm(100), height);
-    shape.lineTo(mm(100), 0);
+    shape.lineTo(mm(width), height);
+    shape.lineTo(mm(width), 0);
     shape.closePath();
 
     const g = new THREE.ExtrudeGeometry(shape, {
@@ -1736,7 +1737,7 @@ function ExternalBoxElement({ height, side = 'right', position, color = '#f0e6d3
 
     g.computeVertexNormals();
     return g;
-  }, [height]);
+  }, [height, width]);
 
   const extMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
     color,
@@ -1761,13 +1762,13 @@ function ExternalBoxElement({ height, side = 'right', position, color = '#f0e6d3
   );
 }
 
-function InternalBoxElement({ height, side = 'right', position, color = '#f0e6d3' }) {
+function InternalBoxElement({ height, side = 'right', position, color = '#f0e6d3', width = 80 }) {
   const geometry = useMemo(() => {
     const shape = new THREE.Shape();
     shape.moveTo(0, 0);
     shape.lineTo(0, height);
-    shape.lineTo(mm(80), height);
-    shape.lineTo(mm(80), 0);
+    shape.lineTo(mm(width), height);
+    shape.lineTo(mm(width), 0);
     shape.closePath();
 
     const g = new THREE.ExtrudeGeometry(shape, {
@@ -1778,7 +1779,7 @@ function InternalBoxElement({ height, side = 'right', position, color = '#f0e6d3
 
     g.computeVertexNormals();
     return g;
-  }, [height]);
+  }, [height, width]);
 
   const intMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
     color,
@@ -2051,6 +2052,8 @@ export default function ParametricSashWindow({
   hideSill = false,      // multi-part run (01.10.2026): the run draws ONE continuous cill, units skip theirs
   extHeight = null,      // frame height (mm) — the meeting line follows the production rule on it
   sashProportion = 'standard',   // owner 09.10.2026: 'standard' | 'cottage-40-60' | 'cottage-1-3'
+  liningL = 100,         // outer lining face width, left / right: 100 standard, 90 where this unit meets another
+  liningR = 100,         //   (slim linings in runs, bays and corner windows — owner, 11.10.2026)
 }) {
   const cExt = woodColorExt || woodColor;
   const cInt = woodColorInt || woodColor;
@@ -2146,6 +2149,9 @@ export default function ParametricSashWindow({
   const w = mm(width);
   const h = mm(height);
   const bd = mm(boxDepth);
+  // Outer lining projection past ±w/2 (52 standard, 42 slim): the unit's full extent is w + projL + projR
+  const projL = mm(Math.max(60, Number(liningL) || 100) - 48);
+  const projR = mm(Math.max(60, Number(liningR) || 100) - 48);
 
   const jambThickness = mm(config.jambThickness);
   const sillVisibleHeight = mm(config.sillVisibleHeight);
@@ -2836,9 +2842,11 @@ export default function ParametricSashWindow({
         sashDropY={sashDropY}
       />
 
+      {/* Linings project (lining − 48) past ±w/2: 52 as standard, 42 on a slim (90) side. Everything that
+          spans the unit's full extent follows: head jamb, horizontal beads, the internal head board. */}
       <JambWithPartingBead
-        length={w + mm(104)}
-        position={[0, h / 2 - jambThickness / 2 + sillVisibleHeight - jambEmbedIntoSill, 0]}
+        length={w + projL + projR}
+        position={[(projR - projL) / 2, h / 2 - jambThickness / 2 + sillVisibleHeight - jambEmbedIntoSill, 0]}
         material={jambMaterial}
         materialInt={jambIntMaterial}
         beadMaterial={beadMaterial}
@@ -2859,25 +2867,27 @@ export default function ParametricSashWindow({
       <ExternalBoxElement
         height={h + mm(52)}
         side="right"
-        position={[w / 2 - mm(100) + mm(52), jambOriginY - h / 2, bd / 2 - mm(17)]}
+        width={liningR}
+        position={[w / 2 - mm(48), jambOriginY - h / 2, bd / 2 - mm(17)]}
         color={cExt}
       />
       <ExternalBoxElement
         height={h + mm(52)}
         side="left"
-        position={[-w / 2 + mm(100) - mm(52), jambOriginY - h / 2, bd / 2 - mm(17)]}
+        width={liningL}
+        position={[-w / 2 + mm(48), jambOriginY - h / 2, bd / 2 - mm(17)]}
         color={cExt}
       />
 
       <StaffBeadHorizontal
-        width={w + mm(104) - mm(160)}
-        position={[0, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
+        width={w + projL + projR - mm(160)}
+        position={[(projR - projL) / 2, jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17) - mm(17) + mm(34)]}
         flipZ={false}
         color={cInt}
       />
       <StaffBeadHorizontal
-        width={w + mm(104) - mm(160)}
-        position={[0, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
+        width={w + projL + projR - mm(160)}
+        position={[(projR - projL) / 2, jambOriginY + h / 2 + mm(52) - mm(80) - mm(17), -bd / 2 + mm(80) - mm(65) - mm(17)]}
         flipZ={true}
         color={cInt}
       />
@@ -2885,31 +2895,33 @@ export default function ParametricSashWindow({
       <StaffBead
         height={h + mm(52) - jambEmbedIntoSill - mm(80)}
         side="right"
-        position={[w / 2 + mm(52) - mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
+        position={[w / 2 + projR - mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
         color={cExt}
         colorInt={cInt}
       />
       <StaffBead
         height={h + mm(52) - jambEmbedIntoSill - mm(80)}
         side="left"
-        position={[-w / 2 - mm(52) + mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
+        position={[-w / 2 - projL + mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2 + mm(80) - mm(65) - mm(17)]}
         color={cExt}
         colorInt={cInt}
       />
       <InternalBoxElement
         height={h + mm(52) - jambEmbedIntoSill}
         side="right"
-        position={[w / 2 + mm(52) - mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2]}
+        width={80 - (100 - liningR)}
+        position={[w / 2 + projR - mm(80 - (100 - liningR)), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2]}
         color={cInt}
       />
       <InternalBoxElement
         height={h + mm(52) - jambEmbedIntoSill}
         side="left"
-        position={[-w / 2 - mm(52) + mm(80), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2]}
+        width={80 - (100 - liningL)}
+        position={[-w / 2 - projL + mm(80 - (100 - liningL)), jambOriginY - h / 2 + jambEmbedIntoSill, -bd / 2]}
         color={cInt}
       />
-      <mesh position={[0, jambOriginY + h / 2 + mm(52) - mm(40), -bd / 2 + mm(8.5)]} castShadow receiveShadow>
-        <boxGeometry args={[w + mm(104) - mm(160), mm(80), mm(17)]} />
+      <mesh position={[(projR - projL) / 2, jambOriginY + h / 2 + mm(52) - mm(40), -bd / 2 + mm(8.5)]} castShadow receiveShadow>
+        <boxGeometry args={[w + projL + projR - mm(160), mm(80), mm(17)]} />
         <meshPhysicalMaterial color={cInt} roughness={0.5} metalness={0.0} clearcoat={0.2} clearcoatRoughness={0.12} polygonOffset={true} polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
       </mesh>
 

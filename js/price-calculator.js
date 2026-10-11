@@ -65,7 +65,9 @@ class PriceCalculator {
       && configuration.productType !== 'door' && configuration.windowCategory !== 'door'
       && (configuration.sashType || 'double') === 'double'   // double-hung units only (this release)
       && Array.isArray(configuration.multiUnits)
-      && (configuration.multiUnits.length >= 2 || (configuration.windowLayout === 'square-bay' && configuration.multiUnits.length >= 1));
+      && (configuration.multiUnits.length >= 2
+          || (configuration.windowLayout === 'square-bay' && configuration.multiUnits.length >= 1)
+          || (configuration.windowLayout === 'corner' && configuration.multiUnits.length >= 1 && Array.isArray(configuration.cornerUnits) && configuration.cornerUnits.length >= 1));
     if (isSashRun) {
       return this.calculateMultiPart(configuration, frameWidth, frameHeight);
     }
@@ -214,7 +216,7 @@ class PriceCalculator {
     const measurementType = configuration.measurementType || 'box-to-box';
     const unitCfg = Object.assign({}, configuration, {
       multiUnits: null, multiCovers: null, multiSillExt: 0, multiArrangement: 'single', windowLayout: null,
-      baySideWidth: null, bayPostWidth: null, bayPostDepth: null,
+      baySideWidth: null, bayPostWidth: null, bayPostDepth: null, cornerUnits: null, cornerExtWidth: null,
       width: frameW, height: frameH,
       actualFrameWidth: frameW, actualFrameHeight: frameH,
       measurementType: measurementType === 'brick-to-brick' ? 'box-to-box' : measurementType,
@@ -239,36 +241,55 @@ class PriceCalculator {
     const unitResults = units.map(u => this.priceStandardUnit(configuration, u, frameHeight));
     const unitsTotal = unitResults.reduce((a, r) => a + (Number(r.unitPrice) || 0), 0);
 
-    const joints = units.length - 1;
     const covers = configuration.multiCovers || 'both';
     // £ per cover strip (both sides = 2 strips, one side = 1) + any fixed per-join amount
     const stripsPerJoin = (covers === 'both') ? 2 : (covers === 'none' ? 0 : 1);
-    const jointEach = stripsPerJoin * (Number(mp.coverStripPrice) || 0) + (Number(mp.jointPrice) || 0);
-    const jointsPrice = joints * jointEach;
+    const stripPrice = Number(mp.coverStripPrice) || 0;
+    const jointEach = stripsPerJoin * stripPrice + (Number(mp.jointPrice) || 0);
 
     const sillExt = String(configuration.multiSillExt || 0);
     const sillExtPrice = 2 * ((mp.sillExtPerEnd && mp.sillExtPerEnd[sillExt]) || 0);
 
-    // ── Square bay (owner, 02.10.2026): + one standard unit on each side + the corner posts ──
-    // 05.10.2026 (owner): timber posts only (piers removed) and cover strips at the posts as on
-    // the joins — 4 post/window joints per bay (each post: front face + side face).
+    // ── Square bay (owner, 02.10.2026): + one standard unit on each side + 2 corner posts ──
+    // ── Corner window (owner, 11.10.2026): + the right wall, its own run, + 1 corner post ──
+    // Per post (owner, 11.10.2026): the post £50 and ONE corner cover-strip charge £120, whatever
+    // sides the strips are on. Slim linings (90 + 90 at every join and at the posts) are free.
     const isBay = configuration.windowLayout === 'square-bay';
-    const bay = this.pricing.squareBay || { cornerPostPrice: 0 };
-    let sideResults = [], sidesTotal = 0, cornersPrice = 0, sideWidth = 0;
-    let postJoints = 0, postCoverStrips = 0, postCoversPrice = 0;
+    const isCorner = configuration.windowLayout === 'corner' && Array.isArray(configuration.cornerUnits) && configuration.cornerUnits.length >= 1;
+    const bay = this.pricing.squareBay || { cornerPostPrice: 0, cornerCoverPrice: 0 };
+    let sideResults = [], sidesTotal = 0, sideWidth = 0;
+    let rightResults = [], rightTotal = 0, rightFrames = [];
     if (isBay) {
       sideWidth = Math.max(200, Number(configuration.baySideWidth) || 700);
       sideResults = [0, 1].map(() => this.priceStandardUnit(configuration, sideWidth, frameHeight));
       sidesTotal = sideResults.reduce((a, r) => a + (Number(r.unitPrice) || 0), 0);
-      cornersPrice = 2 * (Number(bay.cornerPostPrice) || 0);
-      postJoints = 4;
-      postCoverStrips = postJoints * stripsPerJoin;
-      const postStripPrice = (bay.postCoverStripPrice != null) ? (Number(bay.postCoverStripPrice) || 0) : (Number(mp.coverStripPrice) || 0);
-      postCoversPrice = postCoverStrips * postStripPrice;
     }
+    if (isCorner) {
+      const rEntered = configuration.cornerUnits.map(u => Math.max(0, Number(u) || 0));
+      const rSum = rEntered.reduce((a, b) => a + b, 0);
+      const rFrame = Number(configuration.cornerExtWidth) || rSum;
+      const rExtra = (rSum > 0 && rFrame > 0) ? (rFrame - rSum) / rEntered.length : 0;
+      rightFrames = rEntered.map(u => u + rExtra);
+      rightResults = rightFrames.map(u => this.priceStandardUnit(configuration, u, frameHeight));
+      rightTotal = rightResults.reduce((a, r) => a + (Number(r.unitPrice) || 0), 0);
+    }
+    const joints = (units.length - 1) + (isCorner ? rightFrames.length - 1 : 0);   // joins between units, both walls
+    const jointsPrice = joints * jointEach;
+    const posts = isBay ? 2 : isCorner ? 1 : 0;
+    const postsPrice = posts * (Number(bay.cornerPostPrice) || 0);
+    const cornerCoverEach = (covers === 'none') ? 0 : (Number(bay.cornerCoverPrice) || 0);
+    const cornerCoversPrice = posts * cornerCoverEach;
+
+    // The extras as the estimate lists them (owner, 11.10.2026: "dodaj do listy na estymacie")
+    const extras = [];
+    if (joints > 0 && stripsPerJoin > 0) extras.push({ key: 'joinCovers', label: 'Cover strips at the joins (100 × 17 mm, ' + (covers === 'both' ? 'inside & outside' : covers + ' only') + ')', qty: joints * stripsPerJoin, each: stripPrice, total: joints * stripsPerJoin * stripPrice });
+    if (joints > 0 && (Number(mp.jointPrice) || 0) > 0) extras.push({ key: 'joints', label: 'Joins', qty: joints, each: Number(mp.jointPrice), total: joints * Number(mp.jointPrice) });
+    if (posts > 0) extras.push({ key: 'posts', label: 'Timber corner post' + (posts > 1 ? 's' : '') + ' ' + (Number(configuration.bayPostWidth) || 147) + ' × ' + (Number(configuration.bayPostDepth) || 147) + ' mm', qty: posts, each: Number(bay.cornerPostPrice) || 0, total: postsPrice });
+    if (posts > 0 && cornerCoverEach > 0) extras.push({ key: 'cornerCovers', label: 'Corner cover strips (per post)', qty: posts, each: cornerCoverEach, total: cornerCoversPrice });
+    if (sillExtPrice > 0) extras.push({ key: 'sillExt', label: 'Continuous cill extension ' + sillExt + ' mm (2 ends)', qty: 2, each: sillExtPrice / 2, total: sillExtPrice });
 
     // Surcharge (0 since 01.10.2026 — owner: only the cover strips are charged), before the quantity discount
-    const runSubtotal = unitsTotal + jointsPrice + sillExtPrice + sidesTotal + cornersPrice + postCoversPrice;
+    const runSubtotal = unitsTotal + rightTotal + jointsPrice + sillExtPrice + sidesTotal + postsPrice + cornerCoversPrice;
     const surchargePct = Number(mp.surcharge) || 0;
     const surcharge = runSubtotal * surchargePct;
     const subtotal = runSubtotal + surcharge;
@@ -280,6 +301,7 @@ class PriceCalculator {
 
     const breakdown = {
       multiPart: true,
+      layout: isBay ? 'square-bay' : isCorner ? 'corner' : 'multi-part',
       frameWidth: frameWidth,
       frameHeight: frameHeight,
       units: entered,
@@ -291,15 +313,22 @@ class PriceCalculator {
       jointsPrice: jointsPrice.toFixed(2),
       sillExtPrice: sillExtPrice.toFixed(2),
       squareBay: isBay,
+      cornerWindow: isCorner,
       sideWidth: isBay ? sideWidth : null,
       sidePrices: sideResults.map(r => Number(r.unitPrice) || 0),
       sidesTotal: sidesTotal.toFixed(2),
-      cornersPrice: cornersPrice.toFixed(2),
-      postWidth: isBay ? (Number(configuration.bayPostWidth) || 164) : null,
-      postDepth: isBay ? (Number(configuration.bayPostDepth) || 164) : null,
-      postJoints: postJoints,
-      postCoverStrips: postCoverStrips,
-      postCoversPrice: postCoversPrice.toFixed(2),
+      rightFrameWidths: rightFrames.map(u => Math.round(u * 10) / 10),
+      rightPrices: rightResults.map(r => Number(r.unitPrice) || 0),
+      rightTotal: rightTotal.toFixed(2),
+      posts: posts,
+      postsPrice: postsPrice.toFixed(2),
+      cornersPrice: postsPrice.toFixed(2),            // legacy name (bay 02.10.2026)
+      postWidth: posts ? (Number(configuration.bayPostWidth) || 147) : null,
+      postDepth: posts ? (Number(configuration.bayPostDepth) || 147) : null,
+      cornerCoversPrice: cornerCoversPrice.toFixed(2),
+      postCoversPrice: cornerCoversPrice.toFixed(2),   // legacy name
+      extras: extras,
+      extrasTotal: extras.reduce((a, e) => a + e.total, 0).toFixed(2),
       runSubtotal: runSubtotal.toFixed(2),
       multiSurcharge: (surchargePct * 100) + '%',
       multiSurchargeAmount: surcharge.toFixed(2),
